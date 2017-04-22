@@ -32,6 +32,9 @@ test(t => {
     // Emphasis
     ['~~', ''],
     ['~~text~~', 'text'],
+    // Don't remove underscore
+    ['`MY_TITLE`', 'MY_TITLE'],
+    ['MY_TITLE', 'MY_TITLE'],
   ]
 
   testCases.forEach(testCase => {

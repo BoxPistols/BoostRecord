@@ -35,6 +35,8 @@ test(t => {
     // Don't remove underscore
     ['`MY_TITLE`', 'MY_TITLE'],
     ['MY_TITLE', 'MY_TITLE'],
+    // I have no idea for it...
+    ['```test', '`test'],
   ]
 
   testCases.forEach(testCase => {

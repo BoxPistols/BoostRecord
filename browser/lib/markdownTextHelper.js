@@ -7,7 +7,7 @@
  * @return {string}
  */
 export function strip (input) {
-  var output = input
+  let output = input
   try {
     output = output
       .replace(/^([\s\t]*)([\*\-\+]|\d+\.)\s+/gm, '$1')

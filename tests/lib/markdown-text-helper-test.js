@@ -36,7 +36,7 @@ test(t => {
     ['`MY_TITLE`', 'MY_TITLE'],
     ['MY_TITLE', 'MY_TITLE'],
     // I have no idea for it...
-    ['```test', '`test'],
+    ['```test', '`test']
   ]
 
   testCases.forEach(testCase => {

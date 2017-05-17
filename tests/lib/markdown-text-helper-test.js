@@ -40,7 +40,7 @@ test(t => {
   ]
 
   testCases.forEach(testCase => {
-    const [input, expected] = testCase;
-    t.is(markdown.strip(input), expected, `Test for strip() input: ${input} expected: ${expected}`);
+    const [input, expected] = testCase
+    t.is(markdown.strip(input), expected, `Test for strip() input: ${input} expected: ${expected}`)
   })
 })

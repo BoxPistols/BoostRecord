@@ -15,15 +15,15 @@ test(t => {
     [' 1. ', ' '],
     [' 2.  ', ' '],
     [' 10. ', ' '],
-    ["\t- ", "\t"],
+    ['\t- ', '\t'],
     ['- ', ''],
     // Header with using line
-    ["\n==", "\n"],
-    ["\n===", "\n"],
-    ["test\n===", "test\n"],
+    ['\n==', '\n'],
+    ['\n===', '\n'],
+    ['test\n===', 'test\n'],
     // Code block
-    ["```test\n", ''],
-    ["```test\nhoge", 'hoge'],
+    ['```test\n', ''],
+    ['```test\nhoge', 'hoge'],
     // HTML tag
     ['<>', ''],
     ['<test>', 'test'],

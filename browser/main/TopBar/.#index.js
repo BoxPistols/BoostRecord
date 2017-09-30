@@ -1,1 +1,0 @@
-suzuki@suzuki-no-MacBook-Air-2.local.31032

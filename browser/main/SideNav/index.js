@@ -83,23 +83,31 @@ class SideNav extends React.Component {
         </div>
       )
     } else {
-      let tagList = data.tagNoteMap.map((tag, key) => {
-        return key
-      })
       component = (
-        tagList.map(tag => {
-          return (
-            <TagListItem name={tag} handleClickTagButton={this.handleClickTagButton.bind(this)} />
-          )
-        })
+        <div>
+          <p>Tags</p>
+          {this.folderListComponent(data)}
+        </div>
       )
     }
 
     return component
   }
 
+  folderListComponent (data) {
+    let tagList = data.tagNoteMap.map((tag, key) => {
+      return key
+    })
+    return (
+      tagList.map(tag => {
+        return (
+          <TagListItem name={tag} handleClickTagButton={this.handleClickTagButton.bind(this)} />
+        )
+      })
+    )
+  }
+
   handleClickTagButton (e, name) {
-    console.log(name)
     let { router } = this.context
     router.push(`/tags/${name}`)
   }

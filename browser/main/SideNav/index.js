@@ -102,8 +102,11 @@ class SideNav extends React.Component {
     })
     return (
       tagList.map(tag => {
-        return (
-          <TagListItem name={tag} handleClickTagButton={this.handleClickTagButton.bind(this)} />
+        return (<TagListItem
+          name={tag}
+          handleClickTagButton={this.handleClickTagButton.bind(this)}
+          key={tag}
+        />
         )
       })
     )

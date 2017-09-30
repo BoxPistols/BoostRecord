@@ -40,13 +40,11 @@ class SideNav extends React.Component {
   }
 
   handleSwitchFolderButtonClick (e) {
-    console.log('SwitchfolderButton Clicked')
     let { router } = this.context
     router.push('/home')
   }
 
   handleSwitchTagButtonClick (e) {
-    console.log('SwitchTagButton clicked')
     let { router } = this.context
     router.push('/alltags')
   }
@@ -138,16 +136,15 @@ class SideNav extends React.Component {
         tabIndex='1'
         style={style}
       >
-        <div styleName='SwitchModeButtons'>
-          <button onClick={(e) => this.handleSwitchFolderButtonClick(e)}>Folder</button>
-          <button onClick={(e) => this.handleSwitchTagButtonClick(e)}>Tags</button>
-        </div>
         <div styleName='top'>
+          <div styleName='switch-buttons'>
+            <button styleName={location.pathname.match(/tag/) ? 'non-active-button' : 'active-button'} onClick={(e) => this.handleSwitchFolderButtonClick(e)}>Folder</button>
+            <button styleName={location.pathname.match(/tag/) ? 'active-button' : 'non-active-button'} onClick={(e) => this.handleSwitchTagButtonClick(e)}>Tags</button>
+          </div>
           <button styleName='top-menu'
             onClick={(e) => this.handleMenuButtonClick(e)}
           >
             <i className='fa fa-wrench fa-fw' />
-            <span styleName='top-menu-label'>Preferences</span>
           </button>
         </div>
         {this.SideNavComponent(isFolded, isHomeActive, isTrashedActive, isStarredActive, storageList)}

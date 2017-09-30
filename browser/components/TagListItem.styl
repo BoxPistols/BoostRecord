@@ -1,0 +1,34 @@
+.tagList-item
+  display flex
+  width 100%
+  height 26px
+  background-color transparent
+  color $ui-inactive-text-color
+  padding 0
+  margin-bottom 5px
+  text-align left
+  border none
+  overflow ellipsis
+  font-size 12px
+  &:first-child
+    margin-top 0
+  &:hover
+    color $ui-text-color
+    background-color alpha($ui-button--active-backgroundColor, 20%)
+    transition background-color 0.15s
+  &:active
+    color $ui-text-color
+    background-color $ui-button--active-backgroundColor
+
+.tagList-item-name
+  display block
+  flex 1
+  padding 0 25px
+  height 26px
+  line-height 26px
+  border-width 0 0 0 2px
+  border-style solid
+  border-color transparent
+  overflow hidden
+  text-overflow ellipsis
+

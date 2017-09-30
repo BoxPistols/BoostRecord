@@ -12,8 +12,10 @@ import CSSModules from 'browser/lib/CSSModules'
 
 const TagListItem = (({name, handleClickTagButton}) => {
   return (
-    <button onClick={(e) => handleClickTagButton(e, name)}>
-      {`# ${name}`}
+    <button styleName='tagList-item' onClick={(e) => handleClickTagButton(e, name)}>
+      <span styleName='tagList-item-name'>
+        {`# ${name}`}
+      </span>
     </button>
   )
 })

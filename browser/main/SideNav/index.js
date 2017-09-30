@@ -83,8 +83,12 @@ class SideNav extends React.Component {
     } else {
       component = (
         <div>
-          <p>Tags</p>
-          {this.folderListComponent(data)}
+          <div styleName='tag-title'>
+            <p>Tags</p>
+          </div>
+          <div styleName='tagList'>
+            {this.folderListComponent(data)}
+          </div>
         </div>
       )
     }

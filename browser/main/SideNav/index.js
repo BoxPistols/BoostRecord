@@ -53,7 +53,6 @@ class SideNav extends React.Component {
 
   SideNavComponent (isFolded, isHomeActive, isStarredActive, isTrashedActive, storageList) {
     let { location, data } = this.props
-    console.log(data)
     let component
     if (!location.pathname.match('/tags') && !location.pathname.match('/alltags')) {
       component = (
@@ -85,12 +84,12 @@ class SideNav extends React.Component {
       )
     } else {
       let tagList = data.tagNoteMap.map((tag, key) => {
-        return `# ${key}`
+        return key
       })
       component = (
         tagList.map(tag => {
           return (
-            <TagListItem name={tag} handleClickTagButton={(e) => this.handleClickTagButton(e)} />
+            <TagListItem name={tag} handleClickTagButton={this.handleClickTagButton.bind(this)} />
           )
         })
       )
@@ -99,8 +98,10 @@ class SideNav extends React.Component {
     return component
   }
 
-  handleClickTagButton (e) {
-    console.log('TAGBUTTON!!!')
+  handleClickTagButton (e, name) {
+    console.log(name)
+    let { router } = this.context
+    router.push(`/tags/${name}`)
   }
 
   render () {

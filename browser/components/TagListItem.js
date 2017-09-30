@@ -10,7 +10,7 @@ import CSSModules from 'browser/lib/CSSModules'
 * @param (Function) handleClickTagButton
 */
 
-const TagListItem = (({name, handleClickTagButton}) => {
+const TagListItem = ({name, handleClickTagButton}) => {
   return (
     <button styleName='tagList-item' onClick={(e) => handleClickTagButton(e, name)}>
       <span styleName='tagList-item-name'>
@@ -18,7 +18,7 @@ const TagListItem = (({name, handleClickTagButton}) => {
       </span>
     </button>
   )
-})
+}
 
 export default CSSModules(TagListItem, styles)
 

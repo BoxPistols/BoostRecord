@@ -5,6 +5,7 @@ import { openModal } from 'browser/main/lib/modal'
 import PreferencesModal from '../modals/PreferencesModal'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import StorageItem from './StorageItem'
+import TagListItem from 'browser/components/TagListItem'
 import SideNavFilter from 'browser/components/SideNavFilter'
 
 class SideNav extends React.Component {
@@ -83,8 +84,15 @@ class SideNav extends React.Component {
         </div>
       )
     } else {
+      let tagList = data.tagNoteMap.map((tag, key) => {
+        return `# ${key}`
+      })
       component = (
-        <h1>TAG_AREA</h1>
+        tagList.map(tag => {
+          return (
+            <TagListItem name={tag} />
+          )
+        })
       )
     }
 

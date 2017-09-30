@@ -65,7 +65,11 @@ ReactDOM.render((
         <Route path='starred' />
         <Route path='searched' />
         <Route path='trashed' />
-        <Route path='tag' />
+        <Route path='alltags' />
+        <Route path='tags'>
+          <IndexRedirect to='/alltags' />
+          <Route path=':tagname' />
+        </Route>
         <Route path='storages'>
           <IndexRedirect to='/home' />
           <Route path=':storageKey'>

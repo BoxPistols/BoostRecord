@@ -47,7 +47,48 @@ class SideNav extends React.Component {
   handleSwitchTagButtonClick (e) {
     console.log('SwitchTagButton clicked')
     let { router } = this.context
-    router.push('/tag')
+    router.push('/alltags')
+  }
+
+  SideNavComponent (isFolded, isHomeActive, isStarredActive, isTrashedActive, storageList) {
+    let { location, data } = this.props
+    console.log(data)
+    let component
+    if (!location.pathname.match('/tags') && !location.pathname.match('/alltags')) {
+      component = (
+        <div>
+          <SideNavFilter
+            isFolded={isFolded}
+            isHomeActive={isHomeActive}
+            handleAllNotesButtonClick={(e) => this.handleHomeButtonClick(e)}
+            isStarredActive={isStarredActive}
+            isTrashedActive={isTrashedActive}
+            handleStarredButtonClick={(e) => this.handleStarredButtonClick(e)}
+            handleTrashedButtonClick={(e) => this.handleTrashedButtonClick(e)}
+          />
+
+          <div styleName='storageList'>
+            {storageList.length > 0 ? storageList : (
+              <div styleName='storageList-empty'>No storage mount.</div>
+            )}
+          </div>
+          <button styleName='navToggle'
+            onClick={(e) => this.handleToggleButtonClick(e)}
+          >
+            {isFolded
+              ? <i className='fa fa-angle-double-right' />
+              : <i className='fa fa-angle-double-left' />
+            }
+          </button>
+        </div>
+      )
+    } else {
+      component = (
+        <h1>TAG_AREA</h1>
+      )
+    }
+
+    return component
   }
 
   render () {
@@ -78,7 +119,7 @@ class SideNav extends React.Component {
       >
         <div styleName='SwitchModeButtons'>
           <button onClick={(e) => this.handleSwitchFolderButtonClick(e)}>Folder</button>
-          <button onClick={(e) => this.handleSwitchTagButtonClick(e)}>Tag</button>
+          <button onClick={(e) => this.handleSwitchTagButtonClick(e)}>Tags</button>
         </div>
         <div styleName='top'>
           <button styleName='top-menu'
@@ -88,30 +129,7 @@ class SideNav extends React.Component {
             <span styleName='top-menu-label'>Preferences</span>
           </button>
         </div>
-
-        <SideNavFilter
-          isFolded={isFolded}
-          isHomeActive={isHomeActive}
-          handleAllNotesButtonClick={(e) => this.handleHomeButtonClick(e)}
-          isStarredActive={isStarredActive}
-          isTrashedActive={isTrashedActive}
-          handleStarredButtonClick={(e) => this.handleStarredButtonClick(e)}
-          handleTrashedButtonClick={(e) => this.handleTrashedButtonClick(e)}
-        />
-
-        <div styleName='storageList'>
-          {storageList.length > 0 ? storageList : (
-            <div styleName='storageList-empty'>No storage mount.</div>
-          )}
-        </div>
-        <button styleName='navToggle'
-          onClick={(e) => this.handleToggleButtonClick(e)}
-        >
-          {isFolded
-            ? <i className='fa fa-angle-double-right' />
-            : <i className='fa fa-angle-double-left' />
-          }
-        </button>
+        {this.SideNavComponent(isFolded, isHomeActive, isTrashedActive, isStarredActive, storageList)}
       </div>
     )
   }

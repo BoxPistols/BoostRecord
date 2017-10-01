@@ -196,6 +196,7 @@ class NoteDetail extends React.Component {
         lineNumber={config.preview.lineNumber}
         indentSize={editorIndentSize}
         value={note.content}
+        showCopyNotification={config.ui.showCopyNotification}
         storagePath={storage.path}
       />
     )

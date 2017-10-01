@@ -36,6 +36,7 @@ class UiTab extends React.Component {
     const newConfig = {
       ui: {
         theme: this.refs.uiTheme.value,
+        showCopyNotification: this.refs.showCopyNotification.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
           : false
@@ -101,6 +102,16 @@ class UiTab extends React.Component {
                 <option value='dark'>Dark</option>
               </select>
             </div>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showCopyNotification}
+                ref='showCopyNotification'
+                type='checkbox'
+              />&nbsp;
+              Show &quot;Saved to Clipboard&quot; notification when copying
+            </label>
           </div>
           {
             global.process.platform === 'win32'

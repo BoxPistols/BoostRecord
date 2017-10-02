@@ -87,7 +87,7 @@ class SideNav extends React.Component {
             <p>Tags</p>
           </div>
           <div styleName='tagList'>
-            {this.folderListComponent(data)}
+            {this.tagListComponent(data)}
           </div>
         </div>
       )
@@ -96,7 +96,7 @@ class SideNav extends React.Component {
     return component
   }
 
-  folderListComponent (data) {
+  tagListComponent (data) {
     let tagList = data.tagNoteMap.map((tag, key) => {
       return key
     })

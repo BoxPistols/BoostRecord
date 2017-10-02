@@ -7,12 +7,12 @@ import CSSModules from 'browser/lib/CSSModules'
 
 /**
 * @param {string} name
-* @param {Function} handleClickTagButton
+* @param {Function} handleClickTagListItem
 */
 
-const TagListItem = ({name, handleClickTagButton}) => {
+const TagListItem = ({name, handleClickTagListItem}) => {
   return (
-    <button styleName='tagList-item' onClick={(e) => handleClickTagButton(e, name)}>
+    <button styleName='tagList-item' onClick={(e) => handleClickTagListItem(e, name)}>
       <span styleName='tagList-item-name'>
         {`# ${name}`}
       </span>

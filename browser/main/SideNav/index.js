@@ -39,12 +39,12 @@ class SideNav extends React.Component {
     router.push('/trashed')
   }
 
-  handleSwitchFoldersButtonClick (e) {
+  handleSwitchFoldersButtonClick () {
     const { router } = this.context
     router.push('/home')
   }
 
-  handleSwitchTagsButtonClick (e) {
+  handleSwitchTagsButtonClick () {
     const { router } = this.context
     router.push('/alltags')
   }
@@ -145,8 +145,8 @@ class SideNav extends React.Component {
       >
         <div styleName='top'>
           <div styleName='switch-buttons'>
-            <button styleName={location.pathname.match(/tag/) ? 'non-active-button' : 'active-button'} onClick={(e) => this.handleSwitchFoldersButtonClick(e)}>Folders</button>
-            <button styleName={location.pathname.match(/tag/) ? 'active-button' : 'non-active-button'} onClick={(e) => this.handleSwitchTagsButtonClick(e)}>Tags</button>
+            <button styleName={location.pathname.match(/tag/) ? 'non-active-button' : 'active-button'} onClick={this.handleSwitchFoldersButtonClick.bind(this)}>Folders</button>
+            <button styleName={location.pathname.match(/tag/) ? 'active-button' : 'non-active-button'} onClick={this.handleSwitchTagsButtonClick.bind(this)}>Tags</button>
           </div>
           <button styleName='top-menu'
             onClick={(e) => this.handleMenuButtonClick(e)}

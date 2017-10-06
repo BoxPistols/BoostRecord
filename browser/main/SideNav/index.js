@@ -52,6 +52,8 @@ class SideNav extends React.Component {
   SideNavComponent (isFolded, isHomeActive, isStarredActive, isTrashedActive, storageList) {
     let { location, data } = this.props
     let component
+
+    //TagsMode is not selected
     if (!location.pathname.match('/tags') && !location.pathname.match('/alltags')) {
       component = (
         <div>

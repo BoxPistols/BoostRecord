@@ -10,15 +10,13 @@ import CSSModules from 'browser/lib/CSSModules'
 * @param {Function} handleClickTagListItem
 */
 
-const TagListItem = ({name, handleClickTagListItem}) => {
-  return (
+const TagListItem = ({name, handleClickTagListItem}) => (
     <button styleName='tagList-item' onClick={(e) => handleClickTagListItem(e, name)}>
       <span styleName='tagList-item-name'>
         {`# ${name}`}
       </span>
     </button>
-  )
-}
+);
 
 TagListItem.propTypes = {
   name: PropTypes.string.isRequired,

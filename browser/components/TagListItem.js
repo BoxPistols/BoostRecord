@@ -20,5 +20,9 @@ const TagListItem = ({name, handleClickTagListItem}) => {
   )
 }
 
-export default CSSModules(TagListItem, styles)
+TagListItem.propTypes = {
+  name: PropTypes.string.isRequired,
+  handleClickTagListItem: PropTypes.func.isRequired
+}
 
+export default CSSModules(TagListItem, styles)

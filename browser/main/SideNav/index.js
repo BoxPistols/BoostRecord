@@ -103,14 +103,13 @@ class SideNav extends React.Component {
       return key
     })
     return (
-      tagList.map(tag => {
-        return (<TagListItem
+      tagList.map(tag => (
+        <TagListItem
           name={tag}
           handleClickTagListItem={this.handleClickTagListItem.bind(this)}
           key={tag}
         />
-        )
-      })
+      ))
     )
   }
 

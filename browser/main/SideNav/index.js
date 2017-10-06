@@ -113,7 +113,7 @@ class SideNav extends React.Component {
     )
   }
 
-  handleClickTagListItem (e, name) {
+  handleClickTagListItem (name) {
     const { router } = this.context
     router.push(`/tags/${name}`)
   }

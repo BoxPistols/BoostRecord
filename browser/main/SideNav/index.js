@@ -8,6 +8,7 @@ import StorageItem from './StorageItem'
 import TagListItem from 'browser/components/TagListItem'
 import SideNavFilter from 'browser/components/SideNavFilter'
 import StorageList from 'browser/components/StorageList'
+import NavToggleButton from 'browser/components/NavToggleButton'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
@@ -69,14 +70,7 @@ class SideNav extends React.Component {
           />
 
           <StorageList storageList={storageList} />
-          <button styleName='navToggle'
-            onClick={(e) => this.handleToggleButtonClick(e)}
-          >
-            {isFolded
-              ? <i className='fa fa-angle-double-right' />
-              : <i className='fa fa-angle-double-left' />
-            }
-          </button>
+          <NavToggleButton isFolded={isFolded} handleToggleButtonClick={this.handleToggleButtonClick.bind(this)} />
         </div>
       )
     } else {

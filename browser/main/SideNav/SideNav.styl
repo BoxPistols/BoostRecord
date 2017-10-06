@@ -37,18 +37,6 @@
   top 80px
   overflow-y auto
 
-.navToggle
-  navButtonColor()
-  display block
-  position absolute
-  right 5px
-  bottom 5px
-  border-radius 16.5px
-  height 34px
-  width 34px
-  line-height 32px
-  padding 0
-
 .root--folded
   @extend .root
   width 44px
@@ -116,9 +104,3 @@ body[data-theme="dark"]
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
     &:hover
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-
-  .navToggle
-    &:hover
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-      transition 0.15s
-      color $ui-dark-text-color

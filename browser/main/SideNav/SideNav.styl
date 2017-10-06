@@ -31,18 +31,6 @@
   margin-left 5px
   overflow ellipsis
 
-.storageList
-  absolute left right
-  bottom 37px
-  top 160px
-  overflow-y auto
-
-.storageList-empty
-  padding 0 10px
-  margin-top 15px
-  line-height 24px
-  color $ui-inactive-text-color
-
 .tagList
   absolute left right
   bottom 37px
@@ -64,9 +52,6 @@
 .root--folded
   @extend .root
   width 44px
-  .storageList-empty
-    white-space nowrap
-    transform rotate(90deg)
   .top-menu
     width 44px - 1
     text-align center
@@ -131,9 +116,6 @@ body[data-theme="dark"]
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
     &:hover
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-
-  .storageList-empty
-    color $ui-dark-inactive-text-color
 
   .navToggle
     &:hover

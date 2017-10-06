@@ -7,6 +7,7 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 import StorageItem from './StorageItem'
 import TagListItem from 'browser/components/TagListItem'
 import SideNavFilter from 'browser/components/SideNavFilter'
+import StorageList from 'browser/components/StorageList'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
@@ -67,11 +68,7 @@ class SideNav extends React.Component {
             handleTrashedButtonClick={(e) => this.handleTrashedButtonClick(e)}
           />
 
-          <div styleName='storageList'>
-            {storageList.length > 0 ? storageList : (
-              <div styleName='storageList-empty'>No storage mount.</div>
-            )}
-          </div>
+          <StorageList storageList={storageList} />
           <button styleName='navToggle'
             onClick={(e) => this.handleToggleButtonClick(e)}
           >

@@ -98,7 +98,8 @@ class SideNav extends React.Component {
     return component
   }
 
-  tagListComponent (data) {
+  tagListComponent () {
+    const { data } = this.props
     let tagList = data.tagNoteMap.map((tag, key) => {
       return key
     })

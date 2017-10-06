@@ -138,6 +138,7 @@ class SideNav extends React.Component {
     })
     let style = {}
     if (!isFolded) style.width = this.props.width
+    const isTagActive = location.pathname.match(/tag/)
     return (
       <div className='SideNav'
         styleName={isFolded ? 'root--folded' : 'root'}
@@ -146,8 +147,8 @@ class SideNav extends React.Component {
       >
         <div styleName='top'>
           <div styleName='switch-buttons'>
-            <button styleName={location.pathname.match(/tag/) ? 'non-active-button' : 'active-button'} onClick={this.handleSwitchFoldersButtonClick.bind(this)}>Folders</button>
-            <button styleName={location.pathname.match(/tag/) ? 'active-button' : 'non-active-button'} onClick={this.handleSwitchTagsButtonClick.bind(this)}>Tags</button>
+            <button styleName={isTagActive ? 'non-active-button' : 'active-button'} onClick={this.handleSwitchFoldersButtonClick.bind(this)}>Folders</button>
+            <button styleName={isTagActive ? 'active-button' : 'non-active-button'} onClick={this.handleSwitchTagsButtonClick.bind(this)}>Tags</button>
           </div>
           <button styleName='top-menu'
             onClick={(e) => this.handleMenuButtonClick(e)}

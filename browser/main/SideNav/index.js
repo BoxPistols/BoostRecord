@@ -40,12 +40,12 @@ class SideNav extends React.Component {
   }
 
   handleSwitchFoldersButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/home')
   }
 
   handleSwitchTagsButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/alltags')
   }
 
@@ -113,7 +113,7 @@ class SideNav extends React.Component {
   }
 
   handleClickTagListItem (e, name) {
-    let { router } = this.context
+    const { router } = this.context
     router.push(`/tags/${name}`)
   }
 

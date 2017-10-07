@@ -18,6 +18,6 @@ const StorageList = ({storageList}) => (
 )
 
 StorageList.propTypes = {
-  storgaeList: PropTypes.array.isRequired
+  storgaeList: PropTypes.arrayOf.isRequired
 }
 export default CSSModules(StorageList, styles)

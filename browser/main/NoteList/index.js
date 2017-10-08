@@ -338,6 +338,17 @@ class NoteList extends React.Component {
     e.dataTransfer.setData('note', noteData)
   }
 
+  handleNoteContextMenu (e, uniqueKey) {
+    this.handleNoteClick(e, uniqueKey)
+
+    let menu = new Menu()
+    menu.append(new MenuItem({
+      label: 'Delete Note',
+      click: () => ee.emit('detail:delete')
+    }))
+    menu.popup()
+  }
+
   importFromFile () {
     const { dispatch, location } = this.props
 
@@ -432,6 +443,7 @@ class NoteList extends React.Component {
               note={note}
               dateDisplay={dateDisplay}
               key={key}
+              handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
               handleNoteClick={this.handleNoteClick.bind(this)}
               handleDragStart={this.handleDragStart.bind(this)}
             />

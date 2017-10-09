@@ -29,7 +29,9 @@ function recordDynamicCustomEvent (type) {
   try {
     mobileAnalyticsClient.recordEvent(type)
   } catch (analyticsError) {
-    console.error(analyticsError)
+    if (analyticsError instanceof ReferenceError) {
+      console.log(analyticsError.name + ': ' + analyticsError.message)
+    }
   }
 }
 
@@ -40,7 +42,9 @@ function recordStaticCustomEvent () {
       uiColorTheme: ConfigManager.default.get().ui.theme
     })
   } catch (analyticsError) {
-    console.error(analyticsError)
+    if (analyticsError instanceof ReferenceError) {
+      console.log(analyticsError.name + ': ' + analyticsError.message)
+    }
   }
 }
 

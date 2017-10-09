@@ -95,7 +95,7 @@ class SideNav extends React.Component {
   }
 
   tagListComponent () {
-    const { data } = this.props
+    const { data, location } = this.props
     let tagList = data.tagNoteMap.map((tag, key) => {
       return key
     })
@@ -104,6 +104,7 @@ class SideNav extends React.Component {
         <TagListItem
           name={tag}
           handleClickTagListItem={this.handleClickTagListItem.bind(this)}
+          isActive={!!location.pathname.match(tag)}
           key={tag}
         />
       ))

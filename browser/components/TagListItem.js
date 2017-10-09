@@ -8,10 +8,11 @@ import CSSModules from 'browser/lib/CSSModules'
 /**
 * @param {string} name
 * @param {Function} handleClickTagListItem
+* @param {bool} isActive
 */
 
-const TagListItem = ({name, handleClickTagListItem}) => (
-  <button styleName='tagList-item' onClick={() => handleClickTagListItem(name)}>
+const TagListItem = ({name, handleClickTagListItem, isActive}) => (
+  <button styleName={isActive? 'tagList-item-active' : 'tagList-item'} onClick={() => handleClickTagListItem(name)}>
     <span styleName='tagList-item-name'>
       {`# ${name}`}
     </span>

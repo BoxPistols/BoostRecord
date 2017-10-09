@@ -61,7 +61,7 @@ class UiTab extends React.Component {
     const newCodemirrorTheme = this.refs.editorTheme.value
 
     if (newCodemirrorTheme !== codemirrorTheme) {
-      checkHighLight.setAttribute('href', `../node_modules/codemirror/theme/${newCodemirrorTheme}.css`)
+      checkHighLight.setAttribute('href', `../node_modules/codemirror/theme/${newCodemirrorTheme.split(" ")[0]}.css`)
     }
 
     this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme })

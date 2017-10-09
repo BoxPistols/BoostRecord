@@ -51,8 +51,13 @@ class SideNav extends React.Component {
     router.push('/alltags')
   }
 
-  SideNavComponent (isFolded, isHomeActive, isStarredActive, isTrashedActive, storageList) {
+  SideNavComponent (isFolded, storageList) {
     let { location, data } = this.props
+
+    const isHomeActive = !!location.pathname.match(/^\/home$/)
+    const isStarredActive = !!location.pathname.match(/^\/starred$/)
+    const isTrashedActive = !!location.pathname.match(/^\/trashed$/)
+
     let component
 
     // TagsMode is not selected
@@ -114,9 +119,6 @@ class SideNav extends React.Component {
     let { data, location, config, dispatch } = this.props
 
     let isFolded = config.isSideNavFolded
-    let isHomeActive = !!location.pathname.match(/^\/home$/)
-    let isStarredActive = !!location.pathname.match(/^\/starred$/)
-    let isTrashedActive = !!location.pathname.match(/^\/trashed$/)
 
     let storageList = data.storageMap.map((storage, key) => {
       return <StorageItem
@@ -148,7 +150,7 @@ class SideNav extends React.Component {
             <i className='fa fa-wrench fa-fw' />
           </button>
         </div>
-        {this.SideNavComponent(isFolded, isHomeActive, isTrashedActive, isStarredActive, storageList)}
+        {this.SideNavComponent(isFolded, storageList)}
       </div>
     )
   }

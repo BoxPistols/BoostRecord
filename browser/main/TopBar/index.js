@@ -44,11 +44,12 @@ class TopBar extends React.Component {
       isIME: false
     })
 
+    // When the key is an alphabet, del, enter or ctr
     if (e.keyCode <= 90) {
       this.setState({
-        isAlphabet: true,
-        isIME: false
+        isAlphabet: true
       })
+    // When the key is an IME input (Japanese, Chinese)
     } else if (e.keyCode === 229) {
       this.setState({
         isIME: true
@@ -58,6 +59,12 @@ class TopBar extends React.Component {
 
 
   handleKeyUp (e) {
+    // reset states
+    this.setState({
+      isConfirmTranslation: false
+    })
+
+    // When the key is translation confirmation (Enter)
     if (this.state.isIME && e.keyCode === 13) {
       this.setState({
         isConfirmTranslation: true
@@ -66,10 +73,6 @@ class TopBar extends React.Component {
       router.push('/searched')
       this.setState({
         search: this.refs.searchInput.value
-      })
-    } else {
-      this.setState({
-        isConfirmTranslation: false
       })
     }
   }

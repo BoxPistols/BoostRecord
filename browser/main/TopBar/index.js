@@ -57,7 +57,6 @@ class TopBar extends React.Component {
     }
   }
 
-
   handleKeyUp (e) {
     // reset states
     this.setState({

@@ -18,7 +18,10 @@ class TopBar extends React.Component {
     this.state = {
       search: '',
       searchOptions: [],
-      isSearching: false
+      isSearching: false,
+      isAlphabet: false,
+      isIME: false,
+      isConfirmTranslation: false
     }
 
     this.focusSearchHandler = () => {
@@ -34,9 +37,50 @@ class TopBar extends React.Component {
     ee.off('top:focus-search', this.focusSearchHandler)
   }
 
+  handleKeyDown (e) {
+    // reset states
+    this.setState({
+      isAlphabet: false,
+      isIME: false
+    })
+
+    if (e.keyCode <= 90) {
+      this.setState({
+        isAlphabet: true,
+        isIME: false
+      })
+    } else if (e.keyCode === 229) {
+      this.setState({
+        isIME: true
+      })
+    }
+  }
+
+
+  handleKeyUp (e) {
+    if (this.state.isIME && e.keyCode === 13) {
+      this.setState({
+        isConfirmTranslation: true
+      })
+      let { router } = this.context
+      router.push('/searched')
+      this.setState({
+        search: this.refs.searchInput.value
+      })
+    } else {
+      this.setState({
+        isConfirmTranslation: false
+      })
+    }
+  }
+
   handleSearchChange (e) {
-    let { router } = this.context
-    router.push('/searched')
+    if (this.state.isAlphabet || this.state.isConfirmTranslation) {
+      let { router } = this.context
+      router.push('/searched')
+    } else {
+      e.preventDefault()
+    }
     this.setState({
       search: this.refs.searchInput.value
     })
@@ -93,6 +137,8 @@ class TopBar extends React.Component {
                 ref='searchInput'
                 value={this.state.search}
                 onChange={(e) => this.handleSearchChange(e)}
+                onKeyDown={(e) => this.handleKeyDown(e)}
+                onKeyUp={(e) => this.handleKeyUp(e)}
                 placeholder='Search'
                 type='text'
                 className='searchInput'

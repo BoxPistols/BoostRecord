@@ -51,8 +51,9 @@ class NoteList extends React.Component {
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
 
     this.state = {
-      contextNotes: []
     }
+
+    this.contextNotes = []
   }
 
   componentDidMount () {
@@ -91,7 +92,8 @@ class NoteList extends React.Component {
 
     if (this.notes.length > 0 && location.query.key == null) {
       let { router } = this.context
-      if (!location.pathname.match(/\/searched/)) this.setState({contextNotes: this.getContextNotes()})
+      if (!location.pathname.match(/\/searched/)) this.contextNotes = this.getContextNotes()
+      console.log(this.contextNotes)
       router.replace({
         pathname: location.pathname,
         query: {
@@ -236,6 +238,7 @@ class NoteList extends React.Component {
     let { router } = this.context
 
     if (location.pathname.match(/\/home/)) {
+      this.contextNotes = data.noteMap.map((note) => note)
       return data.noteMap.map((note) => note)
     }
 
@@ -247,9 +250,9 @@ class NoteList extends React.Component {
     if (location.pathname.match(/\/searched/)) {
       const searchInputText = document.getElementsByClassName('searchInput')[0].value
       if (searchInputText === '') {
-        return this.state.contextNotes
+        return this.contextNotes
       }
-      return searchFromNotes(this.state.contextNotes, searchInputText)
+      return searchFromNotes(this.contextNotes, searchInputText)
     }
 
     if (location.pathname.match(/\/trashed/)) {

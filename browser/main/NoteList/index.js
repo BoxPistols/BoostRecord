@@ -292,8 +292,9 @@ class NoteList extends React.Component {
     if (storage == null) return []
 
     let folder = _.find(storage.folders, {key: folderKey})
+    if (folder === undefined) return unorderedNotes
     const pinnedNotes = unorderedNotes.filter((el) => {
-      return folder.pinnedNotes && folder.pinnedNotes.includes(el.key)
+      return el.isPinned
     })
 
     return pinnedNotes.concat(unorderedNotes)
@@ -430,9 +431,16 @@ class NoteList extends React.Component {
   }
 
   handleNoteContextMenu (e, uniqueKey) {
+    let targetIndex = _.findIndex(this.notes, (note) => {
+      return note != null && uniqueKey === `${note.storage}-${note.key}`
+    })
+    let note = this.notes[targetIndex]
+    console.log(note)
+    const label = note.isPinned ? 'Remove pin' : 'Pin to Top'
+
     let menu = new Menu()
     menu.append(new MenuItem({
-      label: 'Pin to Top',
+      label: label,
       click: (e) => this.handlePinToTop(e, uniqueKey)
     }))
     menu.popup()
@@ -464,14 +472,20 @@ class NoteList extends React.Component {
       })
 
     let targetIndex = _.findIndex(this.notes, (note) => {
-      return note != null && note.storage + '-' + note.key === location.query.key
+      return note != null && note.storage + '-' + note.key === uniqueKey
     })
     let note = this.notes[targetIndex]
+    if (note.isPinned) {
+      note.isPinned = false
+      console.log('unpinned')
+    } else {
+      note.isPinned = true
+      console.log('pinned')
+    }
 
     dataApi
       .updateNote(note.storage, note.key, note)
       .then((note) => {
-        note.isPinned = true
         store.dispatch({
           type: 'UPDATE_NOTE',
           note: note

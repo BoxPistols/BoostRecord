@@ -51,6 +51,7 @@ class NoteList extends React.Component {
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
 
     this.state = {
+      contextNotes: []
     }
   }
 
@@ -90,6 +91,7 @@ class NoteList extends React.Component {
 
     if (this.notes.length > 0 && location.query.key == null) {
       let { router } = this.context
+      if (!location.pathname.match(/\/searched/)) this.setState({contextNotes: this.getContextNotes()})
       router.replace({
         pathname: location.pathname,
         query: {
@@ -245,9 +247,9 @@ class NoteList extends React.Component {
     if (location.pathname.match(/\/searched/)) {
       const searchInputText = document.getElementsByClassName('searchInput')[0].value
       if (searchInputText === '') {
-        router.push('/home')
+        return this.state.contextNotes
       }
-      return searchFromNotes(this.notes, searchInputText)
+      return searchFromNotes(this.state.contextNotes, searchInputText)
     }
 
     if (location.pathname.match(/\/trashed/)) {
@@ -255,6 +257,12 @@ class NoteList extends React.Component {
         .map((uniqueKey) => data.noteMap.get(uniqueKey))
     }
 
+    return this.getContextNotes()
+  }
+
+  // get notes in a specific folder
+  getContextNotes () {
+    let { data, params } = this.props
     let storageKey = params.storageKey
     let folderKey = params.folderKey
     let storage = data.storageMap.get(storageKey)

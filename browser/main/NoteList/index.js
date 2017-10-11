@@ -293,8 +293,8 @@ class NoteList extends React.Component {
 
     let folder = _.find(storage.folders, {key: folderKey})
     if (folder === undefined) return unorderedNotes
-    const pinnedNotes = unorderedNotes.filter((el) => {
-      return el.isPinned
+    const pinnedNotes = unorderedNotes.filter((note) => {
+      return note.isPinned
     })
 
     return pinnedNotes.concat(unorderedNotes)

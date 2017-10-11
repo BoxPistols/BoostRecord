@@ -45,11 +45,6 @@ function updateFolder (storageKey, folderKey, input) {
       targetFolder.name = input.name
       targetFolder.color = input.color
       // For compativility
-      if (targetFolder.pinnedNotes) {
-        targetFolder.pinnedNotes.push(input.pinnedNote)
-      } else {
-        targetFolder.pinnedNotes = [input.pinnedNote]
-      }
 
       CSON.writeFileSync(path.join(storage.path, 'boostnote.json'), _.pick(storage, ['folders', 'version']))
 

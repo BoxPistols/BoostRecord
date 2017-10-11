@@ -44,8 +44,7 @@ function createFolder (storageKey, input) {
       let newFolder = {
         key,
         color: input.color,
-        name: input.name,
-        pinnedNotes: []
+        name: input.name
       }
 
       storage.folders.push(newFolder)

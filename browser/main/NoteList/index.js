@@ -284,7 +284,7 @@ class NoteList extends React.Component {
     return folderNoteKeyList.map((uniqueKey) => data.noteMap.get(uniqueKey))
   }
 
-  sortByPinn (unorderedNotes) {
+  sortByPin (unorderedNotes) {
     const { data, params } = this.props
     let storageKey = params.storageKey
     let folderKey = params.folderKey
@@ -494,7 +494,7 @@ class NoteList extends React.Component {
       ? sortByAlphabetical
       : sortByUpdatedAt
     const sortedNotes = this.getNotes().sort(sortFunc)
-    this.notes = notes = this.sortByPinn(sortedNotes)
+    this.notes = notes = this.sortByPin(sortedNotes)
       .filter((note) => {
         // this is for the trash box
         if (note.isTrashed !== true || location.pathname === '/trashed') return true

@@ -435,7 +435,6 @@ class NoteList extends React.Component {
       return note != null && uniqueKey === `${note.storage}-${note.key}`
     })
     let note = this.notes[targetIndex]
-    console.log(note)
     const label = note.isPinned ? 'Remove pin' : 'Pin to Top'
 
     let menu = new Menu()
@@ -475,13 +474,7 @@ class NoteList extends React.Component {
       return note != null && note.storage + '-' + note.key === uniqueKey
     })
     let note = this.notes[targetIndex]
-    if (note.isPinned) {
-      note.isPinned = false
-      console.log('unpinned')
-    } else {
-      note.isPinned = true
-      console.log('pinned')
-    }
+    note.isPinned = note.isPinned ? false : true
 
     dataApi
       .updateNote(note.storage, note.key, note)

@@ -58,6 +58,7 @@ class TopBar extends React.Component {
   }
 
   handleKeyUp (e) {
+    const { router } = this.context
     // reset states
     this.setState({
       isConfirmTranslation: false
@@ -68,7 +69,6 @@ class TopBar extends React.Component {
       this.setState({
         isConfirmTranslation: true
       })
-      let { router } = this.context
       router.push('/searched')
       this.setState({
         search: this.refs.searchInput.value
@@ -77,8 +77,8 @@ class TopBar extends React.Component {
   }
 
   handleSearchChange (e) {
+    const { router } = this.context
     if (this.state.isAlphabet || this.state.isConfirmTranslation) {
-      let { router } = this.context
       router.push('/searched')
     } else {
       e.preventDefault()

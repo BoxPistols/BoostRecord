@@ -93,7 +93,6 @@ class NoteList extends React.Component {
     if (this.notes.length > 0 && location.query.key == null) {
       let { router } = this.context
       if (!location.pathname.match(/\/searched/)) this.contextNotes = this.getContextNotes()
-      console.log(this.contextNotes)
       router.replace({
         pathname: location.pathname,
         query: {
@@ -266,28 +265,20 @@ class NoteList extends React.Component {
 
   // get notes in the current folder
   getContextNotes () {
-    let { data, params } = this.props
-    let storageKey = params.storageKey
-    let folderKey = params.folderKey
-    let storage = data.storageMap.get(storageKey)
-    if (storage == null) return []
+    const { data, params } = this.props
+    const storageKey = params.storageKey
+    const folderKey = params.folderKey
+    const storage = data.storageMap.get(storageKey)
+    if (storage === undefined) return []
 
-    let folder = _.find(storage.folders, {key: folderKey})
-    if (folder == null) {
-      let storageNoteSet = data.storageNoteMap
-        .get(storage.key)
-      if (storageNoteSet == null) storageNoteSet = []
-      return storageNoteSet
-        .map((uniqueKey) => data.noteMap.get(uniqueKey))
+    const folder = _.find(storage.folders, {key: folderKey})
+    if (folder === undefined) {
+      const storageNoteSet = data.storageNoteMap.get(storage.key) || []
+      return storageNoteSet.map((uniqueKey) => data.noteMap.get(uniqueKey))
     }
 
-    let folderNoteKeyList = data.folderNoteMap
-      .get(storage.key + '-' + folder.key)
-
-    return folderNoteKeyList != null
-      ? folderNoteKeyList
-        .map((uniqueKey) => data.noteMap.get(uniqueKey))
-      : []
+    const folderNoteKeyList = data.folderNoteMap.get(`${storage.key}-${folder.key}`) || []
+    return folderNoteKeyList.map((uniqueKey) => data.noteMap.get(uniqueKey))
   }
 
   handleNoteClick (e, uniqueKey) {

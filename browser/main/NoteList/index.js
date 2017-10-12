@@ -289,7 +289,7 @@ class NoteList extends React.Component {
     let storageKey = params.storageKey
     let folderKey = params.folderKey
     let storage = data.storageMap.get(storageKey)
-    if (location.pathname.match(/\/home|\/starred|\/trash/)){
+    if (location.pathname.match(/\/home|\/starred|\/trash/)) {
       return unorderedNotes
     }
     if (storage === undefined) return []
@@ -441,14 +441,13 @@ class NoteList extends React.Component {
     let note = this.notes[targetIndex]
     const label = note.isPinned ? 'Remove pin' : 'Pin to Top'
 
-
     let menu = new Menu()
     menu.append(new MenuItem({
       label: label,
       click: (e) => this.handlePinToTop(e, uniqueKey)
     }))
 
-    if (!location.pathname.match(/\/home|\/starred|\/trash/)){
+    if (!location.pathname.match(/\/home|\/starred|\/trash/)) {
       menu.popup()
     }
   }
@@ -482,7 +481,7 @@ class NoteList extends React.Component {
       return note != null && note.storage + '-' + note.key === uniqueKey
     })
     let note = this.notes[targetIndex]
-    note.isPinned = note.isPinned ? false : true
+    note.isPinned = !note.isPinned
 
     dataApi
       .updateNote(note.storage, note.key, note)

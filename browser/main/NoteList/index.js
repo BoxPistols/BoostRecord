@@ -243,8 +243,9 @@ class NoteList extends React.Component {
     }
 
     if (location.pathname.match(/\/starred/)) {
-      return data.starredSet.toJS()
-        .map((uniqueKey) => data.noteMap.get(uniqueKey))
+      const starredNotes = data.starredSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
+      this.contextNotes = starredNotes
+      return starredNotes
     }
 
     if (location.pathname.match(/\/searched/)) {
@@ -256,8 +257,9 @@ class NoteList extends React.Component {
     }
 
     if (location.pathname.match(/\/trashed/)) {
-      return data.trashedSet.toJS()
-        .map((uniqueKey) => data.noteMap.get(uniqueKey))
+      const trashedNotes = data.trashedSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
+      this.contextNotes = trashedNotes
+      return trashedNotes
     }
 
     return this.getContextNotes()

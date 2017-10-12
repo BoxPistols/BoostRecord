@@ -64,8 +64,8 @@ class TopBar extends React.Component {
       isConfirmTranslation: false
     })
 
-    // When the key is translation confirmation (Enter)
-    if (this.state.isIME && e.keyCode === 13) {
+    // When the key is translation confirmation (Enter, Space)
+    if (this.state.isIME && (e.keyCode === 32 || e.keyCode === 13)) {
       this.setState({
         isConfirmTranslation: true
       })

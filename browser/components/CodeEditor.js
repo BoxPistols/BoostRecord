@@ -4,6 +4,7 @@ import CodeMirror from 'codemirror'
 import path from 'path'
 import copyImage from 'browser/main/lib/dataApi/copyImage'
 import { findStorage } from 'browser/lib/findStorage'
+import fs from 'fs'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -232,9 +233,10 @@ export default class CodeEditor extends React.Component {
       const binaryData = new Buffer(base64data, 'base64').toString('binary')
       const imageName = Math.random().toString(36).slice(-16)
       const storagePath = findStorage(this.props.storageKey).path
-      const imagePath = path.join(`${storagePath}`, 'images', `${imageName}.png`)
-
-      require('fs').writeFile(imagePath, binaryData, 'binary')
+      const imageDir = path.join(storagePath, 'images')
+      if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir)
+      const imagePath = path.join(imageDir, `${imageName}.png`)
+      fs.writeFile(imagePath, binaryData, 'binary')
       const imageMd = `![${imageName}](${path.join('/:storage', `${imageName}.png`)})`
       this.insertImageMd(imageMd)
     }

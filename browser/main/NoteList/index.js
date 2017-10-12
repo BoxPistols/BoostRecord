@@ -238,8 +238,9 @@ class NoteList extends React.Component {
     let { router } = this.context
 
     if (location.pathname.match(/\/home/)) {
-      this.contextNotes = data.noteMap.map((note) => note)
-      return data.noteMap.map((note) => note)
+      const allNotes = data.noteMap.map((note) => note)
+      this.contextNotes = allNotes
+      return allNotes
     }
 
     if (location.pathname.match(/\/starred/)) {
@@ -263,7 +264,7 @@ class NoteList extends React.Component {
     return this.getContextNotes()
   }
 
-  // get notes in a specific folder
+  // get notes in the current folder
   getContextNotes () {
     let { data, params } = this.props
     let storageKey = params.storageKey

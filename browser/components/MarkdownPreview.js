@@ -34,7 +34,7 @@ function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber) {
 }
 ${markdownStyle}
 body {
-  font-family: ${fontFamily.join(', ')};
+  font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
 }
 code {

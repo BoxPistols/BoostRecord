@@ -45,7 +45,7 @@ class TopBar extends React.Component {
     })
 
     // When the key is an alphabet, del, enter or ctr
-    if (e.keyCode <= 90) {
+    if (e.keyCode <= 90 || e.keyCode >= 186 && e.keyCode <= 222) {
       this.setState({
         isAlphabet: true
       })

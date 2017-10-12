@@ -27,7 +27,10 @@ document.addEventListener('click', function (e) {
   const className = e.target.className
   if (!className && typeof (className) !== 'string') return
   const isInfoButton = className.includes('infoButton')
-  const isInfoPanel = e.target.offsetParent.className.includes('infoPanel')
+  let isInfoPanel = false
+  if (e.target.offsetParent !== null) {
+    isInfoPanel = e.target.offsetParent.className.includes('infoPanel')
+  }
   if (isInfoButton || isInfoPanel) return
   const infoPanel = document.querySelector('.infoPanel')
   if (infoPanel) infoPanel.style.display = 'none'

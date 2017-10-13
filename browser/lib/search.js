@@ -2,15 +2,15 @@ import _ from 'lodash'
 
 export default function searchFromNotes (notes, search) {
   if (search.trim().length === 0) return []
-  let searchBlocks = search.split(' ')
+  const searchBlocks = search.split(' ').filter(block => { return block !== '' })
+  let foundNotes = []
   searchBlocks.forEach((block) => {
+    foundNotes = findByWord(notes, block)
     if (block.match(/^#.+/)) {
-      notes = findByTag(notes, block)
-    } else {
-      notes = findByWord(notes, block)
+      foundNotes = foundNotes.concat(findByTag(notes, block))
     }
   })
-  return notes
+  return foundNotes
 }
 
 function findByTag (notes, block) {

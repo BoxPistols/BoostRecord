@@ -286,15 +286,15 @@ class NoteList extends React.Component {
 
   sortByPin (unorderedNotes) {
     const { data, params, location } = this.props
-    let storageKey = params.storageKey
-    let folderKey = params.folderKey
-    let storage = data.storageMap.get(storageKey)
+    const storageKey = params.storageKey
+    const folderKey = params.folderKey
+    const storage = data.storageMap.get(storageKey)
     if (location.pathname.match(/\/home|\/starred|\/trash/)) {
       return unorderedNotes
     }
     if (storage === undefined) return []
 
-    let folder = _.find(storage.folders, {key: folderKey})
+    const folder = _.find(storage.folders, {key: folderKey})
     if (folder === undefined) return unorderedNotes
     const pinnedNotes = unorderedNotes.filter((note) => {
       return note.isPinned

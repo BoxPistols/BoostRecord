@@ -469,12 +469,13 @@ class NoteList extends React.Component {
       : config.sortBy === 'ALPHABETICAL'
       ? sortByAlphabetical
       : sortByUpdatedAt
-    const sortedNotes = this.getNotes().sort(sortFunc)
-    this.notes = notes = this.sortByPin(sortedNotes)
-      .filter((note) => {
-        // this is for the trash box
-        if (note.isTrashed !== true || location.pathname === '/trashed') return true
-      })
+    const sortedNotes = location.pathname.match(/\/home|\/starred|\/trash/)
+        ? this.getNotes().sort(sortFunc)
+        : this.sortByPin(this.getNotes().sort(sortFunc))
+    this.notes = notes = sortedNotes.filter((note) => {
+      // this is for the trash box
+      if (note.isTrashed !== true || location.pathname === '/trashed') return true
+    })
 
     let noteList = notes
       .map(note => {

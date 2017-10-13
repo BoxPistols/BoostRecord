@@ -52,6 +52,8 @@ class NoteList extends React.Component {
 
     this.state = {
     }
+
+    this.contextNotes = []
   }
 
   componentDidMount () {
@@ -90,6 +92,7 @@ class NoteList extends React.Component {
 
     if (this.notes.length > 0 && location.query.key == null) {
       let { router } = this.context
+      if (!location.pathname.match(/\/searched/)) this.contextNotes = this.getContextNotes()
       router.replace({
         pathname: location.pathname,
         query: {
@@ -234,48 +237,50 @@ class NoteList extends React.Component {
     let { router } = this.context
 
     if (location.pathname.match(/\/home/)) {
-      return data.noteMap.map((note) => note)
+      const allNotes = data.noteMap.map((note) => note)
+      this.contextNotes = allNotes
+      return allNotes
     }
 
     if (location.pathname.match(/\/starred/)) {
-      return data.starredSet.toJS()
-        .map((uniqueKey) => data.noteMap.get(uniqueKey))
+      const starredNotes = data.starredSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
+      this.contextNotes = starredNotes
+      return starredNotes
     }
 
     if (location.pathname.match(/\/searched/)) {
       const searchInputText = document.getElementsByClassName('searchInput')[0].value
       if (searchInputText === '') {
-        router.push('/home')
+        return this.contextNotes
       }
-      return searchFromNotes(this.notes, searchInputText)
+      return searchFromNotes(this.contextNotes, searchInputText)
     }
 
     if (location.pathname.match(/\/trashed/)) {
-      return data.trashedSet.toJS()
-        .map((uniqueKey) => data.noteMap.get(uniqueKey))
+      const trashedNotes = data.trashedSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
+      this.contextNotes = trashedNotes
+      return trashedNotes
     }
 
-    let storageKey = params.storageKey
-    let folderKey = params.folderKey
-    let storage = data.storageMap.get(storageKey)
-    if (storage == null) return []
+    return this.getContextNotes()
+  }
 
-    let folder = _.find(storage.folders, {key: folderKey})
-    if (folder == null) {
-      let storageNoteSet = data.storageNoteMap
-        .get(storage.key)
-      if (storageNoteSet == null) storageNoteSet = []
-      return storageNoteSet
-        .map((uniqueKey) => data.noteMap.get(uniqueKey))
+  // get notes in the current folder
+  getContextNotes () {
+    const { data, params } = this.props
+    const storageKey = params.storageKey
+    const folderKey = params.folderKey
+    const storage = data.storageMap.get(storageKey)
+    if (storage === undefined) return []
+
+    const folder = _.find(storage.folders, {key: folderKey})
+    if (folder === undefined) {
+      const storageNoteSet = data.storageNoteMap.get(storage.key) || []
+      return storageNoteSet.map((uniqueKey) => data.noteMap.get(uniqueKey))
     }
 
-    let folderNoteKeyList = data.folderNoteMap
-      .get(storage.key + '-' + folder.key)
-
-    return folderNoteKeyList != null
-      ? folderNoteKeyList
-        .map((uniqueKey) => data.noteMap.get(uniqueKey))
-      : []
+    const folderNoteKeyList = data.folderNoteMap.get(`${storage.key}-${folder.key}`) || []
+    return folderNoteKeyList.map((uniqueKey) => data.noteMap.get(uniqueKey))
   }
 
   handleNoteClick (e, uniqueKey) {

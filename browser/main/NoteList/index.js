@@ -289,7 +289,7 @@ class NoteList extends React.Component {
     const storageKey = params.storageKey
     const folderKey = params.folderKey
     const storage = data.storageMap.get(storageKey)
-    if (location.pathname.match(/\/home|\/starred|\/trash/)) {
+    if (location.pathname.match(/\/home|\/starred|\/trash|\/search/)) {
       return unorderedNotes
     }
     if (storage === undefined) return []

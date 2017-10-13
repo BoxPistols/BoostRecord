@@ -386,32 +386,15 @@ class NoteList extends React.Component {
   }
 
   pinToTop (e, uniqueKey) {
-    const { data, location } = this.props
-    let splitted = location.pathname.split('/')
-    const storageKey = splitted[2]
-    const folderKey = splitted[4]
+    const { data, params } = this.props
+    const storageKey = params.storageKey
+    const folderKey = params.folderKey
 
     const currentStorage = data.storageMap.get(storageKey)
     const currentFolder = _.find(currentStorage.folders, {key: folderKey})
 
-    dataApi
-      .updateFolder(storageKey, folderKey, {
-        color: currentFolder.color,
-        name: currentFolder.name,
-        pinnedNote: uniqueKey.split('-').pop()
-      })
-      .then((data) => {
-        store.dispatch({
-          type: 'UPDATE_FOLDER',
-          storage: data.storage
-        })
-        this.setState({
-          status: 'IDLE'
-        })
-      })
-
-    let targetIndex = _.findIndex(this.notes, (note) => {
-      return note != null && note.storage + '-' + note.key === uniqueKey
+    const targetIndex = _.findIndex(this.notes, (note) => {
+      return note != null && `${note.storage}-${note.key}` === uniqueKey
     })
     let note = this.notes[targetIndex]
     note.isPinned = !note.isPinned

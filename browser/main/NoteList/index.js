@@ -105,9 +105,7 @@ class NoteList extends React.Component {
 
     // Auto scroll
     if (_.isString(location.query.key) && prevProps.location.query.key === location.query.key) {
-      let targetIndex = _.findIndex(this.notes, (note) => {
-        return note != null && note.storage + '-' + note.key === location.query.key
-      })
+      const targetIndex = this.getTargetIndex()
       if (targetIndex > -1) {
         let list = this.refs.list
         let item = list.childNodes[targetIndex]
@@ -133,9 +131,7 @@ class NoteList extends React.Component {
     let { router } = this.context
     let { location } = this.props
 
-    let targetIndex = _.findIndex(this.notes, (note) => {
-      return note.storage + '-' + note.key === location.query.key
-    })
+    let targetIndex = this.getTargetIndex()
 
     if (targetIndex === 0) {
       return
@@ -158,9 +154,7 @@ class NoteList extends React.Component {
     let { router } = this.context
     let { location } = this.props
 
-    let targetIndex = _.findIndex(this.notes, (note) => {
-      return note.storage + '-' + note.key === location.query.key
-    })
+    let targetIndex = this.getTargetIndex()
 
     if (targetIndex === this.notes.length - 1) {
       targetIndex = 0
@@ -188,9 +182,7 @@ class NoteList extends React.Component {
     const { router } = this.context
     const { location } = this.props
 
-    let targetIndex = _.findIndex(this.notes, (note) => {
-      return note.storage + '-' + note.key === noteHash
-    })
+    let targetIndex = this.getTargetIndex()
 
     if (targetIndex < 0) targetIndex = 0
 
@@ -333,10 +325,7 @@ class NoteList extends React.Component {
   }
 
   alertIfSnippet () {
-    let { location } = this.props
-    const targetIndex = _.findIndex(this.notes, (note) => {
-      return `${note.storage}-${note.key}` === location.query.key
-    })
+    const targetIndex = this.getTargetIndex()
     if (this.notes[targetIndex].type === 'SNIPPET_NOTE') {
       dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
@@ -354,9 +343,7 @@ class NoteList extends React.Component {
 
   handleNoteContextMenu (e, uniqueKey) {
     const { location } = this.props
-    let targetIndex = _.findIndex(this.notes, (note) => {
-      return note != null && uniqueKey === `${note.storage}-${note.key}`
-    })
+    const targetIndex = this.getTargetIndex()
     let note = this.notes[targetIndex]
     const label = note.isPinned ? 'Remove pin' : 'Pin to Top'
 
@@ -382,9 +369,7 @@ class NoteList extends React.Component {
     const currentStorage = data.storageMap.get(storageKey)
     const currentFolder = _.find(currentStorage.folders, {key: folderKey})
 
-    const targetIndex = _.findIndex(this.notes, (note) => {
-      return note != null && `${note.storage}-${note.key}` === uniqueKey
-    })
+    const targetIndex = this.getTargetIndex()
     let note = this.notes[targetIndex]
     note.isPinned = !note.isPinned
 
@@ -429,9 +414,7 @@ class NoteList extends React.Component {
   addNotesFromFiles (filepaths) {
     const { dispatch, location } = this.props
 
-    const targetIndex = _.findIndex(this.notes, (note) => {
-      return note !== null && `${note.storage}-${note.key}` === location.query.key
-    })
+    const targetIndex = this.getTargetIndex()
 
     const storageKey = this.notes[targetIndex].storage
     const folderKey = this.notes[targetIndex].folder
@@ -460,6 +443,14 @@ class NoteList extends React.Component {
         })
       })
     })
+  }
+
+  getTargetIndex () {
+    const { location } = this.props
+    const targetIndex = _.findIndex(this.notes, (note) => {
+      return `${note.storage}-${note.key}` === location.query.key
+    })
+    return targetIndex
   }
 
   render () {

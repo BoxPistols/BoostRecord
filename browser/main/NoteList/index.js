@@ -366,12 +366,66 @@ class NoteList extends React.Component {
   handleNoteContextMenu (e, uniqueKey) {
     this.handleNoteClick(e, uniqueKey)
 
+    const { location } = this.props
+    let targetIndex = _.findIndex(this.notes, (note) => {
+      return note != null && uniqueKey === `${note.storage}-${note.key}`
+    })
+    let note = this.notes[targetIndex]
+    const label = note.isPinned ? 'Remove pin' : 'Pin to Top'
+
     let menu = new Menu()
+    if (!location.pathname.match(/\/home|\/starred|\/trash/)) {
+      menu.append(new MenuItem({
+        label: label,
+        click: (e) => this.handlePinToTop(e, uniqueKey)
+      }))
+    }
     menu.append(new MenuItem({
       label: 'Delete Note',
       click: () => ee.emit('detail:delete')
     }))
     menu.popup()
+  }
+
+  handlePinToTop (e, uniqueKey) {
+    const { data, location } = this.props
+    let splitted = location.pathname.split('/')
+    const storageKey = splitted[2]
+    const folderKey = splitted[4]
+
+    const currentStorage = data.storageMap.get(storageKey)
+    const currentFolder = _.find(currentStorage.folders, {key: folderKey})
+
+    dataApi
+      .updateFolder(storageKey, folderKey, {
+        color: currentFolder.color,
+        name: currentFolder.name,
+        pinnedNote: uniqueKey.split('-').pop()
+      })
+      .then((data) => {
+        store.dispatch({
+          type: 'UPDATE_FOLDER',
+          storage: data.storage
+        })
+        this.setState({
+          status: 'IDLE'
+        })
+      })
+
+    let targetIndex = _.findIndex(this.notes, (note) => {
+      return note != null && note.storage + '-' + note.key === uniqueKey
+    })
+    let note = this.notes[targetIndex]
+    note.isPinned = !note.isPinned
+
+    dataApi
+      .updateNote(note.storage, note.key, note)
+      .then((note) => {
+        store.dispatch({
+          type: 'UPDATE_NOTE',
+          note: note
+        })
+      })
   }
 
   importFromFile () {
@@ -433,66 +487,6 @@ class NoteList extends React.Component {
     })
   }
 
-  handleNoteContextMenu (e, uniqueKey) {
-    const { location } = this.props
-    let targetIndex = _.findIndex(this.notes, (note) => {
-      return note != null && uniqueKey === `${note.storage}-${note.key}`
-    })
-    let note = this.notes[targetIndex]
-    const label = note.isPinned ? 'Remove pin' : 'Pin to Top'
-
-    let menu = new Menu()
-    menu.append(new MenuItem({
-      label: label,
-      click: (e) => this.handlePinToTop(e, uniqueKey)
-    }))
-
-    if (!location.pathname.match(/\/home|\/starred|\/trash/)) {
-      menu.popup()
-    }
-  }
-
-  handlePinToTop (e, uniqueKey) {
-    const { data, location } = this.props
-    let splitted = location.pathname.split('/')
-    const storageKey = splitted[2]
-    const folderKey = splitted[4]
-
-    const currentStorage = data.storageMap.get(storageKey)
-    const currentFolder = _.find(currentStorage.folders, {key: folderKey})
-
-    dataApi
-      .updateFolder(storageKey, folderKey, {
-        color: currentFolder.color,
-        name: currentFolder.name,
-        pinnedNote: uniqueKey.split('-').pop()
-      })
-      .then((data) => {
-        store.dispatch({
-          type: 'UPDATE_FOLDER',
-          storage: data.storage
-        })
-        this.setState({
-          status: 'IDLE'
-        })
-      })
-
-    let targetIndex = _.findIndex(this.notes, (note) => {
-      return note != null && note.storage + '-' + note.key === uniqueKey
-    })
-    let note = this.notes[targetIndex]
-    note.isPinned = !note.isPinned
-
-    dataApi
-      .updateNote(note.storage, note.key, note)
-      .then((note) => {
-        store.dispatch({
-          type: 'UPDATE_NOTE',
-          note: note
-        })
-      })
-  }
-
   render () {
     let { location, notes, config, dispatch } = this.props
     let sortFunc = config.sortBy === 'CREATED_AT'
@@ -530,7 +524,6 @@ class NoteList extends React.Component {
               key={key}
               handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
               handleNoteClick={this.handleNoteClick.bind(this)}
-              handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
               handleDragStart={this.handleDragStart.bind(this)}
               pathname={location.pathname}
             />
@@ -608,4 +601,4 @@ NoteList.propTypes = {
   })
 }
 
-
+export default CSSModules(NoteList, styles)

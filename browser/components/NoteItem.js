@@ -44,10 +44,8 @@ const TagElementList = (tags) => {
  * @param {Function} handleNoteContextMenu
  * @param {Function} handleDragStart
  * @param {string} dateDisplay
- * @param {Function} handleNoteContextMenu
- * @param {string} pathname
  */
-const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleDragStart, handleNoteContextMenu, pathname }) => (
+const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteContextMenu, handleDragStart, pathname }) => (
   <div styleName={isActive
       ? 'item--active'
       : 'item'

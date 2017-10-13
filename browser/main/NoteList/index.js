@@ -375,17 +375,17 @@ class NoteList extends React.Component {
     if (!location.pathname.match(/\/home|\/starred|\/trash/)) {
       menu.append(new MenuItem({
         label: label,
-        click: (e) => this.handlePinToTop(e, uniqueKey)
+        click: (e) => this.pinToTop(e, uniqueKey)
       }))
     }
     menu.append(new MenuItem({
       label: 'Delete Note',
-      click: (e) => this.handleDeleteNote(e, uniqueKey)
+      click: (e) => this.deleteNote(e, uniqueKey)
     }))
     menu.popup()
   }
 
-  handlePinToTop (e, uniqueKey) {
+  pinToTop (e, uniqueKey) {
     const { data, location } = this.props
     let splitted = location.pathname.split('/')
     const storageKey = splitted[2]
@@ -426,7 +426,7 @@ class NoteList extends React.Component {
       })
   }
 
-  handleDeleteNote (e, uniqueKey) {
+  deleteNote (e, uniqueKey) {
     this.handleNoteClick(e, uniqueKey)
     ee.emit('detail:delete')
   }

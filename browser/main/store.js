@@ -346,6 +346,13 @@ function data (state = defaultDataMap(), action) {
         state.storageMap.set(action.storage.key, action.storage)
       }
       return state
+    case 'REORDER_FOLDER':
+      {
+        state = Object.assign({}, state)
+        state.storageMap = new Map(state.storageMap)
+        state.storageMap.set(action.storage.key, action.storage)
+      }
+      return state
     case 'DELETE_FOLDER':
       {
         state = Object.assign({}, state)

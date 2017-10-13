@@ -45,7 +45,7 @@ const TagElementList = (tags) => {
  * @param {Function} handleDragStart
  * @param {string} dateDisplay
  */
-const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteContextMenu, handleDragStart }) => (
+const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleDragStart, handleNoteContextMenu, pathname }) => (
   <div styleName={isActive
       ? 'item--active'
       : 'item'
@@ -72,7 +72,7 @@ const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteCont
       {note.isStarred
         ? <i styleName='item-star' className='fa fa-star' /> : ''
       }
-      {note.isPinned
+      {note.isPinned && !pathname.match(/\/home|\/starred|\/trash/)
         ? <i styleName='item-pin' className='fa fa-map-pin' /> : ''
       }
       {note.type === 'MARKDOWN_NOTE'

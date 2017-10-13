@@ -285,10 +285,13 @@ class NoteList extends React.Component {
   }
 
   sortByPin (unorderedNotes) {
-    const { data, params } = this.props
+    const { data, params, location } = this.props
     let storageKey = params.storageKey
     let folderKey = params.folderKey
     let storage = data.storageMap.get(storageKey)
+    if (location.pathname.match(/\/home|\/starred|\/trash/)){
+      return unorderedNotes
+    }
     if (storage === undefined) return []
 
     let folder = _.find(storage.folders, {key: folderKey})
@@ -431,18 +434,23 @@ class NoteList extends React.Component {
   }
 
   handleNoteContextMenu (e, uniqueKey) {
+    const { location } = this.props
     let targetIndex = _.findIndex(this.notes, (note) => {
       return note != null && uniqueKey === `${note.storage}-${note.key}`
     })
     let note = this.notes[targetIndex]
     const label = note.isPinned ? 'Remove pin' : 'Pin to Top'
 
+
     let menu = new Menu()
     menu.append(new MenuItem({
       label: label,
       click: (e) => this.handlePinToTop(e, uniqueKey)
     }))
-    menu.popup()
+
+    if (!location.pathname.match(/\/home|\/starred|\/trash/)){
+      menu.popup()
+    }
   }
 
   handlePinToTop (e, uniqueKey) {
@@ -525,6 +533,7 @@ class NoteList extends React.Component {
               handleNoteClick={this.handleNoteClick.bind(this)}
               handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
               handleDragStart={this.handleDragStart.bind(this)}
+              pathname={location.pathname}
             />
           )
         }

@@ -256,6 +256,10 @@ class MarkdownNoteDetail extends React.Component {
     if (infoPanel.style) infoPanel.style.display = infoPanel.style.display === 'none' ? 'inline' : 'none'
   }
 
+  print (e) {
+    ee.emit('print')
+  }
+
   render () {
     let { data, config, location } = this.props
     let { note } = this.state
@@ -357,6 +361,7 @@ class MarkdownNoteDetail extends React.Component {
           wordCount={note.content.split(' ').length}
           letterCount={note.content.replace(/\r?\n/g, '').length}
           type={note.type}
+          print={this.print}
         />
       </div>
     </div>

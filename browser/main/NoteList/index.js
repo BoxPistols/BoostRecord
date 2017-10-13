@@ -289,7 +289,7 @@ class NoteList extends React.Component {
     let storageKey = params.storageKey
     let folderKey = params.folderKey
     let storage = data.storageMap.get(storageKey)
-    if (storage == null) return []
+    if (storage === undefined) return []
 
     let folder = _.find(storage.folders, {key: folderKey})
     if (folder === undefined) return unorderedNotes

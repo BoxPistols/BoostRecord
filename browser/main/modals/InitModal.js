@@ -194,13 +194,13 @@ class InitModal extends React.Component {
     return (
       <div styleName='root'
         tabIndex='-1'
-        onKeyDown={(e) => this.handleKeyDown(e)}
+        onKeyDown={this.props.close}
       >
 
         <div styleName='header'>
           <div styleName='header-title'>Initialize Storage</div>
         </div>
-        <ModalEscButton handleEscButtonClick={(e) => this.handleCloseButtonClick(e)} />
+        <ModalEscButton handleEscButtonClick={this.props.close} />
         <div styleName='body'>
           <div styleName='body-welcome'>
             Welcome!

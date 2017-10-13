@@ -26,6 +26,10 @@ function validateInput (input) {
     validatedInput.isTrashed = !!input.isTrashed
   }
 
+  if (input.isPinned !== undefined) {
+    validatedInput.isPinned = !!input.isPinned
+  }
+
   validatedInput.type = input.type
   switch (input.type) {
     case 'MARKDOWN_NOTE':
@@ -104,6 +108,7 @@ function updateNote (storageKey, noteKey, input) {
         noteData.isStarred = false
         noteData.isTrashed = false
         noteData.tags = []
+        noteData.isPinned = false
       }
 
       if (noteData.type === 'SNIPPET_NOTE') {

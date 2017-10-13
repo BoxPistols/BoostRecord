@@ -45,7 +45,7 @@ const TagElementList = (tags) => {
  * @param {Function} handleDragStart
  * @param {string} dateDisplay
  */
-const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteContextMenu, handleDragStart }) => (
+const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteContextMenu, handleDragStart, pathname }) => (
   <div styleName={isActive
       ? 'item--active'
       : 'item'
@@ -71,6 +71,9 @@ const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteCont
       <div styleName='item-bottom-time'>{dateDisplay}</div>
       {note.isStarred
         ? <i styleName='item-star' className='fa fa-star' /> : ''
+      }
+      {note.isPinned && !pathname.match(/\/home|\/starred|\/trash/)
+        ? <i styleName='item-pin' className='fa fa-map-pin' /> : ''
       }
       {note.type === 'MARKDOWN_NOTE'
         ? <TodoProcess todoStatus={getTodoStatus(note.content)} />
@@ -101,6 +104,7 @@ NoteItem.propTypes = {
     isTrashed: PropTypes.bool.isRequired
   }),
   handleNoteClick: PropTypes.func.isRequired,
+  handleNoteContextMenu: PropTypes.func.isRequired,
   handleDragStart: PropTypes.func.isRequired,
   handleDragEnd: PropTypes.func.isRequired
 }

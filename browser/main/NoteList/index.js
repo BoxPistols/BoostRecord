@@ -14,6 +14,7 @@ import { hashHistory } from 'react-router'
 import markdown from 'browser/lib/markdown'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import stripgtags from 'striptags'
+import store from 'browser/main/store'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
@@ -251,7 +252,7 @@ class NoteList extends React.Component {
     if (location.pathname.match(/\/searched/)) {
       const searchInputText = document.getElementsByClassName('searchInput')[0].value
       if (searchInputText === '') {
-        return this.contextNotes
+        return this.sortByPin(this.contextNotes)
       }
       return searchFromNotes(this.contextNotes, searchInputText)
     }
@@ -281,6 +282,14 @@ class NoteList extends React.Component {
 
     const folderNoteKeyList = data.folderNoteMap.get(`${storage.key}-${folder.key}`) || []
     return folderNoteKeyList.map((uniqueKey) => data.noteMap.get(uniqueKey))
+  }
+
+  sortByPin (unorderedNotes) {
+    const pinnedNotes = unorderedNotes.filter((note) => {
+      return note.isPinned
+    })
+
+    return pinnedNotes.concat(unorderedNotes)
   }
 
   handleNoteClick (e, uniqueKey) {
@@ -344,14 +353,54 @@ class NoteList extends React.Component {
   }
 
   handleNoteContextMenu (e, uniqueKey) {
-    this.handleNoteClick(e, uniqueKey)
+    const { location } = this.props
+    let targetIndex = _.findIndex(this.notes, (note) => {
+      return note != null && uniqueKey === `${note.storage}-${note.key}`
+    })
+    let note = this.notes[targetIndex]
+    const label = note.isPinned ? 'Remove pin' : 'Pin to Top'
 
     let menu = new Menu()
+    if (!location.pathname.match(/\/home|\/starred|\/trash/)) {
+      menu.append(new MenuItem({
+        label: label,
+        click: (e) => this.pinToTop(e, uniqueKey)
+      }))
+    }
     menu.append(new MenuItem({
       label: 'Delete Note',
-      click: () => ee.emit('detail:delete')
+      click: (e) => this.deleteNote(e, uniqueKey)
     }))
     menu.popup()
+  }
+
+  pinToTop (e, uniqueKey) {
+    const { data, params } = this.props
+    const storageKey = params.storageKey
+    const folderKey = params.folderKey
+
+    const currentStorage = data.storageMap.get(storageKey)
+    const currentFolder = _.find(currentStorage.folders, {key: folderKey})
+
+    const targetIndex = _.findIndex(this.notes, (note) => {
+      return note != null && `${note.storage}-${note.key}` === uniqueKey
+    })
+    let note = this.notes[targetIndex]
+    note.isPinned = !note.isPinned
+
+    dataApi
+      .updateNote(note.storage, note.key, note)
+      .then((note) => {
+        store.dispatch({
+          type: 'UPDATE_NOTE',
+          note: note
+        })
+      })
+  }
+
+  deleteNote (e, uniqueKey) {
+    this.handleNoteClick(e, uniqueKey)
+    ee.emit('detail:delete')
   }
 
   importFromFile () {
@@ -420,12 +469,13 @@ class NoteList extends React.Component {
       : config.sortBy === 'ALPHABETICAL'
       ? sortByAlphabetical
       : sortByUpdatedAt
-    this.notes = notes = this.getNotes()
-      .sort(sortFunc)
-      .filter((note) => {
-        // this is for the trash box
-        if (note.isTrashed !== true || location.pathname === '/trashed') return true
-      })
+    const sortedNotes = location.pathname.match(/\/home|\/starred|\/trash/)
+        ? this.getNotes().sort(sortFunc)
+        : this.sortByPin(this.getNotes().sort(sortFunc))
+    this.notes = notes = sortedNotes.filter((note) => {
+      // this is for the trash box
+      if (note.isTrashed !== true || location.pathname === '/trashed') return true
+    })
 
     let noteList = notes
       .map(note => {
@@ -451,6 +501,7 @@ class NoteList extends React.Component {
               handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
               handleNoteClick={this.handleNoteClick.bind(this)}
               handleDragStart={this.handleDragStart.bind(this)}
+              pathname={location.pathname}
             />
           )
         }

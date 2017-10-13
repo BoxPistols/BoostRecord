@@ -364,8 +364,6 @@ class NoteList extends React.Component {
   }
 
   handleNoteContextMenu (e, uniqueKey) {
-    this.handleNoteClick(e, uniqueKey)
-
     const { location } = this.props
     let targetIndex = _.findIndex(this.notes, (note) => {
       return note != null && uniqueKey === `${note.storage}-${note.key}`
@@ -382,7 +380,7 @@ class NoteList extends React.Component {
     }
     menu.append(new MenuItem({
       label: 'Delete Note',
-      click: () => ee.emit('detail:delete')
+      click: (e) => this.handleDeleteNote(e, uniqueKey)
     }))
     menu.popup()
   }
@@ -426,6 +424,11 @@ class NoteList extends React.Component {
           note: note
         })
       })
+  }
+
+  handleDeleteNote (e, uniqueKey) {
+    this.handleNoteClick(e, uniqueKey)
+    ee.emit('detail:delete')
   }
 
   importFromFile () {

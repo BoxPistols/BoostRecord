@@ -252,7 +252,7 @@ class NoteList extends React.Component {
     if (location.pathname.match(/\/searched/)) {
       const searchInputText = document.getElementsByClassName('searchInput')[0].value
       if (searchInputText === '') {
-        return this.contextNotes
+        return this.sortByPin(this.contextNotes)
       }
       return searchFromNotes(this.contextNotes, searchInputText)
     }
@@ -285,17 +285,6 @@ class NoteList extends React.Component {
   }
 
   sortByPin (unorderedNotes) {
-    const { data, params, location } = this.props
-    const storageKey = params.storageKey
-    const folderKey = params.folderKey
-    const storage = data.storageMap.get(storageKey)
-    if (location.pathname.match(/\/home|\/starred|\/trash|\/search/)) {
-      return unorderedNotes
-    }
-    if (storage === undefined) return []
-
-    const folder = _.find(storage.folders, {key: folderKey})
-    if (folder === undefined) return unorderedNotes
     const pinnedNotes = unorderedNotes.filter((note) => {
       return note.isPinned
     })

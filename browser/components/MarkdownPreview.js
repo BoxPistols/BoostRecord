@@ -10,6 +10,7 @@ import eventEmitter from 'browser/main/lib/eventEmitter'
 import fs from 'fs'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import copy from 'copy-to-clipboard'
+import mdurl from 'mdurl'
 
 const { remote } = require('electron')
 const { app } = remote
@@ -183,6 +184,14 @@ export default class MarkdownPreview extends React.Component {
     })
   }
 
+  fixDecodedURI(node) {
+    const { innerText, href } = node
+    
+    node.innerText = mdurl.decode(href) === innerText ?
+      href :
+      innerText;
+  }
+
   componentDidMount () {
     this.refs.root.setAttribute('sandbox', 'allow-scripts')
     this.refs.root.contentWindow.document.body.addEventListener('contextmenu', this.contextMenuHandler)
@@ -279,6 +288,7 @@ export default class MarkdownPreview extends React.Component {
     })
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
+      this.fixDecodedURI(el)
       el.addEventListener('click', this.anchorClickHandler)
     })
 

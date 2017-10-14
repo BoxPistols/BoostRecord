@@ -229,7 +229,7 @@ class NoteList extends React.Component {
     let { data, params, location } = this.props
     let { router } = this.context
 
-    if (location.pathname.match(/\/home/)) {
+    if (location.pathname.match(/\/home/) || location.pathname.match(/\alltags/)) {
       const allNotes = data.noteMap.map((note) => note)
       this.contextNotes = allNotes
       return allNotes
@@ -253,6 +253,14 @@ class NoteList extends React.Component {
       const trashedNotes = data.trashedSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
       this.contextNotes = trashedNotes
       return trashedNotes
+    }
+
+    if (location.pathname.match(/\/tags/)) {
+      return data.noteMap.map(note => {
+        return note
+      }).filter(note => {
+        return note.tags.includes(params.tagname)
+      })
     }
 
     return this.getContextNotes()

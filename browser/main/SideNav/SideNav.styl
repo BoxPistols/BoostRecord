@@ -13,48 +13,33 @@
   height $topBar-height
   padding 0 15px
   font-size 12px
-  width 100%
-  text-align left
+  width 33%
+  text-align center
   &:hover
     color $ui-text-color
   &:active, &:active:hover
     color $ui-text-color
     background-color alpha($ui-button--active-backgroundColor, 20%)
 
+.active-button
+  background-color $ui-button--active-color
+
+.non-active-button
+  background-color $ui-button-color
+
 .top-menu-label
   margin-left 5px
   overflow ellipsis
 
-.storageList
+.tagList
   absolute left right
   bottom 37px
-  top 160px
+  top 80px
   overflow-y auto
-
-.storageList-empty
-  padding 0 10px
-  margin-top 15px
-  line-height 24px
-  color $ui-inactive-text-color
-
-.navToggle
-  navButtonColor()
-  display block
-  position absolute
-  right 5px
-  bottom 5px
-  border-radius 16.5px
-  height 34px
-  width 34px
-  line-height 32px
-  padding 0
 
 .root--folded
   @extend .root
   width 44px
-  .storageList-empty
-    white-space nowrap
-    transform rotate(90deg)
   .top-menu
     width 44px - 1
     text-align center
@@ -119,12 +104,3 @@ body[data-theme="dark"]
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
     &:hover
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-
-  .storageList-empty
-    color $ui-dark-inactive-text-color
-
-  .navToggle
-    &:hover
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-      transition 0.15s
-      color $ui-dark-text-color

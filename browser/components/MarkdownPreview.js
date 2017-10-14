@@ -184,12 +184,12 @@ export default class MarkdownPreview extends React.Component {
     })
   }
 
-  fixDecodedURI(node) {
+  fixDecodedURI (node) {
     const { innerText, href } = node
-    
-    node.innerText = mdurl.decode(href) === innerText ?
-      href :
-      innerText;
+
+    node.innerText = mdurl.decode(href) === innerText
+      ? href
+      : innerText
   }
 
   componentDidMount () {

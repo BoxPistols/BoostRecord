@@ -4,6 +4,7 @@ import { connect } from 'react-redux'
 import HotkeyTab from './HotkeyTab'
 import UiTab from './UiTab'
 import InfoTab from './InfoTab'
+import Crowdfunding from './Crowdfunding'
 import StoragesTab from './StoragesTab'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import CSSModules from 'browser/lib/CSSModules'
@@ -64,6 +65,13 @@ class Preferences extends React.Component {
             config={config}
           />
         )
+      case 'CROWDFUNDING':
+        return (
+          <Crowdfunding
+            dispatch={dispatch}
+            config={config}
+          />
+        )
       case 'STORAGES':
       default:
         return (
@@ -94,7 +102,8 @@ class Preferences extends React.Component {
       {target: 'STORAGES', label: 'Storages'},
       {target: 'HOTKEY', label: 'Hotkey'},
       {target: 'UI', label: 'UI'},
-      {target: 'INFO', label: 'Info'}
+      {target: 'INFO', label: 'Info'},
+      {target: 'CROWDFUNDING', label: 'Crowdfunding'}
     ]
 
     let navButtons = tabs.map((tab) => {

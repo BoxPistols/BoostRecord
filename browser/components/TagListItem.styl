@@ -31,6 +31,9 @@
   border none
   overflow ellipsis
   font-size 12px
+  &:hover
+    background-color alpha($ui-button--active-backgroundColor, 60%)
+    transition 0.2s
 
 .tagList-item-name
   display block
@@ -43,3 +46,22 @@
   border-color transparent
   overflow hidden
   text-overflow ellipsis
+
+body[data-theme="dark"]
+  .tagList-item
+    color $ui-dark-inactive-text-color
+    &:hover
+      color $ui-dark-text-color
+      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
+    &:active
+      color $ui-dark-text-color
+      background-color $ui-dark-button--active-backgroundColor
+
+  .tagList-item-active
+    background-color $ui-dark-button--active-backgroundColor
+    color $ui-dark-text-color
+    &:active
+      background-color alpha($ui-dark-button--active-backgroundColor, 50%)
+    &:hover
+      color $ui-dark-text-color
+      background-color alpha($ui-dark-button--active-backgroundColor, 50%)

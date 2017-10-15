@@ -94,7 +94,7 @@ class HotkeyTab extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>Toggle Finder(popup)</div>
+            <div styleName='group-section-label'>Toggle Finder (Quick search)</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
                 onChange={(e) => this.handleHotkeyChange(e)}

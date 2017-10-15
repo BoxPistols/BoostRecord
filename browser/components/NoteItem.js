@@ -73,7 +73,7 @@ const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteCont
         ? <i styleName='item-star' className='fa fa-star' /> : ''
       }
       {note.isPinned && !pathname.match(/\/home|\/starred|\/trash/)
-        ? <i styleName='item-pin' className='fa fa-map-pin' /> : ''
+        ? <i styleName='item-pin' className='fa fa-thumb-tack' /> : ''
       }
       {note.type === 'MARKDOWN_NOTE'
         ? <TodoProcess todoStatus={getTodoStatus(note.content)} />

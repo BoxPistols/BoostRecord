@@ -524,13 +524,13 @@ class NoteList extends React.Component {
       >
         <div styleName='control'>
           <div styleName='control-sortBy'>
-            <i className='fa fa-bolt' />
+            <i className='fa fa-angle-down' />
             <select styleName='control-sortBy-select'
               value={config.sortBy}
               onChange={(e) => this.handleSortByChange(e)}
             >
-              <option value='UPDATED_AT'>Last Updated</option>
-              <option value='CREATED_AT'>Creation Time</option>
+              <option value='UPDATED_AT'>Updated</option>
+              <option value='CREATED_AT'>Created</option>
               <option value='ALPHABETICAL'>Alphabetically</option>
             </select>
           </div>

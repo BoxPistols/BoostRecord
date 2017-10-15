@@ -76,7 +76,7 @@ class InfoTab extends React.Component {
           <li>
             <a href='https://salt.bountysource.com/teams/boostnote'
               onClick={(e) => this.handleLinkClick(e)}
-            >Donate via Bountysource</a> : Thank you for your support 🎉
+            >Crowdfunding</a> : Thank you for your support 🎉
           </li>
           <li>
             <a href='https://github.com/BoostIO/Boostnote/issues'

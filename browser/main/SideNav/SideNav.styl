@@ -11,7 +11,7 @@
 .top-menu
   navButtonColor()
   position absolute
-  top 20px
+  top 22px
   right 5px
   &:hover
     color $ui-text-color
@@ -22,14 +22,16 @@
 .switch-buttons
   background-color transparent
   border 1px solid $ui-borderColor
-  width 100px
+  width 110px
+  height 25px
   margin 20px auto 0px auto
   border-radius 1px
 
 .non-active-button
   navButtonColor()
   font-weight 600
-  width 49px
+  width 54px
+  height 23px
 
 .active-button
   @extend .non-active-button
@@ -87,8 +89,12 @@ body[data-theme="dark"]
     &:hover
       background-color alpha($ui-dark-button--active-backgroundColor, 70%)
       color alpha($ui-dark-text-color, 70%)
+    &:active
+      color $ui-dark-text-color
+      background-color alpha($ui-dark-button--active-backgroundColor, 60%)
     &:active, &:active:hover
-      background-color $$ui-dark-button--active-backgroundColor
+      color $ui-dark-text-color
+      background-color $ui-dark-button--active-backgroundColor
 
   .tag-title
     p

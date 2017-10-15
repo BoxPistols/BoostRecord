@@ -1,18 +1,15 @@
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './Crowdfunding.styl'
-import ConfigManager from 'browser/main/lib/ConfigManager'
-import store from 'browser/main/store'
 
 const electron = require('electron')
-const { shell, remote } = electron
+const { shell } = electron
 
 class Crowdfunding extends React.Component {
   constructor (props) {
     super(props)
 
     this.state = {
-      config: this.props.config
     }
   }
 

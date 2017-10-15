@@ -67,10 +67,7 @@ class Preferences extends React.Component {
         )
       case 'CROWDFUNDING':
         return (
-          <Crowdfunding
-            dispatch={dispatch}
-            config={config}
-          />
+          <Crowdfunding />
         )
       case 'STORAGES':
       default:

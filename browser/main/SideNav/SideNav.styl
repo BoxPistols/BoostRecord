@@ -21,11 +21,27 @@
     color $ui-text-color
     background-color alpha($ui-button--active-backgroundColor, 20%)
 
-.active-button
-  background-color $ui-button--active-color
+.switch-buttons
+  background-color transparent
+  border 1px solid $ui-borderColor
+  width 100px
+  margin 20px auto 0px auto
+  border-radius 1px
 
 .non-active-button
-  background-color $ui-button-color
+  navButtonColor()
+  font-weight 600
+  width 49px
+
+.active-button
+  @extend .non-active-button
+  background-color $ui-button--active-backgroundColor
+  color $ui-text-color
+  &:hover
+    background-color alpha($ui-button--active-backgroundColor, 70%)
+    color alpha($ui-text-color, 70%)
+  &:active, &:active:hover
+    background-color $ui-button--active-backgroundColor
 
 .top-menu-label
   margin-left 5px

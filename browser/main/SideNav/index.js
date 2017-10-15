@@ -145,11 +145,13 @@ class SideNav extends React.Component {
             <button styleName={isTagActive ? 'non-active-button' : 'active-button'} onClick={this.handleSwitchFoldersButtonClick.bind(this)}>Folders</button>
             <button styleName={isTagActive ? 'active-button' : 'non-active-button'} onClick={this.handleSwitchTagsButtonClick.bind(this)}>Tags</button>
           </div>
-          <button styleName='top-menu'
-            onClick={(e) => this.handleMenuButtonClick(e)}
-          >
-            <i className='fa fa-wrench fa-fw' />
-          </button>
+          <div>
+            <button styleName='top-menu'
+              onClick={(e) => this.handleMenuButtonClick(e)}
+            >
+              <i className='fa fa-wrench fa-fw' />
+            </button>
+          </div>
         </div>
         {this.SideNavComponent(isFolded, storageList)}
       </div>

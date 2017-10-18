@@ -80,7 +80,7 @@ class SideNav extends React.Component {
       )
     } else {
       component = (
-        <div>
+        <div styleName='tabBody'>
           <div styleName='tag-title'>
             <p>Tags</p>
           </div>

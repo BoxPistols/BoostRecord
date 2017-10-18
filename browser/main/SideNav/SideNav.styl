@@ -4,9 +4,12 @@
   background-color #f9f9f9
   user-select none
   color $ui-text-color
+  height: 100vh
+  display: flex
+  flex-direction column
 
 .top
-  height 45px
+  padding-bottom 15px
 
 .top-menu
   navButtonColor()
@@ -47,18 +50,20 @@
   margin-left 5px
   overflow ellipsis
 
+.tabBody
+  flex 1
+  display flex
+  flex-direction column
+
 .tag-title
-  height 65px
-  position relative
-  left 15px
+  padding-left 15px
+  padding-bottom 13px
   p
     color $ui-text-color
 
 .tagList
-  absolute left right
-  bottom 37px
   overflow-y auto
-  position relative
+  flex: 1
 
 body[data-theme="dark"]
   .root, .root--folded

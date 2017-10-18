@@ -15,7 +15,6 @@ $control-height = 34px
   top 13px
   right 7px
   height $control-height
-  overflow hidden
   display flex
 
 .control-newNoteButton
@@ -33,10 +32,11 @@ $control-height = 34px
 
 .control-newNoteButton-tooltip
   tooltip()
-  position fixed
+  position absolute
   pointer-events none
-  top 50px
-  left 433px
+  top 26px
+  right -43px
+  width 124px
   z-index 200
   padding 5px
   line-height normal

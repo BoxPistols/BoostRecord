@@ -21,8 +21,8 @@ New:zap:
 [Great contributors](https://github.com/BoostIO/Boostnote/graphs/contributors) :tada:
 
 ## Slack Group
-Let's talk about Boostnote's great features, new feature requests and things like Japanese gourmet. 🍣 <br>
-[Join us](https://join.slack.com/t/boostnote-group/shared_invite/enQtMjQ0MjYxNTMxNjY5LTI0NWFkZDEyYWYxYWE0YTMyYjI4NzA2YjBlNmFmOGVhNGFjY2I1MTNmZWJjYmMxYTdkM2VjNWNjYTFiYWQ3ZmQ)
+Let's talk about Boostnote! <br>
+[Join us](https://join.slack.com/t/boostnote-group/shared_invite/enQtMjU5NTUwNjcwMjkyLWI3N2I1YWIzNWRlZDZmZjVlYzRiNDc1YTcxZWNmY2UyZjc3MTQwMDUxMzAxZjg0NjNmZmIwNDFhMDkwZDlmZDc)
 
 ## More Information
 * [Website](https://boostnote.io)

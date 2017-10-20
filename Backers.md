@@ -1,25 +1,39 @@
-Become a [backer](https://salt.bountysource.com/teams/boostnote) and support Boostnote!
-You can support Boostnote from $ 5 a month!
+Dear all,
 
-# Backers
-[Kazz](https://twitter.com/kazup_bot) $55
+Thanks for your using!
+Boostnote is used in about 200 countries and regions, it is a awesome developer community.
 
-Intense Raiden $45
+To continue supporting this growth, and to satisfy community expectations,
+we would like to invest more time in this project.
 
-ravy22 $25
+If you like this project and see its potential, you can help!
 
-trentpolack	$20
+Thanks,
+Boostnote maintainers.
 
-hikariru $10
+### >> [Support via BountySource](https://salt.bountysource.com/teams/boostnote)
 
-kolchan11 $10
+---
 
-RonWalker22 $10
+## Backers
+[Kazz](https://twitter.com/kazup_bot) - $55
 
-hocchuc	$5
+Intense Raiden - $45
 
-Adam $5
+ravy22 - $25
 
-Steve	$5
+trentpolack	- $20
 
-evmin	$5
+hikariru - $10
+
+kolchan11 - $10
+
+RonWalker22 - $10
+
+hocchuc	- $5
+
+Adam - $5
+
+Steve	- $5
+
+evmin	- $5

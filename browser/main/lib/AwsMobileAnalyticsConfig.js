@@ -44,10 +44,10 @@ function initAwsMobileAnalytics () {
   })
 }
 
-function recordDynamicCustomEvent (type) {
+function recordDynamicCustomEvent (type, options = {}) {
   if (process.env.NODE_ENV !== 'production' || !ConfigManager.default.get().amaEnabled) return
   try {
-    mobileAnalyticsClient.recordEvent(type)
+    mobileAnalyticsClient.recordEvent(type, options)
   } catch (analyticsError) {
     if (analyticsError instanceof ReferenceError) {
       console.log(analyticsError.name + ': ' + analyticsError.message)

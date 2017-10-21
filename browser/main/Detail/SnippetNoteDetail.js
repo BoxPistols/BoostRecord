@@ -291,6 +291,10 @@ class SnippetNoteDetail extends React.Component {
       }, () => {
         this.save()
       })
+
+      AwsMobileAnalyticsConfig.recordDynamicCustomEvent('SELECT_LANG', {
+        name
+      })
     }
   }
 

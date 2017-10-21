@@ -70,6 +70,7 @@
     "markdown-it-multimd-table": "^2.0.1",
     "markdown-it-named-headers": "^0.0.4",
     "md5": "^2.0.0",
+    "mdurl": "^1.0.1",
     "mixpanel": "^0.4.1",
     "moment": "^2.10.3",
     "node-ipc": "^8.1.0",

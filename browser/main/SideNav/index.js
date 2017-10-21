@@ -150,6 +150,7 @@ class SideNav extends React.Component {
               onClick={(e) => this.handleMenuButtonClick(e)}
             >
               <i className='fa fa-wrench fa-fw' />
+              <span styleName='top-menu-label'>Preferences</span>
             </button>
           </div>
         </div>

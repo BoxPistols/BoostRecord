@@ -266,10 +266,10 @@ class SnippetNoteDetail extends React.Component {
   }
 
   renameSnippetByIndex (index, name) {
-    let snippets = this.state.note.snippets.slice()
+    const snippets = this.state.note.snippets.slice()
     snippets[index].name = name
-    let syntax = CodeMirror.findModeByFileName(name.trim())
-    let mode = syntax != null ? syntax.name : null
+    const syntax = CodeMirror.findModeByFileName(name.trim())
+    const mode = syntax != null ? syntax.name : null
     if (mode != null) snippets[index].mode = mode
     this.setState({note: Object.assign(this.state.note, {snippets: snippets})})
 

@@ -270,7 +270,12 @@ class SnippetNoteDetail extends React.Component {
     snippets[index].name = name
     const syntax = CodeMirror.findModeByFileName(name.trim())
     const mode = syntax != null ? syntax.name : null
-    if (mode != null) snippets[index].mode = mode
+    if (mode != null){
+      snippets[index].mode = mode
+      AwsMobileAnalyticsConfig.recordDynamicCustomEvent('SNIPPET_LANG', {
+        name: mode
+      })
+    }
     this.setState({note: Object.assign(this.state.note, {snippets: snippets})})
 
     this.setState({

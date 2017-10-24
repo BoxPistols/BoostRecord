@@ -69,12 +69,12 @@ class HotkeyTab extends React.Component {
     })
   }
 
-  clearMessage() {
+  componentDidUpdate() {
     setTimeout(() => {
       this.setState({
         keymapAlert: null
       })
-    }, 3000)
+    }, 2500)
   }
 
   render () {
@@ -84,7 +84,6 @@ class HotkeyTab extends React.Component {
         {keymapAlert.message}
       </p>
       : null
-      this.clearMessage()
     let { config } = this.state
 
     return (

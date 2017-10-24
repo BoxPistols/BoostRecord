@@ -69,11 +69,6 @@ class HotkeyTab extends React.Component {
     })
   }
 
-  componentWillUnmount () {
-    console.log("YAYA")
-    clearTimeout(this.timer)
-  }
-
   render () {
     let keymapAlert = this.state.keymapAlert
     let keymapAlertElement = keymapAlert != null

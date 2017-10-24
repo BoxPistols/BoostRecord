@@ -50,6 +50,12 @@ class HotkeyTab extends React.Component {
       type: 'SET_UI',
       config: newConfig
     })
+
+    setTimeout(() => {
+      this.setState({
+        keymapAlert: null
+      })
+    }, 2000)
   }
 
   handleHintToggleButtonClick (e) {
@@ -67,14 +73,6 @@ class HotkeyTab extends React.Component {
     this.setState({
       config
     })
-  }
-
-  componentDidUpdate () {
-    setTimeout(() => {
-      this.setState({
-        keymapAlert: null
-      })
-    }, 2500)
   }
 
   render () {

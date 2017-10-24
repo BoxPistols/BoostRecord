@@ -69,7 +69,7 @@ class HotkeyTab extends React.Component {
     })
   }
 
-  componentDidUpdate() {
+  componentDidUpdate () {
     setTimeout(() => {
       this.setState({
         keymapAlert: null

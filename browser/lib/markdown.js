@@ -68,6 +68,7 @@ md.use(require('markdown-it-named-headers'), {
       .replace(/\-+$/, '')
   }
 })
+md.use(require('markdown-it-kbd'))
 // Override task item
 md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
   let content, terminate, i, l, token

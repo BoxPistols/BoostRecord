@@ -11,12 +11,12 @@ If you like this project and see its potential, you can help!
 Thanks,
 Boostnote maintainers.
 
-### >> [Support via BountySource](https://salt.bountysource.com/teams/boostnote)
+### >> [Support via OpenCollective](https://opencollective.com/boostnoteio)
 
 ---
 
 ## Backers
-[Kazz](https://twitter.com/kazup_bot) - $55
+[Kazz](https://twitter.com/kazup_bot) - $65
 
 Intense Raiden - $45
 

@@ -4034,6 +4034,10 @@ markdown-it-imsize:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/markdown-it-imsize/-/markdown-it-imsize-2.0.1.tgz#cca0427905d05338a247cb9ca9d968c5cddd5170"
 
+markdown-it-kbd@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/markdown-it-kbd/-/markdown-it-kbd-1.1.0.tgz#d3faf5c30d494796b9cc540ab1f1a8a53dbc5d3b"
+
 markdown-it-multimd-table@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/markdown-it-multimd-table/-/markdown-it-multimd-table-2.0.1.tgz#2e246dc2ec4ca093cbf05d43c9c1cc64e31f255d"

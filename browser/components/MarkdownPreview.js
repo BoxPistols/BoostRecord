@@ -92,7 +92,7 @@ const OSX = global.process.platform === 'darwin'
 
 const defaultFontFamily = ['helvetica', 'arial', 'sans-serif']
 if (!OSX) {
-  defaultFontFamily.unshift('\'Microsoft YaHei\'')
+  defaultFontFamily.unshift('Microsoft YaHei')
   defaultFontFamily.unshift('meiryo')
 }
 const defaultCodeBlockFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']

@@ -46,6 +46,7 @@ NoteItemSimple.propTypes = {
     title: PropTypes.string.isrequired
   }),
   handleNoteClick: PropTypes.func.isRequired,
+  handleNoteContextMenu: PropTypes.func.isRequired,
   handleDragStart: PropTypes.func.isRequired
 }
 

@@ -510,6 +510,7 @@ class NoteList extends React.Component {
             isActive={isActive}
             note={note}
             key={key}
+            handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
             handleNoteClick={this.handleNoteClick.bind(this)}
             handleDragStart={this.handleDragStart.bind(this)}
           />

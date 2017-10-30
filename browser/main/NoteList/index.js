@@ -285,11 +285,18 @@ class NoteList extends React.Component {
   }
 
   sortByPin (unorderedNotes) {
-    const pinnedNotes = unorderedNotes.filter((note) => {
-      return note.isPinned
+    const pinnedNotes = []
+    const unpinnedNotes = []
+
+    unorderedNotes.forEach((note) => {
+      if (note.isPinned) {
+        pinnedNotes.push(note)
+      } else {
+        unpinnedNotes.push(note)
+      }
     })
 
-    return pinnedNotes.concat(unorderedNotes)
+    return pinnedNotes.concat(unpinnedNotes)
   }
 
   handleNoteClick (e, uniqueKey) {

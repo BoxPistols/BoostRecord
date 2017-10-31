@@ -351,19 +351,23 @@ class NoteList extends React.Component {
 
   handleNoteContextMenu (e, uniqueKey) {
     const { location } = this.props
-    const targetIndex = this.getTargetIndex()
-    let note = this.notes[targetIndex]
-    const label = note.isPinned ? 'Remove pin' : 'Pin to Top'
+    const note = this.notes.find((note) => {
+      const noteKey = `${note.storage}-${note.key}`
+      return noteKey === uniqueKey
+    })
 
-    let menu = new Menu()
+    const pinLabel = note.isPinned ? 'Remove pin' : 'Pin to Top'
+    const deleteLabel = 'Delete Note'
+
+    const menu = new Menu()
     if (!location.pathname.match(/\/home|\/starred|\/trash/)) {
       menu.append(new MenuItem({
-        label: label,
+        label: pinLabel,
         click: (e) => this.pinToTop(e, uniqueKey)
       }))
     }
     menu.append(new MenuItem({
-      label: 'Delete Note',
+      label: deleteLabel,
       click: (e) => this.deleteNote(e, uniqueKey)
     }))
     menu.popup()
@@ -377,6 +381,7 @@ class NoteList extends React.Component {
     const currentStorage = data.storageMap.get(storageKey)
     const currentFolder = _.find(currentStorage.folders, {key: folderKey})
 
+    this.handleNoteClick(e, uniqueKey)
     const targetIndex = this.getTargetIndex()
     let note = this.notes[targetIndex]
     note.isPinned = !note.isPinned

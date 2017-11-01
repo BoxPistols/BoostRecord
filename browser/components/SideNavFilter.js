@@ -15,7 +15,7 @@ import styles from './SideNavFilter.styl'
  */
 const SideNavFilter = ({
   isFolded, isHomeActive, handleAllNotesButtonClick,
-  isStarredActive, handleStarredButtonClick, isTrashedActive, handleTrashedButtonClick
+  isStarredActive, handleStarredButtonClick, isTrashedActive, handleTrashedButtonClick, counterDelNote
 }) => (
   <div styleName={isFolded ? 'menu--folded' : 'menu'}>
     <button styleName={isHomeActive ? 'menu-button--active' : 'menu-button'}
@@ -35,6 +35,7 @@ const SideNavFilter = ({
     >
       <i className='fa fa-trash fa-fw' />
       <span styleName='menu-button-label'>Trash</span>
+      <span styleName='counter-notes-trash'>{counterDelNote}</span>
     </button>
   </div>
 )

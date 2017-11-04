@@ -434,10 +434,8 @@ class NoteList extends React.Component {
   addNotesFromFiles (filepaths) {
     const { dispatch, location } = this.props
 
-    const targetIndex = this.getTargetIndex()
-
-    const storageKey = this.notes[targetIndex].storage
-    const folderKey = this.notes[targetIndex].folder
+    const storageKey = this.props.params.storageKey
+    const folderKey = this.props.params.folderKey
 
     if (filepaths === undefined) return
     filepaths.forEach((filepath) => {

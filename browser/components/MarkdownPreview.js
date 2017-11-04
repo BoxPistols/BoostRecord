@@ -258,7 +258,7 @@ export default class MarkdownPreview extends React.Component {
     theme = consts.THEMES.some((_theme) => _theme === theme) && theme !== 'default'
       ? theme
       : 'elegant'
-    this.getWindow().document.getElementById('codeTheme').href = `${appPath}/node_modules/codemirror/theme/${theme}.css`
+    this.getWindow().document.getElementById('codeTheme').href = `${appPath}/node_modules/codemirror/theme/${theme.split(' ')[0]}.css`
   }
 
   rewriteIframe () {
@@ -330,7 +330,12 @@ export default class MarkdownPreview extends React.Component {
         }
         el.parentNode.appendChild(copyIcon)
         el.innerHTML = ''
-        el.parentNode.className += ` cm-s-${codeBlockTheme} CodeMirror`
+        if (codeBlockTheme.indexOf('solarized') === 0) {
+          const [refThema, color] = codeBlockTheme.split(' ')
+          el.parentNode.className += ` cm-s-${refThema} cm-s-${color} CodeMirror`
+        } else {
+          el.parentNode.className += ` cm-s-${codeBlockTheme} CodeMirror`
+        }
         CodeMirror.runMode(content, syntax.mime, el, {
           tabSize: indentSize
         })

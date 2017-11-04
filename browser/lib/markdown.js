@@ -69,6 +69,8 @@ md.use(require('markdown-it-named-headers'), {
   }
 })
 md.use(require('markdown-it-kbd'))
+md.use(require('markdown-it-plantuml'))
+
 // Override task item
 md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
   let content, terminate, i, l, token

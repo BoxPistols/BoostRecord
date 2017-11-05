@@ -135,6 +135,7 @@ class NoteList extends React.Component {
     }
     let { router } = this.context
     let { location } = this.props
+    let { selectedNoteIds } = this.state
 
     let targetIndex = this.getTargetIndex()
 
@@ -142,7 +143,15 @@ class NoteList extends React.Component {
       return
     }
     targetIndex--
-    if (targetIndex < 0) targetIndex = 0
+
+    selectedNoteIds = []
+    const priorNote = Object.assign({}, this.notes[targetIndex])
+    const priorNoteKey = `${priorNote.storage}-${priorNote.key}`
+    selectedNoteIds.push(priorNoteKey)
+
+    this.setState({
+      selectedNoteIds
+    })
 
     router.push({
       pathname: location.pathname,
@@ -158,6 +167,7 @@ class NoteList extends React.Component {
     }
     let { router } = this.context
     let { location } = this.props
+    let { selectedNoteIds } = this.state
 
     let targetIndex = this.getTargetIndex()
 
@@ -168,6 +178,15 @@ class NoteList extends React.Component {
       if (targetIndex < 0) targetIndex = 0
       else if (targetIndex > this.notes.length - 1) targetIndex === this.notes.length - 1
     }
+
+    selectedNoteIds = []
+    const nextNote = Object.assign({}, this.notes[targetIndex])
+    const nextNoteKey = `${nextNote.storage}-${nextNote.key}`
+    selectedNoteIds.push(nextNoteKey)
+
+    this.setState({
+      selectedNoteIds
+    })
 
     router.push({
       pathname: location.pathname,
@@ -202,10 +221,6 @@ class NoteList extends React.Component {
   }
 
   handleNoteListKeyDown (e) {
-    if (e.shiftKey) {
-      this.setState({ shiftKeyDown: true })
-    }
-
     if (e.metaKey || e.ctrlKey) return true
 
     if (e.keyCode === 65 && !e.shiftKey) {
@@ -231,6 +246,10 @@ class NoteList extends React.Component {
     if (e.keyCode === 40) {
       e.preventDefault()
       this.selectNextNote()
+    }
+
+    if (e.shiftKey) {
+      this.setState({ shiftKeyDown: true })
     }
   }
 

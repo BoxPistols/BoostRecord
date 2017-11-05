@@ -53,6 +53,7 @@ class NoteList extends React.Component {
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
     this.handleNoteListKeyUp = this.handleNoteListKeyUp.bind(this)
     this.deleteNote = this.deleteNote.bind(this)
+    this.activateNote = this.activateNote.bind(this)
 
     this.state = {
       shiftKeyDown: false,
@@ -129,6 +130,22 @@ class NoteList extends React.Component {
     }
   }
 
+  activateNote (selectedNoteKeys, noteKey) {
+    let { router } = this.context
+    let { location } = this.props
+
+    this.setState({
+      selectedNoteKeys
+    })
+
+    router.push({
+      pathname: location.pathname,
+      query: {
+        key: noteKey
+      }
+    })
+  }
+
   selectPriorNote () {
     if (this.notes == null || this.notes.length === 0) {
       return
@@ -149,16 +166,7 @@ class NoteList extends React.Component {
     const priorNoteKey = `${priorNote.storage}-${priorNote.key}`
     selectedNoteKeys.push(priorNoteKey)
 
-    this.setState({
-      selectedNoteKeys
-    })
-
-    router.push({
-      pathname: location.pathname,
-      query: {
-        key: this.notes[targetIndex].storage + '-' + this.notes[targetIndex].key
-      }
-    })
+    this.activateNote(selectedNoteKeys, priorNoteKey)
   }
 
   selectNextNote () {
@@ -184,16 +192,8 @@ class NoteList extends React.Component {
     const nextNoteKey = `${nextNote.storage}-${nextNote.key}`
     selectedNoteKeys.push(nextNoteKey)
 
-    this.setState({
-      selectedNoteKeys
-    })
+    this.activateNote(selectedNoteKeys, nextNoteKey)
 
-    router.push({
-      pathname: location.pathname,
-      query: {
-        key: this.notes[targetIndex].storage + '-' + this.notes[targetIndex].key
-      }
-    })
     ee.emit('list:moved')
   }
 
@@ -210,12 +210,12 @@ class NoteList extends React.Component {
 
     if (targetIndex < 0) targetIndex = 0
 
-    router.push({
-      pathname: location.pathname,
-      query: {
-        key: this.notes[targetIndex].storage + '-' + this.notes[targetIndex].key
-      }
-    })
+    selectedNoteKeys = []
+    const nextNote = Object.assign({}, this.notes[targetIndex])
+    const nextNoteKey = `${nextNote.storage}-${nextNote.key}`
+    selectedNoteKeys.push(nextNoteKey)
+
+    this.activateNote(selectedNoteKeys, nextNoteKey)
 
     ee.emit('list:moved')
   }
@@ -338,26 +338,25 @@ class NoteList extends React.Component {
     let { location } = this.props
     let { shiftKeyDown, selectedNoteKeys } = this.state
 
-    if (shiftKeyDown && !selectedNoteKeys.includes(uniqueKey)) {
-      selectedNoteKeys.push(uniqueKey)
-      this.setState({
-        selectedNoteKeys
-      })
-    } else if (shiftKeyDown) {
+    if (shiftKeyDown && selectedNoteKeys.includes(uniqueKey)) {
       this.setState({
         selectedNoteKeys: [...selectedNoteKeys].filter((item) => item !== uniqueKey)
       })
-    } else {
-      this.setState({
-        selectedNoteKeys: [uniqueKey]
-      })
-      router.push({
-        pathname: location.pathname,
-        query: {
-          key: uniqueKey
-        }
-      })
+      return
     }
+    if (!shiftKeyDown) {
+      selectedNoteKeys = []
+    }
+    selectedNoteKeys.push(uniqueKey)
+    this.setState({
+      selectedNoteKeys
+    })
+    router.push({
+      pathname: location.pathname,
+      query: {
+        key: uniqueKey
+      }
+    })
   }
 
   handleSortByChange (e) {

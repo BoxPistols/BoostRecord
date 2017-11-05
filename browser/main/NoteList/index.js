@@ -15,6 +15,7 @@ import markdown from 'browser/lib/markdown'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import stripgtags from 'striptags'
 import store from 'browser/main/store'
+import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
@@ -50,8 +51,12 @@ class NoteList extends React.Component {
     }
     this.importFromFileHandler = this.importFromFile.bind(this)
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
+    this.handleNoteListKeyUp = this.handleNoteListKeyUp.bind(this)
+    this.deleteNote = this.deleteNote.bind(this)
 
     this.state = {
+      shiftKeyDown: false,
+      selectedNoteIds: []
     }
 
     this.contextNotes = []
@@ -197,6 +202,10 @@ class NoteList extends React.Component {
   }
 
   handleNoteListKeyDown (e) {
+    if (e.shiftKey) {
+      this.setState({ shiftKeyDown: true })
+    }
+
     if (e.metaKey || e.ctrlKey) return true
 
     if (e.keyCode === 65 && !e.shiftKey) {
@@ -222,6 +231,12 @@ class NoteList extends React.Component {
     if (e.keyCode === 40) {
       e.preventDefault()
       this.selectNextNote()
+    }
+  }
+
+  handleNoteListKeyUp (e) {
+    if (!e.shiftKey) {
+      this.setState({ shiftKeyDown: false })
     }
   }
 
@@ -302,13 +317,28 @@ class NoteList extends React.Component {
   handleNoteClick (e, uniqueKey) {
     let { router } = this.context
     let { location } = this.props
+    let { shiftKeyDown, selectedNoteIds } = this.state
 
-    router.push({
-      pathname: location.pathname,
-      query: {
-        key: uniqueKey
-      }
-    })
+    if (shiftKeyDown && !selectedNoteIds.includes(uniqueKey)) {
+      selectedNoteIds.push(uniqueKey)
+      this.setState({
+        selectedNoteIds
+      })
+    } else if (shiftKeyDown) {
+      this.setState({
+        selectedNoteIds: [...selectedNoteIds].filter((item) => item !== uniqueKey)
+      })
+    } else {
+      this.setState({
+        selectedNoteIds: [uniqueKey]
+      })
+      router.push({
+        pathname: location.pathname,
+        query: {
+          key: uniqueKey
+        }
+      })
+    }
   }
 
   handleSortByChange (e) {
@@ -358,10 +388,15 @@ class NoteList extends React.Component {
 
   handleNoteContextMenu (e, uniqueKey) {
     const { location } = this.props
+    const { selectedNoteIds } = this.state
     const note = this.notes.find((note) => {
       const noteKey = `${note.storage}-${note.key}`
       return noteKey === uniqueKey
     })
+
+    if (selectedNoteIds.length === 0) {
+      this.handleNoteClick(e, uniqueKey)
+    }
 
     const pinLabel = note.isPinned ? 'Remove pin' : 'Pin to Top'
     const deleteLabel = 'Delete Note'
@@ -375,7 +410,7 @@ class NoteList extends React.Component {
     }
     menu.append(new MenuItem({
       label: deleteLabel,
-      click: (e) => this.deleteNote(e, uniqueKey)
+      click: this.deleteNote
     }))
     menu.popup()
   }
@@ -403,9 +438,68 @@ class NoteList extends React.Component {
       })
   }
 
-  deleteNote (e, uniqueKey) {
-    this.handleNoteClick(e, uniqueKey)
-    ee.emit('detail:delete')
+  deleteNote () {
+    const { dispatch } = this.props
+    const { selectedNoteIds } = this.state
+    // not to change objects of this.notes
+    const notes = this.notes.map((note) => Object.assign({}, note))
+    const selectedNotes = notes.filter((note) => selectedNoteIds.includes(`${note.storage}-${note.key}`))
+    const firstNote = selectedNotes[0]
+
+    if (firstNote.isTrashed) {
+      const noteExp = selectedNotes.length > 1 ? 'notes' : 'note'
+      const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
+        type: 'warning',
+        message: 'Confirm note deletion',
+        detail: `This will permanently remove ${selectedNotes.length} ${noteExp}.`,
+        buttons: ['Confirm', 'Cancel']
+      })
+      if (dialogueButtonIndex === 1) return
+      Promise.all(
+        selectedNoteIds.map((uniqueKey) => {
+          const storageKey = uniqueKey.split('-')[0]
+          const noteKey = uniqueKey.split('-')[1]
+          return dataApi
+            .deleteNote(storageKey, noteKey)
+        })
+      )
+      .then((data) => {
+        data.forEach((item) => {
+          dispatch({
+            type: 'DELETE_NOTE',
+            storageKey: item.storageKey,
+            noteKey: item.noteKey
+          })
+        })
+      })
+      .catch((err) => {
+        console.error('Cannot Delete note: ' + err)
+      })
+      console.log('Notes were all deleted')
+    } else {
+      Promise.all(
+        selectedNotes.map((note) => {
+          note.isTrashed = true
+
+          return dataApi
+          .updateNote(note.storage, note.key, note)
+        })
+      )
+      .then((newNotes) => {
+        newNotes.forEach((newNote) => {
+          dispatch({
+            type: 'UPDATE_NOTE',
+            note: newNote
+          })
+        })
+        AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
+        console.log('Notes went to trash')
+      })
+      .catch((err) => {
+        console.error('Notes could not go to trash: ' + err)
+      })
+    }
+    this.setState({ selectedNoteIds: [] })
   }
 
   importFromFile () {
@@ -475,6 +569,7 @@ class NoteList extends React.Component {
 
   render () {
     let { location, notes, config, dispatch } = this.props
+    let { selectedNoteIds } = this.state
     let sortFunc = config.sortBy === 'CREATED_AT'
       ? sortByCreatedAt
       : config.sortBy === 'ALPHABETICAL'
@@ -495,7 +590,8 @@ class NoteList extends React.Component {
         }
 
         const isDefault = config.listStyle === 'DEFAULT'
-        const isActive = location.query.key === note.storage + '-' + note.key
+        const uniqueKey = note.storage + '-' + note.key
+        const isActive = selectedNoteIds.includes(uniqueKey)
         const dateDisplay = moment(
           config.sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt
@@ -570,6 +666,7 @@ class NoteList extends React.Component {
           ref='list'
           tabIndex='-1'
           onKeyDown={(e) => this.handleNoteListKeyDown(e)}
+          onKeyUp={this.handleNoteListKeyUp}
         >
           {noteList}
         </div>

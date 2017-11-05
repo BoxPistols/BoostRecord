@@ -137,7 +137,7 @@ class Preferences extends React.Component {
         <div ref='content' styleName='content'>
           {content}
         </div>
-        <RealtimeNotification/>
+        <RealtimeNotification />
       </div>
     )
   }

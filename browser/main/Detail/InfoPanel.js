@@ -15,8 +15,7 @@ const InfoPanel = ({
 
     {type === 'SNIPPET_NOTE'
       ? ''
-      :
-      <div styleName='count-wrap'>
+      : <div styleName='count-wrap'>
         <div styleName='count-number'>
           <p styleName='infoPanel-defaul-count'>{wordCount}</p>
           <p styleName='infoPanel-sub-count'>Words</p>
@@ -30,8 +29,7 @@ const InfoPanel = ({
 
     {type === 'SNIPPET_NOTE'
       ? ''
-      :
-      <hr />
+      : <hr />
     }
 
     <div>
@@ -50,7 +48,7 @@ const InfoPanel = ({
     </div>
 
     <div>
-      <input styleName='infoPanel-noteLink' value={noteLink} onClick={(e) => { e.target.select() }}/>
+      <input styleName='infoPanel-noteLink' value={noteLink} onClick={(e) => { e.target.select() }} />
       <p styleName='infoPanel-sub'>NOTE LINK</p>
     </div>
 

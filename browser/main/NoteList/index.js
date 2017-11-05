@@ -400,8 +400,12 @@ class NoteList extends React.Component {
   }
 
   handleDragStart (e, note) {
-    const noteData = JSON.stringify(note)
+    const { selectedNoteKeys } = this.state
+    const notes = this.notes.map((note) => Object.assign({}, note))
+    const selectedNotes = notes.filter((note) => selectedNoteKeys.includes(`${note.storage}-${note.key}`))
+    const noteData = JSON.stringify(selectedNotes)
     e.dataTransfer.setData('note', noteData)
+    this.setState({ selectedNoteKeys: [] })
   }
 
   handleNoteContextMenu (e, uniqueKey) {

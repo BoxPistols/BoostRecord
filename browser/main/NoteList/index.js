@@ -56,7 +56,7 @@ class NoteList extends React.Component {
 
     this.state = {
       shiftKeyDown: false,
-      selectedNoteIds: []
+      selectedNoteKeys: []
     }
 
     this.contextNotes = []
@@ -135,7 +135,7 @@ class NoteList extends React.Component {
     }
     let { router } = this.context
     let { location } = this.props
-    let { selectedNoteIds } = this.state
+    let { selectedNoteKeys } = this.state
 
     let targetIndex = this.getTargetIndex()
 
@@ -144,13 +144,13 @@ class NoteList extends React.Component {
     }
     targetIndex--
 
-    selectedNoteIds = []
+    selectedNoteKeys = []
     const priorNote = Object.assign({}, this.notes[targetIndex])
     const priorNoteKey = `${priorNote.storage}-${priorNote.key}`
-    selectedNoteIds.push(priorNoteKey)
+    selectedNoteKeys.push(priorNoteKey)
 
     this.setState({
-      selectedNoteIds
+      selectedNoteKeys
     })
 
     router.push({
@@ -167,7 +167,7 @@ class NoteList extends React.Component {
     }
     let { router } = this.context
     let { location } = this.props
-    let { selectedNoteIds } = this.state
+    let { selectedNoteKeys } = this.state
 
     let targetIndex = this.getTargetIndex()
 
@@ -179,13 +179,13 @@ class NoteList extends React.Component {
       else if (targetIndex > this.notes.length - 1) targetIndex === this.notes.length - 1
     }
 
-    selectedNoteIds = []
+    selectedNoteKeys = []
     const nextNote = Object.assign({}, this.notes[targetIndex])
     const nextNoteKey = `${nextNote.storage}-${nextNote.key}`
-    selectedNoteIds.push(nextNoteKey)
+    selectedNoteKeys.push(nextNoteKey)
 
     this.setState({
-      selectedNoteIds
+      selectedNoteKeys
     })
 
     router.push({
@@ -336,20 +336,20 @@ class NoteList extends React.Component {
   handleNoteClick (e, uniqueKey) {
     let { router } = this.context
     let { location } = this.props
-    let { shiftKeyDown, selectedNoteIds } = this.state
+    let { shiftKeyDown, selectedNoteKeys } = this.state
 
-    if (shiftKeyDown && !selectedNoteIds.includes(uniqueKey)) {
-      selectedNoteIds.push(uniqueKey)
+    if (shiftKeyDown && !selectedNoteKeys.includes(uniqueKey)) {
+      selectedNoteKeys.push(uniqueKey)
       this.setState({
-        selectedNoteIds
+        selectedNoteKeys
       })
     } else if (shiftKeyDown) {
       this.setState({
-        selectedNoteIds: [...selectedNoteIds].filter((item) => item !== uniqueKey)
+        selectedNoteKeys: [...selectedNoteKeys].filter((item) => item !== uniqueKey)
       })
     } else {
       this.setState({
-        selectedNoteIds: [uniqueKey]
+        selectedNoteKeys: [uniqueKey]
       })
       router.push({
         pathname: location.pathname,
@@ -407,13 +407,14 @@ class NoteList extends React.Component {
 
   handleNoteContextMenu (e, uniqueKey) {
     const { location } = this.props
-    const { selectedNoteIds } = this.state
+    const { selectedNoteKeys } = this.state
     const note = this.notes.find((note) => {
       const noteKey = `${note.storage}-${note.key}`
       return noteKey === uniqueKey
     })
+    const noteKey = `${note.storage}-${note.key}`
 
-    if (selectedNoteIds.length === 0) {
+    if (selectedNoteKeys.length === 0 || !selectedNoteKeys.includes(noteKey)) {
       this.handleNoteClick(e, uniqueKey)
     }
 
@@ -459,10 +460,10 @@ class NoteList extends React.Component {
 
   deleteNote () {
     const { dispatch } = this.props
-    const { selectedNoteIds } = this.state
+    const { selectedNoteKeys } = this.state
     // not to change objects of this.notes
     const notes = this.notes.map((note) => Object.assign({}, note))
-    const selectedNotes = notes.filter((note) => selectedNoteIds.includes(`${note.storage}-${note.key}`))
+    const selectedNotes = notes.filter((note) => selectedNoteKeys.includes(`${note.storage}-${note.key}`))
     const firstNote = selectedNotes[0]
 
     if (firstNote.isTrashed) {
@@ -475,7 +476,7 @@ class NoteList extends React.Component {
       })
       if (dialogueButtonIndex === 1) return
       Promise.all(
-        selectedNoteIds.map((uniqueKey) => {
+        selectedNoteKeys.map((uniqueKey) => {
           const storageKey = uniqueKey.split('-')[0]
           const noteKey = uniqueKey.split('-')[1]
           return dataApi
@@ -518,7 +519,7 @@ class NoteList extends React.Component {
         console.error('Notes could not go to trash: ' + err)
       })
     }
-    this.setState({ selectedNoteIds: [] })
+    this.setState({ selectedNoteKeys: [] })
   }
 
   importFromFile () {
@@ -588,7 +589,7 @@ class NoteList extends React.Component {
 
   render () {
     let { location, notes, config, dispatch } = this.props
-    let { selectedNoteIds } = this.state
+    let { selectedNoteKeys } = this.state
     let sortFunc = config.sortBy === 'CREATED_AT'
       ? sortByCreatedAt
       : config.sortBy === 'ALPHABETICAL'
@@ -610,7 +611,7 @@ class NoteList extends React.Component {
 
         const isDefault = config.listStyle === 'DEFAULT'
         const uniqueKey = note.storage + '-' + note.key
-        const isActive = selectedNoteIds.includes(uniqueKey)
+        const isActive = selectedNoteKeys.includes(uniqueKey)
         const dateDisplay = moment(
           config.sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt

@@ -104,11 +104,17 @@ class SideNav extends React.Component {
         <TagListItem
           name={tag}
           handleClickTagListItem={this.handleClickTagListItem.bind(this)}
-          isActive={!!location.pathname.match(tag)}
+          isActive={this.getTagActive(location.pathname, tag)}
           key={tag}
         />
       ))
     )
+  }
+
+  getTagActive (path, tag) {
+    const pathSegments = path.split('/')
+    const pathTag = pathSegments[pathSegments.length - 1]
+    return pathTag === tag
   }
 
   handleClickTagListItem (name) {

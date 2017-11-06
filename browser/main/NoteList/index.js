@@ -53,8 +53,9 @@ class NoteList extends React.Component {
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
     this.handleNoteListKeyUp = this.handleNoteListKeyUp.bind(this)
     this.deleteNote = this.deleteNote.bind(this)
-    this.activateNote = this.activateNote.bind(this)
+    this.focusNote = this.focusNote.bind(this)
 
+    // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
       shiftKeyDown: false,
       selectedNoteKeys: []
@@ -130,7 +131,7 @@ class NoteList extends React.Component {
     }
   }
 
-  activateNote (selectedNoteKeys, noteKey) {
+  focusNote (selectedNoteKeys, noteKey) {
     let { router } = this.context
     let { location } = this.props
 
@@ -166,7 +167,7 @@ class NoteList extends React.Component {
     const priorNoteKey = `${priorNote.storage}-${priorNote.key}`
     selectedNoteKeys.push(priorNoteKey)
 
-    this.activateNote(selectedNoteKeys, priorNoteKey)
+    this.focusNote(selectedNoteKeys, priorNoteKey)
   }
 
   selectNextNote () {
@@ -192,7 +193,7 @@ class NoteList extends React.Component {
     const nextNoteKey = `${nextNote.storage}-${nextNote.key}`
     selectedNoteKeys.push(nextNoteKey)
 
-    this.activateNote(selectedNoteKeys, nextNoteKey)
+    this.focusNote(selectedNoteKeys, nextNoteKey)
 
     ee.emit('list:moved')
   }
@@ -215,7 +216,7 @@ class NoteList extends React.Component {
     const nextNoteKey = `${nextNote.storage}-${nextNote.key}`
     selectedNoteKeys.push(nextNoteKey)
 
-    this.activateNote(selectedNoteKeys, nextNoteKey)
+    this.focusNote(selectedNoteKeys, nextNoteKey)
 
     ee.emit('list:moved')
   }
@@ -439,26 +440,27 @@ class NoteList extends React.Component {
   }
 
   pinToTop (e, uniqueKey) {
-    const { data, params } = this.props
-    const storageKey = params.storageKey
-    const folderKey = params.folderKey
+    const { selectedNoteKeys } = this.state
+    const { dispatch } = this.props
+    const notes = this.notes.map((note) => Object.assign({}, note))
+    const selectedNotes = notes.filter((note) => selectedNoteKeys.includes(`${note.storage}-${note.key}`))
 
-    const currentStorage = data.storageMap.get(storageKey)
-    const currentFolder = _.find(currentStorage.folders, {key: folderKey})
-
-    this.handleNoteClick(e, uniqueKey)
-    const targetIndex = this.getTargetIndex()
-    let note = this.notes[targetIndex]
-    note.isPinned = !note.isPinned
-
-    dataApi
-      .updateNote(note.storage, note.key, note)
-      .then((note) => {
-        store.dispatch({
+    Promise.all(
+      selectedNotes.map((note) => {
+        note.isPinned = !note.isPinned
+        return dataApi
+          .updateNote(note.storage, note.key, note)
+      })
+    )
+    .then((updatedNotes) => {
+      updatedNotes.forEach((note) => {
+        dispatch({
           type: 'UPDATE_NOTE',
-          note: note
+          note
         })
       })
+    })
+    this.setState({ selectedNoteKeys: [] })
   }
 
   deleteNote () {

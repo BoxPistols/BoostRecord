@@ -488,6 +488,25 @@ class NoteList extends React.Component {
       if (note.isTrashed !== true || location.pathname === '/trashed') return true
     })
 
+    moment.locale('en', {
+      relativeTime: {
+        future: 'in %s',
+        past: '%s ago',
+        s: '%ds',
+        ss: '%ss',
+        m: '1m',
+        mm: '%dm',
+        h: 'an hour',
+        hh: '%dh',
+        d: '1d',
+        dd: '%dd',
+        M: '1M',
+        MM: '%dM',
+        y: '1Y',
+        yy: '%dY'
+      }
+    })
+
     let noteList = notes
       .map(note => {
         if (note == null) {
@@ -499,7 +518,7 @@ class NoteList extends React.Component {
         const dateDisplay = moment(
           config.sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt
-        ).fromNow()
+        ).fromNow('D')
         const key = `${note.storage}-${note.key}`
 
         if (isDefault) {

@@ -153,7 +153,7 @@ class NoteList extends React.Component {
     }
     let { router } = this.context
     let { location } = this.props
-    let { selectedNoteKeys } = this.state
+    let { selectedNoteKeys, shiftKeyDown } = this.state
 
     let targetIndex = this.getTargetIndex()
 
@@ -162,10 +162,16 @@ class NoteList extends React.Component {
     }
     targetIndex--
 
-    selectedNoteKeys = []
+    if (!shiftKeyDown) {
+      selectedNoteKeys = []
+    }
     const priorNote = Object.assign({}, this.notes[targetIndex])
     const priorNoteKey = `${priorNote.storage}-${priorNote.key}`
-    selectedNoteKeys.push(priorNoteKey)
+    if (selectedNoteKeys.includes(priorNoteKey)) {
+      selectedNoteKeys.pop()
+    } else {
+      selectedNoteKeys.push(priorNoteKey)
+    }
 
     this.focusNote(selectedNoteKeys, priorNoteKey)
   }
@@ -176,11 +182,13 @@ class NoteList extends React.Component {
     }
     let { router } = this.context
     let { location } = this.props
-    let { selectedNoteKeys } = this.state
+    let { selectedNoteKeys, shiftKeyDown } = this.state
 
     let targetIndex = this.getTargetIndex()
 
     if (targetIndex === this.notes.length - 1) {
+      return
+    } else if (targetIndex === this.notes.length - 1) {
       targetIndex = 0
     } else {
       targetIndex++
@@ -188,10 +196,16 @@ class NoteList extends React.Component {
       else if (targetIndex > this.notes.length - 1) targetIndex === this.notes.length - 1
     }
 
-    selectedNoteKeys = []
+    if (!shiftKeyDown) {
+      selectedNoteKeys = []
+    }
     const nextNote = Object.assign({}, this.notes[targetIndex])
     const nextNoteKey = `${nextNote.storage}-${nextNote.key}`
-    selectedNoteKeys.push(nextNoteKey)
+    if (selectedNoteKeys.includes(nextNoteKey)) {
+      selectedNoteKeys.pop()
+    } else {
+      selectedNoteKeys.push(nextNoteKey)
+    }
 
     this.focusNote(selectedNoteKeys, nextNoteKey)
 
@@ -222,6 +236,7 @@ class NoteList extends React.Component {
   }
 
   handleNoteListKeyDown (e) {
+    const { shiftKeyDown } = this.state
     if (e.metaKey || e.ctrlKey) return true
 
     if (e.keyCode === 65 && !e.shiftKey) {
@@ -231,7 +246,7 @@ class NoteList extends React.Component {
 
     if (e.keyCode === 68) {
       e.preventDefault()
-      ee.emit('detail:delete')
+      this.deleteNote()
     }
 
     if (e.keyCode === 69) {

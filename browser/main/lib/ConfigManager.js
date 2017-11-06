@@ -91,7 +91,7 @@ function get () {
       : 'default'
 
     if (config.editor.theme !== 'default') {
-      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme + '.css')
+      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme.split(' ')[0] + '.css')
     }
   }
 
@@ -122,7 +122,7 @@ function set (updates) {
     : 'default'
 
   if (newTheme !== 'default') {
-    editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme + '.css')
+    editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme.split(' ')[0] + '.css')
   }
 
   ipcRenderer.send('config-renew', {

@@ -575,11 +575,7 @@ class NoteList extends React.Component {
   // Add notes to the current folder
   addNotesFromFiles (filepaths) {
     const { dispatch, location } = this.props
-
-    const targetIndex = this.getTargetIndex()
-
-    const storageKey = this.notes[targetIndex].storage
-    const folderKey = this.notes[targetIndex].folder
+    const { storage, folder } = this.resolveTargetFolder()
 
     if (filepaths === undefined) return
     filepaths.forEach((filepath) => {
@@ -588,11 +584,11 @@ class NoteList extends React.Component {
         const content = data.toString()
         const newNote = {
           content: content,
-          folder: folderKey,
+          folder: folder.key,
           title: markdown.strip(findNoteTitle(content)),
           type: 'MARKDOWN_NOTE'
         }
-        dataApi.createNote(storageKey, newNote)
+        dataApi.createNote(storage.key, newNote)
         .then((note) => {
           dispatch({
             type: 'UPDATE_NOTE',
@@ -615,6 +611,36 @@ class NoteList extends React.Component {
     return targetIndex
   }
 
+  resolveTargetFolder () {
+    const { data, params } = this.props
+    let storage = data.storageMap.get(params.storageKey)
+
+    // Find first storage
+    if (storage == null) {
+      for (let kv of data.storageMap) {
+        storage = kv[1]
+        break
+      }
+    }
+
+    if (storage == null) this.showMessageBox('No storage for importing note(s)')
+    const folder = _.find(storage.folders, {key: params.folderKey}) || storage.folders[0]
+    if (folder == null) this.showMessageBox('No folder for importing note(s)')
+
+    return {
+      storage,
+      folder
+    }
+  }
+
+  showMessageBox (message) {
+    dialog.showMessageBox(remote.getCurrentWindow(), {
+      type: 'warning',
+      message: message,
+      buttons: ['OK']
+    })
+  }
+
   render () {
     let { location, notes, config, dispatch } = this.props
     let { selectedNoteKeys } = this.state
@@ -631,6 +657,25 @@ class NoteList extends React.Component {
       if (note.isTrashed !== true || location.pathname === '/trashed') return true
     })
 
+    moment.locale('en', {
+      relativeTime: {
+        future: 'in %s',
+        past: '%s ago',
+        s: '%ds',
+        ss: '%ss',
+        m: '1m',
+        mm: '%dm',
+        h: 'an hour',
+        hh: '%dh',
+        d: '1d',
+        dd: '%dd',
+        M: '1M',
+        MM: '%dM',
+        y: '1Y',
+        yy: '%dY'
+      }
+    })
+
     let noteList = notes
       .map(note => {
         if (note == null) {
@@ -644,6 +689,7 @@ class NoteList extends React.Component {
           config.sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt
         ).fromNow('D')
+        const key = `${note.storage}-${note.key}`
 
         if (isDefault) {
           return (

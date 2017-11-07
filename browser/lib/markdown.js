@@ -3,6 +3,7 @@ import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
 import _ from 'lodash'
 
+// FIXME We should not depend on global variable.
 const katex = window.katex
 
 function createGutter (str) {
@@ -137,6 +138,7 @@ md.renderer.render = function render (tokens, options, env) {
   let result = originalRender.call(md.renderer, tokens, options, env)
   return result
 }
+// FIXME We should not depend on global variable.
 window.md = md
 
 function strip (input) {
@@ -177,7 +179,11 @@ const markdown = {
     const renderedContent = md.render(content)
     return renderedContent
   },
+<<<<<<< HEAD
   strip,
   normalizeLinkText
+=======
+>>>>>>> refactor: fix to use cut off file
 }
+
 export default markdown

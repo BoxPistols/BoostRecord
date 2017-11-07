@@ -643,7 +643,7 @@ class NoteList extends React.Component {
         const dateDisplay = moment(
           config.sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt
-        ).fromNow()
+        ).fromNow('D')
 
         if (isDefault) {
           return (

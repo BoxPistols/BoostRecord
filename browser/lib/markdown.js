@@ -179,11 +179,10 @@ const markdown = {
     const renderedContent = md.render(content)
     return renderedContent
   },
-<<<<<<< HEAD
   strip,
   normalizeLinkText
-=======
->>>>>>> refactor: fix to use cut off file
+    return md.render(content)
+  }
 }
 
 export default markdown

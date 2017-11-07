@@ -35,5 +35,5 @@ export function strip (input) {
 }
 
 export default {
-  strip,
+  strip
 }

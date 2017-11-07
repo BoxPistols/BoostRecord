@@ -433,11 +433,7 @@ class NoteList extends React.Component {
   // Add notes to the current folder
   addNotesFromFiles (filepaths) {
     const { dispatch, location } = this.props
-
-    const targetIndex = this.getTargetIndex()
-
-    const storageKey = this.notes[targetIndex].storage
-    const folderKey = this.notes[targetIndex].folder
+    const { storage, folder } = this.resolveTargetFolder()
 
     if (filepaths === undefined) return
     filepaths.forEach((filepath) => {
@@ -446,11 +442,11 @@ class NoteList extends React.Component {
         const content = data.toString()
         const newNote = {
           content: content,
-          folder: folderKey,
+          folder: folder.key,
           title: markdown.strip(findNoteTitle(content)),
           type: 'MARKDOWN_NOTE'
         }
-        dataApi.createNote(storageKey, newNote)
+        dataApi.createNote(storage.key, newNote)
         .then((note) => {
           dispatch({
             type: 'UPDATE_NOTE',
@@ -471,6 +467,36 @@ class NoteList extends React.Component {
       return `${note.storage}-${note.key}` === location.query.key
     })
     return targetIndex
+  }
+
+  resolveTargetFolder () {
+    const { data, params } = this.props
+    let storage = data.storageMap.get(params.storageKey)
+
+    // Find first storage
+    if (storage == null) {
+      for (let kv of data.storageMap) {
+        storage = kv[1]
+        break
+      }
+    }
+
+    if (storage == null) this.showMessageBox('No storage for importing note(s)')
+    const folder = _.find(storage.folders, {key: params.folderKey}) || storage.folders[0]
+    if (folder == null) this.showMessageBox('No folder for importing note(s)')
+
+    return {
+      storage,
+      folder
+    }
+  }
+
+  showMessageBox (message) {
+    dialog.showMessageBox(remote.getCurrentWindow(), {
+      type: 'warning',
+      message: message,
+      buttons: ['OK']
+    })
   }
 
   render () {

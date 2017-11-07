@@ -66,6 +66,7 @@ class NoteList extends React.Component {
     this.handleNoteListKeyUp = this.handleNoteListKeyUp.bind(this)
     this.deleteNote = this.deleteNote.bind(this)
     this.focusNote = this.focusNote.bind(this)
+    this.pinToTop = this.pinToTop.bind(this)
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {

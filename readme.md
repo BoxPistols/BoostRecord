@@ -1,6 +1,6 @@
 New:zap:
 
-[Android and iOS apps](https://github.com/BoostIO/Boostnote-mobile) are released!
+Open sourcing our [Android and iOS apps](https://github.com/BoostIO/Boostnote-mobile)!
 
 ![Boostnote app screenshot](./resources/repository/top.png)
 
@@ -15,10 +15,16 @@ New:zap:
 - [sota1235](https://github.com/sota1235)
 - [Kohei TAKATA](https://github.com/kohei-takata)
 - [asmsuechan](https://github.com/asmsuechan)
-- [Kazu Yokomizo](https://github.com/kazup01)
+- [Sosuke](https://github.com/sosukesuzuki)
+- [Kazz](https://github.com/kazup01)
 
 ## Contributors
-[Great contributors](https://github.com/BoostIO/Boostnote/graphs/contributors) :tada:
+Thank you to all the people who already contributed to Boostnote!
+<a href="https://github.com/BoostIO/Boostnote/graphs/contributors"><img src="https://opencollective.com/boostnoteio/contributors.svg?width=890" /></a>
+
+## Supporting Boostnote
+Boostnote is an open source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome [backers](https://github.com/BoostIO/Boostnote/blob/master/Backers.md). If you'd like to join them, please consider:
+- [Become a backer or sponsor on Open Collective.](https://opencollective.com/boostnoteio)
 
 ## Slack Group
 Let's talk about Boostnote! <br>
@@ -26,9 +32,8 @@ Let's talk about Boostnote! <br>
 
 ## More Information
 * [Website](https://boostnote.io)
-* [10hz](https://boostnote.io/team/) : Boostnote for the creative hacker teams. Share your markdown notes and snippets instantly with your team. **We will release it at October!** 🏃💨
-* [Support us via OpenCollective](https://opencollective.com/boostnoteio) : Thank you for your support 🎉
-* [Development](https://github.com/BoostIO/Boostnote/blob/master/docs/build.md) : Development configurations for Boostnote 🚀
+* [10hz](https://boostnote.io/team/) : Boostnote for the creative hacker teams. Share your markdown notes and snippets instantly with your team.
+* [Development](https://github.com/BoostIO/Boostnote/blob/master/docs/build.md) : Development configurations for Boostnote.
 * Copyright (C) 2017 Maisin&Co.
 
 ## License

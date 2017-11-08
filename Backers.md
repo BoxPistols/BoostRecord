@@ -1,43 +1,45 @@
-Dear all,
+<h1 align="center">Sponsors &amp; Backers</h1>
 
-Thanks for your using!
-Boostnote is used in about 200 countries and regions, it is a awesome developer community.
+Boostnote is an open source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome [backers](https://github.com/BoostIO/Boostnote/blob/master/Backers.md). If you'd like to join them, please consider:
 
-To continue supporting this growth, and to satisfy community expectations,
-we would like to invest more time in this project.
-
-If you like this project and see its potential, you can help!
-
-Thanks,
-Boostnote maintainers.
-
-### >> [Support via OpenCollective](https://opencollective.com/boostnoteio)
+- [Become a backer or sponsor on Open Collective.](https://opencollective.com/boostnoteio)
 
 ---
 
-## Backers
-[Kazz](https://twitter.com/kazup_bot) - $65
+## Backers via OpenCollective
+<a href="https://opencollective.com/boostnoteio#backers" target="_blank"><img src="https://opencollective.com/boostnoteio/backers.svg?width=890"></a>
 
-Intense Raiden - $45
+- [Kazu Yokomizo](https://twitter.com/kazup_bot) - $20
 
-ravy22 - $25
+- [Nikolas Dan](https://opencollective.com/nikolas-dan) - $20
 
-trentpolack	- $20
+- [tatoosh11](https://twitter.com/ta11) - $10
 
-hikariru - $10
+- [Yeojong Kim](https://twitter.com/yeojoy) - $5
 
-kolchan11 - $10
+- [Scotia Draven](https://opencollective.com/scotia-draven) - $5
 
-RonWalker22 - $10
+## Backers via Bountysource
+https://salt.bountysource.com/teams/boostnote
 
-hocchuc	- $5
+- Kuzz - $65
 
-Adam - $5
+- Intense Raiden - $45
 
-Steve	- $5
+- ravy22 - $25
 
-evmin	- $5
+- trentpolack	- $20
 
-[@yeojoy](https://twitter.com/yeojoy) - $5
+- hikariru - $10
 
-Scotia Draven - $5
+- kolchan11 - $10
+
+- RonWalker22 - $10
+
+- hocchuc	- $5
+
+- Adam - $5
+
+- Steve	- $5
+
+- evmin	- $5

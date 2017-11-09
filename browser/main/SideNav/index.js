@@ -161,7 +161,7 @@ class SideNav extends React.Component {
       >
         <div styleName='top'>
           <div styleName='switch-buttons'>
-            <button styleName={isTagActive ? 'non-active-button' : 'active-button'} onClick={this.handleSwitchFoldersButtonClick.bind(this)}><i className='fa fa-folder fa-fw' /></button>
+            <button styleName={isTagActive ? 'non-active-button' : 'active-button'} onClick={this.handleSwitchFoldersButtonClick.bind(this)}><i className='fa fa-bars fa-fw' style={{transform: 'rotate(90deg)'}} /></button>
             <button styleName={isTagActive ? 'active-button' : 'non-active-button'} onClick={this.handleSwitchTagsButtonClick.bind(this)}><i className='fa fa-tags fa-fw' /></button>
           </div>
           <div>

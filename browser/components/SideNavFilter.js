@@ -33,7 +33,7 @@ const SideNavFilter = ({
       <span styleName='menu-button-label'>Starred</span>
       <span styleName='counters'>{counterStarredNote}</span>
     </button>
-    <button styleName={isTrashedActive ? 'menu-button--active' : 'menu-button'}
+    <button styleName={isTrashedActive ? 'menu-button-trash--active' : 'menu-button'}
       onClick={handleTrashedButtonClick}
     >
       <i className='fa fa-trash fa-fw' />

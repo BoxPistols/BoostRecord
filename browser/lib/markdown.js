@@ -3,6 +3,7 @@ import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
 import _ from 'lodash'
 
+// FIXME We should not depend on global variable.
 const katex = window.katex
 
 function createGutter (str) {
@@ -137,36 +138,8 @@ md.renderer.render = function render (tokens, options, env) {
   let result = originalRender.call(md.renderer, tokens, options, env)
   return result
 }
+// FIXME We should not depend on global variable.
 window.md = md
-
-function strip (input) {
-  var output = input
-  try {
-    output = output
-      .replace(/^([\s\t]*)([\*\-\+]|\d\.)\s+/gm, '$1')
-      .replace(/\n={2,}/g, '\n')
-      .replace(/~~/g, '')
-      .replace(/`{3}.*\n/g, '')
-      .replace(/<(.*?)>/g, '$1')
-      .replace(/^[=\-]{2,}\s*$/g, '')
-      .replace(/\[\^.+?\](: .*?$)?/g, '')
-      .replace(/\s{0,2}\[.*?\]: .*?$/g, '')
-      .replace(/!\[.*?\][\[\(].*?[\]\)]/g, '')
-      .replace(/\[(.*?)\][\[\(].*?[\]\)]/g, '$1')
-      .replace(/>/g, '')
-      .replace(/^\s{1,2}\[(.*?)\]: (\S+)( ".*?")?\s*$/g, '')
-      .replace(/^#{1,6}\s*([^#]*)\s*(#{1,6})?/gm, '$1')
-      .replace(/([\*_]{1,3})(\S.*?\S)\1/g, '$2')
-      .replace(/(`{3,})(.*?)\1/gm, '$2')
-      .replace(/^-{3,}\s*$/g, '')
-      .replace(/`(.+?)`/g, '$1')
-      .replace(/\n{2,}/g, '\n\n')
-  } catch (e) {
-    console.error(e)
-    return input
-  }
-  return output
-}
 
 function normalizeLinkText (linkText) {
   return md.normalizeLinkText(linkText)
@@ -178,7 +151,7 @@ const markdown = {
     const renderedContent = md.render(content)
     return renderedContent
   },
-  strip,
   normalizeLinkText
 }
+
 export default markdown

@@ -91,7 +91,11 @@ function get () {
       : 'default'
 
     if (config.editor.theme !== 'default') {
-      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme.split(' ')[0] + '.css')
+      if (config.editor.theme.startsWith('solarized')) {
+        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme.split(' ')[0] + '.css')
+      } else {
+        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme + '.css')
+      }
     }
   }
 
@@ -122,7 +126,11 @@ function set (updates) {
     : 'default'
 
   if (newTheme !== 'default') {
-    editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme.split(' ')[0] + '.css')
+    if (newTheme.startsWith('solarized')) {
+      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme.split(' ')[0] + '.css')
+    } else {
+      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme + '.css')
+    }
   }
 
   ipcRenderer.send('config-renew', {

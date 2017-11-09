@@ -12,6 +12,7 @@
 
 .counters
   float right
+  color $ui-inactive-text-color
 
 .menu-button--active
   @extend .menu-button
@@ -44,6 +45,23 @@
   &:active, &:active:hover
     background-color alpha($ui-button--active-backgroundColor, 50%)
     color #F9BF3B
+    .menu-button-label
+      color $ui-text-color
+
+.menu-button-trash--active
+  @extend .menu-button
+  color #5D9E36
+  background-color $ui-button--active-backgroundColor
+  .menu-button-label
+    color $ui-text-color
+  &:hover
+    background-color alpha($ui-button--active-backgroundColor, 50%)
+    color #5D9E36
+    .menu-button-label
+      color $ui-text-color
+  &:active, &:active:hover
+    background-color alpha($ui-button--active-backgroundColor, 50%)
+    color #5D9E36
     .menu-button-label
       color $ui-text-color
 
@@ -104,5 +122,16 @@ body[data-theme="dark"]
     &:hover
       background-color alpha($ui-dark-button--active-backgroundColor, 50%)
       color $ui-favorite-star-button-color
+      .menu-button-label
+        color $ui-dark-text-color
+
+  .menu-button-trash--active
+    color #5D9E36
+    background-color $ui-dark-button--active-backgroundColor
+    .menu-button-label
+      color $ui-dark-text-color
+    &:hover
+      background-color alpha($ui-dark-button--active-backgroundColor, 50%)
+      color #5D9E36
       .menu-button-label
         color $ui-dark-text-color

@@ -3,9 +3,9 @@
 
 .root
   absolute top bottom right
-  border-width 0
+  border-left 1px solid alpha(#DEDEDE, 60%)
   background-color $ui-noteDetail-backgroundColor
-  box-shadow $note-detail-box-shadow
+  box-shadow none
 
 .body
   absolute left right
@@ -70,9 +70,14 @@
   padding 0 0 2px 0
   topBarButtonLight()
 
+body[data-theme="white"]
+  .root
+    box-shadow $note-detail-box-shadow
+    border none
+
 body[data-theme="dark"]
   .root
-    border-color $ui-dark-borderColor
+    border none
     background-color $ui-dark-noteDetail-backgroundColor
     box-shadow none
 

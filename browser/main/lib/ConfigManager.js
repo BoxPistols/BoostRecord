@@ -106,7 +106,7 @@ function set (updates) {
 
   if (newConfig.ui.theme === 'dark') {
     document.body.setAttribute('data-theme', 'dark')
-  } else if (newConfig.ui.theme === 'white')  {
+  } else if (newConfig.ui.theme === 'white') {
     document.body.setAttribute('data-theme', 'white')
   } else {
     document.body.setAttribute('data-theme', 'default')

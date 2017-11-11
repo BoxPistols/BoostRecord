@@ -84,7 +84,7 @@ nodeIpc.connectTo(
       const { config } = payload
       if (config.ui.theme === 'dark') {
         document.body.setAttribute('data-theme', 'dark')
-      } else if (config.ui.theme === 'white')  {
+      } else if (config.ui.theme === 'white') {
         document.body.setAttribute('data-theme', 'white')
       } else {
         document.body.setAttribute('data-theme', 'default')

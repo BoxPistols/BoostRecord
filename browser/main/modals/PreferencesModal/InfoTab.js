@@ -88,24 +88,24 @@ class InfoTab extends React.Component {
             >Website</a>
           </li>
           <li>
-            <a href='https://boostnote.paintory.com/'
+            <a href='https://medium.com/boostnote'
               onClick={(e) => this.handleLinkClick(e)}
-            >Boostnote Shop</a> : Products are shipped to all over the world 🌏
+            >Blog</a> : We have publishing the tips.
           </li>
           <li>
             <a href='https://opencollective.com/boostnoteio'
               onClick={(e) => this.handleLinkClick(e)}
-            >Crowdfunding</a> : Thank you for your support 🎉
+            >Crowdfunding</a> : Thank you for your support.
           </li>
           <li>
             <a href='https://github.com/BoostIO/Boostnote/issues'
               onClick={(e) => this.handleLinkClick(e)}
-            >GitHub Issues</a> : We&apos;d love to hear your feedback 🙌
+            >GitHub Repository and Issue</a> : We&apos;d love to hear your feedback!
           </li>
           <li>
             <a href='https://github.com/BoostIO/Boostnote/blob/master/docs/build.md'
               onClick={(e) => this.handleLinkClick(e)}
-            >Development</a> : Development configurations for Boostnote 🚀
+            >Development</a> : Development configurations for Boostnote.
           </li>
           <li styleName='cc'>
             Copyright (C) 2017 Maisin&Co.
@@ -114,7 +114,9 @@ class InfoTab extends React.Component {
             License: GPL v3
           </li>
         </ul>
-        <hr />
+
+        <hr styleName='separate-line' />
+
         <div styleName='policy'>Data collection policy</div>
         <div>We collect only the number of DAU for Boostnote and **DO NOT collect** any detail information such as your note content.</div>
         <div>You can see how it works on <a href='https://github.com/BoostIO/Boostnote' onClick={(e) => this.handleLinkClick(e)}>GitHub</a>.</div>

@@ -104,10 +104,13 @@ body[data-theme="white"]
 
   .top-menu-preference
     navWhiteButtonColor()
+    background-color transparent
     &:hover
       color #0B99F1
+      background-color transparent
     &:active, &:active:hover
       color #0B99F1
+      background-color transparent
 
   .non-active-button
     color $ui-inactive-text-color
@@ -137,10 +140,13 @@ body[data-theme="dark"]
 
   .top-menu-preference
     navDarkButtonColor()
+    background-color transparent
     &:active
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
+      background-color transparent
     &:hover
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
+      background-color transparent
 
   .non-active-button
     color alpha($ui-dark-text-color, 60%)

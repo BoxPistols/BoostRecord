@@ -259,7 +259,7 @@ export default class MarkdownPreview extends React.Component {
       ? theme
       : 'elegant'
     this.getWindow().document.getElementById('codeTheme').href = theme.startsWith('solarized')
-      ? `${appPath}/node_modules/codemirror/theme/${theme.split(' ')[0]}.css`
+      ? `${appPath}/node_modules/codemirror/theme/solarized.css`
       : `${appPath}/node_modules/codemirror/theme/${theme}.css`
   }
 

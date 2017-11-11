@@ -92,7 +92,7 @@ function get () {
 
     if (config.editor.theme !== 'default') {
       if (config.editor.theme.startsWith('solarized')) {
-        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme.split(' ')[0] + '.css')
+        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/solarized.css')
       } else {
         editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme + '.css')
       }
@@ -127,7 +127,7 @@ function set (updates) {
 
   if (newTheme !== 'default') {
     if (newTheme.startsWith('solarized')) {
-      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme.split(' ')[0] + '.css')
+      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/solarized.css')
     } else {
       editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme + '.css')
     }

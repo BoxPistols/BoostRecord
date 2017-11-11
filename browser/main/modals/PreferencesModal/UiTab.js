@@ -141,7 +141,8 @@ class UiTab extends React.Component {
                 onChange={(e) => this.handleUIChange(e)}
                 ref='uiTheme'
               >
-                <option value='default'>Light</option>
+                <option value='default'>Default</option>
+                <option value='white'>White</option>
                 <option value='dark'>Dark</option>
               </select>
             </div>

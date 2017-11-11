@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './SideNav.styl'
 import { openModal } from 'browser/main/lib/modal'

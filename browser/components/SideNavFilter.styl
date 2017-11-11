@@ -9,6 +9,13 @@
   width 100%
   text-align left
   overflow ellipsis
+  &:hover
+    color $ui-button-default-color
+    background-color alpha($ui-button-default--active-backgroundColor, 20%)
+    transition background-color 0.15s
+  &:active, &:active:hover
+    color $ui-button-default-color
+    background-color $ui-button-default--active-backgroundColor
 
 .counters
   float right
@@ -17,53 +24,17 @@
 .menu-button--active
   @extend .menu-button
   color #e74c3c
-  background-color $ui-button--active-backgroundColor
-  .menu-button-label
-    color $ui-text-color
-  &:hover
-    background-color alpha($ui-button--active-backgroundColor, 50%)
-    color #e74c3c
-    .menu-button-label
-      color $ui-text-color
-  &:active, &:active:hover
-    background-color alpha($ui-button--active-backgroundColor, 50%)
-    color #e74c3c
-    .menu-button-label
-      color $ui-text-color
+  SideNavFilter()
 
 .menu-button-star--active
   @extend .menu-button
   color #F9BF3B
-  background-color $ui-button--active-backgroundColor
-  .menu-button-label
-    color $ui-text-color
-  &:hover
-    background-color alpha($ui-button--active-backgroundColor, 50%)
-    color #F9BF3B
-    .menu-button-label
-      color $ui-text-color
-  &:active, &:active:hover
-    background-color alpha($ui-button--active-backgroundColor, 50%)
-    color #F9BF3B
-    .menu-button-label
-      color $ui-text-color
+  SideNavFilter()
 
 .menu-button-trash--active
   @extend .menu-button
   color #5D9E36
-  background-color $ui-button--active-backgroundColor
-  .menu-button-label
-    color $ui-text-color
-  &:hover
-    background-color alpha($ui-button--active-backgroundColor, 50%)
-    color #5D9E36
-    .menu-button-label
-      color $ui-text-color
-  &:active, &:active:hover
-    background-color alpha($ui-button--active-backgroundColor, 50%)
-    color #5D9E36
-    .menu-button-label
-      color $ui-text-color
+  SideNavFilter()
 
 .menu-button-label
   margin-left 5px
@@ -93,6 +64,64 @@
     pointer-events none
     opacity 0
     font-size 13px
+
+body[data-theme="white"]
+  .menu-button
+    navWhiteButtonColor()
+
+  .counters
+    color $ui-inactive-text-color
+
+  .menu-button--active
+    @extend .menu-button
+    color #e74c3c
+    background-color $ui-button--active-backgroundColor
+    .menu-button-label
+      color $ui-text-color
+    &:hover
+      background-color alpha($ui-button--active-backgroundColor, 50%)
+      color #e74c3c
+      .menu-button-label
+        color $ui-text-color
+    &:active, &:active:hover
+      background-color alpha($ui-button--active-backgroundColor, 50%)
+      color #e74c3c
+      .menu-button-label
+        color $ui-text-color
+
+  .menu-button-star--active
+    @extend .menu-button
+    color #F9BF3B
+    background-color $ui-button--active-backgroundColor
+    .menu-button-label
+      color $ui-text-color
+    &:hover
+      background-color alpha($ui-button--active-backgroundColor, 50%)
+      color #F9BF3B
+      .menu-button-label
+        color $ui-text-color
+    &:active, &:active:hover
+      background-color alpha($ui-button--active-backgroundColor, 50%)
+      color #F9BF3B
+      .menu-button-label
+        color $ui-text-color
+
+  .menu-button-trash--active
+    @extend .menu-button
+    color #5D9E36
+    background-color $ui-button--active-backgroundColor
+    .menu-button-label
+      color $ui-text-color
+    &:hover
+      background-color alpha($ui-button--active-backgroundColor, 50%)
+      color #5D9E36
+      .menu-button-label
+        color $ui-text-color
+    &:active, &:active:hover
+      background-color alpha($ui-button--active-backgroundColor, 50%)
+      color #5D9E36
+      .menu-button-label
+        color $ui-text-color
 
 body[data-theme="dark"]
   .menu-button

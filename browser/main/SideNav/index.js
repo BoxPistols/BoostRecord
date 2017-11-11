@@ -165,7 +165,7 @@ class SideNav extends React.Component {
             <button styleName={isTagActive ? 'active-button' : 'non-active-button'} onClick={this.handleSwitchTagsButtonClick.bind(this)}><i className='fa fa-tags fa-fw' /></button>
           </div>
           <div>
-            <button styleName='top-menu'
+            <button styleName='top-menu-preference'
               onClick={(e) => this.handleMenuButtonClick(e)}
             >
               <i className='fa fa-wrench fa-fw' />

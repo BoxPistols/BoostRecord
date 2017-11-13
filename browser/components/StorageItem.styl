@@ -17,20 +17,20 @@
   &:first-child
     margin-top 0
   &:hover
-    color $ui-text-color
-    background-color alpha($ui-button--active-backgroundColor, 20%)
+    color $ui-button-default-color
+    background-color alpha($ui-button-default--active-backgroundColor, 20%)
     transition background-color 0.15s
   &:active
-    color $ui-text-color
-    background-color $ui-button--active-backgroundColor
+    color $$ui-button-default-color
+    background-color $ui-button-default--active-backgroundColor
 
 .folderList-item--active
   @extend .folderList-item
-  color $ui-text-color
-  background-color $ui-button--active-backgroundColor
+  color $ui-button-default-color
+  background-color $ui-button-default--active-backgroundColor
   &:hover
-    color $ui-text-color
-    background-color alpha($ui-button--active-backgroundColor, 50%)
+    color $ui-button-default-color
+    background-color alpha($ui-button-default--active-backgroundColor, 50%)
 
 .folderList-item-name
   display block
@@ -69,8 +69,28 @@
 
 .folderList-item-name--folded
   @extend .folderList-item-name
-  padding-left 12px
+  padding-left 17px
+  text
+    display none
 
+body[data-theme="white"]
+  .folderList-item
+    color $ui-inactive-text-color
+    &:hover
+      color $ui-text-color
+      background-color alpha($ui-button--active-backgroundColor, 20%)
+      transition background-color 0.15s
+    &:active
+      color $ui-text-color
+      background-color $ui-button--active-backgroundColor
+
+  .folderList-item--active
+    @extend .folderList-item
+    color $ui-text-color
+    background-color $ui-button--active-backgroundColor
+    &:hover
+      color $ui-text-color
+      background-color alpha($ui-button--active-backgroundColor, 50%)
 
 body[data-theme="dark"]
   .folderList-item

@@ -15,18 +15,18 @@ $ui-text-color = #333333
 $ui-inactive-text-color = #939395
 $ui-borderColor = #D1D1D1
 $ui-backgroundColor = #FFFFFF
-$ui-noteList-backgroundColor = #F3F3F3
-$ui-noteDetail-backgroundColor = #F4F4F4
+$ui-noteList-backgroundColor = #FBFBFB
+$ui-noteDetail-backgroundColor = #F8F8F8
 $ui-border = solid 1px $ui-borderColor
 $ui-active-color = #6AA5E9
 $ui-tag-backgroundColor = rgba(0, 0, 0, 0.3)
 
-// UI Button
-$ui-button-color = #939395
-$ui-button--hover-backgroundColor = #D9D9D9
-$ui-button--active-color = white
-$ui-button--active-backgroundColor = #D9D9D9
-$ui-button--focus-borderColor = lighten(#369DCD, 25%)
+// UI Default Button
+$ui-button-default-color = #FBFBFB
+$ui-button-default--hover-backgroundColor = #2B8976
+$ui-button-default--active-color = white
+$ui-button-default--active-backgroundColor = #2B8976
+$ui-button-default--focus-borderColor = lighten(#369DCD, 25%)
 
 // UI Tooltip
 $ui-tooltip-text-color = white
@@ -120,6 +120,26 @@ colorDangerButton()
     background-color $danger-button-background--active
 
 /**
+* SideNav
+*/
+SideNavFilter()
+  background-color $ui-button-default--active-backgroundColor
+  .counters
+    color $ui-button-default-color
+  .menu-button-label
+    color $ui-button-default-color
+  &:hover
+    background-color alpha($ui-button-default--hover-backgroundColor, 50%)
+    color $ui-button-default-color
+    .menu-button-label
+      color $ui-button-default-color
+  &:active, &:active:hover
+    background-color alpha($ui-button-default--hover-backgroundColor, 50%)
+    color $ui-button-default-color
+    .menu-button-label
+      color $ui-button-default-color
+
+/**
 * Nav
 */
 
@@ -129,13 +149,14 @@ navButtonColor()
   background-color transparent
   transition 0.15s
   &:hover
-    background-color alpha($ui-button--active-backgroundColor, 20%)
+    background-color alpha($ui-button-default--active-backgroundColor, 20%)
     transition  0.15s
-    color $ui-text-color
+    color $ui-button-default-color
   &:active, &:active:hover
-    background-color $ui-button--active-backgroundColor
-    color $ui-text-color
+    background-color #1EC38B
+    color $ui-button-default-color
     transition 0.15s
+
 /**
 * # Modal Stuff
 * These will be moved lib/modal
@@ -175,7 +196,35 @@ topBarButtonLight()
     .control-lockButton-tooltip
       opacity 1
 
-// Dark theme
+// White theme
+$ui-white-noteList-backgroundColor = #F3F3F3
+$ui-white-noteDetail-backgroundColor = #F4F4F4
+
+/**
+* Nav
+*/
+navWhiteButtonColor()
+  border none
+  color $ui-button-color
+  background-color transparent
+  transition 0.15s
+  &:hover
+    background-color alpha($ui-button--active-backgroundColor, 20%)
+    transition  0.15s
+    color $ui-text-color
+  &:active, &:active:hover
+    background-color $ui-button--active-backgroundColor
+    color $ui-text-color
+    transition 0.15s
+
+// UI Button
+$ui-button-color = #939395
+$ui-button--hover-backgroundColor = #D9D9D9
+$ui-button--active-color = white
+$ui-button--active-backgroundColor = #D9D9D9
+$ui-button--focus-borderColor = lighten(#369DCD, 25%)
+
+/******* Dark theme ********/
 $ui-dark-active-color = #3A404C
 $ui-dark-borderColor = lighten(#21252B, 20%)
 $ui-dark-backgroundColor = #1E2124

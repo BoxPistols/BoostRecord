@@ -1,7 +1,7 @@
 .root
   absolute top left bottom
   width $sideNav-width
-  background-color #f9f9f9
+  background-color #2E3235
   user-select none
   color $ui-text-color
   height: 100vh
@@ -11,18 +11,19 @@
 .top
   padding-bottom 15px
 
-.top-menu
+.top-menu-preference
   navButtonColor()
   position absolute
   top 22px
-  right 5px
-  height 23px
+  right 10px
   width 2em
+  background-color transparent
   &:hover
-    color $ui-text-color
+    color $ui-button-default--active-backgroundColor
+    background-color transparent
   &:active, &:active:hover
-    color $ui-text-color
-    background-color alpha($ui-button--active-backgroundColor, 20%)
+    color $ui-button-default--active-backgroundColor
+    background-color transparent
 
 .switch-buttons
   background-color transparent
@@ -37,11 +38,11 @@
   background-color transparent
   transition 0.2s
   &:hover
-    color alpha(#0B99F1, 60%)
+    color alpha(#239F86, 60%)
 
 .active-button
   @extend .non-active-button
-  color #0B99F1
+  color $ui-button-default--active-backgroundColor
 
 .top-menu-label
   margin-left 5px
@@ -57,7 +58,7 @@
   padding-left 15px
   padding-bottom 13px
   p
-    color $ui-text-color
+    color $ui-button-default-color
 
 .tagList
   overflow-y auto
@@ -66,6 +67,7 @@
 .root--folded
   height 100vh
   width $sideNav--folded-width
+  background-color #2E3235
   .switch-buttons
     display none
   .top
@@ -88,7 +90,6 @@
     opacity 0
     margin-left 0
     overflow hidden
-    background-color $ui-tooltip-backgroundColor
     z-index 10
     color white
     line-height 30px
@@ -96,6 +97,41 @@
     border-bottom-right-radius 2px
     pointer-events none
     font-size 13px
+  .top-menu-preference
+    position absolute
+    left 11px
+
+body[data-theme="white"]
+  .root, .root--folded
+    background-color #f9f9f9
+    color $ui-text-color
+
+  .top-menu-preference
+    navWhiteButtonColor()
+    background-color transparent
+    &:hover
+      color #0B99F1
+      background-color transparent
+    &:active, &:active:hover
+      color #0B99F1
+      background-color transparent
+
+  .non-active-button
+    color $ui-inactive-text-color
+    &:hover
+      color alpha(#0B99F1, 60%)
+
+  .tag-title
+    p
+      color $ui-text-color
+
+  .non-active-button
+    &:hover
+      color alpha(#0B99F1, 60%)
+
+  .active-button
+    @extend .non-active-button
+    color #0B99F1
 
 body[data-theme="dark"]
   .root, .root--folded
@@ -106,12 +142,15 @@ body[data-theme="dark"]
   .top
     border-color $ui-dark-borderColor
 
-  .top-menu
+  .top-menu-preference
     navDarkButtonColor()
+    background-color transparent
     &:active
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
+      background-color transparent
     &:hover
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
+      background-color transparent
 
   .non-active-button
     color alpha($ui-dark-text-color, 60%)

@@ -11,15 +11,15 @@ $control-height = 30px
   user-select none
   cursor pointer
   background-color $ui-noteList-backgroundColor
-  transition background-color 0.15s
+  transition 0.2s
   &:hover
-    background-color alpha($ui-button--active-backgroundColor, 40%)
+    background-color alpha($ui-button--active-backgroundColor, 20%)
     .item-simple-title
     .item-simple-title-empty
     .item-simple-title-icon
       color $ui-text-color
   &:active
-    background-color $ui-button--active-backgroundColor
+    background-color alpha($ui-button--active-backgroundColor, 40%)
     color $ui-text-color
     .item-simple-title
     .item-simple-title-empty
@@ -28,7 +28,7 @@ $control-height = 30px
 
 .item-simple--active
   @extend .item-simple
-  background-color $ui-button--active-backgroundColor
+  background-color alpha($ui-button--active-backgroundColor, 60%)
   color $ui-text-color
   .item-simple-title
   .item-simple-title-empty
@@ -37,12 +37,12 @@ $control-height = 30px
   .item-simple-title-icon
     color $ui-text-color
   &:hover
-    background-color alpha($ui-button--active-backgroundColor, 50%)
+    background-color alpha($ui-button--active-backgroundColor, 40%)
     color #e74c3c
     .menu-button-label
       color $ui-text-color
   &:active, &:active:hover
-    background-color alpha($ui-button--active-backgroundColor, 50%)
+    background-color alpha($ui-button--active-backgroundColor, 40%)
     color #e74c3c
     .menu-button-label
       color $ui-text-color
@@ -66,6 +66,18 @@ $control-height = 30px
 .item-simple-title-empty
   font-weight normal
   color $ui-inactive-text-color
+
+body[data-theme="white"]
+  .item-simple
+    background-color $ui-white-noteList-backgroundColor
+    &:hover
+      background-color alpha($ui-button--active-backgroundColor, 40%)
+    &:active
+      background-color $ui-button--active-backgroundColor
+
+  .item-simple--active
+    @extend .item-simple
+    background-color $ui-button--active-backgroundColor
 
 body[data-theme="dark"]
   .root

@@ -12,20 +12,12 @@
 
 .header--active
   margin-bottom 5px
-  background-color $ui-button--active-backgroundColor
+  background-color $ui-button-default--active-backgroundColor
   transition color background-color  0.15s
-
-.header--active
   .header-toggleButton
-    color $ui-text-color
-
-.header--active
   .header-info
-    color $ui-text-color
-
-.header--active
   .header-addFolderButton
-    color $ui-text-color
+    color $ui-button-default-color
 
 .header-toggleButton
   navButtonColor()
@@ -38,7 +30,7 @@
   border-radius 50%
   &:hover
     transition 0.2s
-    background-color alpha($ui-button--active-backgroundColor, 40%)
+    background-color alpha($ui-button-default--hover-backgroundColor, 40%)
     color $ui-text-color
 
 .header-info
@@ -54,7 +46,14 @@
   border none
   overflow ellipsis
   text-align left
-  background-color alpha($ui-button--active-backgroundColor, 20%)
+  background-color transparent
+  &:hover
+    color $ui-button-default-color
+    background-color alpha($ui-button-default--active-backgroundColor, 20%)
+    transition background-color 0.15s
+  &:active, &:active:hover
+    color $ui-button-default-color
+    background-color $ui-button-default--active-backgroundColor
 
 .header-info-path
   font-size 10px
@@ -72,7 +71,7 @@
   border-radius 50%
   &:hover
     transition 0.2s
-    background-color alpha($ui-button--active-backgroundColor, 40%)
+    background-color alpha($ui-button-default--hover-backgroundColor, 40%)
     color $ui-text-color
 
 .root--folded
@@ -101,6 +100,33 @@
   .header-info--folded-tooltip-path
     font-size 10px
     margin 0 5px
+
+body[data-theme="white"]
+  .header--active
+    background-color $ui-button--active-backgroundColor
+    transition color background-color  0.15s
+    .header-toggleButton
+      color $ui-text-color
+    .header-info
+      color $ui-text-color
+    .header-addFolderButton
+      color $ui-text-color
+
+  .header-toggleButton
+    navWhiteButtonColor()
+    &:hover
+      background-color alpha($ui-button--active-backgroundColor, 40%)
+      color $ui-text-color
+
+  .header-info
+    navWhiteButtonColor()
+    background-color alpha($ui-button--active-backgroundColor, 20%)
+
+  .header-addFolderButton
+    navWhiteButtonColor()
+    &:hover
+      background-color alpha($ui-button--active-backgroundColor, 40%)
+      color $ui-text-color
 
 body[data-theme="dark"]
   .header--active

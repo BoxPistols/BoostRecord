@@ -232,7 +232,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   getToggleLockButton () {
-    return this.state.isLocked ? 'fa-lock' : 'fa-unlock'
+    return this.state.isLocked ? 'fa-eye-slash' : 'fa-eye'
   }
 
   handleDeleteKeyDown (e) {
@@ -339,9 +339,6 @@ class MarkdownNoteDetail extends React.Component {
               onMouseDown={(e) => this.handleLockButtonMouseDown(e)}
             >
               <i className={faClassName} styleName='lock-button' />
-              <span styleName='control-lockButton-tooltip'>
-                {this.state.isLocked ? 'Unlock Editor' : 'Keep Editor Locked'}
-              </span>
             </button>
           return (
             this.state.isLockButtonShown ? lockButtonComponent : ''

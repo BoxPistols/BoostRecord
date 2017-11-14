@@ -186,12 +186,13 @@ topBarButtonLight()
   border-radius 17px
   font-size 14px
   border none
-  color alpha($ui-button-color, 0.3)
+  color alpha($ui-button-color, 0.4)
   fill $ui-button-color
   background-color transparent
   &:active
     border-color $ui-button--active-backgroundColor
   &:hover
+    transform scale(1.1)
     transition 0.4s
     color $ui-button-color
     .control-lockButton-tooltip

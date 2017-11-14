@@ -213,7 +213,6 @@ export default class CodeEditor extends React.Component {
   }
 
   insertImageMd (imageMd) {
-    const textarea = this.editor.getInputField()
     this.editor.replaceSelection(imageMd)
   }
 

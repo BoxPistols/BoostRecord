@@ -42,7 +42,6 @@ var config = {
     'markdown-it-kbd',
     'markdown-it-plantuml',
     'devtron',
-    'mixpanel',
     '@rokt33r/season',
     {
       react: 'var React',

@@ -11,13 +11,8 @@ import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import modal from 'browser/main/lib/modal'
 import InitModal from 'browser/main/modals/InitModal'
-import mixpanel from 'browser/main/lib/mixpanel'
 import mobileAnalytics from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import eventEmitter from 'browser/main/lib/eventEmitter'
-
-function focused () {
-  mixpanel.track('MAIN_FOCUSED')
-}
 
 class Main extends React.Component {
 
@@ -78,11 +73,9 @@ class Main extends React.Component {
       })
 
     eventEmitter.on('editor:fullscreen', this.toggleFullScreen)
-    window.addEventListener('focus', focused)
   }
 
   componentWillUnmount () {
-    window.removeEventListener('focus', focused)
     eventEmitter.off('editor:fullscreen', this.toggleFullScreen)
   }
 

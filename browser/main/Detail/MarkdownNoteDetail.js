@@ -302,10 +302,6 @@ class MarkdownNoteDetail extends React.Component {
 
     const detailTopBar = <div styleName='info'>
       <div styleName='info-left'>
-        <StarButton styleName='info-left-button'
-          onClick={(e) => this.handleStarButtonClick(e)}
-          isActive={note.isStarred}
-        />
         <div styleName='info-left-top'>
           <FolderSelect styleName='info-left-top-folderSelect'
             value={this.state.note.storage + '-' + this.state.note.folder}
@@ -325,6 +321,15 @@ class MarkdownNoteDetail extends React.Component {
         />
       </div>
       <div styleName='info-right'>
+        <InfoButton
+          onClick={(e) => this.handleInfoButtonClick(e)}
+        />
+
+        <StarButton
+          onClick={(e) => this.handleStarButtonClick(e)}
+          isActive={note.isStarred}
+        />
+
         {(() => {
           const faClassName = `fa ${this.getToggleLockButton()}`
           const lockButtonComponent =
@@ -341,15 +346,14 @@ class MarkdownNoteDetail extends React.Component {
             this.state.isLockButtonShown ? lockButtonComponent : ''
           )
         })()}
-        <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
+
         <button styleName='control-fullScreenButton'
-          onMouseDown={(e) => this.handleFullScreenButton(e)}
-        >
+                  onMouseDown={(e) => this.handleFullScreenButton(e)}>
           <i className='fa fa-window-maximize' styleName='fullScreen-button' />
         </button>
-        <InfoButton
-          onClick={(e) => this.handleInfoButtonClick(e)}
-        />
+
+        <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
+
         <InfoPanel
           storageName={currentOption.storage.name}
           folderName={currentOption.folder.name}

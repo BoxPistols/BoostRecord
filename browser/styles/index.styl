@@ -180,19 +180,20 @@ modal()
   border-radius $modal-border-radius
 
 topBarButtonLight()
+  position absolute
   width 34px
   height 34px
   border-radius 17px
   font-size 14px
-  margin 15px 7px
   border none
-  color $ui-button-color
+  color alpha($ui-button-color, 0.3)
   fill $ui-button-color
   background-color transparent
   &:active
     border-color $ui-button--active-backgroundColor
   &:hover
-    background-color alpha($ui-button--hover-backgroundColor, 60%)
+    transition 0.4s
+    color $ui-button-color
     .control-lockButton-tooltip
       opacity 1
 

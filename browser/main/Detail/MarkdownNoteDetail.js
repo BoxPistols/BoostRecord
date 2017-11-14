@@ -348,8 +348,8 @@ class MarkdownNoteDetail extends React.Component {
         })()}
 
         <button styleName='control-fullScreenButton'
-                  onMouseDown={(e) => this.handleFullScreenButton(e)}
-          >
+          onMouseDown={(e) => this.handleFullScreenButton(e)}
+        >
           <i className='fa fa-window-maximize' styleName='fullScreen-button' />
         </button>
 

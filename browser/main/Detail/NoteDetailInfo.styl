@@ -1,7 +1,7 @@
 @import('DetailVars')
 
-$info-height = 60px
-$info-margin-under-border = 27px
+$info-height = 40px
+$info-margin-under-border = 15px
 
 .info
   absolute top left right
@@ -13,8 +13,10 @@ $info-margin-under-border = 27px
 
 .info-left
   float left
-  padding 0 5px
-  margin 0px 2px
+  padding 0 7px
+  width 100%
+  display flex
+
 .info-left-top
   display inline-block
   height $info-height
@@ -22,12 +24,13 @@ $info-margin-under-border = 27px
 
 .info-left-top-folderSelect
   padding 0 3px
-  height 34px
-  line-height 26px
+  height 40px
+  line-height 40px
   display flex
   align-items center
   justify-content center
   border-radius 3px
+
 .info-left-button
   width 34px
   height 34px
@@ -48,7 +51,7 @@ $info-margin-under-border = 27px
 
 .info-right
   position absolute
-  right 0
+  right -20px
   top 0
   background $ui-noteDetail-backgroundColor
   bottom 1px
@@ -59,7 +62,7 @@ $info-margin-under-border = 27px
   height 34px
   border-radius 17px
   font-size 14px
-  margin 15px 7px
+  margin 5px 0px
   border none
   color $ui-button-color
   display flex
@@ -72,6 +75,7 @@ $info-margin-under-border = 27px
     border-color $ui-button--active-backgroundColor
   &:hover
     background-color alpha($ui-button--hover-backgroundColor, 60%)
+    transition 0.2s
     .control-lockButton-tooltip
       opacity 1
 

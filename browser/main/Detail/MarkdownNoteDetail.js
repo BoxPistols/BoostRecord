@@ -15,6 +15,7 @@ import _ from 'lodash'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import TrashButton from './TrashButton'
+import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
@@ -231,7 +232,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   getToggleLockButton () {
-    return this.state.isLocked ? 'fa-lock' : 'fa-unlock'
+    return this.state.isLocked ? 'fa-eye-slash' : 'fa-eye'
   }
 
   handleDeleteKeyDown (e) {
@@ -285,7 +286,7 @@ class MarkdownNoteDetail extends React.Component {
         />
       </div>
       <div styleName='info-right'>
-        <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
+        <PermanentDeleteButton onClick={(e) => this.handleTrashButtonClick(e)} />
         <InfoButton
           onClick={(e) => this.handleInfoButtonClick(e)}
         />
@@ -302,10 +303,6 @@ class MarkdownNoteDetail extends React.Component {
 
     const detailTopBar = <div styleName='info'>
       <div styleName='info-left'>
-        <StarButton styleName='info-left-button'
-          onClick={(e) => this.handleStarButtonClick(e)}
-          isActive={note.isStarred}
-        />
         <div styleName='info-left-top'>
           <FolderSelect styleName='info-left-top-folderSelect'
             value={this.state.note.storage + '-' + this.state.note.folder}
@@ -325,6 +322,15 @@ class MarkdownNoteDetail extends React.Component {
         />
       </div>
       <div styleName='info-right'>
+        <InfoButton
+          onClick={(e) => this.handleInfoButtonClick(e)}
+        />
+
+        <StarButton
+          onClick={(e) => this.handleStarButtonClick(e)}
+          isActive={note.isStarred}
+        />
+
         {(() => {
           const faClassName = `fa ${this.getToggleLockButton()}`
           const lockButtonComponent =
@@ -333,23 +339,20 @@ class MarkdownNoteDetail extends React.Component {
               onMouseDown={(e) => this.handleLockButtonMouseDown(e)}
             >
               <i className={faClassName} styleName='lock-button' />
-              <span styleName='control-lockButton-tooltip'>
-                {this.state.isLocked ? 'Unlock Editor' : 'Keep Editor Locked'}
-              </span>
             </button>
           return (
             this.state.isLockButtonShown ? lockButtonComponent : ''
           )
         })()}
-        <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
+
         <button styleName='control-fullScreenButton'
           onMouseDown={(e) => this.handleFullScreenButton(e)}
         >
           <i className='fa fa-window-maximize' styleName='fullScreen-button' />
         </button>
-        <InfoButton
-          onClick={(e) => this.handleInfoButtonClick(e)}
-        />
+
+        <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
+
         <InfoPanel
           storageName={currentOption.storage.name}
           folderName={currentOption.folder.name}

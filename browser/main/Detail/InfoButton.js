@@ -8,7 +8,7 @@ const InfoButton = ({
   <button styleName='control-infoButton'
     onClick={onClick}
   >
-    <i className='fa fa-info infoButton' styleName='info-button' />
+    <i className='fa fa-info-circle infoButton' styleName='info-button' />
   </button>
 )
 

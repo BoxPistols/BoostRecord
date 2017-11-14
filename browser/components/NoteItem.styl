@@ -149,13 +149,15 @@ body[data-theme="white"]
   .item
     background-color $ui-white-noteList-backgroundColor
     &:hover
-      background-color alpha($ui-button--active-backgroundColor, 40%)
+      background-color alpha($ui-button--active-backgroundColor, 60%)
     &:active
       background-color $ui-button--active-backgroundColor
 
   .item--active
     @extend .item
     background-color $ui-button--active-backgroundColor
+    &:hover
+      background-color alpha($ui-button--active-backgroundColor, 60%)
 
 body[data-theme="dark"]
   .root
@@ -208,7 +210,7 @@ body[data-theme="dark"]
       background-color alpha(white, 10%)
       color $ui-dark-text-color
     &:hover
-      background-color alpha($ui-dark-button--active-backgroundColor, 50%)
+      background-color alpha($ui-dark-button--active-backgroundColor, 60%)
       color #c0392b
       .item-bottom-tagList-item
         background-color alpha(#fff, 20%)

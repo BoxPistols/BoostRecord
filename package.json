@@ -16,7 +16,7 @@
     "dev-start": "concurrently --kill-others \"npm run webpack\" \"npm run hot\""
   },
   "config": {
-    "electron-version": "1.2.8"
+    "electron-version": "1.6.15"
   },
   "repository": {
     "type": "git",
@@ -103,7 +103,7 @@
     "devtron": "^1.1.0",
     "dom-storage": "^2.0.2",
     "electron-packager": "^6.0.0",
-    "electron-prebuilt": "^1.2.8",
+    "electron": "^1.6.15",
     "eslint": "^3.13.1",
     "eslint-config-standard": "^6.2.1",
     "eslint-config-standard-jsx": "^3.2.0",

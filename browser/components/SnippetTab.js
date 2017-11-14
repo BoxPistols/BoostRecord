@@ -90,10 +90,6 @@ class SnippetTab extends React.Component {
     this.props.onDragStart(e)
   }
 
-  handleDragEnd (e) {
-    this.props.onDragEnd(e)
-  }
-
   handleDrop (e) {
     this.props.onDrop(e)
   }
@@ -112,7 +108,6 @@ class SnippetTab extends React.Component {
             onDoubleClick={(e) => this.handleRenameClick(e)}
             onContextMenu={(e) => this.handleContextMenu(e)}
             onDragStart={(e) => this.handleDragStart(e)}
-            onDragEnd={(e) => this.handleDragEnd(e)}
             onDrop={(e) => this.handleDrop(e)}
             draggable='true'
           >

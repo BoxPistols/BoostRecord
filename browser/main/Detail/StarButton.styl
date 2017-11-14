@@ -1,28 +1,24 @@
 .root
   top 45px
   topBarButtonLight()
+  &:hover
+    transition 0.2s
+    color alpha($ui-favorite-star-button-color, 0.6)
 
 .root--active
   @extend .root
+  transition 0.15s
+  color $ui-favorite-star-button-color
+  &:hover
+    transition 0.2s
+    color alpha($ui-favorite-star-button-color, 0.6)
 
 .icon
   transition transform 0.15s
 
 body[data-theme="dark"]
   .root
+    topBarButtonDark()
     &:hover
-      transition 0.15s
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-      color $ui-favorite-star-button-color
-    &:active
-      transition 0.15s
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-      color $ui-favorite-star-button-color
-
-  .root--active
-    @extend .root
-    color $ui-favorite-star-button-color
-    &:hover
-      transition 0.15s
-      color $ui-favorite-star-button-color
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
+      transition 0.2s
+      color alpha($ui-favorite-star-button-color, 0.6)

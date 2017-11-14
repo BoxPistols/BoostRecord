@@ -602,7 +602,7 @@ class SnippetNoteDetail extends React.Component {
         <InfoButton
           onClick={(e) => this.handleInfoButtonClick(e)}
         />
-  
+
         <StarButton
           onClick={(e) => this.handleStarButtonClick(e)}
           isActive={note.isStarred}

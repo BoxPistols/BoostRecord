@@ -64,6 +64,7 @@ class NoteList extends React.Component {
     this.importFromFileHandler = this.importFromFile.bind(this)
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
     this.handleNoteListKeyUp = this.handleNoteListKeyUp.bind(this)
+    this.getNoteKeyFromTargetIndex = this.getNoteKeyFromTargetIndex.bind(this)
     this.deleteNote = this.deleteNote.bind(this)
     this.focusNote = this.focusNote.bind(this)
     this.pinToTop = this.pinToTop.bind(this)
@@ -145,8 +146,8 @@ class NoteList extends React.Component {
   }
 
   focusNote (selectedNoteKeys, noteKey) {
-    let { router } = this.context
-    let { location } = this.props
+    const { router } = this.context
+    const { location } = this.props
 
     this.setState({
       selectedNoteKeys
@@ -158,6 +159,12 @@ class NoteList extends React.Component {
         key: noteKey
       }
     })
+  }
+
+  getNoteKeyFromTargetIndex (targetIndex) {
+    const note = Object.assign({}, this.notes[targetIndex])
+    const noteKey = getNoteKey(note)
+    return noteKey
   }
 
   selectPriorNote () {
@@ -176,8 +183,7 @@ class NoteList extends React.Component {
     targetIndex--
 
     if (!shiftKeyDown) { selectedNoteKeys = [] }
-    const priorNote = Object.assign({}, this.notes[targetIndex])
-    const priorNoteKey = `${priorNote.storage}-${priorNote.key}`
+    const priorNoteKey = this.getNoteKeyFromTargetIndex(targetIndex)
     if (selectedNoteKeys.includes(priorNoteKey)) {
       selectedNoteKeys.pop()
     } else {
@@ -198,20 +204,20 @@ class NoteList extends React.Component {
     let { selectedNoteKeys, shiftKeyDown } = this.state
 
     let targetIndex = this.getTargetIndex()
+    const isTargetLastNote = targetIndex === this.notes.length - 1
 
-    if (targetIndex === this.notes.length - 1 && shiftKeyDown) {
+    if (isTargetLastNote && shiftKeyDown) {
       return
-    } else if (targetIndex === this.notes.length - 1) {
+    } else if (isTargetLastNote) {
       targetIndex = 0
     } else {
       targetIndex++
       if (targetIndex < 0) targetIndex = 0
-      else if (targetIndex > this.notes.length - 1) targetIndex === this.notes.length - 1
+      else if (targetIndex > this.notes.length - 1) targetIndex = this.notes.length - 1
     }
 
     if (!shiftKeyDown) { selectedNoteKeys = [] }
-    const nextNote = Object.assign({}, this.notes[targetIndex])
-    const nextNoteKey = getNoteKey(nextNote)
+    const nextNoteKey = this.getNoteKeyFromTargetIndex(targetIndex)
     if (selectedNoteKeys.includes(nextNoteKey)) {
       selectedNoteKeys.pop()
     } else {
@@ -236,9 +242,8 @@ class NoteList extends React.Component {
 
     if (targetIndex < 0) targetIndex = 0
 
-    selectedNoteKeys = []
-    const nextNote = Object.assign({}, this.notes[targetIndex])
-    const nextNoteKey = `${nextNote.storage}-${nextNote.key}`
+    const selectedNoteKeys = []
+    const nextNoteKey = this.getNoteKeyFromTargetIndex(targetIndex)
     selectedNoteKeys.push(nextNoteKey)
 
     this.focusNote(selectedNoteKeys, nextNoteKey)
@@ -366,7 +371,7 @@ class NoteList extends React.Component {
     let { shiftKeyDown, selectedNoteKeys } = this.state
 
     if (shiftKeyDown && selectedNoteKeys.includes(uniqueKey)) {
-      const newSelectedNoteKeys = [...selectedNoteKeys].filter((noteKey) => noteKey !== uniqueKey)
+      const newSelectedNoteKeys = selectedNoteKeys.filter((noteKey) => noteKey !== uniqueKey)
       this.setState({
         selectedNoteKeys: newSelectedNoteKeys
       })
@@ -441,7 +446,7 @@ class NoteList extends React.Component {
     const { location } = this.props
     const { selectedNoteKeys } = this.state
     const note = findNoteByKey(this.notes, uniqueKey)
-    const noteKey = `${note.storage}-${note.key}`
+    const noteKey = getNoteKey(note)
 
     if (selectedNoteKeys.length === 0 || !selectedNoteKeys.includes(noteKey)) {
       this.handleNoteClick(e, uniqueKey)

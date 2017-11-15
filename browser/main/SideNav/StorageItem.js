@@ -144,8 +144,8 @@ class StorageItem extends React.Component {
 
   dropNote (storage, folder, dispatch, location, noteData) {
     noteData = noteData.filter((note) => folder.key !== note.folder)
-    const newNoteData = noteData.map((note) => Object.assign({}, note, {storage: storage, folder: folder.key}))
     if (noteData.length === 0) return
+    const newNoteData = noteData.map((note) => Object.assign({}, note, {storage: storage, folder: folder.key}))
 
     Promise.all(
       newNoteData.map((note) => dataApi.createNote(storage.key, note))
@@ -167,7 +167,6 @@ class StorageItem extends React.Component {
       )
     })
     .then((deletedNoteData) => {
-      console.log(deletedNoteData)
       deletedNoteData.forEach((note) => {
         dispatch({
           type: 'DELETE_NOTE',

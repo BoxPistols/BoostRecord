@@ -214,9 +214,7 @@ export default class CodeEditor extends React.Component {
   }
 
   insertImageMd (imageMd) {
-    const textarea = this.editor.getInputField()
-    const cm = this.editor
-    cm.replaceSelection(`${textarea.value.substr(0, textarea.selectionStart)}${imageMd}${textarea.value.substr(textarea.selectionEnd)}`)
+    this.editor.replaceSelection(imageMd)
   }
 
   handlePaste (editor, e) {

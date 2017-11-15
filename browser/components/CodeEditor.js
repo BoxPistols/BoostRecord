@@ -110,7 +110,7 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('q!', 'q!', this.quitEditor)
     CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
-    CodeMirror.Vim.map('ZZ',':q','normal')
+    CodeMirror.Vim.map('ZZ', ':q', 'normal')
   }
 
   quitEditor () {

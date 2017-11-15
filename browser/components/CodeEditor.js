@@ -67,7 +67,7 @@ export default class CodeEditor extends React.Component {
           if (cm.somethingSelected()) cm.indentSelection('add')
           else {
             const tabs = cm.getOption('indentWithTabs')
-            if (line.trimLeft() === '- ' || line.trimLeft() === '* ' || line.trimLeft() === '+ ') {
+            if (line.trimLeft().match(/^(-|\*|\+) (\[( |x)\] )?$/)) {
               cm.execCommand('goLineStart')
               if (tabs) {
                 cm.execCommand('insertTab')

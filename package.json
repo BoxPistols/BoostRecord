@@ -129,7 +129,8 @@
     "webpack-dev-server": "^1.12.0"
   },
   "optionalDependencies": {
-    "grunt-electron-installer-debian": "^0.2.0"
+    "grunt-electron-installer-debian": "^0.2.0",
+    "grunt-electron-installer-redhat": "^0.3.1"
   },
   "optional": false,
   "ava": {

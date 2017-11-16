@@ -50,6 +50,25 @@ module.exports = function (grunt) {
         src: path.join(__dirname, 'dist', 'Boostnote-linux-x64'),
         dest: path.join(__dirname, 'dist')
       }
+    },
+    'electron-installer-redhat': {
+      app: {
+        options: {
+          name: 'boostnote',
+          productName: 'Boostnote',
+          genericName: 'Boostnote',
+          productDescription: 'The opensource note app for developer.',
+          arch: 'x86_64',
+          categories: [
+            'Development',
+            'Utility'
+          ],
+          icon: path.join(__dirname, 'resources/app.png'),
+          bin: 'Boostnote'
+        },
+        src: path.join(__dirname, 'dist', 'Boostnote-linux-x64'),
+        dest: path.join(__dirname, 'dist')
+      }
     }
   }
 
@@ -57,6 +76,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-electron-installer')
   if (!WIN) {
     grunt.loadNpmTasks('grunt-electron-installer-debian')
+    grunt.loadNpmTasks('grunt-electron-installer-redhat')
   }
 
   grunt.registerTask('compile', function () {
@@ -244,7 +264,7 @@ module.exports = function (grunt) {
         grunt.task.run(['compile', 'pack:osx', 'codesign', 'create-osx-installer', 'zip:osx'])
         break
       case 'linux':
-        grunt.task.run(['compile', 'pack:linux', 'electron-installer-debian'])
+        grunt.task.run(['compile', 'pack:linux', 'electron-installer-debian', 'electron-installer-redhat'])
         break
     }
   })

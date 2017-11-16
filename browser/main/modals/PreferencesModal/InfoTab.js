@@ -68,7 +68,36 @@ class InfoTab extends React.Component {
   render () {
     return (
       <div styleName='root'>
-        <div styleName='header'>Info</div>
+
+        <div styleName='header--sub'>Community</div>
+        <div styleName='top'>
+          <ul styleName='list'>
+            <li>
+              <a href='https://github.com/BoostIO/Boostnote/issues'
+                onClick={(e) => this.handleLinkClick(e)}
+              >GitHub</a>
+            </li>
+            <li>
+              <a href='https://medium.com/boostnote'
+                onClick={(e) => this.handleLinkClick(e)}
+              >Blog</a>
+            </li>
+            <li>
+              <a href='https://www.reddit.com/r/Boostnote/'
+                onClick={(e) => this.handleLinkClick(e)}
+              >Reddit</a>
+            </li>
+            <li>
+              <a href='https://twitter.com/boostnoteapp'
+                onClick={(e) => this.handleLinkClick(e)}
+              >Twitter</a>
+            </li>
+          </ul>
+        </div>
+
+        <hr />
+
+        <div styleName='header--sub'>Info</div>
 
         <div styleName='top'>
           <div styleName='icon-space'>
@@ -81,26 +110,12 @@ class InfoTab extends React.Component {
             </div>
           </div>
         </div>
+
         <ul styleName='list'>
           <li>
             <a href='https://boostnote.io'
               onClick={(e) => this.handleLinkClick(e)}
             >Website</a>
-          </li>
-          <li>
-            <a href='https://medium.com/boostnote'
-              onClick={(e) => this.handleLinkClick(e)}
-            >Blog</a> : We have publishing the tips.
-          </li>
-          <li>
-            <a href='https://opencollective.com/boostnoteio'
-              onClick={(e) => this.handleLinkClick(e)}
-            >Crowdfunding</a> : Thank you for your support.
-          </li>
-          <li>
-            <a href='https://github.com/BoostIO/Boostnote/issues'
-              onClick={(e) => this.handleLinkClick(e)}
-            >GitHub Repository and Issue</a> : We&apos;d love to hear your feedback!
           </li>
           <li>
             <a href='https://github.com/BoostIO/Boostnote/blob/master/docs/build.md'

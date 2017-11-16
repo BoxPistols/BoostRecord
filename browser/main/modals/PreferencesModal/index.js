@@ -100,7 +100,7 @@ class Preferences extends React.Component {
       {target: 'STORAGES', label: 'Storages'},
       {target: 'HOTKEY', label: 'Hotkey'},
       {target: 'UI', label: 'UI'},
-      {target: 'INFO', label: 'Info'},
+      {target: 'INFO', label: 'Community / Info'},
       {target: 'CROWDFUNDING', label: 'Crowdfunding'}
     ]
 

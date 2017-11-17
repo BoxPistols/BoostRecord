@@ -53,3 +53,32 @@ grunt pre-build
 You will find the executable in the `dist` directory. Note, the auto updater won't work because the app isn't signed.
 
 If you find it necessary, you can use codesign or authenticode with this executable.
+
+## Make own distribution packages (deb, rpm)
+
+Distribution packages are created by exec `grunt build` on Linux platform (e.g. Ubuntu, Fedora).
+
+> Note: You can create both `.deb` and `.rpm` in a single environment.
+
+After installing the supported version of `node` and `npm`, install build dependency packages.
+
+
+Ubuntu/Debian:
+
+```
+$ sudo apt-get install -y rpm fakeroot
+```
+
+Fedora:
+
+```
+$ sudo dnf install -y dpkg dpkg-dev rpm-build fakeroot
+```
+
+Then execute `grunt build`.
+
+```
+$ grunt build
+```
+
+You will find `.deb` and `.rpm` in the `dist` directory.

@@ -88,6 +88,11 @@ class InfoTab extends React.Component {
               >Reddit</a>
             </li>
             <li>
+              <a href='https://www.facebook.com/groups/boostnote'
+                onClick={(e) => this.handleLinkClick(e)}
+              >Facebook Group</a>
+            </li>
+            <li>
               <a href='https://twitter.com/boostnoteapp'
                 onClick={(e) => this.handleLinkClick(e)}
               >Twitter</a>

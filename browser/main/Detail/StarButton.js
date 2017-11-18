@@ -47,10 +47,10 @@ class StarButton extends React.Component {
         onMouseLeave={(e) => this.handleMouseLeave(e)}
         onClick={this.props.onClick}
       >
-        <i styleName='icon'
-          className={this.state.isActive || this.props.isActive
-            ? 'fa fa-star'
-            : 'fa fa-star-o'
+        <img styleName='icon'
+          src={this.state.isActive || this.props.isActive
+            ? '../resources/icon/icon-starred.svg'
+            : '../resources/icon/icon-star.svg'
           }
         />
       </button>

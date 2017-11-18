@@ -23,13 +23,13 @@
     background-color transparent
   &:active, &:active:hover
     color $ui-button-default--active-backgroundColor
-    background-color transparent
 
 .switch-buttons
   background-color transparent
   border 0
-  height 25px
-  margin 20px auto 0px 8px
+  margin 24px auto 4px 14px
+  display flex
+  text-align center
 
 .non-active-button
   color $ui-inactive-text-color
@@ -37,13 +37,16 @@
   border 0
   background-color transparent
   transition 0.2s
+  display flex
+  text-align center
+  margin-right 4px;
   &:hover
     color alpha(#239F86, 60%)
 
 .active-button
   @extend .non-active-button
   color $ui-button-default--active-backgroundColor
-
+  
 .top-menu-label
   margin-left 5px
   overflow ellipsis

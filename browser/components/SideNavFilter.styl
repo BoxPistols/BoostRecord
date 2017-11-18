@@ -3,41 +3,55 @@
 
 .menu-button
   navButtonColor()
-  height 32px
-  padding 0 15px
-  font-size 13px
+  height 36px
+  padding 0 15px 0 20px
+  font-size 14px
   width 100%
   text-align left
   overflow ellipsis
-  &:hover
-    color $ui-button-default-color
+  display flex
+  align-items center
+  &:hover, &:active, &:active:hover
+    color #1EC38B
     background-color alpha($ui-button-default--active-backgroundColor, 20%)
-    transition background-color 0.15s
-  &:active, &:active:hover
-    color $ui-button-default-color
-    background-color $ui-button-default--active-backgroundColor
 
+.iconWrap
+  width 20px
+  text-align center
+  
 .counters
   float right
   color $ui-inactive-text-color
 
 .menu-button--active
   @extend .menu-button
-  color #e74c3c
   SideNavFilter()
+  color #1EC38B
+  background-color alpha($ui-button-default--active-backgroundColor, 20%)
+  .menu-button-label, .counters
+    color #1EC38B
+  &:hover
+    color #1EC38B
 
 .menu-button-star--active
   @extend .menu-button
-  color #F9BF3B
   SideNavFilter()
+  color #1EC38B
+  background-color alpha($ui-button-default--active-backgroundColor, 20%)
+  .menu-button-label, .counters
+    color #1EC38B
 
 .menu-button-trash--active
   @extend .menu-button
-  color #5D9E36
   SideNavFilter()
+  color #1EC38B
+  background-color alpha($ui-button-default--active-backgroundColor, 20%)
+  .menu-button-label, .counters
+    color #1EC38B
 
 .menu-button-label
-  margin-left 5px
+  margin-left 10px
+  flex 1
 
 .menu--folded
   @extend .menu
@@ -46,6 +60,7 @@
     &:hover .menu-button-label
       transition opacity 0.15s
       opacity 1
+
   .menu-button-label
     position fixed
     display inline-block
@@ -55,9 +70,7 @@
     margin-top -8px
     margin-left 0
     overflow ellipsis
-    background-color $ui-tooltip-backgroundColor
     z-index 10
-    color white
     line-height 32px
     border-top-right-radius 2px
     border-bottom-right-radius 2px
@@ -66,6 +79,9 @@
     font-size 13px
   .counters
     display none
+
+
+
 
 body[data-theme="white"]
   .menu-button

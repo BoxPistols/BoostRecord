@@ -226,9 +226,9 @@ class StorageItem extends React.Component {
           <button styleName='header-toggleButton'
             onMouseDown={(e) => this.handleToggleButtonClick(e)}
           >
-            <i className={this.state.isOpen
-                ? 'fa fa-caret-down'
-                : 'fa fa-caret-right'
+            <img src={this.state.isOpen
+                ? '../resources/icon/icon-down.svg'
+                : '../resources/icon/icon-right.svg'
               }
             />
           </button>
@@ -237,7 +237,7 @@ class StorageItem extends React.Component {
             <button styleName='header-addFolderButton'
               onClick={(e) => this.handleAddFolderButtonClick(e)}
             >
-              <i className='fa fa-plus' />
+              <img styleName='iconTag' src='../resources/icon/icon-plus.svg'/>
             </button>
           }
 

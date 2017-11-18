@@ -55,8 +55,8 @@ class StatusBar extends React.Component {
         <button styleName='zoom'
           onClick={(e) => this.handleZoomButtonClick(e)}
         >
-          <i className='fa fa-search-plus' />&nbsp;
-          {Math.floor(config.zoom * 100)}%
+          <img src='../resources/icon/icon-zoom.svg'/>
+          <span>{Math.floor(config.zoom * 100)}%</span>
         </button>
 
         {status.updateReady

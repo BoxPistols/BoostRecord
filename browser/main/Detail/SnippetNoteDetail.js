@@ -610,7 +610,7 @@ class SnippetNoteDetail extends React.Component {
 
         <button styleName='control-fullScreenButton'
           onMouseDown={(e) => this.handleFullScreenButton(e)}>
-          <i className='fa fa-window-maximize' styleName='fullScreen-button' />
+          <img styleName='iconInfo' src='../resources/icon/icon-sidebar.svg'/>
         </button>
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />

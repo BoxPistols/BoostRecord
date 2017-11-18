@@ -232,7 +232,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   getToggleLockButton () {
-    return this.state.isLocked ? 'fa-eye-slash' : 'fa-eye'
+    return this.state.isLocked ? '../resources/icon/icon-lock.svg' : '../resources/icon/icon-unlock.svg'
   }
 
   handleDeleteKeyDown (e) {
@@ -332,23 +332,25 @@ class MarkdownNoteDetail extends React.Component {
         />
 
         {(() => {
-          const faClassName = `fa ${this.getToggleLockButton()}`
+          const imgSrc = `${this.getToggleLockButton()}`
           const lockButtonComponent =
             <button styleName='control-lockButton'
               onFocus={(e) => this.handleFocus(e)}
               onMouseDown={(e) => this.handleLockButtonMouseDown(e)}
             >
-              <i className={faClassName} styleName='lock-button' />
+              <img styleName='iconInfo' src={imgSrc}/>
             </button>
+
           return (
             this.state.isLockButtonShown ? lockButtonComponent : ''
           )
         })()}
 
+
         <button styleName='control-fullScreenButton'
           onMouseDown={(e) => this.handleFullScreenButton(e)}
         >
-          <i className='fa fa-window-maximize' styleName='fullScreen-button' />
+          <img styleName='iconInfo' src='../resources/icon/icon-sidebar.svg'/>
         </button>
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />

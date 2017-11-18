@@ -70,7 +70,7 @@ const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteCont
 
       <div styleName='item-bottom-time'>{dateDisplay}</div>
       {note.isStarred
-        ? <i styleName='item-star' className='fa fa-star' /> : ''
+        ? <img styleName='item-star' src='../resources/icon/icon-starred.svg' /> : ''
       }
       {note.isPinned && !pathname.match(/\/home|\/starred|\/trash/)
         ? <i styleName='item-pin' className='fa fa-thumb-tack' /> : ''

@@ -599,7 +599,7 @@ class NoteList extends React.Component {
               }
               onClick={(e) => this.handleListStyleButtonClick(e, 'DEFAULT')}
             >
-              <i className='fa fa-th-large' />
+              <img styleName='iconTag' src='../resources/icon/icon-column.svg'/>
             </button>
             <button styleName={config.listStyle === 'SMALL'
                 ? 'control-button--active'
@@ -607,7 +607,7 @@ class NoteList extends React.Component {
               }
               onClick={(e) => this.handleListStyleButtonClick(e, 'SMALL')}
             >
-              <i className='fa fa-list-ul' />
+              <img styleName='iconTag' src='../resources/icon/icon-column-list.svg'/>
             </button>
           </div>
         </div>

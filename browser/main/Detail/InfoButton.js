@@ -6,9 +6,9 @@ const InfoButton = ({
   onClick
 }) => (
   <button styleName='control-infoButton'
-    onClick={onClick}
+    onClick={(e) => onClick(e)}
   >
-    <img styleName='iconInfo' src='../resources/icon/icon-info.svg' />
+    <img className='infoButton' src='../resources/icon/icon-info.svg' />
   </button>
 )
 

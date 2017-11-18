@@ -8,9 +8,7 @@ const InfoButton = ({
   <button styleName='control-infoButton'
     onClick={onClick}
   >
-    <img styleName='iconInfo' 
-      src='../resources/icon/icon-info.svg'
-    />
+    <img styleName='iconInfo' src='../resources/icon/icon-info.svg' />
   </button>
 )
 

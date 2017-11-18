@@ -8,7 +8,7 @@ const TrashButton = ({
   <button styleName='control-trashButton'
     onClick={(e) => onClick(e)}
   >
-    <img styleName='iconInfo' src='../resources/icon/icon-trash.svg'/>
+    <img styleName='iconInfo' src='../resources/icon/icon-trash.svg' />
   </button>
 )
 

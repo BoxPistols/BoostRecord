@@ -237,7 +237,7 @@ class StorageItem extends React.Component {
             <button styleName='header-addFolderButton'
               onClick={(e) => this.handleAddFolderButtonClick(e)}
             >
-              <img styleName='iconTag' src='../resources/icon/icon-plus.svg'/>
+              <img styleName='iconTag' src='../resources/icon/icon-plus.svg' />
             </button>
           }
 

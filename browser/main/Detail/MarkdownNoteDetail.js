@@ -338,7 +338,7 @@ class MarkdownNoteDetail extends React.Component {
               onFocus={(e) => this.handleFocus(e)}
               onMouseDown={(e) => this.handleLockButtonMouseDown(e)}
             >
-              <img styleName='iconInfo' src={imgSrc}/>
+              <img styleName='iconInfo' src={imgSrc} />
             </button>
 
           return (
@@ -346,11 +346,10 @@ class MarkdownNoteDetail extends React.Component {
           )
         })()}
 
-
         <button styleName='control-fullScreenButton'
           onMouseDown={(e) => this.handleFullScreenButton(e)}
         >
-          <img styleName='iconInfo' src='../resources/icon/icon-sidebar.svg'/>
+          <img styleName='iconInfo' src='../resources/icon/icon-sidebar.svg' />
         </button>
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />

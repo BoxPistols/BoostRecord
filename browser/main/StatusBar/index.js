@@ -55,7 +55,7 @@ class StatusBar extends React.Component {
         <button styleName='zoom'
           onClick={(e) => this.handleZoomButtonClick(e)}
         >
-          <img src='../resources/icon/icon-zoom.svg'/>
+          <img src='../resources/icon/icon-zoom.svg' />
           <span>{Math.floor(config.zoom * 100)}%</span>
         </button>
 

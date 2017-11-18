@@ -180,7 +180,7 @@ class SideNav extends React.Component {
             <button styleName='top-menu-preference'
               onClick={(e) => this.handleMenuButtonClick(e)}
             >
-              <img styleName='iconTag' src='../resources/icon/icon-setting.svg'/>
+              <img styleName='iconTag' src='../resources/icon/icon-setting.svg' />
             </button>
           </div>
         </div>

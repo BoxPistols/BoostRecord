@@ -24,11 +24,11 @@ const SideNavFilter = ({
       onClick={handleAllNotesButtonClick}
     >
       <div styleName='iconWrap'>
-      <img src={isHomeActive
-          ? '../resources/icon/icon-all-active.svg'
-          : '../resources/icon/icon-all.svg'
-        }
-      />
+        <img src={isHomeActive
+            ? '../resources/icon/icon-all-active.svg'
+            : '../resources/icon/icon-all.svg'
+          }
+        />
       </div>
       <span styleName='menu-button-label'>All Notes</span>
       <span styleName='counters'>{counterTotalNote}</span>
@@ -38,31 +38,29 @@ const SideNavFilter = ({
       onClick={handleStarredButtonClick}
     >
       <div styleName='iconWrap'>
-      <img src={isStarredActive
-          ? '../resources/icon/icon-star-active.svg'
-          : '../resources/icon/icon-star.svg'
-        }
-      />
+        <img src={isStarredActive
+            ? '../resources/icon/icon-star-active.svg'
+            : '../resources/icon/icon-star.svg'
+          }
+        />
       </div>
       <span styleName='menu-button-label'>Starred</span>
       <span styleName='counters'>{counterStarredNote}</span>
     </button>
 
-
     <button styleName={isTrashedActive ? 'menu-button-trash--active' : 'menu-button'}
       onClick={handleTrashedButtonClick}
     >
       <div styleName='iconWrap'>
-      <img src={isTrashedActive
-          ? '../resources/icon/icon-trash-active.svg'
-          : '../resources/icon/icon-trash.svg'
-        }
-      />      
+        <img src={isTrashedActive
+            ? '../resources/icon/icon-trash-active.svg'
+            : '../resources/icon/icon-trash.svg'
+          }
+        />
       </div>
       <span styleName='menu-button-label'>Trash</span>
       <span styleName='counters'>{counterDelNote}</span>
     </button>
-
 
   </div>
 )

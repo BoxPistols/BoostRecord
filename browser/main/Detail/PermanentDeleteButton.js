@@ -8,7 +8,7 @@ const PermanentDeleteButton = ({
   <button styleName='control-trashButton--in-trash'
     onClick={(e) => onClick(e)}
   >
-    <i className='fa fa-trash trashButton' styleName='info-button' />
+    <img styleName='iconInfo' src='../resources/icon/icon-trash.svg' />
   </button>
 )
 

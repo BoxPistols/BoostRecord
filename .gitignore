@@ -8,5 +8,5 @@ node_modules/*
 /compiled
 /secret
 *.log
-.vscode
 .idea
+.vscode

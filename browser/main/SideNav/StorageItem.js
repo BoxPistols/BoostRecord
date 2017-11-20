@@ -10,6 +10,7 @@ import dataApi from 'browser/main/lib/dataApi'
 import StorageItemChild from 'browser/components/StorageItem'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import _ from 'lodash'
+const path = require('path')
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
@@ -24,18 +25,20 @@ class StorageItem extends React.Component {
   }
 
   handleHeaderContextMenu (e) {
-    const menu = new Menu()
-    menu.append(new MenuItem({
-      label: 'Add Folder',
-      click: (e) => this.handleAddFolderButtonClick(e)
-    }))
-    menu.append(new MenuItem({
-      type: 'separator'
-    }))
-    menu.append(new MenuItem({
-      label: 'Unlink Storage',
-      click: (e) => this.handleUnlinkStorageClick(e)
-    }))
+    let menu = Menu.buildFromTemplate([
+      {
+        label: 'Add Folder',
+        click: (e) => this.handleAddFolderButtonClick(e)
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Unlink Storage',
+        click: (e) => this.handleUnlinkStorageClick(e)
+      }
+    ])
+
     menu.popup()
   }
 
@@ -89,18 +92,36 @@ class StorageItem extends React.Component {
   }
 
   handleFolderButtonContextMenu (e, folder) {
-    const menu = new Menu()
-    menu.append(new MenuItem({
-      label: 'Rename Folder',
-      click: (e) => this.handleRenameFolderClick(e, folder)
-    }))
-    menu.append(new MenuItem({
-      type: 'separator'
-    }))
-    menu.append(new MenuItem({
-      label: 'Delete Folder',
-      click: (e) => this.handleFolderDeleteClick(e, folder)
-    }))
+    const menu = Menu.buildFromTemplate([
+      {
+        label: 'Rename Folder',
+        click: (e) => this.handleRenameFolderClick(e, folder)  
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Export Folder',
+        submenu: [
+          {
+            label: 'Export as txt',
+            click: (e) => this.handleExportFolderClick(e, folder, 'txt')
+          },
+          {
+            label: 'Export as md',
+            click: (e) => this.handleExportFolderClick(e, folder, 'md')
+          }
+        ]
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'Delete Folder',
+        click: (e) => this.handleFolderDeleteClick(e, folder)
+      }
+    ])
+
     menu.popup()
   }
 
@@ -109,6 +130,31 @@ class StorageItem extends React.Component {
     modal.open(RenameFolderModal, {
       storage,
       folder
+    })
+  }
+
+  handleExportFolderClick (e, folder, fileType) {
+    const options = {
+      properties: ['openDirectory', 'createDirectory'],
+      buttonLabel: 'Select directory',
+      title: 'Select a folder to export the files to',
+      multiSelections: false
+    }
+    dialog.showOpenDialog(remote.getCurrentWindow(), options,
+    (paths) => {
+      if (paths && paths.length === 1) {
+        const { storage, dispatch } = this.props
+        dataApi
+          .exportFolder(storage.key, folder.key, fileType, paths[0])
+          .then((data) => {
+            dispatch({
+              type: 'EXPORT_FOLDER',
+              storage: data.storage,
+              folderKey: data.folderKey,
+              fileType: data.fileType
+            })
+          })
+      }
     })
   }
 

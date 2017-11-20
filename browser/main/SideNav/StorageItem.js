@@ -95,7 +95,7 @@ class StorageItem extends React.Component {
     const menu = Menu.buildFromTemplate([
       {
         label: 'Rename Folder',
-        click: (e) => this.handleRenameFolderClick(e, folder)  
+        click: (e) => this.handleRenameFolderClick(e, folder)
       },
       {
         type: 'separator'

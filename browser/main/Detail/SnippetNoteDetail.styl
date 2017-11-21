@@ -56,14 +56,16 @@
 .override
   absolute bottom left
   bottom 2px
+  height 18px
   left 60px
-  height 23px
   z-index 101
   button
     navButtonColor()
-    height 24px
+    padding 0 6px
+    &:hover
+      color $ui-active-color
     &:active .update-icon
-      color white
+      color $ui-active-color
 
 .control-fullScreenButton
   top 80px

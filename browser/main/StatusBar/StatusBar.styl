@@ -5,6 +5,7 @@
   z-index 100
   background-color $ui-noteDetail-backgroundColor
   display flex
+  height 20px
 
 .blank
   flex 1
@@ -21,9 +22,13 @@
 
 .zoom
   navButtonColor()
-  height 30px
+  height 18px
   display flex
   align-items center
+  &:hover
+    color $ui-active-color
+  &:active
+    color $ui-active-color
   span
     margin-left 5px
   

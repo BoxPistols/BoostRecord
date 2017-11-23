@@ -1,11 +1,11 @@
 .root
   position relative
   border solid 1px transparent
-  line-height 26px
   vertical-align middle
   border-radius 2px
   transition 0.15s
   user-select none
+  margin-right 10px
   &:hover
     background-color $ui-button--hover-backgroundColor
 
@@ -24,10 +24,13 @@
 .idle-label
   right 20px
   overflow ellipsis
+  display flex
+  align-items center
 
 .idle-label-name
-  font-size 14px
-  padding 2px
+  font-size 13px
+  font-weight 600
+  margin-left 4px
 
 .idle-label-name-surfix
   font-size 10px

@@ -113,7 +113,7 @@ class TagSelect extends React.Component {
             <button styleName='tag-removeButton'
               onClick={(e) => this.handleTagRemoveButtonClick(tag)(e)}
             >
-              <i className='fa fa-times fa-fw tag-removeButton-icon' />
+            <img className='tag-removeButton-icon' src='../resources/icon/icon-x.svg' width='8px'/>
             </button>
           </span>
         )

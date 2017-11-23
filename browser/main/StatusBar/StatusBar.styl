@@ -1,11 +1,12 @@
 @import('../Detail/DetailVars')
 
 .root
-  absolute bottom left right
+  position absolute
+  bottom 10px
+  left 10px
   z-index 100
   background-color $ui-noteDetail-backgroundColor
   display flex
-  height 20px
 
 .blank
   flex 1
@@ -22,8 +23,10 @@
 
 .zoom
   navButtonColor()
-  height 18px
+  color rgba(0,0,0,.54)
+  height 20px
   display flex
+  padding 0
   align-items center
   &:hover
     color $ui-active-color

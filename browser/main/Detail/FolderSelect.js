@@ -8,7 +8,7 @@ class FolderSelect extends React.Component {
     super(props)
 
     this.state = {
-      status: 'IDLE',
+      status: 'SEARCH',
       search: '',
       optionIndex: -1
     }

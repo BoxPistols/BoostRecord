@@ -92,7 +92,6 @@ h2 {
 
 body p {
   white-space: normal;
-  color: rgba(0,0,0,.84);
 }
 `
 }

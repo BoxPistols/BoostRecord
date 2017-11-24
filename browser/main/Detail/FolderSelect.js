@@ -259,12 +259,11 @@ class FolderSelect extends React.Component {
               {optionList}
             </div>
           </div>
-          : <div styleName='idle'>
+          : <div styleName='idle' style={{color: currentOption.folder.color}}>
             <div styleName='idle-label'>
-              <span styleName='idle-label-name'
-                style={{color: currentOption.folder.color}}
-              >
-                {currentOption.folder.name} /
+              <i className='fa fa-folder'></i>
+              <span styleName='idle-label-name'>
+                {currentOption.folder.name} 
               </span>
             </div>
           </div>

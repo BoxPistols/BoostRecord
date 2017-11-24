@@ -1,21 +1,22 @@
 .root
   position relative
   border solid 1px transparent
-  line-height 26px
   vertical-align middle
   border-radius 2px
   transition 0.15s
   user-select none
+  margin-right 10px
   &:hover
     background-color $ui-button--hover-backgroundColor
 
 .root--search, .root--focus
   @extend .root
-  background-color $ui-noteDetail-backgroundColor = #F4F4F4
+  background-color $ui-noteDetail-backgroundColor = #fff
   border-color $ui-input--focus-borderColor
-  width 100px
+  width 154px
+  height 30px
   &:hover
-    border-color $ui-input--focus-borderColor
+    border-color $ui-input--focus-borderColor = #fff
 
 .idle
   position relative
@@ -24,13 +25,16 @@
 .idle-label
   right 20px
   overflow ellipsis
+  display flex
+  align-items center
 
 .idle-label-name
-  font-size 14px
-  padding 2px
+  font-size 13px
+  font-weight 600
+  margin-left 4px
 
 .idle-label-name-surfix
-  font-size 10px
+  font-size 15px
   color $ui-inactive-text-color
   margin-left 5px
 .idle-caret
@@ -38,40 +42,42 @@
   height 34px
   width 20px
   line-height 34px
-
-.search
-  absolute top left right bottom
-  line-height 34px
-
+  
 .search-input
   vertical-align middle
   position relative
-  top -2px
+  top 0
+  font-size 14px
   outline none
   border none
-  height 20px
-  line-height 20px
+  width 100%
   background-color transparent
   padding 0 10px
 
 .search-optionList
-  position fixed
+  position absolute
+  top 30px
   max-height 450px
+  min-width 150px
   overflow auto
   z-index 200
   border $ui-border
   background-color white
   border-radius 2px
+  padding 10px 6px
 
 .search-optionList-item
+  width 140px
   height 34px
-  width 250px
+  display flex
+  align-items center
   box-sizing border-box
-  padding 0 5px
+  padding 0
+  margin-bottom 10px
   overflow ellipsis
   cursor pointer
   &:hover
-    background-color $ui-button--hover-backgroundColor
+    background-color $ui-button--hover-backgroundColor 
 
 .search-optionList-item--active
   @extend .search-optionList-item
@@ -81,12 +87,16 @@
     background-color $ui-button--active-backgroundColor
     color $ui-button--active-color
 .search-optionList-item-name
-  border-left solid 2px transparent
-  padding 2px 5px
+  border-left solid 3px transparent
+  padding 6px
 .search-optionList-item-name-surfix
   font-size 10px
   color $ui-inactive-text-color
   margin-left 5px
+
+
+
+
 
 body[data-theme="dark"]
   .root

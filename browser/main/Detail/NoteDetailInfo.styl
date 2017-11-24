@@ -1,35 +1,30 @@
 @import('DetailVars')
 
-$info-height = 40px
-$info-margin-under-border = 15px
+$info-height = 50px
+$info-margin-under-border = 30px
 
 .info
   absolute top left right
-  left $note-detail-left-margin
-  right $note-detail-right-margin
+  left 0
+  right 0
   height $info-height
-  border-bottom $ui-border
+  border-bottom 1px solid #eee
   background-color $ui-noteDetail-backgroundColor
-
-.info-left
-  float left
-  padding 0 7px
   width 100%
   display flex
+  align-items center
 
-.info-left-top
-  display inline-block
-  height $info-height
-  line-height $info-height
+.info-left
+  padding 0 10px
+  width 100%
+  display flex
+  align-items center
+
 
 .info-left-top-folderSelect
-  padding 0 3px
-  height 40px
-  line-height 40px
   display flex
   align-items center
   justify-content center
-  border-radius 3px
 
 .info-left-button
   width 34px
@@ -51,11 +46,11 @@ $info-margin-under-border = 15px
 
 .info-right
   position absolute
-  right -20px
-  top 10px
-  background $ui-noteDetail-backgroundColor
+  right 40px
+  top 60px
   bottom 1px
   padding-left 30px
+  z-index 101
 
 .undo-button
   width 34px

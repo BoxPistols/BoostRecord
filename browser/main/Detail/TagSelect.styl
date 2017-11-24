@@ -1,8 +1,7 @@
 .root
-  display inline-block
+  display flex
+  align-items center
   user-select none
-  line-height 50px
-  height 50px
   vertical-align middle
   width 100%
   overflow-x scroll
@@ -12,49 +11,42 @@
   display none
 
 .tag
-  display inline-block
+  display flex
+  align-items center
   margin 0px 2px
-  background-color alpha($ui-tag-backgroundColor, 10%)
-  border-radius 3px
-  overflow hidden
+  padding 2px 4px
+  background-color alpha($ui-tag-backgroundColor, 3%)
+  border-radius 4px
+  position relative
   clearfix()
 
 .tag-removeButton
-  float right
-  height 20px
-  width 18px
   margin 0
   padding 0
   border-style solid
   border-width 0
   border-radius 20px
-  line-height 18px
   background-color transparent
   color $ui-button-color
+  position absolute
+  right 6px
 
 .tag-removeButton-icon
   width 5px
   padding-right 4px
 
 .tag-label
-  font-size 11px
-  font-weight 600
-  color: alpha($ui-text-color, 80%)
-  float left
-  height 20px
-  line-height 20px
-  padding 0 6px
+  font-size 13px
+  color: $ui-text-color
+  padding 4px 16px 4px 8px
 
 .newTag
-  display inline-block
-  margin 2px 0 15px 2px
-  vertical-align middle
-  height 18px
   box-sizing border-box
   border none
   background-color transparent
   outline none
   padding 0 4px
+  font-size 13px
 
 body[data-theme="dark"]
   .tag

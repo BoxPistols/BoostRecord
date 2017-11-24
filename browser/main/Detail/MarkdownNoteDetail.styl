@@ -6,6 +6,7 @@
   border-left 1px solid alpha(#DEDEDE, 60%)
   background-color $ui-noteDetail-backgroundColor
   box-shadow none
+  padding 20px 40px
 
 .lock-button
   padding-bottom 3px
@@ -25,10 +26,12 @@
 
 .body
   absolute left right
-  left $note-detail-left-margin
-  right $note-detail-right-margin
+  left 0
+  right 0
   top $info-height + $info-margin-under-border
   bottom $statusBar-height
+  max-width 600px
+  margin 0 auto
 .body-noteEditor
   absolute top bottom left right
 

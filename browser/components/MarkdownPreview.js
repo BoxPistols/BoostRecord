@@ -33,6 +33,15 @@ function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber) {
   font-weight: normal;
   text-rendering: optimizeLegibility;
 }
+@font-face {
+  font-family: 'Lato';
+  src: url('${appPath}/resources/fonts/Lato-Black.woff2') format('woff2'), /* Modern Browsers */
+       url('${appPath}/resources/fonts/Lato-Black.woff') format('woff'), /* Modern Browsers */
+       url('${appPath}/resources/fonts/Lato-Black.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  text-rendering: optimizeLegibility;
+}
 ${markdownStyle}
 body {
   font-family: '${fontFamily.join("','")}';
@@ -83,6 +92,7 @@ h2 {
 
 body p {
   white-space: normal;
+  color: rgba(0,0,0,.84);
 }
 `
 }

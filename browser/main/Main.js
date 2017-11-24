@@ -23,7 +23,7 @@ class Main extends React.Component {
       mobileAnalytics.initAwsMobileAnalytics()
     }
 
-    let { config } = props
+    const { config } = props
 
     this.state = {
       isRightSliderFocused: false,
@@ -39,7 +39,7 @@ class Main extends React.Component {
   }
 
   getChildContext () {
-    let { status, config } = this.props
+    const { status, config } = this.props
 
     return {
       status,
@@ -48,7 +48,7 @@ class Main extends React.Component {
   }
 
   componentDidMount () {
-    let { dispatch, config } = this.props
+    const { dispatch, config } = this.props
 
     if (config.ui.theme === 'dark') {
       document.body.setAttribute('data-theme', 'dark')
@@ -99,8 +99,8 @@ class Main extends React.Component {
       this.setState({
         isRightSliderFocused: false
       }, () => {
-        let { dispatch } = this.props
-        let newListWidth = this.state.listWidth
+        const { dispatch } = this.props
+        const newListWidth = this.state.listWidth
         // TODO: ConfigManager should dispatch itself.
         ConfigManager.set({listWidth: newListWidth})
         dispatch({
@@ -115,8 +115,8 @@ class Main extends React.Component {
       this.setState({
         isLeftSliderFocused: false
       }, () => {
-        let { dispatch } = this.props
-        let navWidth = this.state.navWidth
+        const { dispatch } = this.props
+        const navWidth = this.state.navWidth
         // TODO: ConfigManager should dispatch itself.
         ConfigManager.set({ navWidth })
         dispatch({
@@ -129,7 +129,7 @@ class Main extends React.Component {
 
   handleMouseMove (e) {
     if (this.state.isRightSliderFocused) {
-      let offset = this.refs.body.getBoundingClientRect().left
+      const offset = this.refs.body.getBoundingClientRect().left
       let newListWidth = e.pageX - offset
       if (newListWidth < 10) {
         newListWidth = 10
@@ -182,7 +182,7 @@ class Main extends React.Component {
   }
 
   render () {
-    let { config } = this.props
+    const { config } = this.props
 
     // the width of the navigation bar when it is folded/collapsed
     const foldedNavigationWidth = 44

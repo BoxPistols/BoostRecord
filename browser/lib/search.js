@@ -16,7 +16,7 @@ export default function searchFromNotes (notes, search) {
 
 function findByTag (notes, block) {
   const tag = block.match(/#(.+)/)[1]
-  let regExp = new RegExp(_.escapeRegExp(tag), 'i')
+  const regExp = new RegExp(_.escapeRegExp(tag), 'i')
   return notes.filter((note) => {
     if (!_.isArray(note.tags)) return false
     return note.tags.some((_tag) => {
@@ -26,7 +26,7 @@ function findByTag (notes, block) {
 }
 
 function findByWord (notes, block) {
-  let regExp = new RegExp(_.escapeRegExp(block), 'i')
+  const regExp = new RegExp(_.escapeRegExp(block), 'i')
   return notes.filter((note) => {
     if (_.isArray(note.tags) && note.tags.some((_tag) => {
       return _tag.match(regExp)

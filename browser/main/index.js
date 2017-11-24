@@ -36,7 +36,7 @@ document.addEventListener('click', function (e) {
   if (infoPanel) infoPanel.style.display = 'none'
 })
 
-let el = document.getElementById('content')
+const el = document.getElementById('content')
 const history = syncHistoryWithStore(hashHistory, store)
 
 function notify (...args) {
@@ -44,7 +44,7 @@ function notify (...args) {
 }
 
 function updateApp () {
-  let index = dialog.showMessageBox(remote.getCurrentWindow(), {
+  const index = dialog.showMessageBox(remote.getCurrentWindow(), {
     type: 'warning',
     message: 'Update Boostnote',
     detail: 'New Boostnote is ready to be installed.',
@@ -81,7 +81,7 @@ ReactDOM.render((
     </Router>
   </Provider>
 ), el, function () {
-  let loadingCover = document.getElementById('loadingCover')
+  const loadingCover = document.getElementById('loadingCover')
   loadingCover.parentNode.removeChild(loadingCover)
 
   ipcRenderer.on('update-ready', function () {

@@ -4,13 +4,13 @@ import dataApi from 'browser/main/lib/dataApi'
 import styles from './FolderList.styl'
 import store from 'browser/main/store'
 import FolderItem from './FolderItem'
-import { SortableContainer, arrayMove } from 'react-sortable-hoc'
+import { SortableContainer } from 'react-sortable-hoc'
 
 class FolderList extends React.Component {
   render () {
-    let { storage, hostBoundingBox } = this.props
+    const { storage, hostBoundingBox } = this.props
 
-    let folderList = storage.folders.map((folder, index) => {
+    const folderList = storage.folders.map((folder, index) => {
       return <FolderItem key={folder.key}
         folder={folder}
         storage={storage}
@@ -53,7 +53,7 @@ class SortableFolderListComponent extends React.Component {
   constructor (props) {
     super(props)
     this.onSortEnd = ({oldIndex, newIndex}) => {
-      let { storage } = this.props
+      const { storage } = this.props
       dataApi
         .reorderFolder(storage.key, oldIndex, newIndex)
         .then((data) => {

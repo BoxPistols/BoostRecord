@@ -54,11 +54,11 @@ test.serial('Create a note', (t) => {
       ])
     })
     .then(function assert (data) {
-      let data1 = data[0]
-      let data2 = data[1]
+      const data1 = data[0]
+      const data2 = data[1]
 
       t.is(storageKey, data1.storage)
-      let jsonData1 = CSON.readFileSync(path.join(storagePath, 'notes', data1.key + '.cson'))
+      const jsonData1 = CSON.readFileSync(path.join(storagePath, 'notes', data1.key + '.cson'))
       t.is(input1.title, data1.title)
       t.is(input1.title, jsonData1.title)
       t.is(input1.description, data1.description)
@@ -73,7 +73,7 @@ test.serial('Create a note', (t) => {
       t.is(input1.snippets[0].name, jsonData1.snippets[0].name)
 
       t.is(storageKey, data2.storage)
-      let jsonData2 = CSON.readFileSync(path.join(storagePath, 'notes', data2.key + '.cson'))
+      const jsonData2 = CSON.readFileSync(path.join(storagePath, 'notes', data2.key + '.cson'))
       t.is(input2.title, data2.title)
       t.is(input2.title, jsonData2.title)
       t.is(input2.content, data2.content)

@@ -48,7 +48,7 @@ class RenameFolderModal extends React.Component {
 
   confirm () {
     if (this.state.name.trim().length > 0) {
-      let { storage, folder } = this.props
+      const { storage, folder } = this.props
       dataApi
         .updateFolder(storage.key, folder.key, {
           name: this.state.name,

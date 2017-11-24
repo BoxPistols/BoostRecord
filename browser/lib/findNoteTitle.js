@@ -1,11 +1,11 @@
 export function findNoteTitle (value) {
-  let splitted = value.split('\n')
+  const splitted = value.split('\n')
   let title = null
   let isInsideCodeBlock = false
 
   splitted.some((line, index) => {
-    let trimmedLine = line.trim()
-    let trimmedNextLine = splitted[index + 1] === undefined ? '' : splitted[index + 1].trim()
+    const trimmedLine = line.trim()
+    const trimmedNextLine = splitted[index + 1] === undefined ? '' : splitted[index + 1].trim()
     if (trimmedLine.match('```')) {
       isInsideCodeBlock = !isInsideCodeBlock
     }

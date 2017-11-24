@@ -20,7 +20,7 @@ const CSON = require('@rokt33r/season')
  * 3. empty directory
  */
 function init () {
-  let fetchStorages = function () {
+  const fetchStorages = function () {
     let rawStorages
     try {
       rawStorages = JSON.parse(window.localStorage.getItem('storages'))
@@ -34,8 +34,8 @@ function init () {
       .map(resolveStorageData))
   }
 
-  let fetchNotes = function (storages) {
-    let findNotesFromEachStorage = storages
+  const fetchNotes = function (storages) {
+    const findNotesFromEachStorage = storages
       .map((storage) => {
         return resolveStorageNotes(storage)
           .then((notes) => {

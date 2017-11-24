@@ -1,7 +1,5 @@
 const fs = require('fs')
 const path = require('path')
-const _ = require('lodash')
-const sander = require('sander')
 const { findStorage } = require('browser/lib/findStorage')
 
 /**

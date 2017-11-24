@@ -22,7 +22,7 @@ class StorageItem extends React.Component {
   }
 
   handleHeaderContextMenu (e) {
-    let menu = new Menu()
+    const menu = new Menu()
     menu.append(new MenuItem({
       label: 'Add Folder',
       click: (e) => this.handleAddFolderButtonClick(e)
@@ -38,7 +38,7 @@ class StorageItem extends React.Component {
   }
 
   handleUnlinkStorageClick (e) {
-    let index = dialog.showMessageBox(remote.getCurrentWindow(), {
+    const index = dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
       message: 'Unlink Storage',
       detail: 'This work will just detatches a storage from Boostnote. (Any data won\'t be deleted.)',
@@ -46,7 +46,7 @@ class StorageItem extends React.Component {
     })
 
     if (index === 0) {
-      let { storage, dispatch } = this.props
+      const { storage, dispatch } = this.props
       dataApi.removeStorage(storage.key)
         .then(() => {
           dispatch({
@@ -67,7 +67,7 @@ class StorageItem extends React.Component {
   }
 
   handleAddFolderButtonClick (e) {
-    let { storage } = this.props
+    const { storage } = this.props
 
     modal.open(CreateFolderModal, {
       storage
@@ -75,19 +75,19 @@ class StorageItem extends React.Component {
   }
 
   handleHeaderInfoClick (e) {
-    let { storage } = this.props
+    const { storage } = this.props
     hashHistory.push('/storages/' + storage.key)
   }
 
   handleFolderButtonClick (folderKey) {
     return (e) => {
-      let { storage } = this.props
+      const { storage } = this.props
       hashHistory.push('/storages/' + storage.key + '/folders/' + folderKey)
     }
   }
 
   handleFolderButtonContextMenu (e, folder) {
-    let menu = new Menu()
+    const menu = new Menu()
     menu.append(new MenuItem({
       label: 'Rename Folder',
       click: (e) => this.handleRenameFolderClick(e, folder)
@@ -103,7 +103,7 @@ class StorageItem extends React.Component {
   }
 
   handleRenameFolderClick (e, folder) {
-    let { storage } = this.props
+    const { storage } = this.props
     modal.open(RenameFolderModal, {
       storage,
       folder
@@ -111,7 +111,7 @@ class StorageItem extends React.Component {
   }
 
   handleFolderDeleteClick (e, folder) {
-    let index = dialog.showMessageBox(remote.getCurrentWindow(), {
+    const index = dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
       message: 'Delete Folder',
       detail: 'This will delete all notes in the folder and can not be undone.',
@@ -119,7 +119,7 @@ class StorageItem extends React.Component {
     })
 
     if (index === 0) {
-      let { storage, dispatch } = this.props
+      const { storage, dispatch } = this.props
       dataApi
         .deleteFolder(storage.key, folder.key)
         .then((data) => {
@@ -154,7 +154,7 @@ class StorageItem extends React.Component {
        dataApi
         .deleteNote(noteData.storage, noteData.key)
         .then((data) => {
-          let dispatchHandler = () => {
+          const dispatchHandler = () => {
             dispatch({
               type: 'DELETE_NOTE',
               storageKey: data.storageKey,
@@ -179,11 +179,11 @@ class StorageItem extends React.Component {
   }
 
   render () {
-    let { storage, location, isFolded, data, dispatch } = this.props
-    let { folderNoteMap, trashedSet } = data
-    let folderList = storage.folders.map((folder) => {
-      let isActive = !!(location.pathname.match(new RegExp('\/storages\/' + storage.key + '\/folders\/' + folder.key)))
-      let noteSet = folderNoteMap.get(storage.key + '-' + folder.key)
+    const { storage, location, isFolded, data, dispatch } = this.props
+    const { folderNoteMap, trashedSet } = data
+    const folderList = storage.folders.map((folder) => {
+      const isActive = !!(location.pathname.match(new RegExp('\/storages\/' + storage.key + '\/folders\/' + folder.key)))
+      const noteSet = folderNoteMap.get(storage.key + '-' + folder.key)
 
       let noteCount = 0
       if (noteSet) {
@@ -211,7 +211,7 @@ class StorageItem extends React.Component {
       )
     })
 
-    let isActive = location.pathname.match(new RegExp('\/storages\/' + storage.key + '$'))
+    const isActive = location.pathname.match(new RegExp('\/storages\/' + storage.key + '$'))
 
     return (
       <div styleName={isFolded ? 'root--folded' : 'root'}

@@ -42,7 +42,7 @@ class Preferences extends React.Component {
 
   renderContent () {
     const { boundingBox } = this.state
-    let { dispatch, config, data } = this.props
+    const { dispatch, config, data } = this.props
 
     switch (this.state.currentTab) {
       case 'INFO':
@@ -94,9 +94,9 @@ class Preferences extends React.Component {
   }
 
   render () {
-    let content = this.renderContent()
+    const content = this.renderContent()
 
-    let tabs = [
+    const tabs = [
       {target: 'STORAGES', label: 'Storages'},
       {target: 'HOTKEY', label: 'Hotkey'},
       {target: 'UI', label: 'UI'},
@@ -104,8 +104,8 @@ class Preferences extends React.Component {
       {target: 'CROWDFUNDING', label: 'Crowdfunding'}
     ]
 
-    let navButtons = tabs.map((tab) => {
-      let isActive = this.state.currentTab === tab.target
+    const navButtons = tabs.map((tab) => {
+      const isActive = this.state.currentTab === tab.target
       return (
         <button styleName={isActive
             ? 'nav-button--active'

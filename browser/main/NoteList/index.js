@@ -13,7 +13,6 @@ import fs from 'fs'
 import { hashHistory } from 'react-router'
 import markdown from 'browser/lib/markdown'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
-import stripgtags from 'striptags'
 import store from 'browser/main/store'
 
 const { remote } = require('electron')
@@ -89,10 +88,10 @@ class NoteList extends React.Component {
   }
 
   componentDidUpdate (prevProps) {
-    let { location } = this.props
+    const { location } = this.props
 
     if (this.notes.length > 0 && location.query.key == null) {
-      let { router } = this.context
+      const { router } = this.context
       if (!location.pathname.match(/\/searched/)) this.contextNotes = this.getContextNotes()
       router.replace({
         pathname: location.pathname,
@@ -107,16 +106,16 @@ class NoteList extends React.Component {
     if (_.isString(location.query.key) && prevProps.location.query.key === location.query.key) {
       const targetIndex = this.getTargetIndex()
       if (targetIndex > -1) {
-        let list = this.refs.list
-        let item = list.childNodes[targetIndex]
+        const list = this.refs.list
+        const item = list.childNodes[targetIndex]
 
         if (item == null) return false
 
-        let overflowBelow = item.offsetTop + item.clientHeight - list.clientHeight - list.scrollTop > 0
+        const overflowBelow = item.offsetTop + item.clientHeight - list.clientHeight - list.scrollTop > 0
         if (overflowBelow) {
           list.scrollTop = item.offsetTop + item.clientHeight - list.clientHeight
         }
-        let overflowAbove = list.scrollTop > item.offsetTop
+        const overflowAbove = list.scrollTop > item.offsetTop
         if (overflowAbove) {
           list.scrollTop = item.offsetTop
         }
@@ -128,8 +127,8 @@ class NoteList extends React.Component {
     if (this.notes == null || this.notes.length === 0) {
       return
     }
-    let { router } = this.context
-    let { location } = this.props
+    const { router } = this.context
+    const { location } = this.props
 
     let targetIndex = this.getTargetIndex()
 
@@ -151,8 +150,8 @@ class NoteList extends React.Component {
     if (this.notes == null || this.notes.length === 0) {
       return
     }
-    let { router } = this.context
-    let { location } = this.props
+    const { router } = this.context
+    const { location } = this.props
 
     let targetIndex = this.getTargetIndex()
 
@@ -226,8 +225,7 @@ class NoteList extends React.Component {
   }
 
   getNotes () {
-    let { data, params, location } = this.props
-    let { router } = this.context
+    const { data, params, location } = this.props
 
     if (location.pathname.match(/\/home/) || location.pathname.match(/\alltags/)) {
       const allNotes = data.noteMap.map((note) => note)
@@ -300,8 +298,8 @@ class NoteList extends React.Component {
   }
 
   handleNoteClick (e, uniqueKey) {
-    let { router } = this.context
-    let { location } = this.props
+    const { router } = this.context
+    const { location } = this.props
 
     router.push({
       pathname: location.pathname,
@@ -312,9 +310,9 @@ class NoteList extends React.Component {
   }
 
   handleSortByChange (e) {
-    let { dispatch } = this.props
+    const { dispatch } = this.props
 
-    let config = {
+    const config = {
       sortBy: e.target.value
     }
 
@@ -326,9 +324,9 @@ class NoteList extends React.Component {
   }
 
   handleListStyleButtonClick (e, style) {
-    let { dispatch } = this.props
+    const { dispatch } = this.props
 
-    let config = {
+    const config = {
       listStyle: style
     }
 
@@ -381,16 +379,9 @@ class NoteList extends React.Component {
   }
 
   pinToTop (e, uniqueKey) {
-    const { data, params } = this.props
-    const storageKey = params.storageKey
-    const folderKey = params.folderKey
-
-    const currentStorage = data.storageMap.get(storageKey)
-    const currentFolder = _.find(currentStorage.folders, {key: folderKey})
-
     this.handleNoteClick(e, uniqueKey)
     const targetIndex = this.getTargetIndex()
-    let note = this.notes[targetIndex]
+    const note = this.notes[targetIndex]
     note.isPinned = !note.isPinned
 
     dataApi
@@ -409,8 +400,6 @@ class NoteList extends React.Component {
   }
 
   importFromFile () {
-    const { dispatch, location } = this.props
-
     const options = {
       filters: [
         { name: 'Documents', extensions: ['md', 'txt'] }
@@ -475,7 +464,7 @@ class NoteList extends React.Component {
 
     // Find first storage
     if (storage == null) {
-      for (let kv of data.storageMap) {
+      for (const kv of data.storageMap) {
         storage = kv[1]
         break
       }
@@ -500,8 +489,9 @@ class NoteList extends React.Component {
   }
 
   render () {
-    let { location, notes, config, dispatch } = this.props
-    let sortFunc = config.sortBy === 'CREATED_AT'
+    const { location, config } = this.props
+    let { notes } = this.props
+    const sortFunc = config.sortBy === 'CREATED_AT'
       ? sortByCreatedAt
       : config.sortBy === 'ALPHABETICAL'
       ? sortByAlphabetical
@@ -533,7 +523,7 @@ class NoteList extends React.Component {
       }
     })
 
-    let noteList = notes
+    const noteList = notes
       .map(note => {
         if (note == null) {
           return null

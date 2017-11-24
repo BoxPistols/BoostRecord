@@ -34,8 +34,7 @@ test.serial('Reorder a folder', (t) => {
       t.true(_.nth(data.storage.folders, 0).key === secondFolderKey)
       t.true(_.nth(data.storage.folders, 1).key === firstFolderKey)
 
-      let jsonData = CSON.readFileSync(path.join(data.storage.path, 'boostnote.json'))
-      console.log(path.join(data.storage.path, 'boostnote.json'))
+      const jsonData = CSON.readFileSync(path.join(data.storage.path, 'boostnote.json'))
 
       t.true(_.nth(jsonData.folders, 0).key === secondFolderKey)
       t.true(_.nth(jsonData.folders, 1).key === firstFolderKey)

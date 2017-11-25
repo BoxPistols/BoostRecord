@@ -56,7 +56,7 @@ class NoteDetail extends React.Component {
   }
 
   selectPriorSnippet () {
-    let { note } = this.props
+    const { note } = this.props
     if (note.type === 'SNIPPET_NOTE' && note.snippets.length > 1) {
       this.setState({
         snippetIndex: (this.state.snippetIndex + note.snippets.length - 1) % note.snippets.length
@@ -65,7 +65,7 @@ class NoteDetail extends React.Component {
   }
 
   selectNextSnippet () {
-    let { note } = this.props
+    const { note } = this.props
     if (note.type === 'SNIPPET_NOTE' && note.snippets.length > 1) {
       this.setState({
         snippetIndex: (this.state.snippetIndex + 1) % note.snippets.length
@@ -74,7 +74,7 @@ class NoteDetail extends React.Component {
   }
 
   saveToClipboard () {
-    let { note } = this.props
+    const { note } = this.props
 
     if (note.type === 'MARKDOWN_NOTE') {
       clipboard.writeText(note.content)
@@ -95,7 +95,7 @@ class NoteDetail extends React.Component {
   }
 
   render () {
-    let { note, config } = this.props
+    const { note, config } = this.props
     if (note == null) {
       return (
         <div styleName='root' />
@@ -110,8 +110,8 @@ class NoteDetail extends React.Component {
     const storage = findStorage(note.storage)
 
     if (note.type === 'SNIPPET_NOTE') {
-      let tabList = note.snippets.map((snippet, index) => {
-        let isActive = this.state.snippetIndex === index
+      const tabList = note.snippets.map((snippet, index) => {
+        const isActive = this.state.snippetIndex === index
         return <div styleName={isActive
             ? 'tabList-item--active'
             : 'tabList-item'
@@ -131,8 +131,8 @@ class NoteDetail extends React.Component {
         </div>
       })
 
-      let viewList = note.snippets.map((snippet, index) => {
-        let isActive = this.state.snippetIndex === index
+      const viewList = note.snippets.map((snippet, index) => {
+        const isActive = this.state.snippetIndex === index
 
         let syntax = CodeMirror.findModeByName(pass(snippet.mode))
         if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')

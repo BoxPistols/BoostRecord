@@ -27,17 +27,17 @@ class SideNav extends React.Component {
   }
 
   handleHomeButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/home')
   }
 
   handleStarredButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/starred')
   }
 
   handleToggleButtonClick (e) {
-    let { dispatch, config } = this.props
+    const { dispatch, config } = this.props
 
     ConfigManager.set({isSideNavFolded: !config.isSideNavFolded})
     dispatch({
@@ -47,7 +47,7 @@ class SideNav extends React.Component {
   }
 
   handleTrashedButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/trashed')
   }
 
@@ -62,7 +62,7 @@ class SideNav extends React.Component {
   }
 
   SideNavComponent (isFolded, storageList) {
-    let { location, data } = this.props
+    const { location, data } = this.props
 
     const isHomeActive = !!location.pathname.match(/^\/home$/)
     const isStarredActive = !!location.pathname.match(/^\/starred$/)
@@ -109,7 +109,7 @@ class SideNav extends React.Component {
 
   tagListComponent () {
     const { data, location } = this.props
-    let tagList = data.tagNoteMap.map((tag, key) => {
+    const tagList = data.tagNoteMap.map((tag, key) => {
       return key
     })
     return (
@@ -136,11 +136,11 @@ class SideNav extends React.Component {
   }
 
   render () {
-    let { data, location, config, dispatch } = this.props
+    const { data, location, config, dispatch } = this.props
 
-    let isFolded = config.isSideNavFolded
+    const isFolded = config.isSideNavFolded
 
-    let storageList = data.storageMap.map((storage, key) => {
+    const storageList = data.storageMap.map((storage, key) => {
       return <StorageItem
         key={storage.key}
         storage={storage}
@@ -150,7 +150,7 @@ class SideNav extends React.Component {
         dispatch={dispatch}
       />
     })
-    let style = {}
+    const style = {}
     if (!isFolded) style.width = this.props.width
     const isTagActive = location.pathname.match(/tag/)
     return (

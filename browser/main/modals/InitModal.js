@@ -13,9 +13,9 @@ const electron = require('electron')
 const { remote } = electron
 
 function browseFolder () {
-  let dialog = remote.dialog
+  const dialog = remote.dialog
 
-  let defaultPath = remote.app.getPath('home')
+  const defaultPath = remote.app.getPath('home')
   return new Promise((resolve, reject) => {
     dialog.showOpenDialog({
       title: 'Select Directory',
@@ -55,7 +55,7 @@ class InitModal extends React.Component {
     } catch (err) {
       console.error(err)
     }
-    let newState = {
+    const newState = {
       isLoading: false
     }
     if (data != null) {
@@ -122,7 +122,7 @@ class InitModal extends React.Component {
             notes: data.notes
           })
 
-          let defaultSnippetNote = dataApi
+          const defaultSnippetNote = dataApi
             .createNote(data.storage.key, {
               type: 'SNIPPET_NOTE',
               folder: data.storage.folders[0].key,
@@ -147,7 +147,7 @@ class InitModal extends React.Component {
                 note: note
               })
             })
-          let defaultMarkdownNote = dataApi
+          const defaultMarkdownNote = dataApi
             .createNote(data.storage.key, {
               type: 'MARKDOWN_NOTE',
               folder: data.storage.folders[0].key,

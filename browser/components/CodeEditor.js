@@ -103,7 +103,7 @@ export default class CodeEditor extends React.Component {
     this.editor.on('change', this.changeHandler)
     this.editor.on('paste', this.pasteHandler)
 
-    let editorTheme = document.getElementById('editorTheme')
+    const editorTheme = document.getElementById('editorTheme')
     editorTheme.addEventListener('load', this.loadStyleHandler)
 
     CodeMirror.Vim.defineEx('quit', 'q', this.quitEditor)
@@ -121,7 +121,7 @@ export default class CodeEditor extends React.Component {
     this.editor.off('blur', this.blurHandler)
     this.editor.off('change', this.changeHandler)
     this.editor.off('paste', this.pasteHandler)
-    let editorTheme = document.getElementById('editorTheme')
+    const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
   }
 
@@ -197,7 +197,7 @@ export default class CodeEditor extends React.Component {
   }
 
   setValue (value) {
-    let cursor = this.editor.getCursor()
+    const cursor = this.editor.getCursor()
     this.editor.setValue(value)
     this.editor.setCursor(cursor)
   }
@@ -222,7 +222,7 @@ export default class CodeEditor extends React.Component {
     if (!dataTransferItem.type.match('image')) return
 
     const blob = dataTransferItem.getAsFile()
-    let reader = new FileReader()
+    const reader = new FileReader()
     let base64data
 
     reader.readAsDataURL(blob)
@@ -242,7 +242,8 @@ export default class CodeEditor extends React.Component {
   }
 
   render () {
-    let { className, fontFamily, fontSize } = this.props
+    const { className, fontSize } = this.props
+    let fontFamily = this.props.className
     fontFamily = _.isString(fontFamily) && fontFamily.length > 0
       ? [fontFamily].concat(defaultEditorFontFamily)
       : defaultEditorFontFamily

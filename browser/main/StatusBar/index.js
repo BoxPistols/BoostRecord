@@ -11,7 +11,7 @@ const zoomOptions = [0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2
 
 class StatusBar extends React.Component {
   updateApp () {
-    let index = dialog.showMessageBox(remote.getCurrentWindow(), {
+    const index = dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
       message: 'Update Boostnote',
       detail: 'New Boostnote is ready to be installed.',
@@ -24,7 +24,7 @@ class StatusBar extends React.Component {
   }
 
   handleZoomButtonClick (e) {
-    let menu = new Menu()
+    const menu = new Menu()
 
     zoomOptions.forEach((zoom) => {
       menu.append(new MenuItem({
@@ -37,7 +37,7 @@ class StatusBar extends React.Component {
   }
 
   handleZoomMenuItemClick (zoomFactor) {
-    let { dispatch } = this.props
+    const { dispatch } = this.props
     ZoomManager.setZoom(zoomFactor)
     dispatch({
       type: 'SET_ZOOM',
@@ -46,7 +46,7 @@ class StatusBar extends React.Component {
   }
 
   render () {
-    let { config, status } = this.context
+    const { config, status } = this.context
 
     return (
       <div className='StatusBar'

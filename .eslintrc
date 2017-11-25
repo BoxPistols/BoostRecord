@@ -12,5 +12,10 @@
     "react/no-find-dom-node": "warn",
     "react/no-render-return-value": "warn",
     "react/no-deprecated": "warn"
+  },
+  "globals": {
+    "FileReader": true,
+    "localStorage": true,
+    "fetch": true
   }
 }

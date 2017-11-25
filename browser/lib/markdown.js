@@ -7,8 +7,8 @@ import _ from 'lodash'
 const katex = window.katex
 
 function createGutter (str) {
-  let lc = (str.match(/\n/g) || []).length
-  let lines = []
+  const lc = (str.match(/\n/g) || []).length
+  const lines = []
   for (let i = 1; i <= lc; i++) {
     lines.push('<span class="CodeMirror-linenumber">' + i + '</span>')
   }
@@ -76,8 +76,8 @@ md.use(require('markdown-it-plantuml'))
 md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
   let content, terminate, i, l, token
   let nextLine = startLine + 1
-  let terminatorRules = state.md.block.ruler.getRules('paragraph')
-  let endLine = state.lineMax
+  const terminatorRules = state.md.block.ruler.getRules('paragraph')
+  const endLine = state.lineMax
 
   // jump line-by-line until empty one or EOF
   for (; nextLine < endLine && !state.isEmpty(nextLine); nextLine++) {
@@ -107,7 +107,7 @@ md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
   token.map = [ startLine, state.line ]
 
   if (state.parentType === 'list') {
-    let match = content.match(/^\[( |x)\] ?(.+)/i)
+    const match = content.match(/^\[( |x)\] ?(.+)/i)
     if (match) {
       content = `<label class='taskListItem' for='checkbox-${startLine + 1}'><input type='checkbox'${match[1] !== ' ' ? ' checked' : ''} id='checkbox-${startLine + 1}'/> ${content.substring(4, content.length)}</label>`
     }
@@ -124,7 +124,7 @@ md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
 })
 
 // Add line number attribute for scrolling
-let originalRender = md.renderer.render
+const originalRender = md.renderer.render
 md.renderer.render = function render (tokens, options, env) {
   tokens.forEach((token) => {
     switch (token.type) {
@@ -135,7 +135,7 @@ md.renderer.render = function render (tokens, options, env) {
         token.attrPush(['data-line', token.map[0]])
     }
   })
-  let result = originalRender.call(md.renderer, tokens, options, env)
+  const result = originalRender.call(md.renderer, tokens, options, env)
   return result
 }
 // FIXME We should not depend on global variable.

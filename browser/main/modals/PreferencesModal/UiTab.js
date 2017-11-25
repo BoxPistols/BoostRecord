@@ -119,8 +119,8 @@ class UiTab extends React.Component {
   }
 
   render () {
-    let UiAlert = this.state.UiAlert
-    let UiAlertElement = UiAlert != null
+    const UiAlert = this.state.UiAlert
+    const UiAlertElement = UiAlert != null
       ? <p className={`alert ${UiAlert.type}`}>
         {UiAlert.message}
       </p>

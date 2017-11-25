@@ -18,7 +18,6 @@ const { findStorage } = require('browser/lib/findStorage')
  * ```
  */
 function reorderFolder (storageKey, oldIndex, newIndex) {
-  let rawStorages
   let targetStorage
   try {
     if (!_.isNumber(oldIndex)) throw new Error('oldIndex must be a number.')

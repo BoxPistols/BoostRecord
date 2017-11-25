@@ -32,12 +32,12 @@ class Detail extends React.Component {
   }
 
   render () {
-    let { location, data, config } = this.props
+    const { location, data, config } = this.props
     let note = null
     if (location.query.key != null) {
-      let splitted = location.query.key.split('-')
-      let storageKey = splitted.shift()
-      let noteKey = splitted.shift()
+      const splitted = location.query.key.split('-')
+      const storageKey = splitted.shift()
+      const noteKey = splitted.shift()
 
       note = data.noteMap.get(storageKey + '-' + noteKey)
     }

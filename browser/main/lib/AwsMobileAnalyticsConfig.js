@@ -4,6 +4,7 @@ const ConfigManager = require('browser/main/lib/ConfigManager')
 
 const remote = require('electron').remote
 const os = require('os')
+let mobileAnalyticsClient
 
 AWS.config.region = 'us-east-1'
 if (process.env.NODE_ENV === 'production' && ConfigManager.default.get().amaEnabled) {
@@ -13,7 +14,7 @@ if (process.env.NODE_ENV === 'production' && ConfigManager.default.get().amaEnab
 
   const validPlatformName = convertPlatformName(os.platform())
 
-  const mobileAnalyticsClient = new AMA.Manager({
+  mobileAnalyticsClient = new AMA.Manager({
     appId: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxx',
     appTitle: 'xxxxxxxxxx',
     appVersionName: remote.app.getVersion().toString(),

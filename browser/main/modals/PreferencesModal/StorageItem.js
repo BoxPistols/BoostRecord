@@ -19,8 +19,8 @@ class StorageItem extends React.Component {
   }
 
   handleNewFolderButtonClick (e) {
-    let { storage } = this.props
-    let input = {
+    const { storage } = this.props
+    const input = {
       name: 'Untitled',
       color: consts.FOLDER_COLORS[Math.floor(Math.random() * 7) % 7]
     }
@@ -38,12 +38,12 @@ class StorageItem extends React.Component {
   }
 
   handleExternalButtonClick () {
-    let { storage } = this.props
+    const { storage } = this.props
     shell.showItemInFolder(storage.path)
   }
 
   handleUnlinkButtonClick (e) {
-    let index = dialog.showMessageBox(remote.getCurrentWindow(), {
+    const index = dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
       message: 'Unlink Storage',
       detail: 'Unlinking removes this linked storage from Boostnote. No data is removed, please manually delete the folder from your hard drive if needed.',
@@ -51,7 +51,7 @@ class StorageItem extends React.Component {
     })
 
     if (index === 0) {
-      let { storage } = this.props
+      const { storage } = this.props
       dataApi.removeStorage(storage.key)
         .then(() => {
           store.dispatch({
@@ -66,7 +66,7 @@ class StorageItem extends React.Component {
   }
 
   handleLabelClick (e) {
-    let { storage } = this.props
+    const { storage } = this.props
     this.setState({
       isLabelEditing: true,
       name: storage.name
@@ -81,7 +81,7 @@ class StorageItem extends React.Component {
   }
 
   handleLabelBlur (e) {
-    let { storage } = this.props
+    const { storage } = this.props
     dataApi
       .renameStorage(storage.key, this.state.name)
       .then((_storage) => {
@@ -96,7 +96,7 @@ class StorageItem extends React.Component {
   }
 
   render () {
-    let { storage, hostBoundingBox } = this.props
+    const { storage, hostBoundingBox } = this.props
 
     return (
       <div styleName='root' key={storage.key}>

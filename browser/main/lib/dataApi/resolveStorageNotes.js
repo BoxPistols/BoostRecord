@@ -16,13 +16,13 @@ function resolveStorageNotes (storage) {
     }
     notePathList = []
   }
-  let notes = notePathList
+  const notes = notePathList
     .filter(function filterOnlyCSONFile (notePath) {
       return /\.cson$/.test(notePath)
     })
     .map(function parseCSONFile (notePath) {
       try {
-        let data = CSON.readFileSync(path.join(notesDirPath, notePath))
+        const data = CSON.readFileSync(path.join(notesDirPath, notePath))
         data.key = path.basename(notePath, '.cson')
         data.storage = storage.key
         return data

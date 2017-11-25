@@ -9,7 +9,7 @@ const sander = require('sander')
 function migrateFromV5Storage (storageKey, data) {
   let targetStorage
   try {
-    let cachedStorageList = JSON.parse(localStorage.getItem('storages'))
+    const cachedStorageList = JSON.parse(localStorage.getItem('storages'))
     if (!_.isArray(cachedStorageList)) throw new Error('Target storage doesn\'t exist.')
 
     targetStorage = _.find(cachedStorageList, {key: storageKey})
@@ -24,15 +24,15 @@ function migrateFromV5Storage (storageKey, data) {
 }
 
 function importAll (storage, data) {
-  let oldArticles = data.articles
-  let notes = []
+  const oldArticles = data.articles
+  const notes = []
   data.folders
     .forEach(function (oldFolder) {
       let folderKey = keygen()
       while (storage.folders.some((folder) => folder.key === folderKey)) {
         folderKey = keygen()
       }
-      let newFolder = {
+      const newFolder = {
         key: folderKey,
         name: oldFolder.name,
         color: consts.FOLDER_COLORS[Math.floor(Math.random() * 7) % 7]
@@ -40,7 +40,7 @@ function importAll (storage, data) {
 
       storage.folders.push(newFolder)
 
-      let articles = oldArticles.filter((article) => article.FolderKey === oldFolder.key)
+      const articles = oldArticles.filter((article) => article.FolderKey === oldFolder.key)
       articles.forEach((article) => {
         let noteKey = keygen()
         let isUnique = false
@@ -59,7 +59,7 @@ function importAll (storage, data) {
         }
 
         if (article.mode === 'markdown') {
-          let newNote = {
+          const newNote = {
             tags: article.tags,
             createdAt: article.createdAt,
             updatedAt: article.updatedAt,
@@ -73,7 +73,7 @@ function importAll (storage, data) {
           }
           notes.push(newNote)
         } else {
-          let newNote = {
+          const newNote = {
             tags: article.tags,
             createdAt: article.createdAt,
             updatedAt: article.updatedAt,

@@ -25,7 +25,7 @@ import striptags from 'striptags'
 
 const electron = require('electron')
 const { remote } = electron
-const { Menu, MenuItem, dialog } = remote
+const { dialog } = remote
 
 class MarkdownNoteDetail extends React.Component {
   constructor (props) {
@@ -74,7 +74,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleChange (e) {
-    let { note } = this.state
+    const { note } = this.state
 
     note.content = this.refs.content.value
     if (this.refs.tags) note.tags = this.refs.tags.value
@@ -96,7 +96,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   saveNow () {
-    let { note, dispatch } = this.props
+    const { note, dispatch } = this.props
     clearTimeout(this.saveQueue)
     this.saveQueue = null
 
@@ -112,11 +112,11 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleFolderChange (e) {
-    let { note } = this.state
-    let value = this.refs.folder.value
-    let splitted = value.split('-')
-    let newStorageKey = splitted.shift()
-    let newFolderKey = splitted.shift()
+    const { note } = this.state
+    const value = this.refs.folder.value
+    const splitted = value.split('-')
+    const newStorageKey = splitted.shift()
+    const newFolderKey = splitted.shift()
 
     dataApi
       .moveNote(note.storage, note.key, newStorageKey, newFolderKey)
@@ -125,7 +125,7 @@ class MarkdownNoteDetail extends React.Component {
           isMovingNote: true,
           note: Object.assign({}, newNote)
         }, () => {
-          let { dispatch, location } = this.props
+          const { dispatch, location } = this.props
           dispatch({
             type: 'MOVE_NOTE',
             originNote: note,
@@ -145,7 +145,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleStarButtonClick (e) {
-    let { note } = this.state
+    const { note } = this.state
     if (!note.isStarred) AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_STAR')
 
     note.isStarred = !note.isStarred
@@ -170,22 +170,22 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleTrashButtonClick (e) {
-    let { note } = this.state
+    const { note } = this.state
     const { isTrashed } = note
 
     if (isTrashed) {
-      let dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
+      const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
         message: 'Confirm note deletion',
         detail: 'This will permanently remove this note.',
         buttons: ['Confirm', 'Cancel']
       })
       if (dialogueButtonIndex === 1) return
-      let { note, dispatch } = this.props
+      const { note, dispatch } = this.props
       dataApi
         .deleteNote(note.storage, note.key)
         .then((data) => {
-          let dispatchHandler = () => {
+          const dispatchHandler = () => {
             dispatch({
               type: 'DELETE_NOTE',
               storageKey: data.storageKey,
@@ -207,7 +207,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleUndoButtonClick (e) {
-    let { note } = this.state
+    const { note } = this.state
 
     note.isTrashed = false
 
@@ -262,12 +262,12 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   render () {
-    let { data, config, location } = this.props
-    let { note } = this.state
-    let storageKey = note.storage
-    let folderKey = note.folder
+    const { data, config, location } = this.props
+    const { note } = this.state
+    const storageKey = note.storage
+    const folderKey = note.folder
 
-    let options = []
+    const options = []
     data.storageMap.forEach((storage, index) => {
       storage.folders.forEach((folder) => {
         options.push({
@@ -276,7 +276,7 @@ class MarkdownNoteDetail extends React.Component {
         })
       })
     })
-    let currentOption = options.filter((option) => option.storage.key === storageKey && option.folder.key === folderKey)[0]
+    const currentOption = options.filter((option) => option.storage.key === storageKey && option.folder.key === folderKey)[0]
 
     const trashTopBar = <div styleName='info'>
       <div styleName='info-left'>

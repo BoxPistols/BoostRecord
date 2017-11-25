@@ -18,18 +18,18 @@ class NoteList extends React.Component {
   }
 
   componentDidUpdate () {
-    let { index } = this.props
+    const { index } = this.props
 
     if (index > -1) {
-      let list = this.refs.root
-      let item = list.childNodes[index]
+      const list = this.refs.root
+      const item = list.childNodes[index]
       if (item == null) return null
 
-      let overflowBelow = item.offsetTop + item.clientHeight - list.clientHeight - list.scrollTop > 0
+      const overflowBelow = item.offsetTop + item.clientHeight - list.clientHeight - list.scrollTop > 0
       if (overflowBelow) {
         list.scrollTop = item.offsetTop + item.clientHeight - list.clientHeight
       }
-      let overflowAbove = list.scrollTop > item.offsetTop
+      const overflowAbove = list.scrollTop > item.offsetTop
       if (overflowAbove) {
         list.scrollTop = item.offsetTop
       }
@@ -44,7 +44,7 @@ class NoteList extends React.Component {
   }
 
   handleScroll (e) {
-    let { notes } = this.props
+    const { notes } = this.props
 
     if (e.target.offsetHeight + e.target.scrollTop > e.target.scrollHeight - 100 && notes.length > this.state.range * 10 + 10) {
       this.setState({
@@ -54,9 +54,9 @@ class NoteList extends React.Component {
   }
 
   render () {
-    let { notes, index } = this.props
+    const { notes, index } = this.props
 
-    let notesList = notes
+    const notesList = notes
       .slice(0, 10 + 10 * this.state.range)
       .map((note, _index) => {
         const isActive = (index === _index)

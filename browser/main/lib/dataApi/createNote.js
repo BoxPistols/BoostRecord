@@ -66,7 +66,7 @@ function createNote (storageKey, input) {
           }
         }
       }
-      let noteData = Object.assign({}, input, {
+      const noteData = Object.assign({}, input, {
         key,
         createdAt: new Date(),
         updatedAt: new Date(),

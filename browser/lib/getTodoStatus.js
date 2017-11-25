@@ -1,10 +1,10 @@
 export function getTodoStatus (content) {
-  let splitted = content.split('\n')
+  const splitted = content.split('\n')
   let numberOfTodo = 0
   let numberOfCompletedTodo = 0
 
   splitted.forEach((line) => {
-    let trimmedLine = line.trim()
+    const trimmedLine = line.trim()
     if (trimmedLine.match(/^[\+\-\*] \[\s|x\] ./)) {
       numberOfTodo++
     }

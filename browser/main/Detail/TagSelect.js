@@ -59,7 +59,7 @@ class TagSelect extends React.Component {
   submitTag () {
     AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_TAG')
     let { value } = this.props
-    let newTag = this.refs.newTag.value.trim().replace(/ +/g, '_')
+    const newTag = this.refs.newTag.value.trim().replace(/ +/g, '_')
 
     if (newTag.length <= 0) {
       this.setState({
@@ -101,9 +101,9 @@ class TagSelect extends React.Component {
   }
 
   render () {
-    let { value, className } = this.props
+    const { value, className } = this.props
 
-    let tagList = _.isArray(value)
+    const tagList = _.isArray(value)
       ? value.map((tag) => {
         return (
           <span styleName='tag'

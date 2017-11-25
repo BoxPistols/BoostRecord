@@ -41,7 +41,7 @@ class HotkeyTab extends React.Component {
   }
 
   handleSaveButtonClick (e) {
-    let newConfig = {
+    const newConfig = {
       hotkey: this.state.config.hotkey
     }
 
@@ -61,7 +61,7 @@ class HotkeyTab extends React.Component {
   }
 
   handleHotkeyChange (e) {
-    let { config } = this.state
+    const { config } = this.state
     config.hotkey = {
       toggleFinder: this.refs.toggleFinder.value,
       toggleMain: this.refs.toggleMain.value
@@ -80,13 +80,13 @@ class HotkeyTab extends React.Component {
   }
 
   render () {
-    let keymapAlert = this.state.keymapAlert
-    let keymapAlertElement = keymapAlert != null
+    const keymapAlert = this.state.keymapAlert
+    const keymapAlertElement = keymapAlert != null
       ? <p className={`alert ${keymapAlert.type}`}>
         {keymapAlert.message}
       </p>
       : null
-    let { config } = this.state
+    const { config } = this.state
 
     return (
       <div styleName='root'>

@@ -38,15 +38,15 @@ class MutableMap {
   }
 
   map (cb) {
-    let result = []
-    for (let [key, value] of this._map) {
+    const result = []
+    for (const [key, value] of this._map) {
       result.push(cb(value, key))
     }
     return result
   }
 
   toJS () {
-    let result = {}
+    const result = {}
     for (let [key, value] of this._map) {
       if (value instanceof MutableSet || value instanceof MutableMap) {
         value = value.toJS()
@@ -85,7 +85,7 @@ class MutableSet {
   }
 
   map (cb) {
-    let result = []
+    const result = []
     this._set.forEach(function (value, key) {
       result.push(cb(value, key))
     })

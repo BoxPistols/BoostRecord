@@ -1,27 +1,50 @@
 <h1 align="center">Sponsors &amp; Backers</h1>
 
-Boostnote is an open source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome [backers](https://github.com/BoostIO/Boostnote/blob/master/Backers.md). If you'd like to join them, please consider:
+Boostnote is an open source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome backers. If you'd like to join them, please consider:
 
 - [Become a backer or sponsor on Open Collective.](https://opencollective.com/boostnoteio)
 
 ---
 
 ## Backers via OpenCollective
-<a href="https://opencollective.com/boostnoteio#backers" target="_blank"><img src="https://opencollective.com/boostnoteio/backers.svg?width=890"></a>
 
-- [Ralph03](https://opencollective.com/ralph03) - $24
+### [Gold Sponsors / $1,000 per month](https://opencollective.com/boostnoteio/order/2259)
+- Get your logo on our Readme.md on GitHub and the frontpage of https://boostnote.io/.
 
-- [Nikolas Dan](https://opencollective.com/nikolas-dan) - $20
+### [Silver Sponsors / $250 per month](https://opencollective.com/boostnoteio/order/2257)
+- Get your logo on our Readme.md on GitHub and the frontpage of https://boostnote.io/.
 
-- [tatoosh11](https://twitter.com/ta11) - $10
+### [Bronze Sponsors / $50 per month](https://opencollective.com/boostnoteio/order/2258)
+- Get your name and Url (or E-mail) on Readme.md on GitHub.
 
-- [Alexander Borovkov](https://opencollective.com/alexander-borovkov) - $10
+### [Backers3 / $10 per month](https://opencollective.com/boostnoteio/order/2176)
+- [Ralph03](https://opencollective.com/ralph03)
 
-- [Yeojong Kim](https://twitter.com/yeojoy) - $5
+- [Nikolas Dan](https://opencollective.com/nikolas-dan)
 
-- [Scotia Draven](https://opencollective.com/scotia-draven) - $5
+### [Backers2 / $5 per month](https://opencollective.com/boostnoteio/order/2175)
+- [Yeojong Kim](https://twitter.com/yeojoy)
 
-- [spoonhoop](https://opencollective.com/spoonhoop) - $5
+- [Scotia Draven](https://opencollective.com/scotia-draven)
+
+- [A. J. Vargas](https://opencollective.com/aj-vargas)
+
+### [Backers1](https://opencollective.com/boostnoteio/order/2563) and One-time sponsors
+- Ryosuke Tamura - $30
+
+- tatoosh11 - $10
+
+- Alexander Borovkov - $10
+
+- spoonhoop - $5
+
+- Drew Williams - $2
+
+- Andy Shaw - $2
+
+- mysafesky -$2
+
+---
 
 ## Backers via Bountysource
 https://salt.bountysource.com/teams/boostnote

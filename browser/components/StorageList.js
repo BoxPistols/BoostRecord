@@ -1,8 +1,9 @@
 /**
 * @fileoverview Micro component for showing StorageList
 */
-import React, { PropTypes } from 'react'
-import styles from './StorageList.styl'
+import PropTypes from 'prop-types'
+import React from 'react'
+import styles from './StorgaeList.styl'
 import CSSModules from 'browser/lib/CSSModules'
 
 /**

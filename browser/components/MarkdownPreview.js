@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import markdown from 'browser/lib/markdown'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'

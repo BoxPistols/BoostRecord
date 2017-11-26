@@ -1,7 +1,8 @@
 /**
  * @fileoverview Note item component with simple display mode.
  */
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './NoteItemSimple.styl'
 

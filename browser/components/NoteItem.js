@@ -1,7 +1,8 @@
 /**
  * @fileoverview Note item component.
  */
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import { isArray } from 'lodash'
 import CSSModules from 'browser/lib/CSSModules'
 import { getTodoStatus } from 'browser/lib/getTodoStatus'

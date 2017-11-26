@@ -184,6 +184,12 @@ class InitModal extends React.Component {
     })
   }
 
+  handleKeyDown (e) {
+    if (e.keyCode === 27) {
+      this.props.close()
+    }
+  }
+
   render () {
     if (this.state.isLoading) {
       return <div styleName='root--loading'>
@@ -194,7 +200,7 @@ class InitModal extends React.Component {
     return (
       <div styleName='root'
         tabIndex='-1'
-        onKeyDown={this.props.close}
+        onKeyDown={(e) => this.handleKeyDown(e)}
       >
 
         <div styleName='header'>

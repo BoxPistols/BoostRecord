@@ -9,6 +9,7 @@ import RenameFolderModal from 'browser/main/modals/RenameFolderModal'
 import dataApi from 'browser/main/lib/dataApi'
 import StorageItemChild from 'browser/components/StorageItem'
 import eventEmitter from 'browser/main/lib/eventEmitter'
+import _ from 'lodash'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
@@ -246,7 +247,7 @@ class StorageItem extends React.Component {
             onClick={(e) => this.handleHeaderInfoClick(e)}
           >
             <span styleName='header-info-name'>
-              {isFolded ? storage.name.substring(0, 1) : storage.name}
+              {isFolded ? _.truncate(storage.name, {length: 1, omission: ''}) : storage.name}
             </span>
             {isFolded &&
               <span styleName='header-info--folded-tooltip'>

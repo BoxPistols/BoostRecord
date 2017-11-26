@@ -5,7 +5,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import styles from './StorageItem.styl'
 import CSSModules from 'browser/lib/CSSModules'
-import { isNumber } from 'lodash'
+import _ from 'lodash'
 
 /**
  * @param {boolean} isActive
@@ -37,9 +37,9 @@ const StorageItem = ({
     <span styleName={isFolded
       ? 'folderList-item-name--folded' : 'folderList-item-name'
     }>
-      <text style={{color: folderColor, paddingRight: '10px'}}>{isActive ? <i className='fa fa-folder-open-o' /> : <i className='fa fa-folder-o' />}</text>{isFolded ? folderName.substring(0, 1) : folderName}
+      <text style={{color: folderColor, paddingRight: '10px'}}>{isActive ? <i className='fa fa-folder-open-o' /> : <i className='fa fa-folder-o' />}</text>{isFolded ? _.truncate(folderName, {length: 1, omission: ''}) : folderName}
     </span>
-    {(!isFolded && isNumber(noteCount)) &&
+    {(!isFolded && _.isNumber(noteCount)) &&
       <span styleName='folderList-item-noteCount'>{noteCount}</span>
     }
     {isFolded &&

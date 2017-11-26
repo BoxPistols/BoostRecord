@@ -3,7 +3,7 @@
 */
 import PropTypes from 'prop-types'
 import React from 'react'
-import styles from './StorgaeList.styl'
+import styles from './StorageList.styl'
 import CSSModules from 'browser/lib/CSSModules'
 
 /**

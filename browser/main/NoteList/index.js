@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './NoteList.styl'
 import moment from 'moment'
@@ -13,7 +14,6 @@ import fs from 'fs'
 import { hashHistory } from 'react-router'
 import markdown from 'browser/lib/markdown'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
-import stripgtags from 'striptags'
 import store from 'browser/main/store'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 
@@ -110,10 +110,10 @@ class NoteList extends React.Component {
   }
 
   componentDidUpdate (prevProps) {
-    let { location } = this.props
+    const { location } = this.props
 
     if (this.notes.length > 0 && location.query.key == null) {
-      let { router } = this.context
+      const { router } = this.context
       if (!location.pathname.match(/\/searched/)) this.contextNotes = this.getContextNotes()
       router.replace({
         pathname: location.pathname,
@@ -128,16 +128,16 @@ class NoteList extends React.Component {
     if (_.isString(location.query.key) && prevProps.location.query.key === location.query.key) {
       const targetIndex = this.getTargetIndex()
       if (targetIndex > -1) {
-        let list = this.refs.list
-        let item = list.childNodes[targetIndex]
+        const list = this.refs.list
+        const item = list.childNodes[targetIndex]
 
         if (item == null) return false
 
-        let overflowBelow = item.offsetTop + item.clientHeight - list.clientHeight - list.scrollTop > 0
+        const overflowBelow = item.offsetTop + item.clientHeight - list.clientHeight - list.scrollTop > 0
         if (overflowBelow) {
           list.scrollTop = item.offsetTop + item.clientHeight - list.clientHeight
         }
-        let overflowAbove = list.scrollTop > item.offsetTop
+        const overflowAbove = list.scrollTop > item.offsetTop
         if (overflowAbove) {
           list.scrollTop = item.offsetTop
         }
@@ -292,8 +292,7 @@ class NoteList extends React.Component {
   }
 
   getNotes () {
-    let { data, params, location } = this.props
-    let { router } = this.context
+    const { data, params, location } = this.props
 
     if (location.pathname.match(/\/home/) || location.pathname.match(/\alltags/)) {
       const allNotes = data.noteMap.map((note) => note)
@@ -394,9 +393,9 @@ class NoteList extends React.Component {
   }
 
   handleSortByChange (e) {
-    let { dispatch } = this.props
+    const { dispatch } = this.props
 
-    let config = {
+    const config = {
       sortBy: e.target.value
     }
 
@@ -408,9 +407,9 @@ class NoteList extends React.Component {
   }
 
   handleListStyleButtonClick (e, style) {
-    let { dispatch } = this.props
+    const { dispatch } = this.props
 
-    let config = {
+    const config = {
       listStyle: style
     }
 
@@ -557,8 +556,6 @@ class NoteList extends React.Component {
   }
 
   importFromFile () {
-    const { dispatch, location } = this.props
-
     const options = {
       filters: [
         { name: 'Documents', extensions: ['md', 'txt'] }
@@ -623,7 +620,7 @@ class NoteList extends React.Component {
 
     // Find first storage
     if (storage == null) {
-      for (let kv of data.storageMap) {
+      for (const kv of data.storageMap) {
         storage = kv[1]
         break
       }
@@ -682,7 +679,7 @@ class NoteList extends React.Component {
       }
     })
 
-    let noteList = notes
+    const noteList = notes
       .map(note => {
         if (note == null) {
           return null
@@ -749,7 +746,7 @@ class NoteList extends React.Component {
               }
               onClick={(e) => this.handleListStyleButtonClick(e, 'DEFAULT')}
             >
-              <i className='fa fa-th-large' />
+              <img styleName='iconTag' src='../resources/icon/icon-column.svg' />
             </button>
             <button styleName={config.listStyle === 'SMALL'
                 ? 'control-button--active'
@@ -757,7 +754,7 @@ class NoteList extends React.Component {
               }
               onClick={(e) => this.handleListStyleButtonClick(e, 'SMALL')}
             >
-              <i className='fa fa-list-ul' />
+              <img styleName='iconTag' src='../resources/icon/icon-column-list.svg' />
             </button>
           </div>
         </div>

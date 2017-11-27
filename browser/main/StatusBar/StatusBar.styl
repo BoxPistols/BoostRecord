@@ -1,9 +1,10 @@
 @import('../Detail/DetailVars')
 
 .root
-  absolute bottom left right
+  position absolute
+  bottom 10px
+  right 10px
   z-index 100
-  background-color $ui-noteDetail-backgroundColor
   display flex
 
 .blank
@@ -21,8 +22,19 @@
 
 .zoom
   navButtonColor()
-  height 24px
-
+  color rgba(0,0,0,.54)
+  height 20px
+  display flex
+  padding 0
+  align-items center
+  background-color transparent
+  &:hover
+    color $ui-active-color
+  &:active
+    color $ui-active-color
+  span
+    margin-left 5px
+  
 .update
   navButtonColor()
   height 24px
@@ -37,14 +49,14 @@
 
 body[data-theme="dark"]
   .root
-    background-color $ui-dark-noteDetail-backgroundColor
     border-color $ui-dark-borderColor
     box-shadow none
 
   .zoom
     border-color $ui-dark-borderColor
+    background-color transparent
+    color #f9f9f9
     &:hover
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
       transition 0.15s
       color $ui-dark-text-color
 

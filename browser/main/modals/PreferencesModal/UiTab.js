@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
@@ -119,8 +120,8 @@ class UiTab extends React.Component {
   }
 
   render () {
-    let UiAlert = this.state.UiAlert
-    let UiAlertElement = UiAlert != null
+    const UiAlert = this.state.UiAlert
+    const UiAlertElement = UiAlert != null
       ? <p className={`alert ${UiAlert.type}`}>
         {UiAlert.message}
       </p>
@@ -141,7 +142,8 @@ class UiTab extends React.Component {
                 onChange={(e) => this.handleUIChange(e)}
                 ref='uiTheme'
               >
-                <option value='default'>Light</option>
+                <option value='default'>Default</option>
+                <option value='white'>White</option>
                 <option value='dark'>Dark</option>
               </select>
             </div>

@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import ReactDOM from 'react-dom'
 import styles from './FolderItem.styl'
@@ -23,7 +24,7 @@ class FolderItem extends React.Component {
   }
 
   handleEditChange (e) {
-    let { folder } = this.state
+    const { folder } = this.state
 
     folder.name = this.refs.nameInput.value
     this.setState({
@@ -36,7 +37,7 @@ class FolderItem extends React.Component {
   }
 
   confirm () {
-    let { storage, folder } = this.props
+    const { storage, folder } = this.props
     dataApi
       .updateFolder(storage.key, folder.key, {
         color: this.state.folder.color,
@@ -162,7 +163,7 @@ class FolderItem extends React.Component {
   }
 
   handleDeleteConfirmButtonClick (e) {
-    let { storage, folder } = this.props
+    const { storage, folder } = this.props
     dataApi
       .deleteFolder(storage.key, folder.key)
       .then((data) => {
@@ -197,8 +198,8 @@ class FolderItem extends React.Component {
   }
 
   handleEditButtonClick (e) {
-    let { folder: propsFolder } = this.props
-    let { folder: stateFolder } = this.state
+    const { folder: propsFolder } = this.props
+    const { folder: stateFolder } = this.state
     const folder = Object.assign({}, stateFolder, propsFolder)
     this.setState({
       status: 'EDIT',
@@ -215,7 +216,7 @@ class FolderItem extends React.Component {
   }
 
   renderIdle () {
-    let { folder } = this.props
+    const { folder } = this.props
     return (
       <div styleName='folderItem'
         onDoubleClick={(e) => this.handleEditButtonClick(e)}

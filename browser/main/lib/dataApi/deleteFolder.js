@@ -19,7 +19,6 @@ const { findStorage } = require('browser/lib/findStorage')
  * ```
  */
 function deleteFolder (storageKey, folderKey) {
-  let rawStorages
   let targetStorage
   try {
     targetStorage = findStorage(storageKey)
@@ -38,17 +37,17 @@ function deleteFolder (storageKey, folderKey) {
         })
     })
     .then(function deleteFolderAndNotes (data) {
-      let { storage, notes } = data
+      const { storage, notes } = data
       storage.folders = storage.folders
         .filter(function excludeTargetFolder (folder) {
           return folder.key !== folderKey
         })
 
-      let targetNotes = notes.filter(function filterTargetNotes (note) {
+      const targetNotes = notes.filter(function filterTargetNotes (note) {
         return note.folder === folderKey
       })
 
-      let deleteAllNotes = targetNotes
+      const deleteAllNotes = targetNotes
         .map(function deleteNote (note) {
           const notePath = path.join(storage.path, 'notes', note.key + '.cson')
           return sander.unlink(notePath)

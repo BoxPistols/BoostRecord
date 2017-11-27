@@ -1,12 +1,11 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './NewNoteButton.styl'
 import _ from 'lodash'
 import modal from 'browser/main/lib/modal'
 import NewNoteModal from 'browser/main/modals/NewNoteModal'
-import { hashHistory } from 'react-router'
 import eventEmitter from 'browser/main/lib/eventEmitter'
-import dataApi from 'browser/main/lib/dataApi'
 
 const { remote } = require('electron')
 const { dialog } = remote
@@ -34,7 +33,7 @@ class NewNoteButton extends React.Component {
   }
 
   handleNewNoteButtonClick (e) {
-    const { config, location, dispatch } = this.props
+    const { location, dispatch } = this.props
     const { storage, folder } = this.resolveTargetFolder()
 
     modal.open(NewNoteModal, {
@@ -51,7 +50,7 @@ class NewNoteButton extends React.Component {
 
     // Find first storage
     if (storage == null) {
-      for (let kv of data.storageMap) {
+      for (const kv of data.storageMap) {
         storage = kv[1]
         break
       }
@@ -85,7 +84,7 @@ class NewNoteButton extends React.Component {
         <div styleName='control'>
           <button styleName='control-newNoteButton'
             onClick={(e) => this.handleNewNoteButtonClick(e)}>
-            <i className='fa fa-pencil-square-o' />
+            <img styleName='iconTag' src='../resources/icon/icon-newnote.svg' />
             <span styleName='control-newNoteButton-tooltip'>
               Make a Note {OSX ? '⌘' : '^'} + n
             </span>

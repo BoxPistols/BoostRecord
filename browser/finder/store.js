@@ -2,7 +2,7 @@ import { combineReducers, createStore } from 'redux'
 import { routerReducer } from 'react-router-redux'
 import { DEFAULT_CONFIG } from 'browser/main/lib/ConfigManager'
 
-let defaultData = {
+const defaultData = {
   storageMap: {},
   noteMap: {},
   starredSet: [],
@@ -40,12 +40,12 @@ function config (state = DEFAULT_CONFIG, action) {
   return state
 }
 
-let reducer = combineReducers({
+const reducer = combineReducers({
   data,
   config,
   routing: routerReducer
 })
 
-let store = createStore(reducer)
+const store = createStore(reducer)
 
 export default store

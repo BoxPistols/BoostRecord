@@ -36,7 +36,7 @@ test.serial('Add Storage', (t) => {
       return addStorage(input)
     })
     .then(function validateResult (data) {
-      let { storage, notes } = data
+      const { storage, notes } = data
 
       // Check data.storage
       t.true(_.isString(storage.key))
@@ -53,13 +53,13 @@ test.serial('Add Storage', (t) => {
       })
 
       // Check localStorage
-      let cacheData = _.find(JSON.parse(localStorage.getItem('storages')), {key: data.storage.key})
+      const cacheData = _.find(JSON.parse(localStorage.getItem('storages')), {key: data.storage.key})
       t.is(cacheData.name, input.name)
       t.is(cacheData.type, input.type)
       t.is(cacheData.path, input.path)
 
       // Check boostnote.json
-      let jsonData = CSON.readFileSync(path.join(storage.path, 'boostnote.json'))
+      const jsonData = CSON.readFileSync(path.join(storage.path, 'boostnote.json'))
       t.true(_.isArray(jsonData.folders))
       t.is(jsonData.version, '1.0')
       t.is(jsonData.folders.length, t.context.v1StorageData.json.folders.length)

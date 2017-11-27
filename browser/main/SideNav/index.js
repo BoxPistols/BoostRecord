@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './SideNav.styl'
 import { openModal } from 'browser/main/lib/modal'
@@ -9,25 +10,35 @@ import TagListItem from 'browser/components/TagListItem'
 import SideNavFilter from 'browser/components/SideNavFilter'
 import StorageList from 'browser/components/StorageList'
 import NavToggleButton from 'browser/components/NavToggleButton'
+import EventEmitter from 'browser/main/lib/eventEmitter'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
+
+  componentDidMount () {
+    EventEmitter.on('side:preferences', this.handleMenuButtonClick)
+  }
+
+  componentWillUnmount () {
+    EventEmitter.off('side:preferences', this.handleMenuButtonClick)
+  }
+
   handleMenuButtonClick (e) {
     openModal(PreferencesModal)
   }
 
   handleHomeButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/home')
   }
 
   handleStarredButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/starred')
   }
 
   handleToggleButtonClick (e) {
-    let { dispatch, config } = this.props
+    const { dispatch, config } = this.props
 
     ConfigManager.set({isSideNavFolded: !config.isSideNavFolded})
     dispatch({
@@ -37,7 +48,7 @@ class SideNav extends React.Component {
   }
 
   handleTrashedButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/trashed')
   }
 
@@ -52,7 +63,7 @@ class SideNav extends React.Component {
   }
 
   SideNavComponent (isFolded, storageList) {
-    let { location, data } = this.props
+    const { location, data } = this.props
 
     const isHomeActive = !!location.pathname.match(/^\/home$/)
     const isStarredActive = !!location.pathname.match(/^\/starred$/)
@@ -72,6 +83,9 @@ class SideNav extends React.Component {
             isTrashedActive={isTrashedActive}
             handleStarredButtonClick={(e) => this.handleStarredButtonClick(e)}
             handleTrashedButtonClick={(e) => this.handleTrashedButtonClick(e)}
+            counterTotalNote={data.noteMap._map.size}
+            counterStarredNote={data.starredSet._set.size}
+            counterDelNote={data.trashedSet._set.size}
           />
 
           <StorageList storageList={storageList} />
@@ -96,7 +110,7 @@ class SideNav extends React.Component {
 
   tagListComponent () {
     const { data, location } = this.props
-    let tagList = data.tagNoteMap.map((tag, key) => {
+    const tagList = data.tagNoteMap.map((tag, key) => {
       return key
     })
     return (
@@ -123,11 +137,11 @@ class SideNav extends React.Component {
   }
 
   render () {
-    let { data, location, config, dispatch } = this.props
+    const { data, location, config, dispatch } = this.props
 
-    let isFolded = config.isSideNavFolded
+    const isFolded = config.isSideNavFolded
 
-    let storageList = data.storageMap.map((storage, key) => {
+    const storageList = data.storageMap.map((storage, key) => {
       return <StorageItem
         key={storage.key}
         storage={storage}
@@ -137,7 +151,7 @@ class SideNav extends React.Component {
         dispatch={dispatch}
       />
     })
-    let style = {}
+    const style = {}
     if (!isFolded) style.width = this.props.width
     const isTagActive = location.pathname.match(/tag/)
     return (
@@ -148,15 +162,26 @@ class SideNav extends React.Component {
       >
         <div styleName='top'>
           <div styleName='switch-buttons'>
-            <button styleName={isTagActive ? 'non-active-button' : 'active-button'} onClick={this.handleSwitchFoldersButtonClick.bind(this)}><i className='fa fa-folder fa-fw' /></button>
-            <button styleName={isTagActive ? 'active-button' : 'non-active-button'} onClick={this.handleSwitchTagsButtonClick.bind(this)}><i className='fa fa-tags fa-fw' /></button>
+            <button styleName={isTagActive ? 'non-active-button' : 'active-button'} onClick={this.handleSwitchFoldersButtonClick.bind(this)}>
+              <img src={isTagActive
+                  ? '../resources/icon/icon-list.svg'
+                  : '../resources/icon/icon-list-active.svg'
+                }
+              />
+            </button>
+            <button styleName={isTagActive ? 'active-button' : 'non-active-button'} onClick={this.handleSwitchTagsButtonClick.bind(this)}>
+              <img src={isTagActive
+                  ? '../resources/icon/icon-tag-active.svg'
+                  : '../resources/icon/icon-tag.svg'
+                }
+              />
+            </button>
           </div>
           <div>
-            <button styleName='top-menu'
+            <button styleName='top-menu-preference'
               onClick={(e) => this.handleMenuButtonClick(e)}
             >
-              <i className='fa fa-wrench fa-fw' />
-              <span styleName='top-menu-label'>Preferences</span>
+              <img styleName='iconTag' src='../resources/icon/icon-setting.svg' />
             </button>
           </div>
         </div>

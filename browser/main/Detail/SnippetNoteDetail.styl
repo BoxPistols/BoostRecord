@@ -3,14 +3,14 @@
 
 .root
   absolute top bottom right
-  border-width 0
+  border-left 1px solid alpha(#DEDEDE, 60%)
   background-color $ui-noteDetail-backgroundColor
-  box-shadow $note-detail-box-shadow
+  box-shadow none
 
 .body
   absolute left right
-  left $note-detail-left-margin
-  right $note-detail-right-margin
+  left $snippet-note-detail-left-margin
+  right $snippet-note-detail-right-margin
   top $info-height + $info-margin-under-border
   bottom $statusBar-height
   background-color $ui-noteDetail-backgroundColor
@@ -43,7 +43,7 @@
   overflow hidden
 
 .tabList .plusButton
-  navButtonColor()
+  navWhiteButtonColor()
   width 30px
 
 .tabView
@@ -55,24 +55,30 @@
 
 .override
   absolute bottom left
-  bottom 2px
+  bottom 1px
   left 60px
-  height 23px
   z-index 101
   button
     navButtonColor()
-    height 24px
+    padding 0 6px
+    &:hover
+      color $ui-active-color
     &:active .update-icon
-      color white
+      color $ui-active-color
 
 .control-fullScreenButton
-  float right
-  padding 0 0 2px 0
+  top 80px
+  margin-bottom 10px
   topBarButtonLight()
+
+body[data-theme="white"]
+  .root
+    box-shadow $note-detail-box-shadow
+    border none
 
 body[data-theme="dark"]
   .root
-    border-color $ui-dark-borderColor
+    border none
     background-color $ui-dark-noteDetail-backgroundColor
     box-shadow none
 

@@ -27,8 +27,8 @@ function data (state = defaultDataMap(), action) {
 
       action.notes.some((note) => {
         if (note === undefined) return true
-        let uniqueKey = note.storage + '-' + note.key
-        let folderKey = note.storage + '-' + note.folder
+        const uniqueKey = note.storage + '-' + note.key
+        const folderKey = note.storage + '-' + note.folder
         state.noteMap.set(uniqueKey, note)
 
         if (note.isStarred) {
@@ -65,10 +65,10 @@ function data (state = defaultDataMap(), action) {
       return state
     case 'UPDATE_NOTE':
       {
-        let note = action.note
-        let uniqueKey = note.storage + '-' + note.key
-        let folderKey = note.storage + '-' + note.folder
-        let oldNote = state.noteMap.get(uniqueKey)
+        const note = action.note
+        const uniqueKey = note.storage + '-' + note.key
+        const folderKey = note.storage + '-' + note.folder
+        const oldNote = state.noteMap.get(uniqueKey)
 
         state = Object.assign({}, state)
         state.noteMap = new Map(state.noteMap)
@@ -110,7 +110,7 @@ function data (state = defaultDataMap(), action) {
           state.folderNoteMap.set(folderKey, folderNoteSet)
 
           if (oldNote != null) {
-            let oldFolderKey = oldNote.storage + '-' + oldNote.folder
+            const oldFolderKey = oldNote.storage + '-' + oldNote.folder
             let oldFolderNoteList = state.folderNoteMap.get(oldFolderKey)
             oldFolderNoteList = new Set(oldFolderNoteList)
             oldFolderNoteList.delete(uniqueKey)
@@ -119,8 +119,8 @@ function data (state = defaultDataMap(), action) {
         }
 
         if (oldNote != null) {
-          let discardedTags = _.difference(oldNote.tags, note.tags)
-          let addedTags = _.difference(note.tags, oldNote.tags)
+          const discardedTags = _.difference(oldNote.tags, note.tags)
+          const addedTags = _.difference(note.tags, oldNote.tags)
           if (discardedTags.length + addedTags.length > 0) {
             state.tagNoteMap = new Map(state.tagNoteMap)
 
@@ -156,12 +156,12 @@ function data (state = defaultDataMap(), action) {
       }
     case 'MOVE_NOTE':
       {
-        let originNote = action.originNote
-        let originKey = originNote.storage + '-' + originNote.key
-        let note = action.note
-        let uniqueKey = note.storage + '-' + note.key
-        let folderKey = note.storage + '-' + note.folder
-        let oldNote = state.noteMap.get(uniqueKey)
+        const originNote = action.originNote
+        const originKey = originNote.storage + '-' + originNote.key
+        const note = action.note
+        const uniqueKey = note.storage + '-' + note.key
+        const folderKey = note.storage + '-' + note.folder
+        const oldNote = state.noteMap.get(uniqueKey)
 
         state = Object.assign({}, state)
         state.noteMap = new Map(state.noteMap)
@@ -191,7 +191,7 @@ function data (state = defaultDataMap(), action) {
 
           // From folderNoteMap
           state.folderNoteMap = new Map(state.folderNoteMap)
-          let originFolderKey = originNote.storage + '-' + originNote.folder
+          const originFolderKey = originNote.storage + '-' + originNote.folder
           let originFolderList = state.folderNoteMap.get(originFolderKey)
           originFolderList = new Set(originFolderList)
           originFolderList.delete(originKey)
@@ -245,7 +245,7 @@ function data (state = defaultDataMap(), action) {
           state.folderNoteMap.set(folderKey, folderNoteList)
 
           if (oldNote != null) {
-            let oldFolderKey = oldNote.storage + '-' + oldNote.folder
+            const oldFolderKey = oldNote.storage + '-' + oldNote.folder
             let oldFolderNoteList = state.folderNoteMap.get(oldFolderKey)
             oldFolderNoteList = new Set(oldFolderNoteList)
             oldFolderNoteList.delete(uniqueKey)
@@ -255,8 +255,8 @@ function data (state = defaultDataMap(), action) {
 
         // Remove from old folder map
         if (oldNote != null) {
-          let discardedTags = _.difference(oldNote.tags, note.tags)
-          let addedTags = _.difference(note.tags, oldNote.tags)
+          const discardedTags = _.difference(oldNote.tags, note.tags)
+          const addedTags = _.difference(note.tags, oldNote.tags)
           if (discardedTags.length + addedTags.length > 0) {
             state.tagNoteMap = new Map(state.tagNoteMap)
 
@@ -292,8 +292,8 @@ function data (state = defaultDataMap(), action) {
       }
     case 'DELETE_NOTE':
       {
-        let uniqueKey = action.storageKey + '-' + action.noteKey
-        let targetNote = state.noteMap.get(uniqueKey)
+        const uniqueKey = action.storageKey + '-' + action.noteKey
+        const targetNote = state.noteMap.get(uniqueKey)
 
         state = Object.assign({}, state)
 
@@ -317,7 +317,7 @@ function data (state = defaultDataMap(), action) {
           }
 
           // From folderNoteMap
-          let folderKey = targetNote.storage + '-' + targetNote.folder
+          const folderKey = targetNote.storage + '-' + targetNote.folder
           state.folderNoteMap = new Map(state.folderNoteMap)
           let folderSet = state.folderNoteMap.get(folderKey)
           folderSet = new Set(folderSet)
@@ -340,18 +340,14 @@ function data (state = defaultDataMap(), action) {
         return state
       }
     case 'UPDATE_FOLDER':
-      {
-        state = Object.assign({}, state)
-        state.storageMap = new Map(state.storageMap)
-        state.storageMap.set(action.storage.key, action.storage)
-      }
+      state = Object.assign({}, state)
+      state.storageMap = new Map(state.storageMap)
+      state.storageMap.set(action.storage.key, action.storage)
       return state
     case 'REORDER_FOLDER':
-      {
-        state = Object.assign({}, state)
-        state.storageMap = new Map(state.storageMap)
-        state.storageMap.set(action.storage.key, action.storage)
-      }
+      state = Object.assign({}, state)
+      state.storageMap = new Map(state.storageMap)
+      state.storageMap.set(action.storage.key, action.storage)
       return state
     case 'DELETE_FOLDER':
       {
@@ -361,8 +357,8 @@ function data (state = defaultDataMap(), action) {
 
         // Get note list from folder-note map
         // and delete note set from folder-note map
-        let folderKey = action.storage.key + '-' + action.folderKey
-        let noteSet = state.folderNoteMap.get(folderKey)
+        const folderKey = action.storage.key + '-' + action.folderKey
+        const noteSet = state.folderNoteMap.get(folderKey)
         state.folderNoteMap = new Map(state.folderNoteMap)
         state.folderNoteMap.delete(folderKey)
 
@@ -375,7 +371,7 @@ function data (state = defaultDataMap(), action) {
         if (noteSet != null) {
           noteSet.forEach(function handleNoteKey (noteKey) {
             // Get note from noteMap
-            let note = state.noteMap.get(noteKey)
+            const note = state.noteMap.get(noteKey)
             if (note != null) {
               state.noteMap.delete(noteKey)
 
@@ -417,8 +413,8 @@ function data (state = defaultDataMap(), action) {
       state.folderNoteMap = new Map(state.folderNoteMap)
       state.tagNoteMap = new Map(state.tagNoteMap)
       action.notes.forEach((note) => {
-        let uniqueKey = note.storage + '-' + note.key
-        let folderKey = note.storage + '-' + note.folder
+        const uniqueKey = note.storage + '-' + note.key
+        const folderKey = note.storage + '-' + note.folder
         state.noteMap.set(uniqueKey, note)
 
         if (note.isStarred) {
@@ -451,7 +447,7 @@ function data (state = defaultDataMap(), action) {
       return state
     case 'REMOVE_STORAGE':
       state = Object.assign({}, state)
-      let storage = state.storageMap.get(action.storageKey)
+      const storage = state.storageMap.get(action.storageKey)
       state.storageMap = new Map(state.storageMap)
       state.storageMap.delete(action.storageKey)
 
@@ -459,17 +455,17 @@ function data (state = defaultDataMap(), action) {
       if (storage != null) {
         state.folderMap = new Map(state.folderMap)
         storage.folders.forEach((folder) => {
-          let folderKey = storage.key + '-' + folder.key
+          const folderKey = storage.key + '-' + folder.key
           state.folderMap.delete(folderKey)
         })
       }
 
       // Remove notes from noteMap and tagNoteMap
-      let storageNoteSet = state.storageNoteMap.get(action.storageKey)
+      const storageNoteSet = state.storageNoteMap.get(action.storageKey)
       state.storageNoteMap = new Map(state.storageNoteMap)
       state.storageNoteMap.delete(action.storageKey)
       if (storageNoteSet != null) {
-        let notes = storageNoteSet
+        const notes = storageNoteSet
           .map((noteKey) => state.noteMap.get(noteKey))
           .filter((note) => note != null)
 
@@ -477,7 +473,7 @@ function data (state = defaultDataMap(), action) {
         state.tagNoteMap = new Map(state.tagNoteMap)
         state.starredSet = new Set(state.starredSet)
         notes.forEach((note) => {
-          let noteKey = storage.key + '-' + note.key
+          const noteKey = storage.key + '-' + note.key
           state.noteMap.delete(noteKey)
           state.starredSet.delete(noteKey)
           note.tags.forEach((tag) => {
@@ -535,13 +531,13 @@ function status (state = defaultStatus, action) {
   return state
 }
 
-let reducer = combineReducers({
+const reducer = combineReducers({
   data,
   config,
   status,
   routing: routerReducer
 })
 
-let store = createStore(reducer)
+const store = createStore(reducer)
 
 export default store

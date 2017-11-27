@@ -1,43 +1,72 @@
-Dear all,
+<h1 align="center">Sponsors &amp; Backers</h1>
 
-Thanks for your using!
-Boostnote is used in about 200 countries and regions, it is a awesome developer community.
+Boostnote is an open source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome backers. If you'd like to join them, please consider:
 
-To continue supporting this growth, and to satisfy community expectations,
-we would like to invest more time in this project.
-
-If you like this project and see its potential, you can help!
-
-Thanks,
-Boostnote maintainers.
-
-### >> [Support via OpenCollective](https://opencollective.com/boostnoteio)
+- [Become a backer or sponsor on Open Collective.](https://opencollective.com/boostnoteio)
 
 ---
 
-## Backers
-[Kazz](https://twitter.com/kazup_bot) - $65
+## Backers via OpenCollective
 
-Intense Raiden - $45
+### [Gold Sponsors / $1,000 per month](https://opencollective.com/boostnoteio/order/2259)
+- Get your logo on our Readme.md on GitHub and the frontpage of https://boostnote.io/.
 
-ravy22 - $25
+### [Silver Sponsors / $250 per month](https://opencollective.com/boostnoteio/order/2257)
+- Get your logo on our Readme.md on GitHub and the frontpage of https://boostnote.io/.
 
-trentpolack	- $20
+### [Bronze Sponsors / $50 per month](https://opencollective.com/boostnoteio/order/2258)
+- Get your name and Url (or E-mail) on Readme.md on GitHub.
 
-hikariru - $10
+### [Backers3 / $10 per month](https://opencollective.com/boostnoteio/order/2176)
+- [Ralph03](https://opencollective.com/ralph03)
 
-kolchan11 - $10
+- [Nikolas Dan](https://opencollective.com/nikolas-dan)
 
-RonWalker22 - $10
+### [Backers2 / $5 per month](https://opencollective.com/boostnoteio/order/2175)
+- [Yeojong Kim](https://twitter.com/yeojoy)
 
-hocchuc	- $5
+- [Scotia Draven](https://opencollective.com/scotia-draven)
 
-Adam - $5
+- [A. J. Vargas](https://opencollective.com/aj-vargas)
 
-Steve	- $5
+### [Backers1](https://opencollective.com/boostnoteio/order/2563) and One-time sponsors
+- Ryosuke Tamura - $30
 
-evmin	- $5
+- tatoosh11 - $10
 
-[@yeojoy](https://twitter.com/yeojoy) - $5
+- Alexander Borovkov - $10
 
-Scotia Draven - $5
+- spoonhoop - $5
+
+- Drew Williams - $2
+
+- Andy Shaw - $2
+
+- mysafesky -$2
+
+---
+
+## Backers via Bountysource
+https://salt.bountysource.com/teams/boostnote
+
+- Kuzz - $65
+
+- Intense Raiden - $45
+
+- ravy22 - $25
+
+- trentpolack	- $20
+
+- hikariru - $10
+
+- kolchan11 - $10
+
+- RonWalker22 - $10
+
+- hocchuc	- $5
+
+- Adam - $5
+
+- Steve	- $5
+
+- evmin	- $5

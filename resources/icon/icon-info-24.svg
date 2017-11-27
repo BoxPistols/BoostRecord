@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="20px" height="20px" viewBox="0 0 20 20" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 47.1 (45422) - http://www.bohemiancoding.com/sketch -->
+    <title>icon-info-24</title>
+    <desc>Created with Sketch.</desc>
+    <defs></defs>
+    <g id="Page-1" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Artboard" transform="translate(-1431.000000, -144.000000)">
+            <g id="icon-info-24" transform="translate(1429.000000, 142.000000)">
+                <rect id="Rectangle-7" fill="#BFBFBF" opacity="0" x="0" y="0" width="24" height="24"></rect>
+                <g id="info" transform="translate(3.000000, 3.000000)">
+                    <circle id="Oval" stroke="#8A8C8D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" cx="9" cy="9" r="9"></circle>
+                    <path d="M9,14.1428571 L9,9" id="Shape" stroke="#8A8C8D" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                    <circle id="Oval-2" fill="#8A8C8D" cx="9" cy="5.14285714" r="1.28571429"></circle>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

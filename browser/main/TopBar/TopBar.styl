@@ -36,7 +36,7 @@ $control-height = 34px
     outline none
     border none
     color $ui-text-color
-    font-size 16px
+    font-size 18px
     padding-bottom 2px
     background-color $ui-noteList-backgroundColor
 
@@ -111,6 +111,21 @@ $control-height = 34px
   border-radius 2px
   opacity 0
   transition 0.1s
+
+body[data-theme="white"]
+  .root, .root--expanded
+    background-color $ui-white-noteList-backgroundColor
+
+  .control
+    border-color $ui-dark-borderColor
+
+  .control-search
+    background-color $ui-white-noteList-backgroundColor
+
+  .control-search-input
+    background-color $ui-white-noteList-backgroundColor
+    input
+      background-color $ui-white-noteList-backgroundColor
 
 body[data-theme="dark"]
   .root, .root--expanded

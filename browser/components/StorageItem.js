@@ -1,7 +1,8 @@
 /**
  * @fileoverview Micro component for showing storage.
  */
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import styles from './StorageItem.styl'
 import CSSModules from 'browser/lib/CSSModules'
 import { isNumber } from 'lodash'

@@ -1,7 +1,8 @@
 /**
 * @fileoverview Micro component for toggle SideNav
 */
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import styles from './NavToggleButton.styl'
 import CSSModules from 'browser/lib/CSSModules'
 

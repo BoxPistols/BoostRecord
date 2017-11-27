@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './StoragesTab.styl'
 import dataApi from 'browser/main/lib/dataApi'
@@ -8,9 +9,9 @@ const electron = require('electron')
 const { shell, remote } = electron
 
 function browseFolder () {
-  let dialog = remote.dialog
+  const dialog = remote.dialog
 
-  let defaultPath = remote.app.getPath('home')
+  const defaultPath = remote.app.getPath('home')
   return new Promise((resolve, reject) => {
     dialog.showOpenDialog({
       title: 'Select Directory',
@@ -56,10 +57,10 @@ class StoragesTab extends React.Component {
   }
 
   renderList () {
-    let { data, boundingBox } = this.props
+    const { data, boundingBox } = this.props
 
     if (!boundingBox) { return null }
-    let storageList = data.storageMap.map((storage) => {
+    const storageList = data.storageMap.map((storage) => {
       return <StorageItem
         key={storage.key}
         storage={storage}
@@ -88,7 +89,7 @@ class StoragesTab extends React.Component {
     browseFolder()
       .then((targetPath) => {
         if (targetPath.length > 0) {
-          let { newStorage } = this.state
+          const { newStorage } = this.state
           newStorage.path = targetPath
           this.setState({
             newStorage
@@ -102,7 +103,7 @@ class StoragesTab extends React.Component {
   }
 
   handleAddStorageChange (e) {
-    let { newStorage } = this.state
+    const { newStorage } = this.state
     newStorage.name = this.refs.addStorageName.value
     newStorage.path = this.refs.addStoragePath.value
     this.setState({
@@ -117,7 +118,7 @@ class StoragesTab extends React.Component {
         path: this.state.newStorage.path
       })
       .then((data) => {
-        let { dispatch } = this.props
+        const { dispatch } = this.props
         dispatch({
           type: 'ADD_STORAGE',
           storage: data.storage,

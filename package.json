@@ -1,7 +1,7 @@
 {
   "name": "boost",
   "productName": "Boostnote",
-  "version": "0.8.16",
+  "version": "0.8.17",
   "main": "index.js",
   "description": "Boostnote",
   "license": "GPL-3.0",
@@ -16,7 +16,7 @@
     "dev-start": "concurrently --kill-others \"npm run webpack\" \"npm run hot\""
   },
   "config": {
-    "electron-version": "1.2.8"
+    "electron-version": "1.6.15"
   },
   "repository": {
     "type": "git",
@@ -67,17 +67,16 @@
     "markdown-it-emoji": "^1.1.1",
     "markdown-it-footnote": "^3.0.0",
     "markdown-it-imsize": "^2.0.1",
-    "markdown-it-kbd": "^1.1.0",
+    "markdown-it-kbd": "^1.1.1",
     "markdown-it-multimd-table": "^2.0.1",
     "markdown-it-named-headers": "^0.0.4",
     "markdown-it-plantuml": "^0.3.0",
     "md5": "^2.0.0",
     "mdurl": "^1.0.1",
-    "mixpanel": "^0.4.1",
     "moment": "^2.10.3",
     "node-ipc": "^8.1.0",
     "raphael": "^2.2.7",
-    "react": "^15.0.2",
+    "react": "^15.5.4",
     "react-codemirror": "^0.3.0",
     "react-dom": "^15.0.2",
     "react-redux": "^4.4.5",
@@ -104,7 +103,7 @@
     "devtron": "^1.1.0",
     "dom-storage": "^2.0.2",
     "electron-packager": "^6.0.0",
-    "electron-prebuilt": "^1.2.8",
+    "electron": "^1.6.15",
     "eslint": "^3.13.1",
     "eslint-config-standard": "^6.2.1",
     "eslint-config-standard-jsx": "^3.2.0",
@@ -130,7 +129,8 @@
     "webpack-dev-server": "^1.12.0"
   },
   "optionalDependencies": {
-    "grunt-electron-installer-debian": "^0.2.0"
+    "grunt-electron-installer-debian": "^0.2.0",
+    "grunt-electron-installer-redhat": "^0.3.1"
   },
   "optional": false,
   "ava": {

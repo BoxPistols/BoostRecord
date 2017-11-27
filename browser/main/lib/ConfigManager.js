@@ -6,8 +6,6 @@ const win = global.process.platform === 'win32'
 const electron = require('electron')
 const { ipcRenderer } = electron
 const consts = require('browser/lib/consts')
-const path = require('path')
-const fs = require('fs')
 
 let isInitialized = false
 
@@ -91,7 +89,11 @@ function get () {
       : 'default'
 
     if (config.editor.theme !== 'default') {
-      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme + '.css')
+      if (config.editor.theme.startsWith('solarized')) {
+        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/solarized.css')
+      } else {
+        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme + '.css')
+      }
     }
   }
 
@@ -99,13 +101,15 @@ function get () {
 }
 
 function set (updates) {
-  let currentConfig = get()
-  let newConfig = Object.assign({}, DEFAULT_CONFIG, currentConfig, updates)
+  const currentConfig = get()
+  const newConfig = Object.assign({}, DEFAULT_CONFIG, currentConfig, updates)
   if (!validate(newConfig)) throw new Error('INVALID CONFIG')
   _save(newConfig)
 
   if (newConfig.ui.theme === 'dark') {
     document.body.setAttribute('data-theme', 'dark')
+  } else if (newConfig.ui.theme === 'white') {
+    document.body.setAttribute('data-theme', 'white')
   } else {
     document.body.setAttribute('data-theme', 'default')
   }
@@ -117,12 +121,16 @@ function set (updates) {
     editorTheme.setAttribute('rel', 'stylesheet')
     document.head.appendChild(editorTheme)
   }
-  let newTheme = consts.THEMES.some((theme) => theme === newConfig.editor.theme)
+  const newTheme = consts.THEMES.some((theme) => theme === newConfig.editor.theme)
     ? newConfig.editor.theme
     : 'default'
 
   if (newTheme !== 'default') {
-    editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme + '.css')
+    if (newTheme.startsWith('solarized')) {
+      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/solarized.css')
+    } else {
+      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme + '.css')
+    }
   }
 
   ipcRenderer.send('config-renew', {
@@ -131,7 +139,7 @@ function set (updates) {
 }
 
 function assignConfigValues (originalConfig, rcConfig) {
-  let config = Object.assign({}, DEFAULT_CONFIG, originalConfig, rcConfig)
+  const config = Object.assign({}, DEFAULT_CONFIG, originalConfig, rcConfig)
   config.hotkey = Object.assign({}, DEFAULT_CONFIG.hotkey, originalConfig.hotkey, rcConfig.hotkey)
   config.ui = Object.assign({}, DEFAULT_CONFIG.ui, originalConfig.ui, rcConfig.ui)
   config.editor = Object.assign({}, DEFAULT_CONFIG.editor, originalConfig.editor, rcConfig.editor)

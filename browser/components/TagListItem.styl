@@ -13,15 +13,15 @@
   &:first-child
     margin-top 0
   &:hover
-    color $ui-text-color
-    background-color alpha($ui-button--active-backgroundColor, 20%)
+    color $ui-button-default-color
+    background-color alpha($ui-button-default--active-backgroundColor, 20%)
     transition background-color 0.15s
-  &:active
-    color $ui-text-color
-    background-color $ui-button--active-backgroundColor
+  &:active, &:active:hover
+    color $ui-button-default-color
+    background-color $ui-button-default--active-backgroundColor
 
 .tagList-item-active
-  background-color $ui-button--active-backgroundColor
+  background-color $ui-button-default--active-backgroundColor
   display flex
   width 100%
   height 26px
@@ -31,8 +31,9 @@
   border none
   overflow ellipsis
   font-size 13px
+  color $ui-button-default-color
   &:hover
-    background-color alpha($ui-button--active-backgroundColor, 60%)
+    background-color alpha($ui-button-default--active-backgroundColor, 60%)
     transition 0.2s
 
 .tagList-item-name
@@ -46,6 +47,22 @@
   border-color transparent
   overflow hidden
   text-overflow ellipsis
+
+body[data-theme="white"]
+  .tagList-item
+    color $ui-inactive-text-color
+    &:hover
+      color $ui-text-color
+      background-color alpha($ui-button--active-backgroundColor, 20%)
+    &:active
+      color $ui-text-color
+      background-color $ui-button--active-backgroundColor
+
+  .tagList-item-active
+    background-color $ui-button--active-backgroundColor
+    color $ui-text-color
+    &:hover
+      background-color alpha($ui-button--active-backgroundColor, 60%)
 
 body[data-theme="dark"]
   .tagList-item

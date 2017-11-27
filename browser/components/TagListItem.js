@@ -1,7 +1,8 @@
 /**
 * @fileoverview Micro component for showing TagList.
 */
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import styles from './TagListItem.styl'
 import CSSModules from 'browser/lib/CSSModules'
 

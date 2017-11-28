@@ -143,40 +143,49 @@ class StorageItem extends React.Component {
     e.target.style.backgroundColor = e.dataTransfer.getData('defaultColor')
   }
 
+  dropNote (storage, folder, dispatch, location, noteData) {
+    noteData = noteData.filter((note) => folder.key !== note.folder)
+    if (noteData.length === 0) return
+    const newNoteData = noteData.map((note) => Object.assign({}, note, {storage: storage, folder: folder.key}))
+
+    Promise.all(
+      newNoteData.map((note) => dataApi.createNote(storage.key, note))
+    )
+    .then((createdNoteData) => {
+      createdNoteData.forEach((note) => {
+        dispatch({
+          type: 'UPDATE_NOTE',
+          note: note
+        })
+      })
+    })
+    .catch((err) => {
+      console.error(`error on create notes: ${err}`)
+    })
+    .then(() => {
+      return Promise.all(
+        noteData.map((note) => dataApi.deleteNote(note.storage, note.key))
+      )
+    })
+    .then((deletedNoteData) => {
+      deletedNoteData.forEach((note) => {
+        dispatch({
+          type: 'DELETE_NOTE',
+          storageKey: note.storageKey,
+          noteKey: note.noteKey
+        })
+      })
+    })
+    .catch((err) => {
+      console.error(`error on delete notes: ${err}`)
+    })
+  }
+
   handleDrop (e, storage, folder, dispatch, location) {
     e.target.style.opacity = '1'
     e.target.style.backgroundColor = e.dataTransfer.getData('defaultColor')
     const noteData = JSON.parse(e.dataTransfer.getData('note'))
-    const newNoteData = Object.assign({}, noteData, {storage: storage, folder: folder.key})
-    if (folder.key === noteData.folder) return
-    dataApi
-     .createNote(storage.key, newNoteData)
-     .then((note) => {
-       dataApi
-        .deleteNote(noteData.storage, noteData.key)
-        .then((data) => {
-          const dispatchHandler = () => {
-            dispatch({
-              type: 'DELETE_NOTE',
-              storageKey: data.storageKey,
-              noteKey: data.noteKey
-            })
-          }
-          eventEmitter.once('list:moved', dispatchHandler)
-          eventEmitter.emit('list:next')
-        })
-         .catch((err) => {
-           console.error(err)
-         })
-       dispatch({
-         type: 'UPDATE_NOTE',
-         note: note
-       })
-       hashHistory.push({
-         pathname: location.pathname,
-         query: {key: `${note.storage}-${note.key}`}
-       })
-     })
+    this.dropNote(storage, folder, dispatch, location, noteData)
   }
 
   render () {
@@ -228,8 +237,8 @@ class StorageItem extends React.Component {
             onMouseDown={(e) => this.handleToggleButtonClick(e)}
           >
             <img src={this.state.isOpen
-                ? '../resources/icon/icon-down.svg'
-                : '../resources/icon/icon-right.svg'
+              ? '../resources/icon/icon-down.svg'
+              : '../resources/icon/icon-right.svg'
               }
             />
           </button>

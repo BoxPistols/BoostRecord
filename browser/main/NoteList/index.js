@@ -15,6 +15,7 @@ import { hashHistory } from 'react-router'
 import markdown from 'browser/lib/markdown'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import store from 'browser/main/store'
+import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
@@ -29,6 +30,18 @@ function sortByAlphabetical (a, b) {
 
 function sortByUpdatedAt (a, b) {
   return new Date(b.updatedAt) - new Date(a.updatedAt)
+}
+
+function findNoteByKey (notes, noteKey) {
+  return notes.find((note) => `${note.storage}-${note.key}` === noteKey)
+}
+
+function findNotesByKeys (notes, noteKeys) {
+  return notes.filter((note) => noteKeys.includes(getNoteKey(note)))
+}
+
+function getNoteKey (note) {
+  return `${note.storage}-${note.key}`
 }
 
 class NoteList extends React.Component {
@@ -50,8 +63,16 @@ class NoteList extends React.Component {
     }
     this.importFromFileHandler = this.importFromFile.bind(this)
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
+    this.handleNoteListKeyUp = this.handleNoteListKeyUp.bind(this)
+    this.getNoteKeyFromTargetIndex = this.getNoteKeyFromTargetIndex.bind(this)
+    this.deleteNote = this.deleteNote.bind(this)
+    this.focusNote = this.focusNote.bind(this)
+    this.pinToTop = this.pinToTop.bind(this)
 
+    // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
+      shiftKeyDown: false,
+      selectedNoteKeys: []
     }
 
     this.contextNotes = []
@@ -124,12 +145,35 @@ class NoteList extends React.Component {
     }
   }
 
+  focusNote (selectedNoteKeys, noteKey) {
+    const { router } = this.context
+    const { location } = this.props
+
+    this.setState({
+      selectedNoteKeys
+    })
+
+    router.push({
+      pathname: location.pathname,
+      query: {
+        key: noteKey
+      }
+    })
+  }
+
+  getNoteKeyFromTargetIndex (targetIndex) {
+    const note = Object.assign({}, this.notes[targetIndex])
+    const noteKey = getNoteKey(note)
+    return noteKey
+  }
+
   selectPriorNote () {
     if (this.notes == null || this.notes.length === 0) {
       return
     }
-    const { router } = this.context
-    const { location } = this.props
+    let { router } = this.context
+    let { location } = this.props
+    let { selectedNoteKeys, shiftKeyDown } = this.state
 
     let targetIndex = this.getTargetIndex()
 
@@ -137,39 +181,51 @@ class NoteList extends React.Component {
       return
     }
     targetIndex--
-    if (targetIndex < 0) targetIndex = 0
 
-    router.push({
-      pathname: location.pathname,
-      query: {
-        key: this.notes[targetIndex].storage + '-' + this.notes[targetIndex].key
-      }
-    })
+    if (!shiftKeyDown) { selectedNoteKeys = [] }
+    const priorNoteKey = this.getNoteKeyFromTargetIndex(targetIndex)
+    if (selectedNoteKeys.includes(priorNoteKey)) {
+      selectedNoteKeys.pop()
+    } else {
+      selectedNoteKeys.push(priorNoteKey)
+    }
+
+    this.focusNote(selectedNoteKeys, priorNoteKey)
+
+    ee.emit('list:moved')
   }
 
   selectNextNote () {
     if (this.notes == null || this.notes.length === 0) {
       return
     }
-    const { router } = this.context
-    const { location } = this.props
+    let { router } = this.context
+    let { location } = this.props
+    let { selectedNoteKeys, shiftKeyDown } = this.state
 
     let targetIndex = this.getTargetIndex()
+    const isTargetLastNote = targetIndex === this.notes.length - 1
 
-    if (targetIndex === this.notes.length - 1) {
+    if (isTargetLastNote && shiftKeyDown) {
+      return
+    } else if (isTargetLastNote) {
       targetIndex = 0
     } else {
       targetIndex++
       if (targetIndex < 0) targetIndex = 0
-      else if (targetIndex > this.notes.length - 1) targetIndex === this.notes.length - 1
+      else if (targetIndex > this.notes.length - 1) targetIndex = this.notes.length - 1
     }
 
-    router.push({
-      pathname: location.pathname,
-      query: {
-        key: this.notes[targetIndex].storage + '-' + this.notes[targetIndex].key
-      }
-    })
+    if (!shiftKeyDown) { selectedNoteKeys = [] }
+    const nextNoteKey = this.getNoteKeyFromTargetIndex(targetIndex)
+    if (selectedNoteKeys.includes(nextNoteKey)) {
+      selectedNoteKeys.pop()
+    } else {
+      selectedNoteKeys.push(nextNoteKey)
+    }
+
+    this.focusNote(selectedNoteKeys, nextNoteKey)
+
     ee.emit('list:moved')
   }
 
@@ -186,17 +242,17 @@ class NoteList extends React.Component {
 
     if (targetIndex < 0) targetIndex = 0
 
-    router.push({
-      pathname: location.pathname,
-      query: {
-        key: this.notes[targetIndex].storage + '-' + this.notes[targetIndex].key
-      }
-    })
+    const selectedNoteKeys = []
+    const nextNoteKey = this.getNoteKeyFromTargetIndex(targetIndex)
+    selectedNoteKeys.push(nextNoteKey)
+
+    this.focusNote(selectedNoteKeys, nextNoteKey)
 
     ee.emit('list:moved')
   }
 
   handleNoteListKeyDown (e) {
+    const { shiftKeyDown } = this.state
     if (e.metaKey || e.ctrlKey) return true
 
     if (e.keyCode === 65 && !e.shiftKey) {
@@ -206,7 +262,7 @@ class NoteList extends React.Component {
 
     if (e.keyCode === 68) {
       e.preventDefault()
-      ee.emit('detail:delete')
+      this.deleteNote()
     }
 
     if (e.keyCode === 69) {
@@ -222,6 +278,16 @@ class NoteList extends React.Component {
     if (e.keyCode === 40) {
       e.preventDefault()
       this.selectNextNote()
+    }
+
+    if (e.shiftKey) {
+      this.setState({ shiftKeyDown: true })
+    }
+  }
+
+  handleNoteListKeyUp (e) {
+    if (!e.shiftKey) {
+      this.setState({ shiftKeyDown: false })
     }
   }
 
@@ -299,8 +365,24 @@ class NoteList extends React.Component {
   }
 
   handleNoteClick (e, uniqueKey) {
-    const { router } = this.context
-    const { location } = this.props
+    let { router } = this.context
+    let { location } = this.props
+    let { shiftKeyDown, selectedNoteKeys } = this.state
+
+    if (shiftKeyDown && selectedNoteKeys.includes(uniqueKey)) {
+      const newSelectedNoteKeys = selectedNoteKeys.filter((noteKey) => noteKey !== uniqueKey)
+      this.setState({
+        selectedNoteKeys: newSelectedNoteKeys
+      })
+      return
+    }
+    if (!shiftKeyDown) {
+      selectedNoteKeys = []
+    }
+    selectedNoteKeys.push(uniqueKey)
+    this.setState({
+      selectedNoteKeys
+    })
 
     router.push({
       pathname: location.pathname,
@@ -351,16 +433,23 @@ class NoteList extends React.Component {
   }
 
   handleDragStart (e, note) {
-    const noteData = JSON.stringify(note)
+    const { selectedNoteKeys } = this.state
+    const notes = this.notes.map((note) => Object.assign({}, note))
+    const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
+    const noteData = JSON.stringify(selectedNotes)
     e.dataTransfer.setData('note', noteData)
+    this.setState({ selectedNoteKeys: [] })
   }
 
   handleNoteContextMenu (e, uniqueKey) {
     const { location } = this.props
-    const note = this.notes.find((note) => {
-      const noteKey = `${note.storage}-${note.key}`
-      return noteKey === uniqueKey
-    })
+    const { selectedNoteKeys } = this.state
+    const note = findNoteByKey(this.notes, uniqueKey)
+    const noteKey = getNoteKey(note)
+
+    if (selectedNoteKeys.length === 0 || !selectedNoteKeys.includes(noteKey)) {
+      this.handleNoteClick(e, uniqueKey)
+    }
 
     const pinLabel = note.isPinned ? 'Remove pin' : 'Pin to Top'
     const deleteLabel = 'Delete Note'
@@ -369,35 +458,101 @@ class NoteList extends React.Component {
     if (!location.pathname.match(/\/home|\/starred|\/trash/)) {
       menu.append(new MenuItem({
         label: pinLabel,
-        click: (e) => this.pinToTop(e, uniqueKey)
+        click: this.pinToTop
       }))
     }
     menu.append(new MenuItem({
       label: deleteLabel,
-      click: (e) => this.deleteNote(e, uniqueKey)
+      click: this.deleteNote
     }))
     menu.popup()
   }
 
-  pinToTop (e, uniqueKey) {
-    this.handleNoteClick(e, uniqueKey)
-    const targetIndex = this.getTargetIndex()
-    const note = this.notes[targetIndex]
-    note.isPinned = !note.isPinned
+  pinToTop () {
+    const { selectedNoteKeys } = this.state
+    const { dispatch } = this.props
+    const notes = this.notes.map((note) => Object.assign({}, note))
+    const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
 
-    dataApi
-      .updateNote(note.storage, note.key, note)
-      .then((note) => {
-        store.dispatch({
+    Promise.all(
+      selectedNotes.map((note) => {
+        note.isPinned = !note.isPinned
+        return dataApi
+          .updateNote(note.storage, note.key, note)
+      })
+    )
+    .then((updatedNotes) => {
+      updatedNotes.forEach((note) => {
+        dispatch({
           type: 'UPDATE_NOTE',
-          note: note
+          note
         })
       })
+    })
+    this.setState({ selectedNoteKeys: [] })
   }
 
-  deleteNote (e, uniqueKey) {
-    this.handleNoteClick(e, uniqueKey)
-    ee.emit('detail:delete')
+  deleteNote () {
+    const { dispatch } = this.props
+    const { selectedNoteKeys } = this.state
+    const notes = this.notes.map((note) => Object.assign({}, note))
+    const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
+    const firstNote = selectedNotes[0]
+
+    if (firstNote.isTrashed) {
+      const noteExp = selectedNotes.length > 1 ? 'notes' : 'note'
+      const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
+        type: 'warning',
+        message: 'Confirm note deletion',
+        detail: `This will permanently remove ${selectedNotes.length} ${noteExp}.`,
+        buttons: ['Confirm', 'Cancel']
+      })
+      if (dialogueButtonIndex === 1) return
+      Promise.all(
+        selectedNoteKeys.map((uniqueKey) => {
+          const storageKey = uniqueKey.split('-')[0]
+          const noteKey = uniqueKey.split('-')[1]
+          return dataApi
+            .deleteNote(storageKey, noteKey)
+        })
+      )
+      .then((data) => {
+        data.forEach((item) => {
+          dispatch({
+            type: 'DELETE_NOTE',
+            storageKey: item.storageKey,
+            noteKey: item.noteKey
+          })
+        })
+      })
+      .catch((err) => {
+        console.error('Cannot Delete note: ' + err)
+      })
+      console.log('Notes were all deleted')
+    } else {
+      Promise.all(
+        selectedNotes.map((note) => {
+          note.isTrashed = true
+
+          return dataApi
+          .updateNote(note.storage, note.key, note)
+        })
+      )
+      .then((newNotes) => {
+        newNotes.forEach((newNote) => {
+          dispatch({
+            type: 'UPDATE_NOTE',
+            note: newNote
+          })
+        })
+        AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
+        console.log('Notes went to trash')
+      })
+      .catch((err) => {
+        console.error('Notes could not go to trash: ' + err)
+      })
+    }
+    this.setState({ selectedNoteKeys: [] })
   }
 
   importFromFile () {
@@ -444,7 +599,7 @@ class NoteList extends React.Component {
           })
           hashHistory.push({
             pathname: location.pathname,
-            query: {key: `${note.storage}-${note.key}`}
+            query: {key: getNoteKey(note)}
           })
         })
       })
@@ -454,7 +609,7 @@ class NoteList extends React.Component {
   getTargetIndex () {
     const { location } = this.props
     const targetIndex = _.findIndex(this.notes, (note) => {
-      return `${note.storage}-${note.key}` === location.query.key
+      return getNoteKey(note) === location.query.key
     })
     return targetIndex
   }
@@ -490,9 +645,9 @@ class NoteList extends React.Component {
   }
 
   render () {
-    const { location, config } = this.props
-    let { notes } = this.props
-    const sortFunc = config.sortBy === 'CREATED_AT'
+    let { location, notes, config, dispatch } = this.props
+    let { selectedNoteKeys } = this.state
+    let sortFunc = config.sortBy === 'CREATED_AT'
       ? sortByCreatedAt
       : config.sortBy === 'ALPHABETICAL'
       ? sortByAlphabetical
@@ -531,7 +686,8 @@ class NoteList extends React.Component {
         }
 
         const isDefault = config.listStyle === 'DEFAULT'
-        const isActive = location.query.key === note.storage + '-' + note.key
+        const uniqueKey = getNoteKey(note)
+        const isActive = selectedNoteKeys.includes(uniqueKey)
         const dateDisplay = moment(
           config.sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt
@@ -544,7 +700,7 @@ class NoteList extends React.Component {
               isActive={isActive}
               note={note}
               dateDisplay={dateDisplay}
-              key={key}
+              key={uniqueKey}
               handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
               handleNoteClick={this.handleNoteClick.bind(this)}
               handleDragStart={this.handleDragStart.bind(this)}
@@ -557,7 +713,7 @@ class NoteList extends React.Component {
           <NoteItemSimple
             isActive={isActive}
             note={note}
-            key={key}
+            key={uniqueKey}
             handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
             handleNoteClick={this.handleNoteClick.bind(this)}
             handleDragStart={this.handleDragStart.bind(this)}
@@ -606,6 +762,7 @@ class NoteList extends React.Component {
           ref='list'
           tabIndex='-1'
           onKeyDown={(e) => this.handleNoteListKeyDown(e)}
+          onKeyUp={this.handleNoteListKeyUp}
         >
           {noteList}
         </div>

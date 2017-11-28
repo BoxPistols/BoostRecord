@@ -5,7 +5,6 @@ import dataApi from 'browser/main/lib/dataApi'
 import store from 'browser/main/store'
 import { hashHistory } from 'react-router'
 import _ from 'lodash'
-import ModalEscButton from 'browser/components/ModalEscButton'
 
 const CSON = require('@rokt33r/season')
 const path = require('path')
@@ -202,17 +201,12 @@ class InitModal extends React.Component {
         tabIndex='-1'
         onKeyDown={(e) => this.handleKeyDown(e)}
       >
-
-        <div styleName='header'>
-          <div styleName='header-title'>Initialize Storage</div>
-        </div>
-        <ModalEscButton handleEscButtonClick={this.props.close} />
         <div styleName='body'>
           <div styleName='body-welcome'>
-            Welcome!
+            Welcome to Boostnote!
           </div>
           <div styleName='body-description'>
-           Please select a directory for Boostnote storage.
+           Please select a directory for data storage.
           </div>
           <div styleName='body-path'>
             <input styleName='body-path-input'
@@ -243,7 +237,7 @@ class InitModal extends React.Component {
                 ? <span>
                   <i className='fa fa-spin fa-spinner' /> Loading...
                 </span>
-                : 'Let\'s Go!'
+                : 'CREATE'
               }
             </button>
           </div>

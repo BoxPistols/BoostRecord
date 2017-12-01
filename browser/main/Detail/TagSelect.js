@@ -38,6 +38,10 @@ class TagSelect extends React.Component {
     }
   }
 
+  handleNewTagBlur (e) {
+    this.submitTag()
+  }
+
   removeLastTag () {
     let { value } = this.props
 
@@ -135,6 +139,7 @@ class TagSelect extends React.Component {
           placeholder='Add tag...'
           onChange={(e) => this.handleNewTagInputChange(e)}
           onKeyDown={(e) => this.handleNewTagInputKeyDown(e)}
+          onBlur={(e) => this.handleNewTagBlur(e)}
         />
       </div>
     )

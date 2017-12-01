@@ -111,7 +111,7 @@ class Preferences extends React.Component {
 
     const navButtons = tabs.map((tab) => {
       const isActive = this.state.currentTab === tab.target
-      const isOk = typeof tab[tab.label] !== "undefined" && tab[tab.label] !== null
+      const isOk = typeof tab[tab.label] !== 'undefined' && tab[tab.label] !== null
       return (
         <button styleName={isActive
             ? 'nav-button--active'
@@ -123,9 +123,7 @@ class Preferences extends React.Component {
           <span styleName='nav-button-label'>
             {tab.label}
           </span>
-          {isOk && tab.label === tab[tab.label].tab 
-            ? <p styleName={`saving--${tab[tab.label].type}`}>{tab[tab.label].message}</p> 
-            : null}
+          {isOk && tab.label === tab[tab.label].tab ? <p styleName={`saving--${tab[tab.label].type}`}>{tab[tab.label].message}</p> : null}
         </button>
       )
     })

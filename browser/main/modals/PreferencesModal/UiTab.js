@@ -38,16 +38,12 @@ class UiTab extends React.Component {
         message: err.message != null ? err.message : 'Error occurs!'
       }})
     }
-    if (JSON.parse(localStorage.getItem('config'))) {
-      const {ui, editor, preview} = JSON.parse(localStorage.getItem('config'))
-      this.currentConfig = {ui, editor, preview}
-    }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
   }
 
   componentWillMount () {
-   CodeMirror.autoLoadMode(ReactCodeMirror, 'javascript')
+    CodeMirror.autoLoadMode(ReactCodeMirror, 'javascript')
   }
 
   componentWillUnmount () {
@@ -96,18 +92,20 @@ class UiTab extends React.Component {
     if (newCodemirrorTheme !== codemirrorTheme) {
       checkHighLight.setAttribute('href', `../node_modules/codemirror/theme/${newCodemirrorTheme.split(' ')[0]}.css`)
     }
-
-    this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme }, 
-      () => {
+    this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme }, () => {
+      if (JSON.parse(localStorage.getItem('config'))) {
+        const {ui, editor, preview} = JSON.parse(localStorage.getItem('config'))
+        this.currentConfig = {ui, editor, preview}
         if (JSON.stringify(this.currentConfig) === JSON.stringify(this.state.config)) {
           this.props.haveToSave(null)
         } else {
           this.props.haveToSave({
-            tab: "UI",
+            tab: 'UI',
             type: 'warning',
             message: 'You have to save!'
           })
         }
+      }
     })
   }
 

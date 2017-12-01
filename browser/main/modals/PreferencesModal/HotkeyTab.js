@@ -79,9 +79,9 @@ class HotkeyTab extends React.Component {
       this.props.haveToSave(null)
     } else {
       this.props.haveToSave({
-       tab: "Hotkey",
-       type: 'warning',
-       message: 'You have to save!'
+        tab: 'Hotkey',
+        type: 'warning',
+        message: 'You have to save!'
       })
     }
   }

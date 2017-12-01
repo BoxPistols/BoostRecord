@@ -82,7 +82,11 @@ class UiTab extends React.Component {
         fontSize: this.refs.previewFontSize.value,
         fontFamily: this.refs.previewFontFamily.value,
         codeBlockTheme: this.refs.previewCodeBlockTheme.value,
-        lineNumber: this.refs.previewLineNumber.checked
+        lineNumber: this.refs.previewLineNumber.checked,
+        LaTeXInlineOpen: this.refs.previewLatexInlineOpen.value,
+        LaTeXInlineClose: this.refs.previewLatexInlineClose.value,
+        LaTeXBlockOpen: this.refs.previewLatexBlockOpen.value,
+        LaTeXBlockClose: this.refs.previewLatexBlockClose.value
       }
     }
 
@@ -328,6 +332,58 @@ class UiTab extends React.Component {
               />&nbsp;
               Show line numbers for preview code blocks
             </label>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              LaTeX Inline Open Delimiter
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='previewLatexInlineOpen'
+                value={config.preview.latexInlineOpen}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              LaTeX Inline Close Delimiter
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='previewLatexInlineClose'
+                value={config.preview.latexInlineClose}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              LaTeX Block Open Delimiter
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='previewLatexBlockOpen'
+                value={config.preview.latexBlockOpen}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              LaTeX Block Close Delimiter
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='previewLatexBlockClose'
+                value={config.preview.latexBlockClose}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
           </div>
 
           <div styleName='group-control'>

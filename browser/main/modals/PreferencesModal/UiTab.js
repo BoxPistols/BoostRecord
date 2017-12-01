@@ -188,7 +188,7 @@ class UiTab extends React.Component {
                 }
               </select>
               <div styleName='code-mirror'>
-                <ReactCodeMirror ref={inst => (this.codeMirrorInstance = inst)} value={codemirrorSampleCode} options={{ lineNumbers: true, readOnly: true, mode: 'javascript', theme: codemirrorTheme }} />
+                <ReactCodeMirror ref={e => (this.codeMirrorInstance = e)} value={codemirrorSampleCode} options={{ lineNumbers: true, readOnly: true, mode: 'javascript', theme: codemirrorTheme }} />
               </div>
             </div>
           </div>

@@ -32,6 +32,10 @@ class HotkeyTab extends React.Component {
         message: err.message != null ? err.message : 'Error occurs!'
       }})
     }
+    if (JSON.parse(localStorage.getItem('config'))) {
+      const {hotkey} = JSON.parse(localStorage.getItem('config'))
+      this.hotkey = hotkey
+    }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
   }
@@ -53,6 +57,7 @@ class HotkeyTab extends React.Component {
       config: newConfig
     })
     this.clearMessage()
+    this.props.haveToSave(null)
   }
 
   handleHintToggleButtonClick (e) {
@@ -70,6 +75,15 @@ class HotkeyTab extends React.Component {
     this.setState({
       config
     })
+    if (JSON.stringify(this.hotkey) === JSON.stringify(config.hotkey)) {
+      this.props.haveToSave(null)
+    } else {
+      this.props.haveToSave({
+       tab: "Hotkey",
+       type: 'warning',
+       message: 'You have to save!'
+      })
+    }
   }
 
   clearMessage () {
@@ -161,7 +175,8 @@ class HotkeyTab extends React.Component {
 }
 
 HotkeyTab.propTypes = {
-  dispatch: PropTypes.func
+  dispatch: PropTypes.func,
+  haveToSave: PropTypes.func
 }
 
 export default CSSModules(HotkeyTab, styles)

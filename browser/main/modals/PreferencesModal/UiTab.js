@@ -20,7 +20,8 @@ class UiTab extends React.Component {
     super(props)
     this.state = {
       config: props.config,
-      codemirrorTheme: props.config.editor.theme
+      codemirrorTheme: props.config.editor.theme,
+      haveToSave: null
     }
   }
 
@@ -37,12 +38,16 @@ class UiTab extends React.Component {
         message: err.message != null ? err.message : 'Error occurs!'
       }})
     }
+    if (JSON.parse(localStorage.getItem('config'))) {
+      const {ui, editor, preview} = JSON.parse(localStorage.getItem('config'))
+      this.currentConfig = {ui, editor, preview}
+    }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
   }
 
   componentWillMount () {
-    CodeMirror.autoLoadMode(ReactCodeMirror, 'javascript')
+   CodeMirror.autoLoadMode(ReactCodeMirror, 'javascript')
   }
 
   componentWillUnmount () {
@@ -92,7 +97,18 @@ class UiTab extends React.Component {
       checkHighLight.setAttribute('href', `../node_modules/codemirror/theme/${newCodemirrorTheme.split(' ')[0]}.css`)
     }
 
-    this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme })
+    this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme }, 
+      () => {
+        if (JSON.stringify(this.currentConfig) === JSON.stringify(this.state.config)) {
+          this.props.haveToSave(null)
+        } else {
+          this.props.haveToSave({
+            tab: "UI",
+            type: 'warning',
+            message: 'You have to save!'
+          })
+        }
+    })
   }
 
   handleSaveUIClick (e) {
@@ -109,6 +125,7 @@ class UiTab extends React.Component {
       config: newConfig
     })
     this.clearMessage()
+    this.props.haveToSave(null)
   }
 
   clearMessage () {
@@ -346,7 +363,8 @@ UiTab.propTypes = {
   user: PropTypes.shape({
     name: PropTypes.string
   }),
-  dispatch: PropTypes.func
+  dispatch: PropTypes.func,
+  haveToSave: PropTypes.func
 }
 
 export default CSSModules(UiTab, styles)

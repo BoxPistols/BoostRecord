@@ -17,7 +17,9 @@ class Preferences extends React.Component {
     super(props)
 
     this.state = {
-      currentTab: 'STORAGES'
+      currentTab: 'STORAGES',
+      UI: null,
+      Hotkey: null
     }
   }
 
@@ -58,6 +60,7 @@ class Preferences extends React.Component {
           <HotkeyTab
             dispatch={dispatch}
             config={config}
+            haveToSave={msg => this.setState({Hotkey: msg})}
           />
         )
       case 'UI':
@@ -65,6 +68,7 @@ class Preferences extends React.Component {
           <UiTab
             dispatch={dispatch}
             config={config}
+            haveToSave={msg => this.setState({UI: msg})}
           />
         )
       case 'CROWDFUNDING':
@@ -99,14 +103,15 @@ class Preferences extends React.Component {
 
     const tabs = [
       {target: 'STORAGES', label: 'Storages'},
-      {target: 'HOTKEY', label: 'Hotkey'},
-      {target: 'UI', label: 'UI'},
+      {target: 'HOTKEY', label: 'Hotkey', Hotkey: this.state.Hotkey},
+      {target: 'UI', label: 'UI', UI: this.state.UI},
       {target: 'INFO', label: 'Community / Info'},
       {target: 'CROWDFUNDING', label: 'Crowdfunding'}
     ]
 
     const navButtons = tabs.map((tab) => {
       const isActive = this.state.currentTab === tab.target
+      const isOk = typeof tab[tab.label] !== "undefined" && tab[tab.label] !== null
       return (
         <button styleName={isActive
             ? 'nav-button--active'
@@ -118,6 +123,9 @@ class Preferences extends React.Component {
           <span styleName='nav-button-label'>
             {tab.label}
           </span>
+          {isOk && tab.label === tab[tab.label].tab 
+            ? <p styleName={`saving--${tab[tab.label].type}`}>{tab[tab.label].message}</p> 
+            : null}
         </button>
       )
     })

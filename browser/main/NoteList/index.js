@@ -586,7 +586,7 @@ class NoteList extends React.Component {
         if (err) throw Error('File reading error: ', err)
 
         fs.stat(filepath, (err, {mtime, birthtime}) => {
-          if (err) throw Error('File stat reading error: ', err);
+          if (err) throw Error('File stat reading error: ', err)
 
           const content = data.toString()
           const newNote = {

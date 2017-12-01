@@ -584,22 +584,29 @@ class NoteList extends React.Component {
     filepaths.forEach((filepath) => {
       fs.readFile(filepath, (err, data) => {
         if (err) throw Error('File reading error: ', err)
-        const content = data.toString()
-        const newNote = {
-          content: content,
-          folder: folder.key,
-          title: markdown.strip(findNoteTitle(content)),
-          type: 'MARKDOWN_NOTE'
-        }
-        dataApi.createNote(storage.key, newNote)
-        .then((note) => {
-          dispatch({
-            type: 'UPDATE_NOTE',
-            note: note
-          })
-          hashHistory.push({
-            pathname: location.pathname,
-            query: {key: getNoteKey(note)}
+
+        fs.stat(filepath, (err, {mtime, birthtime}) => {
+          if (err) throw Error('File stat reading error: ', err);
+
+          const content = data.toString()
+          const newNote = {
+            content: content,
+            folder: folder.key,
+            title: markdown.strip(findNoteTitle(content)),
+            type: 'MARKDOWN_NOTE',
+            createdAt: birthtime,
+            updatedAt: mtime
+          }
+          dataApi.createNote(storage.key, newNote)
+          .then((note) => {
+            dispatch({
+              type: 'UPDATE_NOTE',
+              note: note
+            })
+            hashHistory.push({
+              pathname: location.pathname,
+              query: {key: getNoteKey(note)}
+            })
           })
         })
       })

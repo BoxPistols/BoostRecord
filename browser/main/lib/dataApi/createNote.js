@@ -66,12 +66,12 @@ function createNote (storageKey, input) {
           }
         }
       }
-      const noteData = Object.assign({}, input, {
+      const noteData = Object.assign({}, {
         key,
         createdAt: new Date(),
         updatedAt: new Date(),
         storage: storageKey
-      })
+      }, input)
 
       CSON.writeFileSync(path.join(storage.path, 'notes', key + '.cson'), _.omit(noteData, ['key', 'storage']))
 

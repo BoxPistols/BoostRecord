@@ -13,6 +13,7 @@ import SideNavFilter from 'browser/components/SideNavFilter'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 require('!!style!css!stylus?sourceMap!../main/global.styl')
 require('../lib/customMeta')
+require('./ipcClient.js')
 
 const electron = require('electron')
 const { remote } = electron

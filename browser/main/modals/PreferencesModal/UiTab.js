@@ -83,10 +83,10 @@ class UiTab extends React.Component {
         fontFamily: this.refs.previewFontFamily.value,
         codeBlockTheme: this.refs.previewCodeBlockTheme.value,
         lineNumber: this.refs.previewLineNumber.checked,
-        LaTeXInlineOpen: this.refs.previewLatexInlineOpen.value,
-        LaTeXInlineClose: this.refs.previewLatexInlineClose.value,
-        LaTeXBlockOpen: this.refs.previewLatexBlockOpen.value,
-        LaTeXBlockClose: this.refs.previewLatexBlockClose.value
+        latexInlineOpen: this.refs.previewLatexInlineOpen.value,
+        latexInlineClose: this.refs.previewLatexInlineClose.value,
+        latexBlockOpen: this.refs.previewLatexBlockOpen.value,
+        latexBlockClose: this.refs.previewLatexBlockClose.value
       }
     }
 

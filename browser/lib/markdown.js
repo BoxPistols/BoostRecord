@@ -6,7 +6,7 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 
 // FIXME We should not depend on global variable.
 const katex = window.katex
-var config = ConfigManager.get()
+const config = ConfigManager.get()
 
 function createGutter (str) {
   const lc = (str.match(/\n/g) || []).length

@@ -73,6 +73,11 @@ class InfoTab extends React.Component {
         <div styleName='top'>
           <ul styleName='list'>
             <li>
+              <a href='https://boostnote.io/#subscribe'
+                onClick={(e) => this.handleLinkClick(e)}
+              >Subscribe to Newsletter</a>
+            </li>
+            <li>
               <a href='https://github.com/BoostIO/Boostnote/issues'
                 onClick={(e) => this.handleLinkClick(e)}
               >GitHub</a>
@@ -81,11 +86,6 @@ class InfoTab extends React.Component {
               <a href='https://medium.com/boostnote'
                 onClick={(e) => this.handleLinkClick(e)}
               >Blog</a>
-            </li>
-            <li>
-              <a href='https://www.reddit.com/r/Boostnote/'
-                onClick={(e) => this.handleLinkClick(e)}
-              >Reddit</a>
             </li>
             <li>
               <a href='https://www.facebook.com/groups/boostnote'

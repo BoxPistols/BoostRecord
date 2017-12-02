@@ -25,6 +25,7 @@ class UiTab extends React.Component {
   }
 
   componentDidMount () {
+    CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
@@ -39,10 +40,6 @@ class UiTab extends React.Component {
     }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
-  }
-
-  componentWillMount () {
-    CodeMirror.autoLoadMode(ReactCodeMirror, 'javascript')
   }
 
   componentWillUnmount () {
@@ -191,7 +188,7 @@ class UiTab extends React.Component {
                 }
               </select>
               <div styleName='code-mirror'>
-                <ReactCodeMirror value={codemirrorSampleCode} options={{ lineNumbers: true, readOnly: true, mode: 'javascript', theme: codemirrorTheme }} />
+                <ReactCodeMirror ref={e => (this.codeMirrorInstance = e)} value={codemirrorSampleCode} options={{ lineNumbers: true, readOnly: true, mode: 'javascript', theme: codemirrorTheme }} />
               </div>
             </div>
           </div>

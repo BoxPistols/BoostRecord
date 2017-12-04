@@ -252,7 +252,8 @@ class SnippetNoteDetail extends React.Component {
     const note = Object.assign({}, this.state.note, {snippets})
     this.setState({ note, snippetIndex }, () => {
       this.save()
-      this.refs['code-' + this.state.snippetIndex].reload()
+      this.refs['code-' + index].reload()
+      this.refs['code-' + oldIndex].reload()
     })
   }
 

@@ -2,9 +2,11 @@ import markdownit from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
 import _ from 'lodash'
+import ConfigManager from 'browser/main/lib/ConfigManager'
 
 // FIXME We should not depend on global variable.
 const katex = window.katex
+const config = ConfigManager.get()
 
 function createGutter (str) {
   const lc = (str.match(/\n/g) || []).length
@@ -39,6 +41,10 @@ md.use(emoji, {
   shortcuts: {}
 })
 md.use(math, {
+  inlineOpen: config.preview.latexInlineOpen,
+  inlineClose: config.preview.latexInlineClose,
+  blockOpen: config.preview.latexBlockOpen,
+  blockClose: config.preview.latexBlockClose,
   inlineRenderer: function (str) {
     let output = ''
     try {

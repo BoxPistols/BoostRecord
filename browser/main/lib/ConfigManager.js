@@ -40,7 +40,11 @@ export const DEFAULT_CONFIG = {
     fontSize: '14',
     fontFamily: win ? 'Segoe UI' : 'Lato',
     codeBlockTheme: 'dracula',
-    lineNumber: true
+    lineNumber: true,
+    latexInlineOpen: '$',
+    latexInlineClose: '$',
+    latexBlockOpen: '$$',
+    latexBlockClose: '$$'
   }
 }
 

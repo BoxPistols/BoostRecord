@@ -20,7 +20,9 @@ class Main extends React.Component {
   constructor (props) {
     super(props)
 
-    if (process.env.NODE_ENV === 'production') {
+    const isOnline = window.navigator.onLine
+
+    if (process.env.NODE_ENV === 'production' && isOnline) {
       mobileAnalytics.initAwsMobileAnalytics()
     }
 

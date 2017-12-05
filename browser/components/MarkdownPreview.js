@@ -49,12 +49,12 @@ body {
   font-size: ${fontSize}px;
 }
 code {
-  font-family: ${codeBlockFontFamily.join(', ')};
+  font-family: '${codeBlockFontFamily.join("','")}';
   background-color: rgba(0,0,0,0.04);
 }
 .lineNumber {
   ${lineNumber && 'display: block !important;'}
-  font-family: ${codeBlockFontFamily.join(', ')};
+  font-family: '${codeBlockFontFamily.join("','")}';
 }
 
 .clipboardButton {
@@ -255,10 +255,10 @@ export default class MarkdownPreview extends React.Component {
     const { fontSize, lineNumber, codeBlockTheme } = this.props
     let { fontFamily, codeBlockFontFamily } = this.props
     fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
-      ? [fontFamily].concat(defaultFontFamily)
+      ? fontFamily.split(',').map(fontName => fontName.trim()).concat(defaultFontFamily)
       : defaultFontFamily
     codeBlockFontFamily = _.isString(codeBlockFontFamily) && codeBlockFontFamily.trim().length > 0
-      ? [codeBlockFontFamily].concat(defaultCodeBlockFontFamily)
+      ? codeBlockFontFamily.split(',').map(fontName => fontName.trim()).concat(defaultCodeBlockFontFamily)
       : defaultCodeBlockFontFamily
 
     this.setCodeTheme(codeBlockTheme)

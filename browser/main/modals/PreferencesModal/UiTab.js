@@ -7,10 +7,9 @@ import store from 'browser/main/store'
 import consts from 'browser/lib/consts'
 import ReactCodeMirror from 'react-codemirror'
 import CodeMirror from 'codemirror'
+import _ from 'lodash'
 
 const OSX = global.process.platform === 'darwin'
-
-import _ from 'lodash'
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer

@@ -35,7 +35,7 @@ function convertPlatformName (platformName) {
 }
 
 function initAwsMobileAnalytics () {
-  if (process.env.NODE_ENV !== 'production' || !ConfigManager.default.get().amaEnabled) return
+  if (process.env.NODE_ENV !== 'production' || !ConfigManager.default.get().amaEnabled || !window.navigator.onLine) return
   AWS.config.credentials.get((err) => {
     if (!err) {
       console.log('Cognito Identity ID: ' + AWS.config.credentials.identityId)
@@ -46,7 +46,7 @@ function initAwsMobileAnalytics () {
 }
 
 function recordDynamicCustomEvent (type, options = {}) {
-  if (process.env.NODE_ENV !== 'production' || !ConfigManager.default.get().amaEnabled) return
+  if (process.env.NODE_ENV !== 'production' || !ConfigManager.default.get().amaEnabled || !window.navigator.onLine) return
   try {
     mobileAnalyticsClient.recordEvent(type, options)
   } catch (analyticsError) {
@@ -57,7 +57,7 @@ function recordDynamicCustomEvent (type, options = {}) {
 }
 
 function recordStaticCustomEvent () {
-  if (process.env.NODE_ENV !== 'production' || !ConfigManager.default.get().amaEnabled) return
+  if (process.env.NODE_ENV !== 'production' || !ConfigManager.default.get().amaEnabled || !window.navigator.onLine) return
   try {
     mobileAnalyticsClient.recordEvent('UI_COLOR_THEME', {
       uiColorTheme: ConfigManager.default.get().ui.theme

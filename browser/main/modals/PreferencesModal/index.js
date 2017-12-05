@@ -60,7 +60,7 @@ class Preferences extends React.Component {
           <HotkeyTab
             dispatch={dispatch}
             config={config}
-            haveToSave={msg => this.setState({HotkeyAlert: msg})}
+            haveToSave={alert => this.setState({HotkeyAlert: alert})}
           />
         )
       case 'UI':
@@ -68,7 +68,7 @@ class Preferences extends React.Component {
           <UiTab
             dispatch={dispatch}
             config={config}
-            haveToSave={msg => this.setState({UIAlert: msg})}
+            haveToSave={alert => this.setState({UIAlert: alert})}
           />
         )
       case 'CROWDFUNDING':

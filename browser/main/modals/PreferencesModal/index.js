@@ -97,7 +97,7 @@ class Preferences extends React.Component {
     const node = ReactDOM.findDOMNode(this.refs.content)
     return node.getBoundingClientRect()
   }
-  
+
   haveToSaveNotif (tab) {
     return (
       <p styleName={`saving--${tab[tab.label].type}`}>{tab[tab.label].message}</p>

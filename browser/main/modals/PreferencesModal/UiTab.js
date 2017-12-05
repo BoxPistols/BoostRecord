@@ -20,8 +20,7 @@ class UiTab extends React.Component {
     super(props)
     this.state = {
       config: props.config,
-      codemirrorTheme: props.config.editor.theme,
-      haveToSave: null
+      codemirrorTheme: props.config.editor.theme
     }
   }
 
@@ -93,18 +92,16 @@ class UiTab extends React.Component {
       checkHighLight.setAttribute('href', `../node_modules/codemirror/theme/${newCodemirrorTheme.split(' ')[0]}.css`)
     }
     this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme }, () => {
-      if (JSON.parse(localStorage.getItem('config'))) {
-        const {ui, editor, preview} = JSON.parse(localStorage.getItem('config'))
-        this.currentConfig = {ui, editor, preview}
-        if (JSON.stringify(this.currentConfig) === JSON.stringify(this.state.config)) {
-          this.props.haveToSave(null)
-        } else {
-          this.props.haveToSave({
-            tab: 'UI',
-            type: 'warning',
-            message: 'You have to save!'
-          })
-        }
+      const {ui, editor, preview} = this.props.config
+      this.currentConfig = {ui, editor, preview}
+      if (JSON.stringify(this.currentConfig) === JSON.stringify(this.state.config)) {
+        this.props.haveToSave()
+      } else {
+        this.props.haveToSave({
+          tab: 'UI',
+          type: 'warning',
+          message: 'You have to save!'
+        })
       }
     })
   }
@@ -123,7 +120,7 @@ class UiTab extends React.Component {
       config: newConfig
     })
     this.clearMessage()
-    this.props.haveToSave(null)
+    this.props.haveToSave()
   }
 
   clearMessage () {

@@ -32,10 +32,7 @@ class HotkeyTab extends React.Component {
         message: err.message != null ? err.message : 'Error occurs!'
       }})
     }
-    if (JSON.parse(localStorage.getItem('config'))) {
-      const {hotkey} = JSON.parse(localStorage.getItem('config'))
-      this.hotkey = hotkey
-    }
+    this.oldHotkey = this.state.config.hotkey
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
   }
@@ -57,7 +54,7 @@ class HotkeyTab extends React.Component {
       config: newConfig
     })
     this.clearMessage()
-    this.props.haveToSave(null)
+    this.props.haveToSave()
   }
 
   handleHintToggleButtonClick (e) {
@@ -75,8 +72,8 @@ class HotkeyTab extends React.Component {
     this.setState({
       config
     })
-    if (JSON.stringify(this.hotkey) === JSON.stringify(config.hotkey)) {
-      this.props.haveToSave(null)
+    if (JSON.stringify(this.oldHotkey) === JSON.stringify(config.hotkey)) {
+      this.props.haveToSave()
     } else {
       this.props.haveToSave({
         tab: 'Hotkey',

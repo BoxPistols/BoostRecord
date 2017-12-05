@@ -7,7 +7,7 @@ const os = require('os')
 let mobileAnalyticsClient
 
 AWS.config.region = 'us-east-1'
-if (process.env.NODE_ENV === 'production' && ConfigManager.default.get().amaEnabled) {
+if (process.env.NODE_ENV === 'production' && ConfigManager.default.get().amaEnabled && window.navigator.onLine) {
   AWS.config.credentials = new AWS.CognitoIdentityCredentials({
     IdentityPoolId: 'us-east-1:xxxxxxxxxxxxxxxxxxxxxxxxx'
   })

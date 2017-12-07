@@ -1,7 +1,7 @@
 .root
   absolute top left bottom
   width $sideNav-width
-  background-color #2E3235
+  background-color $ui-dark-backgroundColor
   user-select none
   color $ui-text-color
   height: 100vh
@@ -138,7 +138,7 @@ body[data-theme="white"]
 
 body[data-theme="dark"]
   .root, .root--folded
-    border-color $ui-dark-borderColor
+    border-right 1px solid $ui-dark-borderColor
     background-color $ui-dark-backgroundColor
     color $ui-dark-text-color
 

@@ -390,11 +390,6 @@ class MarkdownNoteDetail extends React.Component {
             ignorePreviewPointerEvents={this.props.ignorePreviewPointerEvents}
           />
         </div>
-
-        <StatusBar
-          {..._.pick(this.props, ['config', 'location', 'dispatch'])}
-          date={note.updatedAt}
-        />
       </div>
     )
   }

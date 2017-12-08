@@ -118,6 +118,7 @@ export default class MarkdownPreview extends React.Component {
     this.checkboxClickHandler = (e) => this.handleCheckboxClick(e)
     this.saveAsTextHandler = () => this.handleSaveAsText()
     this.saveAsMdHandler = () => this.handleSaveAsMd()
+    this.saveAsHtmlHandler = () => this.handleSaveAsHtml()
     this.printHandler = () => this.handlePrint()
 
     this.linkClickHandler = this.handlelinkClick.bind(this)
@@ -173,21 +174,29 @@ export default class MarkdownPreview extends React.Component {
     this.exportAsDocument('md')
   }
 
+  handleSaveAsHtml () {
+    this.exportAsDocument('html', function formatHtml (value) {
+      return this.refs.root.contentWindow.document.documentElement.outerHTML
+    })
+  }
+
   handlePrint () {
     this.refs.root.contentWindow.print()
   }
 
-  exportAsDocument (fileType) {
+  exportAsDocument (fileType, formatter) {
     const options = {
       filters: [
         { name: 'Documents', extensions: [fileType] }
       ],
       properties: ['openFile', 'createDirectory']
     }
+    var value = formatter ? formatter.call(this, this.props.value) : this.props.value
+
     dialog.showSaveDialog(remote.getCurrentWindow(), options,
     (filename) => {
       if (filename) {
-        fs.writeFile(filename, this.props.value, (err) => {
+        fs.writeFile(filename, value, (err) => {
           if (err) throw err
         })
       }
@@ -223,6 +232,7 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.addEventListener('dragover', this.preventImageDroppedHandler)
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
+    eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
     eventEmitter.on('print', this.printHandler)
   }
 
@@ -234,6 +244,7 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.removeEventListener('dragover', this.preventImageDroppedHandler)
     eventEmitter.off('export:save-text', this.saveAsTextHandler)
     eventEmitter.off('export:save-md', this.saveAsMdHandler)
+    eventEmitter.off('export:save-html', this.saveAsHtmlHandler)
     eventEmitter.off('print', this.printHandler)
   }
 

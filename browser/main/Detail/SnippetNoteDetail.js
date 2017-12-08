@@ -579,6 +579,7 @@ class SnippetNoteDetail extends React.Component {
           createdAt={formatDate(note.createdAt)}
           exportAsMd={this.showWarning}
           exportAsTxt={this.showWarning}
+          exportAsHtml={this.showWarning}
         />
       </div>
     </div>

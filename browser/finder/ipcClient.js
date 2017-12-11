@@ -86,6 +86,8 @@ nodeIpc.connectTo(
         document.body.setAttribute('data-theme', 'dark')
       } else if (config.ui.theme === 'white') {
         document.body.setAttribute('data-theme', 'white')
+      } else if (config.ui.theme === 'solarized-dark') {
+        document.body.setAttribute('data-theme', 'solarized-dark')
       } else {
         document.body.setAttribute('data-theme', 'default')
       }

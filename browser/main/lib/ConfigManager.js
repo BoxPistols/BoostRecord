@@ -114,6 +114,8 @@ function set (updates) {
     document.body.setAttribute('data-theme', 'dark')
   } else if (newConfig.ui.theme === 'white') {
     document.body.setAttribute('data-theme', 'white')
+  } else if (newConfig.ui.theme === 'solarized-dark') {
+    document.body.setAttribute('data-theme', 'solarized-dark')
   } else {
     document.body.setAttribute('data-theme', 'default')
   }

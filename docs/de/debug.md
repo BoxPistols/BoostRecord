@@ -1,5 +1,5 @@
 # How to debug Boostnote (Electron app)
-Diese Seite ist auch verfügbar in [Japanese](https://github.com/BoostIO/Boostnote/blob/master/docs/jp/build.md), [Korean](https://github.com/BoostIO/Boostnote/blob/master/docs/ko/build.md), [Russain](https://github.com/BoostIO/Boostnote/blob/master/docs/ru/build.md), [Simplified Chinese](https://github.com/BoostIO/Boostnote/blob/master/docs/zh_CN/build.md), [French](https://github.com/BoostIO/Boostnote/blob/master/docs/fr/build.md) and [German](https://github.com/BoostIO/Boostnote/blob/master/docs/de/build.md).
+Diese Seite ist auch verfügbar in [Japanese](https://github.com/BoostIO/Boostnote/blob/master/docs/jp/debug.md), [Korean](https://github.com/BoostIO/Boostnote/blob/master/docs/ko/debug.md), [Russain](https://github.com/BoostIO/Boostnote/blob/master/docs/ru/debug.md), [Simplified Chinese](https://github.com/BoostIO/Boostnote/blob/master/docs/zh_CN/debug.md), [French](https://github.com/BoostIO/Boostnote/blob/master/docs/fr/debug.md) and [German](https://github.com/BoostIO/Boostnote/blob/add-german-documents/docs/de/debug.md).
 
 Boostnote is eine Electron app, somit basiert sie auf Chromium; Entwickler können die `Developer Tools` verwenden, wie Google Chrome.
 

@@ -41,7 +41,7 @@ const SideNavFilter = ({
       <div styleName='iconWrap'>
         <img src={isStarredActive
             ? '../resources/icon/icon-star-active.svg'
-            : '../resources/icon/icon-star.svg'
+            : '../resources/icon/icon-star-sidenav.svg'
           }
         />
       </div>
@@ -55,7 +55,7 @@ const SideNavFilter = ({
       <div styleName='iconWrap'>
         <img src={isTrashedActive
             ? '../resources/icon/icon-trash-active.svg'
-            : '../resources/icon/icon-trash.svg'
+            : '../resources/icon/icon-trash-sidenav.svg'
           }
         />
       </div>

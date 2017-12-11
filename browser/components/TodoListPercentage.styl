@@ -9,7 +9,6 @@
   font-size: 12px
   z-index 100
   border-radius 2px
-  padding-left 10px
 
 .progressBar
   background-color: #1EC38B
@@ -17,9 +16,18 @@
   border-radius 2px
   transition 0.4s cubic-bezier(0.4, 0.4, 0, 1)
 
+.progressBarInner
+  padding 0 10px
+  min-width 1px
+  height 100%
+  display -webkit-box
+  display box
+  justify-content center
+  align-items center
+
+
 .percentageText
   color #f4f4f4
-  padding: 2px 43%
   font-weight 600
 
 body[data-theme="dark"]

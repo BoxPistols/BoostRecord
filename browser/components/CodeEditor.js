@@ -155,7 +155,7 @@ export default class CodeEditor extends React.Component {
     }
 
     if (prevProps.scrollPastEnd !== this.props.scrollPastEnd) {
-      this.editor.setOption('scrollPastEnd', this.props.scrollPastEnd);
+      this.editor.setOption('scrollPastEnd', this.props.scrollPastEnd)
     }
 
     if (needRefresh) {

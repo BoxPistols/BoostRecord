@@ -168,9 +168,9 @@ class StoragesTab extends React.Component {
               </select>
               <div styleName='addStorage-body-section-type-description'>
                 3rd party cloud integration:
-                <a href='https://github.com/BoostIO/Boostnote/wiki/Cloud-Syncing'
+                <a href='https://github.com/BoostIO/Boostnote/wiki/Cloud-Syncing-and-Backup'
                   onClick={(e) => this.handleLinkClick(e)}
-                >Cloud-Syncing</a>
+                >Cloud-Syncing-and-Backup</a>
               </div>
             </div>
           </div>

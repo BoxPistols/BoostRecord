@@ -8,7 +8,7 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 const katex = window.katex
 const config = ConfigManager.get()
 
-function createGutter(str) {
+function createGutter (str) {
   const lc = (str.match(/\n/g) || []).length
   const lines = []
   for (let i = 1; i <= lc; i++) {
@@ -76,14 +76,14 @@ md.use(require('markdown-it-named-headers'), {
   }
 })
 md.use(require('markdown-it-kbd'))
-md.use(require("markdown-it-plantuml"), "", {
+md.use(require('markdown-it-plantuml'), '', {
   generateSource: function (umlCode) {
-    var deflate = require("markdown-it-plantuml/lib/deflate")
+    var deflate = require('markdown-it-plantuml/lib/deflate')
     var s = unescape(encodeURIComponent(umlCode))
     var zippedCode = deflate.encode64(
-      deflate.zip_deflate("@startuml\n" + s + "\n@enduml", 9)
-    );
-    return "http://www.plantuml.com/plantuml/svg/" + zippedCode
+      deflate.zip_deflate(`@startuml\n${s}\n@enduml`, 9)
+    )
+    return `http://www.plantuml.com/plantuml/svg/${zippedCode}`
   }
 })
 
@@ -140,7 +140,7 @@ md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
 
 // Add line number attribute for scrolling
 const originalRender = md.renderer.render
-md.renderer.render = function render(tokens, options, env) {
+md.renderer.render = function render (tokens, options, env) {
   tokens.forEach((token) => {
     switch (token.type) {
       case 'heading_open':
@@ -156,12 +156,12 @@ md.renderer.render = function render(tokens, options, env) {
 // FIXME We should not depend on global variable.
 window.md = md
 
-function normalizeLinkText(linkText) {
+function normalizeLinkText (linkText) {
   return md.normalizeLinkText(linkText)
 }
 
 const markdown = {
-  render: function markdown(content) {
+  render: function markdown (content) {
     if (!_.isString(content)) content = ''
     const renderedContent = md.render(content)
     return renderedContent

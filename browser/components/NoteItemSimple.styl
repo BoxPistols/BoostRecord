@@ -143,3 +143,57 @@ body[data-theme="dark"]
 
   .item-simple-title-empty
     color $ui-dark-inactive-text-color
+
+
+body[data-theme="solarized-dark"]
+  .root
+    border-color $ui-solarized-dark-borderColor
+    background-color $ui-solarized-dark-noteList-backgroundColor
+
+  .item-simple
+    border-color $ui-solarized-dark-borderColor
+    background-color $ui-solarized-dark-noteList-backgroundColor
+    &:hover
+      transition 0.15s
+      // background-color alpha($ui-dark-button--active-backgroundColor, 20%)
+      color $ui-solarized-dark-text-color
+      .item-simple-title
+      .item-simple-title-icon
+      .item-simple-bottom-time
+        transition 0.15s
+        color $ui-solarized-dark-text-color
+      .item-simple-bottom-tagList-item
+        transition 0.15s
+        background-color alpha(#fff, 20%)
+        color $ui-solarized-dark-text-color
+    &:active
+      transition 0.15s
+      background-color $ui-solarized-dark-button--active-backgroundColor
+      color $ui-solarized-dark-text-color
+      .item-simple-title
+      .item-simple-title-icon
+      .item-simple-bottom-time
+        transition 0.15s
+        color $ui-solarized-dark-text-color
+      .item-simple-bottom-tagList-item
+        transition 0.15s
+        background-color alpha(white, 10%)
+        color $ui-solarized-dark-text-color  
+
+  .item-simple--active
+    border-color $ui-solarized-dark-borderColor
+    background-color $ui-solarized-dark-button--active-backgroundColor
+    .item-simple-wrapper
+      border-color transparent
+    .item-simple-title
+    .item-simple-title-icon
+    .item-simple-bottom-time
+      color $ui-solarized-dark-text-color
+    .item-simple-bottom-tagList-item
+      background-color alpha(white, 10%)
+      color $ui-solarized-dark-text-color
+    &:hover
+      // background-color alpha($ui-dark-button--active-backgroundColor, 60%)
+      color #c0392b
+      .item-simple-bottom-tagList-item
+        background-color alpha(#fff, 20%)

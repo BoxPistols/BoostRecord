@@ -89,3 +89,28 @@ body[data-theme="dark"]
     color $ui-dark-text-color
     &:active
       color $ui-dark-text-color
+
+
+body[data-theme="solarized-dark"]
+  .root
+    border-color $ui-solarized-dark-borderColor
+    background-color $ui-solarized-dark-noteList-backgroundColor
+
+  .control
+    background-color $ui-solarized-dark-noteList-backgroundColor
+    border-color $ui-solarized-dark-borderColor
+
+  .control-sortBy-select
+    &:hover
+      transition 0.2s
+      color $ui-solarized-dark-text-color
+
+  .control-button
+    color $ui-solarized-dark-inactive-text-color
+    &:hover
+      color $ui-solarized-dark-text-color
+  
+  .control-button--active
+    color $ui-solarized-dark-text-color
+    &:active
+      color $ui-solarized-dark-text-color

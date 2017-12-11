@@ -231,3 +231,77 @@ body[data-theme="dark"]
   .item-bottom-tagList-empty
     color $ui-inactive-text-color
     vertical-align middle
+
+
+body[data-theme="solarized-dark"]
+  .root
+    border-color $ui-solarized-dark-borderColor
+    background-color $ui-solarized-dark-noteList-backgroundColor
+
+  .item
+    border-color $ui-solarized-dark-borderColor
+    background-color $ui-solarized-dark-noteList-backgroundColor
+    &:hover
+      transition 0.15s
+      // background-color alpha($ui-solarized-dark-noteList-backgroundColor, 20%)
+      color $ui-solarized-dark-text-color
+      .item-title
+      .item-title-icon
+      .item-bottom-time
+        transition 0.15s
+        color $ui-solarized-dark-text-color
+      .item-bottom-tagList-item
+        transition 0.15s
+        background-color alpha($ui-solarized-dark-noteList-backgroundColor, 20%)
+        color $ui-solarized-dark-text-color
+    &:active
+      transition 0.15s
+      background-color $ui-solarized-dark-noteList-backgroundColor
+      color $ui-solarized-dark-text-color
+      .item-title
+      .item-title-icon
+      .item-bottom-time
+        transition 0.15s
+        color $ui-solarized-dark-text-color
+      .item-bottom-tagList-item
+        transition 0.15s
+        background-color alpha($ui-solarized-dark-noteList-backgroundColor, 10%)
+        color $ui-solarized-dark-text-color  
+
+  .item-wrapper
+    border-color alpha($ui-solarized-dark-button--active-backgroundColor, 60%)
+
+  .item--active
+    border-color $ui-solarized-dark-borderColor
+    background-color $ui-solarized-dark-button--active-backgroundColor
+    .item-wrapper
+      border-color transparent
+    .item-title
+    .item-title-icon
+    .item-bottom-time
+      color $ui-solarized-dark-text-color
+    .item-bottom-tagList-item
+      background-color alpha(white, 10%)
+      color $ui-solarized-dark-text-color
+    &:hover
+      // background-color alpha($ui-solarized-dark-button--active-backgroundColor, 60%)
+      color #c0392b
+      .item-bottom-tagList-item
+        background-color alpha(#fff, 20%)
+
+  .item-title
+    color $ui-inactive-text-color
+
+  .item-title-icon
+    color $ui-inactive-text-color
+
+  .item-title-empty
+    color $ui-inactive-text-color
+
+  .item-bottom-tagList-item
+    background-color alpha($ui-dark-button--active-backgroundColor, 40%)
+    color $ui-inactive-text-color
+
+  .item-bottom-tagList-empty
+    color $ui-inactive-text-color
+    vertical-align middle

@@ -145,6 +145,7 @@ class UiTab extends React.Component {
               >
                 <option value='default'>Default</option>
                 <option value='white'>White</option>
+                <option value='solarized-dark'>Solarized Dark</option>
                 <option value='dark'>Dark</option>
               </select>
             </div>

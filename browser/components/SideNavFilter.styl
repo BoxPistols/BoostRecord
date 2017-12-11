@@ -183,3 +183,24 @@ body[data-theme="dark"]
       color #5D9E36
       .menu-button-label
         color $ui-dark-text-color
+
+
+body[data-theme="solarized-dark"]
+  .menu-button
+    &:active
+      background-color $ui-solarized-dark-noteList-backgroundColor
+      color $ui-solarized-dark-text-color
+    &:hover
+      // background-color alpha($ui-solarized-dark-button--active-backgroundColor, 20%)
+      color $ui-solarized-dark-text-color
+
+  .menu-button--active
+    color #c0392b
+    background-color $ui-solarized-dark-noteList-backgroundColor
+    .menu-button-label
+      color $ui-solarized-dark-text-color
+    &:hover
+      // background-color alpha($ui-solarized-dark-button--active-backgroundColor, 50%)
+      color #c0392b
+      .menu-button-label
+        color $ui-solarized-dark-text-color

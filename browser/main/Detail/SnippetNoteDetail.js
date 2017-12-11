@@ -236,6 +236,27 @@ class SnippetNoteDetail extends React.Component {
     })
   }
 
+  handleTabDragStart (e, index) {
+    e.dataTransfer.setData('text/plain', index)
+  }
+
+  handleTabDrop (e, index) {
+    const oldIndex = parseInt(e.dataTransfer.getData('text'))
+
+    const snippets = this.state.note.snippets.slice()
+    const draggedSnippet = snippets[oldIndex]
+    snippets[oldIndex] = snippets[index]
+    snippets[index] = draggedSnippet
+    const snippetIndex = index
+
+    const note = Object.assign({}, this.state.note, {snippets})
+    this.setState({ note, snippetIndex }, () => {
+      this.save()
+      this.refs['code-' + index].reload()
+      this.refs['code-' + oldIndex].reload()
+    })
+  }
+
   handleTabDeleteButtonClick (e, index) {
     if (this.state.note.snippets.length > 1) {
       if (this.state.note.snippets[index].content.trim().length > 0) {
@@ -511,6 +532,8 @@ class SnippetNoteDetail extends React.Component {
         onDelete={(e) => this.handleTabDeleteButtonClick(e, index)}
         onRename={(name) => this.renameSnippetByIndex(index, name)}
         isDeletable={note.snippets.length > 1}
+        onDragStart={(e) => this.handleTabDragStart(e, index)}
+        onDrop={(e) => this.handleTabDrop(e, index)}
       />
     })
 

@@ -174,20 +174,20 @@ modal()
   overflow hidden
   border-radius $modal-border-radius
 
-topBarButtonLight()
+topBarButtonRight()
   position absolute
   width 34px
   height 34px
   border-radius 17px
   font-size 14px
   border none
-  color alpha($ui-button-color, 0.4)
+  color alpha($ui-button-color, 0.2)
   fill $ui-button-color
   background-color transparent
   &:active
     border-color $ui-button--active-backgroundColor
   &:hover
-    transform scale(1.1)
+    // transform scale(1.1)
     transition 0.4s
     color $ui-button-color
     .control-lockButton-tooltip
@@ -223,10 +223,12 @@ $ui-button--focus-borderColor = lighten(#369DCD, 25%)
 
 /******* Dark theme ********/
 $ui-dark-active-color = #3A404C
-$ui-dark-borderColor = lighten(#21252B, 20%)
-$ui-dark-backgroundColor = #1E2124
-$ui-dark-noteList-backgroundColor = #282C30
-$ui-dark-noteDetail-backgroundColor = #2D3033
+
+$ui-dark-borderColor = #444444
+$ui-dark-backgroundColor = #2C3033
+$ui-dark-noteList-backgroundColor = #2C3033
+$ui-dark-noteDetail-backgroundColor = #2C3033
+
 $ui-dark-tag-backgroundColor = #3A404C
 $dark-background-color = lighten($ui-dark-backgroundColor, 10%)
 $ui-dark-text-color = #DDDDDD

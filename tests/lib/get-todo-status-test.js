@@ -16,7 +16,7 @@ test('getTodoStatus should return a correct hash object', t => {
     ['+ [ ] a\n+ [xtest] a\n', { total: 1, completed: 0 }],
     ['+ [ ] a\n+ foo[x]bar a\n', { total: 1, completed: 0 }],
     ['+ [ ] a\n+ foo[x] bar a\n', { total: 1, completed: 0 }],
-    ['+ [ ] a\n+ foo [x]bar a\n', { total: 1, completed: 0 }]    
+    ['+ [ ] a\n+ foo [x]bar a\n', { total: 1, completed: 0 }]
   ]
 
   testCases.forEach(testCase => {

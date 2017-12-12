@@ -233,7 +233,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   getToggleLockButton () {
-    return this.state.isLocked ? '../resources/icon/icon-lock.svg' : '../resources/icon/icon-unlock.svg'
+    return this.state.isLocked ? '../resources/icon/icon-edit-lock.svg' : '../resources/icon/icon-edit.svg'
   }
 
   handleDeleteKeyDown (e) {

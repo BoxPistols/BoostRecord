@@ -17,7 +17,7 @@ const TodoListPercentage = ({
   <div styleName='percentageBar' style={{display: isNaN(percentageOfTodo) ? 'none' : ''}}>
     <div styleName='progressBar' style={{width: `${percentageOfTodo}%`}}>
       <div styleName='progressBarInner'>
-      	<p styleName='percentageText'>{percentageOfTodo}%</p>
+        <p styleName='percentageText'>{percentageOfTodo}%</p>
       </div>
     </div>
   </div>

@@ -10,7 +10,7 @@ import dataApi from 'browser/main/lib/dataApi'
 import StorageItemChild from 'browser/components/StorageItem'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import _ from 'lodash'
-const path = require('path')
+import * as path  from 'path'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
@@ -25,7 +25,7 @@ class StorageItem extends React.Component {
   }
 
   handleHeaderContextMenu (e) {
-    let menu = Menu.buildFromTemplate([
+    const menu = Menu.buildFromTemplate([
       {
         label: 'Add Folder',
         click: (e) => this.handleAddFolderButtonClick(e)

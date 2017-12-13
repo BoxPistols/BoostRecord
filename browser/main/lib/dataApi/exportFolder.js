@@ -1,8 +1,8 @@
-const { findStorage } = require('browser/lib/findStorage')
-const resolveStorageData = require('./resolveStorageData')
-const resolveStorageNotes = require('./resolveStorageNotes')
-const path = require('path')
-const fs = require('fs')
+import { findStorage } from 'browser/lib/findStorage'
+import resolveStorageData from './resolveStorageData'
+import resolveStorageNotes from './resolveStorageNotes'
+import * as path from 'path'
+import * as fs from 'fs'
 
 /**
  * @param {String} storageKey
@@ -46,8 +46,7 @@ function exportFolder (storageKey, folderKey, fileType, exportDir) {
         .filter(note => note.folder === folderKey && note.isTrashed === false && note.type === 'MARKDOWN_NOTE')
         .forEach(snippet => {
           const notePath = path.join(exportDir, `${snippet.title}.${fileType}`)
-          console.log(notePath)
-          fs.writeFile(notePath, snippet.content, (err) => {
+          fs.writeFileSync(notePath, snippet.content, (err) => {
             if (err) throw err
           })
         })

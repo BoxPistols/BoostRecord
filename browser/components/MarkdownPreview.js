@@ -175,7 +175,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsHtml () {
-    this.exportAsDocument('html', function formatHtml (value) {
+    this.exportAsDocument('html', (value) => {
       return this.refs.root.contentWindow.document.documentElement.outerHTML
     })
   }
@@ -191,7 +191,7 @@ export default class MarkdownPreview extends React.Component {
       ],
       properties: ['openFile', 'createDirectory']
     }
-    var value = formatter ? formatter.call(this, this.props.value) : this.props.value
+    const value = formatter ? formatter.call(this, this.props.value) : this.props.value
 
     dialog.showSaveDialog(remote.getCurrentWindow(), options,
     (filename) => {

@@ -78,9 +78,9 @@ md.use(require('markdown-it-named-headers'), {
 md.use(require('markdown-it-kbd'))
 md.use(require('markdown-it-plantuml'), '', {
   generateSource: function (umlCode) {
-    var deflate = require('markdown-it-plantuml/lib/deflate')
-    var s = unescape(encodeURIComponent(umlCode))
-    var zippedCode = deflate.encode64(
+    const deflate = require('markdown-it-plantuml/lib/deflate')
+    const s = unescape(encodeURIComponent(umlCode))
+    const zippedCode = deflate.encode64(
       deflate.zip_deflate(`@startuml\n${s}\n@enduml`, 9)
     )
     return `http://www.plantuml.com/plantuml/svg/${zippedCode}`

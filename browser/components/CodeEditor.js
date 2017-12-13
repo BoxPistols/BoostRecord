@@ -59,6 +59,7 @@ export default class CodeEditor extends React.Component {
       tabSize: this.props.indentSize,
       indentWithTabs: this.props.indentType !== 'space',
       keyMap: this.props.keyMap,
+      scrollPastEnd: this.props.scrollPastEnd,
       inputStyle: 'textarea',
       dragDrop: false,
       extraKeys: {
@@ -151,6 +152,10 @@ export default class CodeEditor extends React.Component {
     }
     if (prevProps.indentType !== this.props.indentType) {
       this.editor.setOption('indentWithTabs', this.props.indentType !== 'space')
+    }
+
+    if (prevProps.scrollPastEnd !== this.props.scrollPastEnd) {
+      this.editor.setOption('scrollPastEnd', this.props.scrollPastEnd)
     }
 
     if (needRefresh) {

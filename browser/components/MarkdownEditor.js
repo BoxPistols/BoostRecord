@@ -242,6 +242,7 @@ class MarkdownEditor extends React.Component {
           fontSize={editorFontSize}
           indentType={config.editor.indentType}
           indentSize={editorIndentSize}
+          scrollPastEnd={config.editor.scrollPastEnd}
           storageKey={storageKey}
           onChange={(e) => this.handleChange(e)}
           onBlur={(e) => this.handleBlur(e)}
@@ -259,6 +260,7 @@ class MarkdownEditor extends React.Component {
           codeBlockFontFamily={config.editor.fontFamily}
           lineNumber={config.preview.lineNumber}
           indentSize={editorIndentSize}
+          scrollPastEnd={config.editor.scrollPastEnd}
           ref='preview'
           onContextMenu={(e) => this.handleContextMenu(e)}
           tabIndex='0'

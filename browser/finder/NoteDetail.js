@@ -157,6 +157,7 @@ class NoteDetail extends React.Component {
               indentType={config.editor.indentType}
               indentSize={editorIndentSize}
               keyMap={config.editor.keyMap}
+              scrollPastEnd={config.editor.scrollPastEnd}
               readOnly
               ref={'code-' + index}
             />

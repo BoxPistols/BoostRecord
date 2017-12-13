@@ -565,6 +565,7 @@ class SnippetNoteDetail extends React.Component {
             indentType={config.editor.indentType}
             indentSize={editorIndentSize}
             keyMap={config.editor.keyMap}
+            scrollPastEnd={config.editor.scrollPastEnd}
             onChange={(e) => this.handleCodeChange(index)(e)}
             ref={'code-' + index}
           />

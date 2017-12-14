@@ -93,7 +93,7 @@ class UiTab extends React.Component {
     this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme }, () => {
       const {ui, editor, preview} = this.props.config
       this.currentConfig = {ui, editor, preview}
-      if (JSON.stringify(this.currentConfig) === JSON.stringify(this.state.config)) {
+      if (_.isEqual(this.currentConfig, this.state.config)) {
         this.props.haveToSave()
       } else {
         this.props.haveToSave({

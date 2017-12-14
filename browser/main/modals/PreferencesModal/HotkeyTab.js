@@ -72,7 +72,7 @@ class HotkeyTab extends React.Component {
     this.setState({
       config
     })
-    if (JSON.stringify(this.oldHotkey) === JSON.stringify(config.hotkey)) {
+    if (_.isEqual(this.oldHotkey, config.hotkey)) {
       this.props.haveToSave()
     } else {
       this.props.haveToSave({

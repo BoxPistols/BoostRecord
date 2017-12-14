@@ -98,9 +98,9 @@ class Preferences extends React.Component {
     return node.getBoundingClientRect()
   }
 
-  haveToSaveNotif (tab) {
+  haveToSaveNotif (type, message) {
     return (
-      <p styleName={`saving--${tab[tab.label].type}`}>{tab[tab.label].message}</p>
+      <p styleName={`saving--${type}`}>{message}</p>
     )
   }
 
@@ -129,7 +129,7 @@ class Preferences extends React.Component {
           <span styleName='nav-button-label'>
             {tab.label}
           </span>
-          {isUiHotkeyTab ? this.haveToSaveNotif(tab) : null}
+          {isUiHotkeyTab ? this.haveToSaveNotif(tab[tab.label].type, tab[tab.label].message) : null}
         </button>
       )
     })

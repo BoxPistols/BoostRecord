@@ -106,6 +106,18 @@ colorDarkPrimaryButton()
   &:active:hover
     background-color $dark-primary-button-background--active
 
+
+colorSolarizedDarkPrimaryButton()
+  color $ui-solarized-dark-text-color
+  background-color $ui-solarized-dark-button-backgroundColor
+  border none
+  &:hover
+    background-color $dark-primary-button-background--hover
+  &:active
+  &:active:hover
+    background-color $dark-primary-button-background--active
+
+
 // Danger button(Brand color)
 $danger-button-background = #c9302c
 $danger-button-background--hover = darken(#c9302c, 5%)
@@ -223,7 +235,6 @@ $ui-button--focus-borderColor = lighten(#369DCD, 25%)
 
 /******* Dark theme ********/
 $ui-dark-active-color = #3A404C
-
 $ui-dark-borderColor = #444444
 $ui-dark-backgroundColor = #2C3033
 $ui-dark-noteList-backgroundColor = #2C3033
@@ -250,6 +261,7 @@ colorDarkDefaultButton()
   &:active
   &:active:hover
     background-color $ui-dark-button--active-backgroundColor
+
 
 $dark-danger-button-background = #c9302c
 $dark-danger-button-background--hover = darken(#c9302c, 5%)
@@ -312,18 +324,19 @@ modalDark()
 
 
 /******* Solarized Dark theme ********/
-$ui-solarized-dark-backgroundColor = #2E3235
-$ui-solarized-dark-noteList-backgroundColor = #002B36
-$ui-solarized-dark-noteDetail-backgroundColor = #002B36
+$ui-solarized-dark-backgroundColor = #073642
+$ui-solarized-dark-noteList-backgroundColor = #073642
+$ui-solarized-dark-noteDetail-backgroundColor = #073642
 
-$ui-solarized-dark-text-color = #DDDDDD
-$ui-solarized-dark-active-color = #3A404C
+$ui-solarized-dark-text-color = #93a1a1
+$ui-solarized-dark-active-color = #2aa198
 
-$ui-solarized-dark-borderColor = lighten(#21252B, 20%)
+$ui-solarized-dark-borderColor = #586e75
 
-$ui-solarized-dark-tag-backgroundColor = #3A404C
+$ui-solarized-dark-tag-backgroundColor = #002b36
 
-$ui-solarized-dark-button--active-color = #f4f4f4
-$ui-solarized-dark-button--active-backgroundColor = #3A404C
+$ui-solarized-dark-button-backgroundColor = #002b36
+$ui-solarized-dark-button--active-color = #93a1a1
+$ui-solarized-dark-button--active-backgroundColor = #073642
 $ui-solarized-dark-button--hover-backgroundColor = lighten($ui-dark-backgroundColor, 10%)
 $ui-solarized-dark-button--focus-borderColor = lighten(#369DCD, 25%)

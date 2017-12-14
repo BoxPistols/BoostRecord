@@ -127,6 +127,12 @@ colorDarkControl()
   border-color $ui-dark-borderColor
   background-color $ui-dark-backgroundColor
   color $ui-dark-text-color
+  
+colorSolarizedDarkControl()
+  border none
+  background-color $ui-solarized-dark-button-backgroundColor
+  color $ui-solarized-dark-text-color
+
 
 body[data-theme="dark"]
   .root
@@ -154,3 +160,33 @@ body[data-theme="dark"]
   .group-section-control
     select, .group-section-control-input
       colorDarkControl()
+     
+      
+body[data-theme="solarized-dark"]
+  .root
+    color $ui-solarized-dark-text-color
+
+  .group-header
+    color $ui-solarized-dark-text-color
+    border-color $ui-solarized-dark-borderColor 
+
+  .group-header2
+    color $ui-solarized-dark-text-color
+
+  .group-section-control-input
+    border-color $ui-solarized-dark-borderColor 
+
+  .group-control
+    border-color $ui-solarized-dark-borderColor 
+  .group-control-leftButton
+    colorDarkDefaultButton()
+    border-color $ui-solarized-dark-borderColor 
+  .group-control-rightButton
+    colorSolarizedDarkPrimaryButton()
+  .group-hint
+    colorSolarizedDarkControl()
+  .group-section-control
+    select, .group-section-control-input
+      colorSolarizedDarkControl()
+
+

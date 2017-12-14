@@ -5,7 +5,7 @@ export function getTodoStatus (content) {
 
   splitted.forEach((line) => {
     const trimmedLine = line.trim()
-    if (trimmedLine.match(/^[\+\-\*] \[\s|x\] ./)) {
+    if (trimmedLine.match(/^[\+\-\*] \[(\s|x)\] ./)) {
       numberOfTodo++
     }
     if (trimmedLine.match(/^[\+\-\*] \[x\] ./)) {

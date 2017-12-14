@@ -27,7 +27,6 @@ Boostnote is an open source project. It's an independent project with its ongoin
 - [Become a backer or sponsor on Open Collective.](https://opencollective.com/boostnoteio)
 
 ## Community
-- [Subscribe to the Newsletter](https://boostnote.io/#community): Get updates on Boostnote progress. No spam, ever :)
 - [Facebook Group](https://www.facebook.com/groups/boostnote/)
 - [Twitter](https://twitter.com/boostnoteapp)
 - [Slack Group](https://join.slack.com/t/boostnote-group/shared_invite/enQtMjc2MDM0MDEyODk2LThlZDlhYmYwMjdkMmJjMGM5MGFiMGJmNzk5ZTdhNzFhMmNmMDFlY2M2YTE1MTZkOThiOGZmNTI3YzJiOTBhMTQ)
@@ -37,6 +36,7 @@ Boostnote is an open source project. It's an independent project with its ongoin
 
 #### More Information
 * [Website](https://boostnote.io)
+* [Subscribe to the Newsletter](https://boostnote.io/#community): Get updates on Boostnote progress. No spam, ever :)
 * [Development](https://github.com/BoostIO/Boostnote/blob/master/docs/build.md): Development configurations for Boostnote.
 * Copyright (C) 2017 Maisin&Co.
 

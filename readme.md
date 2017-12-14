@@ -26,16 +26,20 @@ Thank you to all the people who already contributed to Boostnote!
 Boostnote is an open source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome [backers](https://github.com/BoostIO/Boostnote/blob/master/Backers.md). If you'd like to join them, please consider:
 - [Become a backer or sponsor on Open Collective.](https://opencollective.com/boostnoteio)
 
-## Slack Group
-Let's talk about Boostnote! <br>
-[Join us](https://join.slack.com/t/boostnote-group/shared_invite/enQtMjc2MDM0MDEyODk2LThlZDlhYmYwMjdkMmJjMGM5MGFiMGJmNzk5ZTdhNzFhMmNmMDFlY2M2YTE1MTZkOThiOGZmNTI3YzJiOTBhMTQ)
+## Community
+- [Subscribe to the Newsletter](https://boostnote.io/#community): Get updates on Boostnote progress. No spam, ever :)
+- [Facebook Group](https://www.facebook.com/groups/boostnote/)
+- [Twitter](https://twitter.com/boostnoteapp)
+- [Slack Group](https://join.slack.com/t/boostnote-group/shared_invite/enQtMjc2MDM0MDEyODk2LThlZDlhYmYwMjdkMmJjMGM5MGFiMGJmNzk5ZTdhNzFhMmNmMDFlY2M2YTE1MTZkOThiOGZmNTI3YzJiOTBhMTQ)
+- [Blog](https://medium.com/boostnote)
+- [Reddit](https://www.reddit.com/r/Boostnote/)
 
-## More Information
+
+#### More Information
 * [Website](https://boostnote.io)
-* [Subscribe to the Newsletter](https://boostnote.io/#community): Get updates on Boostnote progress. No spam, ever :)
 * [Development](https://github.com/BoostIO/Boostnote/blob/master/docs/build.md): Development configurations for Boostnote.
 * Copyright (C) 2017 Maisin&Co.
 
-## License
+#### License
 
 [GPL v3](./LICENSE).

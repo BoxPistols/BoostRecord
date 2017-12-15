@@ -717,6 +717,7 @@ class NoteList extends React.Component {
             handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
             handleNoteClick={this.handleNoteClick.bind(this)}
             handleDragStart={this.handleDragStart.bind(this)}
+            pathname={location.pathname}
           />
         )
       })

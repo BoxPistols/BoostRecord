@@ -14,7 +14,7 @@ import styles from './NoteItemSimple.styl'
  * @param {Function} handleNoteContextMenu
  * @param {Function} handleDragStart
  */
-const NoteItemSimple = ({ isActive, note, handleNoteClick, handleNoteContextMenu, handleDragStart }) => (
+const NoteItemSimple = ({ isActive, note, handleNoteClick, handleNoteContextMenu, handleDragStart, pathname }) => (
   <div styleName={isActive
       ? 'item-simple--active'
       : 'item-simple'
@@ -29,6 +29,10 @@ const NoteItemSimple = ({ isActive, note, handleNoteClick, handleNoteContextMenu
       {note.type === 'SNIPPET_NOTE'
         ? <i styleName='item-simple-title-icon' className='fa fa-fw fa-code' />
         : <i styleName='item-simple-title-icon' className='fa fa-fw fa-file-text-o' />
+      }
+      {note.isPinned && !pathname.match(/\/home|\/starred|\/trash/)
+        ? <i styleName='item-pin' className='fa fa-thumb-tack' />
+        : ''
       }
       {note.title.trim().length > 0
         ? note.title

@@ -86,3 +86,29 @@ body[data-theme="dark"]
     background-color $dark-primary-button-background--active
     &:hover
       color white
+      
+
+body[data-theme="solarized-dark"]
+  .root
+    background-color transparent
+  .top-bar
+    background-color transparent
+    border-color $ui-solarized-dark-borderColor
+    p
+      color $ui-solarized-dark-text-color
+  .nav
+    background-color transparent
+    border-color $ui-solarized-dark-borderColor
+  .nav-button
+    background-color transparent
+    color $ui-solarized-dark-text-color
+    &:hover
+      color $ui-solarized-dark-text-color
+
+  .nav-button--active
+    @extend .nav-button
+    color $ui-solarized-dark-button--active-color
+    background-color $ui-solarized-dark-button--active-backgroundColor
+    &:hover
+      color white
+

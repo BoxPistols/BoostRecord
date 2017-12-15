@@ -85,10 +85,14 @@ modalBackColor = white
     absolute top left bottom right
     background-color modalBackColor
     z-index modalZIndex + 1
+    
+
 body[data-theme="dark"]
   .ModalBase
     .modalBack
       background-color $ui-dark-backgroundColor
+  .sortableItemHelper
+    color: $ui-dark-text-color
 
 .CodeMirror
   font-family inherit !important
@@ -108,6 +112,11 @@ body[data-theme="dark"]
 .sortableItemHelper
   z-index modalZIndex + 5
 
-body[data-theme="dark"]
+body[data-theme="solarized-dark"]
+  .ModalBase
+    .modalBack
+      background-color $ui-solarized-dark-backgroundColor
   .sortableItemHelper
-    color: $ui-dark-text-color
+    color: $ui-solarized-dark-text-color
+
+

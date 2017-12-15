@@ -95,3 +95,35 @@ body[data-theme="dark"]
     &:hover
       color white
       background-color $ui-dark-button--hover-backgroundColor
+  
+
+body[data-theme="solarized-dark"]
+  .root
+    background-color $ui-solarized-dark-backgroundColor
+
+  .description
+    border-color $ui-dark-borderColor
+    background-color $ui-solarized-dark-backgroundColor
+
+  .description-textarea
+    background-color $ui-solarized-dark-backgroundColor
+    color white
+
+  .tabList
+    background-color $ui-solarized-dark-backgroundColor
+
+  .tabList-item
+    border-color $ui-dark-borderColor
+    &:hover
+      background-color $ui-dark-button--hover-backgroundColor
+
+  .tabList-item-button
+    border none
+    color $ui-dark-text-color
+    background-color transparent
+    transition color background-color 0.15s
+    border-left 4px solid transparent
+    &:hover
+      color white
+      background-color $ui-dark-button--hover-backgroundColor
+

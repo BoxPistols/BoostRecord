@@ -15,6 +15,7 @@ import StatusBar from '../StatusBar'
 import _ from 'lodash'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
+import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
@@ -39,7 +40,8 @@ class MarkdownNoteDetail extends React.Component {
         content: ''
       }, props.note),
       isLockButtonShown: false,
-      isLocked: false
+      isLocked: false,
+      editorType: props.config.editor.type
     }
     this.dispatchTimer = null
 
@@ -262,6 +264,14 @@ class MarkdownNoteDetail extends React.Component {
     ee.emit('print')
   }
 
+  handleSwitchMode (type) {
+    this.setState({ editorType: type }, () => {
+      const newConfig = Object.assign({}, this.props.config)
+      newConfig.editor.type = type
+      ConfigManager.set(newConfig)
+    })
+  }
+
   render () {
     const { data, config, location } = this.props
     const { note } = this.state
@@ -320,10 +330,10 @@ class MarkdownNoteDetail extends React.Component {
         />
 
         <div styleName='mode-tab'>
-          <div styleName='active'>
+          <div styleName='active' onClick={() => this.handleSwitchMode('SPLIT')}>
             <img styleName='item-star' src='../resources/icon/icon-WYSIWYG-on.svg' />
           </div>
-          <div>
+          <div onClick={() => this.handleSwitchMode('DEFAULT')}>
             <img styleName='item-star' src='../resources/icon/icon-code-off.svg' />
           </div>
         </div>

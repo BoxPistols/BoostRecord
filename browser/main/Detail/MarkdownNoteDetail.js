@@ -318,6 +318,16 @@ class MarkdownNoteDetail extends React.Component {
           value={this.state.note.tags}
           onChange={(e) => this.handleChange(e)}
         />
+
+        <div styleName='mode-tab'>
+          <div styleName='active'>
+            <img styleName='item-star' src='../resources/icon/icon-WYSIWYG-on.svg' />
+          </div>
+          <div>
+            <img styleName='item-star' src='../resources/icon/icon-code-off.svg' />
+          </div>
+        </div>
+
         <TodoListPercentage
           percentageOfTodo={getTodoPercentageOfCompleted(note.content)}
         />

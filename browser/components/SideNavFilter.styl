@@ -191,16 +191,38 @@ body[data-theme="solarized-dark"]
       background-color $ui-solarized-dark-noteList-backgroundColor
       color $ui-solarized-dark-text-color
     &:hover
-      // background-color alpha($ui-solarized-dark-button--active-backgroundColor, 20%)
+      background-color $ui-solarized-dark-button-backgroundColor
       color $ui-solarized-dark-text-color
 
   .menu-button--active
-    color #c0392b
-    background-color $ui-solarized-dark-noteList-backgroundColor
+    color $ui-solarized-dark-text-color
+    background-color $ui-solarized-dark-button-backgroundColor
     .menu-button-label
       color $ui-solarized-dark-text-color
     &:hover
-      // background-color alpha($ui-solarized-dark-button--active-backgroundColor, 50%)
-      color #c0392b
+      background-color $ui-solarized-dark-button-backgroundColor
+      color $ui-solarized-dark-text-color
+      .menu-button-label
+        color $ui-solarized-dark-text-color
+
+  .menu-button-star--active
+    color $ui-solarized-dark-text-color
+    background-color $ui-solarized-dark-button-backgroundColor
+    .menu-button-label
+      color $ui-solarized-dark-text-color
+    &:hover
+      background-color $ui-solarized-dark-button-backgroundColor
+      color $ui-solarized-dark-text-color
+      .menu-button-label
+        color $ui-solarized-dark-text-color
+
+  .menu-button-trash--active
+    color $ui-solarized-dark-text-color
+    background-color $ui-solarized-dark-button-backgroundColor
+    .menu-button-label
+      color $ui-solarized-dark-text-color
+    &:hover
+      background-color $ui-solarized-dark-button-backgroundColor
+      color $ui-solarized-dark-text-color
       .menu-button-label
         color $ui-solarized-dark-text-color

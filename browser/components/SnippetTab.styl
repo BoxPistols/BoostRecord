@@ -38,7 +38,7 @@
   text-align center
   border none
   padding 0
-  color transparent
+  color $ui-inactive-text-color
   background-color transparent
   border-radius 2px
 
@@ -89,3 +89,50 @@ body[data-theme="dark"]
   .input
     background-color $ui-dark-button--hover-backgroundColor
     color $ui-dark-text-color
+
+  .deleteButton
+    color alpha($ui-dark-text-color, 30%)
+
+body[data-theme="solarized-dark"]
+  .root
+    color $ui-solarized-dark-text-color
+    border-color $ui-dark-borderColor
+    &:hover
+      background-color $ui-solarized-dark-noteDetail-backgroundColor
+      .deleteButton
+        color $ui-solarized-dark-text-color
+        &:hover
+          background-color darken($ui-solarized-dark-noteDetail-backgroundColor, 15%)
+        &:active
+          color $ui-solarized-dark-text-color
+          background-color $ui-dark-button--active-backgroundColor
+
+  .root--active
+    color $ui-solarized-dark-text-color
+    border-color $ui-solarized-dark-borderColor
+    &:hover
+      background-color $ui-solarized-dark-noteDetail-backgroundColor
+      .deleteButton
+        color $ui-solarized-dark-text-color
+        &:hover
+          background-color darken($ui-solarized-dark-noteDetail-backgroundColor, 15%)
+        &:active
+          color $ui-solarized-dark-text-color
+          background-color $ui-dark-button--active-backgroundColor
+
+  .button
+    border none
+    color $ui-solarized-dark-text-color
+    background-color transparent
+    transition color background-color 0.15s
+    border-left 4px solid transparent
+    &:hover
+      color $ui-solarized-dark-text-color
+      background-color $ui-solarized-dark-noteDetail-backgroundColor
+
+  .input
+    background-color $ui-solarized-dark-noteDetail-backgroundColor
+    color $ui-solarized-dark-text-color
+
+  .deleteButton
+    color alpha($ui-solarized-dark-text-color, 30%)

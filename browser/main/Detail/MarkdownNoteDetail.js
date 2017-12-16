@@ -274,7 +274,7 @@ class MarkdownNoteDetail extends React.Component {
 
   render () {
     const { data, config, location } = this.props
-    const { note } = this.state
+    const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -330,10 +330,10 @@ class MarkdownNoteDetail extends React.Component {
         />
 
         <div styleName='mode-tab'>
-          <div styleName='active' onClick={() => this.handleSwitchMode('SPLIT')}>
+          <div styleName={editorType === 'SPLIT' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('SPLIT')}>
             <img styleName='item-star' src='../resources/icon/icon-WYSIWYG-on.svg' />
           </div>
-          <div onClick={() => this.handleSwitchMode('DEFAULT')}>
+          <div styleName={editorType === 'DEFAULT' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('DEFAULT')}>
             <img styleName='item-star' src='../resources/icon/icon-code-off.svg' />
           </div>
         </div>

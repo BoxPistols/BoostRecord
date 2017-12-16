@@ -64,3 +64,20 @@ body[data-theme="dark"]
   .description
     color $ui-inactive-text-color
 
+body[data-theme="solarized-dark"]
+  .root
+    background-color transparent
+
+  .header
+    color $ui-solarized-dark-text-color
+
+  .control-button
+    border-color $ui-solarized-dark-borderColor
+    color $ui-solarized-dark-text-color
+    background-color transparent
+    &:focus
+      colorDarkPrimaryButton()
+
+  .description
+    color $ui-solarized-dark-text-color
+

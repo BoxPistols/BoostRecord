@@ -109,3 +109,22 @@ body[data-theme="dark"]
     &:hover
       color $ui-dark-text-color
       background-color alpha($ui-dark-button--active-backgroundColor, 50%)
+
+body[data-theme="solarized-dark"]
+  .folderList-item
+    &:hover
+      background-color $ui-solarized-dark-button-backgroundColor
+      color $ui-solarized-dark-text-color
+    &:active
+      color $ui-solarized-dark-text-color
+      background-color $ui-solarized-dark-button-backgroundColor
+
+  .folderList-item--active
+    @extend .folderList-item
+    color $ui-solarized-dark-text-color
+    background-color $ui-solarized-dark-button-backgroundColor
+    &:active
+      background-color $ui-solarized-dark-button-backgroundColor
+    &:hover
+      color $ui-solarized-dark-text-color
+      background-color $ui-solarized-dark-button-backgroundColor

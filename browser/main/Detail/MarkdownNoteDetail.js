@@ -23,6 +23,7 @@ import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
 import { getTodoPercentageOfCompleted } from 'browser/lib/getTodoStatus'
 import striptags from 'striptags'
+import exportNote from 'browser/main/lib/dataApi/exportNote'
 
 const electron = require('electron')
 const { remote } = electron
@@ -44,6 +45,8 @@ class MarkdownNoteDetail extends React.Component {
     this.dispatchTimer = null
 
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
+    this.saveAsText = this.handleSaveAsText.bind(this)
+    this.saveAsMd = this.handleSaveAsMd.bind(this)
   }
 
   focus () {
@@ -52,6 +55,8 @@ class MarkdownNoteDetail extends React.Component {
 
   componentDidMount () {
     ee.on('topbar:togglelockbutton', this.toggleLockButton)
+    ee.on('export:save-text', this.saveAsText)
+    ee.on('export:save-md', this.saveAsMd)
   }
 
   componentWillReceiveProps (nextProps) {
@@ -72,6 +77,8 @@ class MarkdownNoteDetail extends React.Component {
 
   componentDidUnmount () {
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
+    ee.off('export:save-text', this.saveAsTextHandler)
+    ee.off('export:save-md', this.saveAsMdHandler)
   }
 
   handleChange (e) {
@@ -170,6 +177,30 @@ class MarkdownNoteDetail extends React.Component {
     ee.emit('export:save-text')
   }
 
+  exportAsDocument (fileType) {
+    const options = {
+      filters: [
+        { name: 'Documents', extensions: [fileType] }
+      ],
+      properties: ['openFile', 'createDirectory']
+    }
+
+    dialog.showSaveDialog(remote.getCurrentWindow(), options,
+        (filename) => {
+          if (filename) {
+            const note = this.props.note
+
+            exportNote(note.storage, note.content, filename)
+                .then((res) => {
+                  dialog.showMessageBox(remote.getCurrentWindow(), {type: 'info', message: `Exported to ${filename}`})
+                }).catch((err) => {
+                  dialog.showErrorBox('Export error', err ? err.message || err : 'Unexpected error during export')
+                  throw err
+                })
+          }
+        })
+  }
+
   handleTrashButtonClick (e) {
     const { note } = this.state
     const { isTrashed } = note
@@ -205,6 +236,14 @@ class MarkdownNoteDetail extends React.Component {
       })
     }
     ee.emit('list:next')
+  }
+
+  handleSaveAsText () {
+    this.exportAsDocument('txt')
+  }
+
+  handleSaveAsMd () {
+    this.exportAsDocument('md')
   }
 
   handleUndoButtonClick (e) {

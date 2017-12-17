@@ -8,7 +8,6 @@ import Raphael from 'raphael'
 import flowchart from 'flowchart'
 import SequenceDiagram from 'js-sequence-diagrams'
 import eventEmitter from 'browser/main/lib/eventEmitter'
-import fs from 'fs'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
@@ -116,8 +115,6 @@ export default class MarkdownPreview extends React.Component {
     this.mouseUpHandler = (e) => this.handleMouseUp(e)
     this.anchorClickHandler = (e) => this.handlePreviewAnchorClick(e)
     this.checkboxClickHandler = (e) => this.handleCheckboxClick(e)
-    this.saveAsTextHandler = () => this.handleSaveAsText()
-    this.saveAsMdHandler = () => this.handleSaveAsMd()
     this.printHandler = () => this.handlePrint()
 
     this.linkClickHandler = this.handlelinkClick.bind(this)
@@ -165,33 +162,8 @@ export default class MarkdownPreview extends React.Component {
     if (this.props.onMouseUp != null) this.props.onMouseUp(e)
   }
 
-  handleSaveAsText () {
-    this.exportAsDocument('txt')
-  }
-
-  handleSaveAsMd () {
-    this.exportAsDocument('md')
-  }
-
   handlePrint () {
     this.refs.root.contentWindow.print()
-  }
-
-  exportAsDocument (fileType) {
-    const options = {
-      filters: [
-        { name: 'Documents', extensions: [fileType] }
-      ],
-      properties: ['openFile', 'createDirectory']
-    }
-    dialog.showSaveDialog(remote.getCurrentWindow(), options,
-    (filename) => {
-      if (filename) {
-        fs.writeFile(filename, this.props.value, (err) => {
-          if (err) throw err
-        })
-      }
-    })
   }
 
   fixDecodedURI (node) {
@@ -221,8 +193,6 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.addEventListener('mouseup', this.mouseUpHandler)
     this.refs.root.contentWindow.document.addEventListener('drop', this.preventImageDroppedHandler)
     this.refs.root.contentWindow.document.addEventListener('dragover', this.preventImageDroppedHandler)
-    eventEmitter.on('export:save-text', this.saveAsTextHandler)
-    eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('print', this.printHandler)
   }
 
@@ -232,8 +202,6 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.removeEventListener('mouseup', this.mouseUpHandler)
     this.refs.root.contentWindow.document.removeEventListener('drop', this.preventImageDroppedHandler)
     this.refs.root.contentWindow.document.removeEventListener('dragover', this.preventImageDroppedHandler)
-    eventEmitter.off('export:save-text', this.saveAsTextHandler)
-    eventEmitter.off('export:save-md', this.saveAsMdHandler)
     eventEmitter.off('print', this.printHandler)
   }
 

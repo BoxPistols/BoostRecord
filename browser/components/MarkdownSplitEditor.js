@@ -9,24 +9,14 @@ import CSSModules from 'browser/lib/CSSModules'
 class MarkdownSplitEditor extends React.Component {
   constructor (props) {
     super(props)
-    this.state = {
-      value: props.value
-    }
     this.value = props.value
     this.focus = () => this.refs.code.focus()
     this.reload = () => this.refs.code.reload()
   }
 
-  componentWillReceiveProps (props) {
-    this.setState({ value: props.value })
-  }
-
   handleOnChange () {
-    const value = this.refs.code.value
-    this.setState({ value }, () => {
-      this.value = value
-      this.props.onChange()
-    })
+    this.value = this.refs.code.value
+    this.props.onChange()
   }
 
   handleCheckboxClick (e) {
@@ -53,8 +43,7 @@ class MarkdownSplitEditor extends React.Component {
   }
 
   render () {
-    const { config, storageKey } = this.props
-    const { value } = this.state
+    const { config, value, storageKey } = this.props
     const storage = findStorage(storageKey)
     const previewStyle = {}
     if (this.props.ignorePreviewPointerEvents) previewStyle.pointerEvents = 'none'

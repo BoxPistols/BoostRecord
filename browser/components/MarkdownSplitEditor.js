@@ -56,6 +56,8 @@ class MarkdownSplitEditor extends React.Component {
     const { config, storageKey } = this.props
     const { value } = this.state
     const storage = findStorage(storageKey)
+    const previewStyle = {}
+    if (this.props.ignorePreviewPointerEvents) previewStyle.pointerEvents = 'none'
     return (
       <div styleName='root'>
         <CodeEditor
@@ -72,6 +74,7 @@ class MarkdownSplitEditor extends React.Component {
           onChange={e => this.handleOnChange(e)}
        />
         <MarkdownPreview
+          style={previewStyle}
           styleName='preview'
           theme={config.ui.theme}
           keyMap={config.editor.keyMap}

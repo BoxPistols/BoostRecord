@@ -283,6 +283,7 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         onChange={(e) => this.handleChange(e)}
+        ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
     } else {
       return <MarkdownEditor

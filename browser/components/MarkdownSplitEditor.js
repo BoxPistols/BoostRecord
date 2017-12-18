@@ -75,7 +75,8 @@ class MarkdownSplitEditor extends React.Component {
           styleName='preview'
           theme={config.ui.theme}
           keyMap={config.editor.keyMap}
-          fontSize={config.preview.fontFamily}
+          fontSize={config.preview.fontSize}
+          fontFamily={config.preview.fontFamily}
           codeBlockTheme={config.preview.codeBlockTheme}
           codeBlockFontFamily={config.editor.fontFamily}
           lineNumber={config.preview.lineNumber}

@@ -3,6 +3,7 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './MarkdownNoteDetail.styl'
 import MarkdownEditor from 'browser/components/MarkdownEditor'
+import MarkdownSplitEditor from 'browser/components/MarkdownSplitEditor'
 import TodoListPercentage from 'browser/components/TodoListPercentage'
 import StarButton from './StarButton'
 import TagSelect from './TagSelect'
@@ -272,6 +273,24 @@ class MarkdownNoteDetail extends React.Component {
     })
   }
 
+  renderEditor () {
+    const { config, ignorePreviewPointerEvents } = this.props
+    const { note } = this.state
+    if (this.state.editorType === 'SPLIT') {
+      return <MarkdownSplitEditor />
+    } else {
+      return <MarkdownEditor
+        ref='content'
+        styleName='body-noteEditor'
+        config={config}
+        value={note.content}
+        storageKey={note.storage}
+        onChange={(e) => this.handleChange(e)}
+        ignorePreviewPointerEvents={ignorePreviewPointerEvents}
+      />
+    }
+  }
+
   render () {
     const { data, config, location } = this.props
     const { note, editorType } = this.state
@@ -400,15 +419,7 @@ class MarkdownNoteDetail extends React.Component {
         {location.pathname === '/trashed' ? trashTopBar : detailTopBar}
 
         <div styleName='body'>
-          <MarkdownEditor
-            ref='content'
-            styleName='body-noteEditor'
-            config={config}
-            value={this.state.note.content}
-            storageKey={this.state.note.storage}
-            onChange={(e) => this.handleChange(e)}
-            ignorePreviewPointerEvents={this.props.ignorePreviewPointerEvents}
-          />
+          {this.renderEditor()}
         </div>
 
         <StatusBar

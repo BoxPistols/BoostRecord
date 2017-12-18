@@ -21,7 +21,7 @@ class MarkdownSplitEditor extends React.Component {
     this.setState({ value: props.value })
   }
 
-  handleOnChange (e) {
+  handleOnChange () {
     const value = this.refs.code.value
     this.setState({ value }, () => {
       this.value = value
@@ -71,7 +71,7 @@ class MarkdownSplitEditor extends React.Component {
           indentType={config.editor.indentType}
           scrollPastEnd={config.editor.scrollPastEnd}
           storageKey={storageKey}
-          onChange={e => this.handleOnChange(e)}
+          onChange={this.handleOnChange.bind(this)}
        />
         <MarkdownPreview
           style={previewStyle}

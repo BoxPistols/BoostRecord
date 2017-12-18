@@ -29,6 +29,29 @@ class MarkdownSplitEditor extends React.Component {
     })
   }
 
+  handleCheckboxClick (e) {
+    e.preventDefault()
+    e.stopPropagation()
+    const idMatch = /checkbox-([0-9]+)/
+    const checkedMatch = /\[x\]/i
+    const uncheckedMatch = /\[ \]/
+    if (idMatch.test(e.target.getAttribute('id'))) {
+      const lineIndex = parseInt(e.target.getAttribute('id').match(idMatch)[1], 10) - 1
+      const lines = this.refs.code.value
+        .split('\n')
+
+      const targetLine = lines[lineIndex]
+
+      if (targetLine.match(checkedMatch)) {
+        lines[lineIndex] = targetLine.replace(checkedMatch, '[ ]')
+      }
+      if (targetLine.match(uncheckedMatch)) {
+        lines[lineIndex] = targetLine.replace(uncheckedMatch, '[x]')
+      }
+      this.refs.code.setValue(lines.join('\n'))
+    }
+  }
+
   render () {
     const { config, storageKey } = this.props
     const { value } = this.state
@@ -59,6 +82,7 @@ class MarkdownSplitEditor extends React.Component {
           ref='preview'
           tabInde='0'
           value={value}
+          onCheckboxClick={(e) => this.handleCheckboxClick(e)}
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
        />

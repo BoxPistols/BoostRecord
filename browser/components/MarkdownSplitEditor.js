@@ -35,35 +35,33 @@ class MarkdownSplitEditor extends React.Component {
     const storage = findStorage(storageKey)
     return (
       <div styleName='root'>
-        <div styleName='editor'>
-          <CodeEditor
-            ref='code'
-            mode='GitHub Flavored Markdown'
-            value={value}
-            theme={config.editor.theme}
-            keyMap={config.editor.keyMap}
-            fontFamily={config.editor.fontFamily}
-            indentType={config.editor.indentType}
-            scrollPastEnd={config.editor.scrollPastEnd}
-            storageKey={storageKey}
-            onChange={e => this.handleOnChange(e)}
-         />
-        </div>
-        <div styleName='preview'>
-          <MarkdownPreview
-            theme={config.ui.theme}
-            keyMap={config.editor.keyMap}
-            fontSize={config.preview.fontFamily}
-            codeBlockTheme={config.preview.codeBlockTheme}
-            codeBlockFontFamily={config.editor.fontFamily}
-            lineNumber={config.preview.lineNumber}
-            ref='preview'
-            tabInde='0'
-            value={value}
-            showCopyNotification={config.ui.showCopyNotification}
-            storagePath={storage.path}
-         />
-        </div>
+        <CodeEditor
+          styleName='codeEditor'
+          ref='code'
+          mode='GitHub Flavored Markdown'
+          value={value}
+          theme={config.editor.theme}
+          keyMap={config.editor.keyMap}
+          fontFamily={config.editor.fontFamily}
+          indentType={config.editor.indentType}
+          scrollPastEnd={config.editor.scrollPastEnd}
+          storageKey={storageKey}
+          onChange={e => this.handleOnChange(e)}
+       />
+        <MarkdownPreview
+          styleName='preview'
+          theme={config.ui.theme}
+          keyMap={config.editor.keyMap}
+          fontSize={config.preview.fontFamily}
+          codeBlockTheme={config.preview.codeBlockTheme}
+          codeBlockFontFamily={config.editor.fontFamily}
+          lineNumber={config.preview.lineNumber}
+          ref='preview'
+          tabInde='0'
+          value={value}
+          showCopyNotification={config.ui.showCopyNotification}
+          storagePath={storage.path}
+       />
       </div>
     )
   }

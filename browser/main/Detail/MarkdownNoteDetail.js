@@ -299,7 +299,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   render () {
-    const { data, config, location } = this.props
+    const { data, location } = this.props
     const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder

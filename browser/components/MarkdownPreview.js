@@ -144,10 +144,12 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleContextMenu (e) {
+    if (!this.props.onContextMenu) return
     this.props.onContextMenu(e)
   }
 
   handleMouseDown (e) {
+    if (!this.props.onMouseDown) return
     if (e.target != null) {
       switch (e.target.tagName) {
         case 'A':
@@ -159,6 +161,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleMouseUp (e) {
+    if (!this.props.onMouseUp) return
     if (e.target != null && e.target.tagName === 'A') {
       return null
     }

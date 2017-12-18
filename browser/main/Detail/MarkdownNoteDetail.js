@@ -277,7 +277,13 @@ class MarkdownNoteDetail extends React.Component {
     const { config, ignorePreviewPointerEvents } = this.props
     const { note } = this.state
     if (this.state.editorType === 'SPLIT') {
-      return <MarkdownSplitEditor />
+      return <MarkdownSplitEditor
+        ref='content'
+        config={config}
+        value={note.content}
+        storageKey={note.storage}
+        onChange={(e) => this.handleChange(e)}
+      />
     } else {
       return <MarkdownEditor
         ref='content'

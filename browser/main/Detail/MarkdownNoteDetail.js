@@ -236,7 +236,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   getToggleLockButton () {
-    return this.state.isLocked ? '../resources/icon/icon-edit-lock.svg' : '../resources/icon/icon-edit.svg'
+    return this.state.isLocked ? '../resources/icon/icon-previewoff-on.svg' : '../resources/icon/icon-previewoff-off.svg'
   }
 
   handleDeleteKeyDown (e) {
@@ -357,10 +357,10 @@ class MarkdownNoteDetail extends React.Component {
 
         <div styleName='mode-tab'>
           <div styleName={editorType === 'SPLIT' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('SPLIT')}>
-            <img styleName='item-star' src='../resources/icon/icon-WYSIWYG-on.svg' />
+            <img styleName='item-star' src='../resources/icon/icon-mode-split-on.svg' />
           </div>
           <div styleName={editorType === 'DEFAULT' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('DEFAULT')}>
-            <img styleName='item-star' src='../resources/icon/icon-code-off.svg' />
+            <img styleName='item-star' src='../resources/icon/icon-mode-markdown-off.svg' />
           </div>
         </div>
 
@@ -396,7 +396,7 @@ class MarkdownNoteDetail extends React.Component {
         <button styleName='control-fullScreenButton'
           onMouseDown={(e) => this.handleFullScreenButton(e)}
         >
-          <img styleName='iconInfo' src='../resources/icon/icon-sidebar.svg' />
+          <img styleName='iconInfo' src='../resources/icon/icon-full.svg' />
         </button>
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />

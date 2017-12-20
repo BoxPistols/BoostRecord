@@ -3,6 +3,7 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './MarkdownNoteDetail.styl'
 import MarkdownEditor from 'browser/components/MarkdownEditor'
+import MarkdownSplitEditor from 'browser/components/MarkdownSplitEditor'
 import TodoListPercentage from 'browser/components/TodoListPercentage'
 import StarButton from './StarButton'
 import TagSelect from './TagSelect'
@@ -15,6 +16,7 @@ import StatusBar from '../StatusBar'
 import _ from 'lodash'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
+import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
@@ -39,7 +41,8 @@ class MarkdownNoteDetail extends React.Component {
         content: ''
       }, props.note),
       isLockButtonShown: false,
-      isLocked: false
+      isLocked: false,
+      editorType: props.config.editor.type
     }
     this.dispatchTimer = null
 
@@ -233,7 +236,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   getToggleLockButton () {
-    return this.state.isLocked ? '../resources/icon/icon-edit-lock.svg' : '../resources/icon/icon-edit.svg'
+    return this.state.isLocked ? '../resources/icon/icon-previewoff-on.svg' : '../resources/icon/icon-previewoff-off.svg'
   }
 
   handleDeleteKeyDown (e) {
@@ -262,9 +265,42 @@ class MarkdownNoteDetail extends React.Component {
     ee.emit('print')
   }
 
-  render () {
-    const { data, config, location } = this.props
+  handleSwitchMode (type) {
+    this.setState({ editorType: type }, () => {
+      const newConfig = Object.assign({}, this.props.config)
+      newConfig.editor.type = type
+      ConfigManager.set(newConfig)
+    })
+  }
+
+  renderEditor () {
+    const { config, ignorePreviewPointerEvents } = this.props
     const { note } = this.state
+    if (this.state.editorType === 'EDITOR_PREVIEW') {
+      return <MarkdownEditor
+        ref='content'
+        styleName='body-noteEditor'
+        config={config}
+        value={note.content}
+        storageKey={note.storage}
+        onChange={(e) => this.handleChange(e)}
+        ignorePreviewPointerEvents={ignorePreviewPointerEvents}
+      />
+    } else {
+      return <MarkdownSplitEditor
+        ref='content'
+        config={config}
+        value={note.content}
+        storageKey={note.storage}
+        onChange={(e) => this.handleChange(e)}
+        ignorePreviewPointerEvents={ignorePreviewPointerEvents}
+      />
+    }
+  }
+
+  render () {
+    const { data, location } = this.props
+    const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -320,11 +356,11 @@ class MarkdownNoteDetail extends React.Component {
         />
 
         <div styleName='mode-tab'>
-          <div styleName='active'>
-            <img styleName='item-star' src='../resources/icon/icon-WYSIWYG-on.svg' />
+          <div styleName={editorType === 'SPLIT' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('SPLIT')}>
+            <img styleName='item-star' src='../resources/icon/icon-mode-split-on.svg' />
           </div>
-          <div>
-            <img styleName='item-star' src='../resources/icon/icon-code-off.svg' />
+          <div styleName={editorType === 'EDITOR_PREVIEW' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('EDITOR_PREVIEW')}>
+            <img styleName='item-star' src='../resources/icon/icon-mode-markdown-off.svg' />
           </div>
         </div>
 
@@ -360,7 +396,7 @@ class MarkdownNoteDetail extends React.Component {
         <button styleName='control-fullScreenButton'
           onMouseDown={(e) => this.handleFullScreenButton(e)}
         >
-          <img styleName='iconInfo' src='../resources/icon/icon-sidebar.svg' />
+          <img styleName='iconInfo' src='../resources/icon/icon-full.svg' />
         </button>
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
@@ -390,15 +426,7 @@ class MarkdownNoteDetail extends React.Component {
         {location.pathname === '/trashed' ? trashTopBar : detailTopBar}
 
         <div styleName='body'>
-          <MarkdownEditor
-            ref='content'
-            styleName='body-noteEditor'
-            config={config}
-            value={this.state.note.content}
-            storageKey={this.state.note.storage}
-            onChange={(e) => this.handleChange(e)}
-            ignorePreviewPointerEvents={this.props.ignorePreviewPointerEvents}
-          />
+          {this.renderEditor()}
         </div>
 
         <StatusBar

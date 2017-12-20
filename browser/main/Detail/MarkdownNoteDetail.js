@@ -357,10 +357,10 @@ class MarkdownNoteDetail extends React.Component {
 
         <div styleName='mode-tab'>
           <div styleName={editorType === 'SPLIT' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('SPLIT')}>
-            <img styleName='item-star' src='../resources/icon/icon-mode-split-on.svg' />
+            <img styleName='item-star' src={editorType === 'EDITOR_PREVIEW' ? '../resources/icon/icon-mode-split-on.svg' : '../resources/icon/icon-mode-split-on-active.svg'} />
           </div>
           <div styleName={editorType === 'EDITOR_PREVIEW' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('EDITOR_PREVIEW')}>
-            <img styleName='item-star' src='../resources/icon/icon-mode-markdown-off.svg' />
+            <img styleName='item-star' src={editorType === 'EDITOR_PREVIEW' ? '../resources/icon/icon-mode-markdown-off-active.svg' : '../resources/icon/icon-mode-markdown-off.svg'} />
           </div>
         </div>
 

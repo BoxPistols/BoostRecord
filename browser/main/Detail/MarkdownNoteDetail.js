@@ -276,9 +276,10 @@ class MarkdownNoteDetail extends React.Component {
   renderEditor () {
     const { config, ignorePreviewPointerEvents } = this.props
     const { note } = this.state
-    if (this.state.editorType === 'SPLIT') {
-      return <MarkdownSplitEditor
+    if (this.state.editorType === 'EDITOR_PREVIEW') {
+      return <MarkdownEditor
         ref='content'
+        styleName='body-noteEditor'
         config={config}
         value={note.content}
         storageKey={note.storage}
@@ -286,9 +287,8 @@ class MarkdownNoteDetail extends React.Component {
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
     } else {
-      return <MarkdownEditor
+      return <MarkdownSplitEditor
         ref='content'
-        styleName='body-noteEditor'
         config={config}
         value={note.content}
         storageKey={note.storage}
@@ -359,7 +359,7 @@ class MarkdownNoteDetail extends React.Component {
           <div styleName={editorType === 'SPLIT' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('SPLIT')}>
             <img styleName='item-star' src='../resources/icon/icon-mode-split-on.svg' />
           </div>
-          <div styleName={editorType === 'DEFAULT' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('DEFAULT')}>
+          <div styleName={editorType === 'EDITOR_PREVIEW' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('EDITOR_PREVIEW')}>
             <img styleName='item-star' src='../resources/icon/icon-mode-markdown-off.svg' />
           </div>
         </div>

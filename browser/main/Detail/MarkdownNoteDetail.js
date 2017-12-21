@@ -176,46 +176,34 @@ class MarkdownNoteDetail extends React.Component {
   handleTrashButtonClick (e) {
     const { note } = this.state
     const { isTrashed } = note
-    const { config } = this.props
+    const { confirmDeletion } = this.props
 
     if (isTrashed) {
-      const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
-        type: 'warning',
-        message: 'Confirm note deletion',
-        detail: 'This will permanently remove this note.',
-        buttons: ['Confirm', 'Cancel']
-      })
-      if (dialogueButtonIndex === 1) return
-      const { note, dispatch } = this.props
-      dataApi
-        .deleteNote(note.storage, note.key)
-        .then((data) => {
-          const dispatchHandler = () => {
-            dispatch({
-              type: 'DELETE_NOTE',
-              storageKey: data.storageKey,
-              noteKey: data.noteKey
-            })
-          }
-          ee.once('list:moved', dispatchHandler)
-        })
-    } else {
-      if (config.ui.confirmDeletion) {
-        const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
-          type: 'warning',
-          message: 'Confirm note deletion',
-          detail: 'Are you sure you want to move the note to the trash?',
-          buttons: ['Confirm', 'Cancel']
-        })
-        if (dialogueButtonIndex === 1) return
+      if (confirmDeletion(true)) {
+        const {note, dispatch} = this.props
+        dataApi
+          .deleteNote(note.storage, note.key)
+          .then((data) => {
+            const dispatchHandler = () => {
+              dispatch({
+                type: 'DELETE_NOTE',
+                storageKey: data.storageKey,
+                noteKey: data.noteKey
+              })
+            }
+            ee.once('list:moved', dispatchHandler)
+          })
       }
-      note.isTrashed = true
+    } else {
+      if (confirmDeletion()) {
+        note.isTrashed = true
 
-      this.setState({
-        note
-      }, () => {
-        this.save()
-      })
+        this.setState({
+          note
+        }, () => {
+          this.save()
+        })
+      }
     }
     ee.emit('list:next')
   }
@@ -457,7 +445,8 @@ MarkdownNoteDetail.propTypes = {
   style: PropTypes.shape({
     left: PropTypes.number
   }),
-  ignorePreviewPointerEvents: PropTypes.bool
+  ignorePreviewPointerEvents: PropTypes.bool,
+  confirmDeletion: PropTypes.bool.isRequired
 }
 
 export default CSSModules(MarkdownNoteDetail, styles)

@@ -203,7 +203,6 @@ class SnippetNoteDetail extends React.Component {
           this.save()
         })
       }
-
     }
     ee.emit('list:next')
   }

@@ -18,8 +18,10 @@ import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
+import FullscreenButton from './FullscreenButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
+import ToggleModeButton from './ToggleModeButton'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
@@ -355,18 +357,9 @@ class MarkdownNoteDetail extends React.Component {
           onChange={(e) => this.handleChange(e)}
         />
 
-        <div styleName='mode-tab'>
-          <div styleName={editorType === 'SPLIT' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('SPLIT')}>
-            <img styleName='item-star' src={editorType === 'EDITOR_PREVIEW' ? '../resources/icon/icon-mode-split-on.svg' : '../resources/icon/icon-mode-split-on-active.svg'} />
-          </div>
-          <div styleName={editorType === 'EDITOR_PREVIEW' ? 'active' : 'non-active'} onClick={() => this.handleSwitchMode('EDITOR_PREVIEW')}>
-            <img styleName='item-star' src={editorType === 'EDITOR_PREVIEW' ? '../resources/icon/icon-mode-markdown-off-active.svg' : '../resources/icon/icon-mode-markdown-off.svg'} />
-          </div>
-        </div>
+        <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
 
-        <TodoListPercentage
-          percentageOfTodo={getTodoPercentageOfCompleted(note.content)}
-        />
+        <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
         <InfoButton
@@ -393,11 +386,7 @@ class MarkdownNoteDetail extends React.Component {
           )
         })()}
 
-        <button styleName='control-fullScreenButton'
-          onMouseDown={(e) => this.handleFullScreenButton(e)}
-        >
-          <img styleName='iconInfo' src='../resources/icon/icon-full.svg' />
-        </button>
+        <FullscreenButton onClick={(e) => this.handleFullScreenButton(e)} />
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
 

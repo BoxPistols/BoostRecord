@@ -11,19 +11,6 @@
 .top
   padding-bottom 15px
 
-.top-menu-preference
-  navButtonColor()
-  position absolute
-  top 22px
-  right 10px
-  width 2em
-  background-color transparent
-  &:hover
-    color $ui-button-default--active-backgroundColor
-    background-color transparent
-  &:active, &:active:hover
-    color $ui-button-default--active-backgroundColor
-
 .switch-buttons
   background-color transparent
   border 0
@@ -31,21 +18,7 @@
   display flex
   text-align center
 
-.non-active-button
-  color $ui-inactive-text-color
-  font-size 16px
-  border 0
-  background-color transparent
-  transition 0.2s
-  display flex
-  text-align center
-  margin-right 4px;
-  &:hover
-    color alpha(#239F86, 60%)
 
-.active-button
-  @extend .non-active-button
-  color $ui-button-default--active-backgroundColor
   
 .top-menu-label
   margin-left 5px
@@ -109,33 +82,6 @@ body[data-theme="white"]
     background-color #f9f9f9
     color $ui-text-color
 
-  .top-menu-preference
-    navWhiteButtonColor()
-    background-color transparent
-    &:hover
-      color #0B99F1
-      background-color transparent
-    &:active, &:active:hover
-      color #0B99F1
-      background-color transparent
-
-  .non-active-button
-    color $ui-inactive-text-color
-    &:hover
-      color alpha(#0B99F1, 60%)
-
-  .tag-title
-    p
-      color $ui-text-color
-
-  .non-active-button
-    &:hover
-      color alpha(#0B99F1, 60%)
-
-  .active-button
-    @extend .non-active-button
-    color #0B99F1
-
 body[data-theme="dark"]
   .root, .root--folded
     border-right 1px solid $ui-dark-borderColor
@@ -144,25 +90,6 @@ body[data-theme="dark"]
 
   .top
     border-color $ui-dark-borderColor
-
-  .top-menu-preference
-    navDarkButtonColor()
-    background-color transparent
-    &:active
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-      background-color transparent
-    &:hover
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-      background-color transparent
-
-  .non-active-button
-    color alpha($ui-dark-text-color, 60%)
-    &:hover
-      color alpha(#0B99F1, 60%)
-
-  .tag-title
-    p
-      color alpha($ui-dark-text-color, 60%)
 
 body[data-theme="solarized-dark"]
   .root, .root--folded

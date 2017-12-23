@@ -1,5 +1,4 @@
 .control-toggleModeButton
-
   border 1px solid #eee
   height 34px
   display flex
@@ -39,3 +38,24 @@
 body[data-theme="dark"]
   .control-fullScreenButton
     topBarButtonDark()
+
+  .control-toggleModeButton
+    border 1px solid #444444
+    div
+      background-color $ui-dark-noteDetail-backgroundColor
+      &:first-child
+        border-right 1px solid #444444
+    .active
+      background-color #3A404C
+      box-shadow 2px 0px 7px #444444
+
+body[data-theme="solarized-dark"]
+  .control-toggleModeButton
+    border 1px solid #586E75
+    div
+      background-color $ui-solarized-dark-noteDetail-backgroundColor
+      &:first-child
+        border-right 1px solid #586E75
+    .active
+      background-color #002B36
+      box-shadow 2px 0px 7px #222222

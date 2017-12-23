@@ -1,10 +1,28 @@
 .control-trashButton
-  float right
-  topBarButtonLight()
+  top 115px
+  topBarButtonRight()
+  &:hover .tooltip
+    opacity 1
+
+.tooltip
+  tooltip()
+  position absolute
+  pointer-events none
+  top 26px
+  right 0
+  z-index 200
+  padding 5px
+  line-height normal
+  border-radius 2px
+  opacity 0
+  transition 0.1s
+
+.control-trashButton--in-trash
+  top 60px
+  topBarButtonRight()
 
 .trashButton
   padding 0px
-  margin 15px 0
 
 body[data-theme="dark"]
   .control-trashButton

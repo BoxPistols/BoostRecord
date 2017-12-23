@@ -1,12 +1,17 @@
 .control-infoButton
-  float right
-  topBarButtonLight()
+  top 10px
+  topBarButtonRight()
+  &:hover .tooltip
+    opacity 1
 
-.control-infoPanel
-  position fixed
+.tooltip
+  tooltip()
+  position absolute
   pointer-events none
-  top 50px
+  top 26px
+  right 0
   z-index 200
+  padding 5px
   line-height normal
   border-radius 2px
   opacity 0
@@ -14,7 +19,6 @@
 
 .infoButton
   padding 0px
-  margin 15px 0
 
 body[data-theme="dark"]
   .control-infoButton

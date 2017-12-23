@@ -4,7 +4,7 @@
 * npm: 4.x
 * node: 7.x
 
-因为`$ grand pre-build`的问题，您只能使用`npm v4.x`而不能使用`npm v5.x`。  
+因为`$ grunt pre-build`的问题，您只能使用`npm v4.x`而不能使用`npm v5.x`。  
 
 ## 开发
 

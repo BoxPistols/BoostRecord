@@ -19,18 +19,18 @@ class StorageSection extends React.Component {
   }
 
   handleHeaderClick (e) {
-    let { storage } = this.props
+    const { storage } = this.props
     this.props.handleStorageButtonClick(e, storage.key)
   }
 
   handleFolderClick (e, folder) {
-    let { storage } = this.props
+    const { storage } = this.props
     this.props.handleFolderButtonClick(e, storage.key, folder.key)
   }
 
   render () {
-    let { storage, filter } = this.props
-    let folderList = storage.folders
+    const { storage, filter } = this.props
+    const folderList = storage.folders
       .map(folder => (
         <StorageItem
           key={folder.key}

@@ -1,8 +1,10 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import store from 'browser/main/store'
+import _ from 'lodash'
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer
@@ -40,7 +42,7 @@ class HotkeyTab extends React.Component {
   }
 
   handleSaveButtonClick (e) {
-    let newConfig = {
+    const newConfig = {
       hotkey: this.state.config.hotkey
     }
 
@@ -50,6 +52,7 @@ class HotkeyTab extends React.Component {
       type: 'SET_UI',
       config: newConfig
     })
+    this.clearMessage()
   }
 
   handleHintToggleButtonClick (e) {
@@ -59,7 +62,7 @@ class HotkeyTab extends React.Component {
   }
 
   handleHotkeyChange (e) {
-    let { config } = this.state
+    const { config } = this.state
     config.hotkey = {
       toggleFinder: this.refs.toggleFinder.value,
       toggleMain: this.refs.toggleMain.value
@@ -69,14 +72,22 @@ class HotkeyTab extends React.Component {
     })
   }
 
+  clearMessage () {
+    _.debounce(() => {
+      this.setState({
+        keymapAlert: null
+      })
+    }, 2000)()
+  }
+
   render () {
-    let keymapAlert = this.state.keymapAlert
-    let keymapAlertElement = keymapAlert != null
+    const keymapAlert = this.state.keymapAlert
+    const keymapAlertElement = keymapAlert != null
       ? <p className={`alert ${keymapAlert.type}`}>
         {keymapAlert.message}
       </p>
       : null
-    let { config } = this.state
+    const { config } = this.state
 
     return (
       <div styleName='root'>
@@ -94,7 +105,7 @@ class HotkeyTab extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>Toggle Finder(popup)</div>
+            <div styleName='group-section-label'>Toggle Finder (Quick search)</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
                 onChange={(e) => this.handleHotkeyChange(e)}

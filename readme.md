@@ -1,12 +1,12 @@
 New:zap:
 
-[Android and iOS apps](https://github.com/BoostIO/Boostnote-mobile) are released!
+Open sourcing our [Android and iOS apps](https://github.com/BoostIO/Boostnote-mobile)!
 
 ![Boostnote app screenshot](./resources/repository/top.png)
 
 <h4 align="center">Note-taking app for programmers. </h4>
-<h5 align="center">Apps available for Mac, Windows, Linux, Android and iOS!</h5>
-<h5 align="center">Built with Electron, React + Redux, Webpack and CSSModules</h5>
+<h5 align="center">Apps available for Mac, Windows, Linux, Android and iOS.</h5>
+<h5 align="center">Built with Electron, React + Redux, Webpack and CSSModules.</h5>
 
 [![Build Status](https://travis-ci.org/BoostIO/Boostnote.svg?branch=master)](https://travis-ci.org/BoostIO/Boostnote)
 
@@ -14,23 +14,32 @@ New:zap:
 - [Rokt33r](https://github.com/rokt33r)
 - [sota1235](https://github.com/sota1235)
 - [Kohei TAKATA](https://github.com/kohei-takata)
-- [asmsuechan](https://github.com/asmsuechan)
-- [Kazu Yokomizo](https://github.com/kazup01)
+- [Sosuke](https://github.com/sosukesuzuki)
+- [Kazz](https://github.com/kazup01)
 
 ## Contributors
-[Great contributors](https://github.com/BoostIO/Boostnote/graphs/contributors) :tada:
+Thank you to all the people who already contributed to Boostnote!
 
-## Slack Group
-Let's talk about Boostnote's great features, new feature requests and things like Japanese gourmet. 🍣 <br>
-[Join us](https://join.slack.com/t/boostnote-group/shared_invite/MjMxMDA0MjYxNzkzLTE1MDM2MjIyMjctZmNlNTMyZGJhZA)
+<a href="https://github.com/BoostIO/Boostnote/graphs/contributors"><img src="https://opencollective.com/boostnoteio/contributors.svg?width=890" /></a>
 
-## More Information
+## Supporting Boostnote
+Boostnote is an open source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome [backers](https://github.com/BoostIO/Boostnote/blob/master/Backers.md). If you'd like to join them, please consider:
+- [Become a backer or sponsor on Open Collective.](https://opencollective.com/boostnoteio)
+
+## Community
+- [Facebook Group](https://www.facebook.com/groups/boostnote/)
+- [Twitter](https://twitter.com/boostnoteapp)
+- [Slack Group](https://join.slack.com/t/boostnote-group/shared_invite/enQtMjc2MDM0MDEyODk2LThlZDlhYmYwMjdkMmJjMGM5MGFiMGJmNzk5ZTdhNzFhMmNmMDFlY2M2YTE1MTZkOThiOGZmNTI3YzJiOTBhMTQ)
+- [Blog](https://medium.com/boostnote)
+- [Reddit](https://www.reddit.com/r/Boostnote/)
+
+
+#### More Information
 * [Website](https://boostnote.io)
-* [Boostnote Team](https://boostnote.io/team/) : Boostnote for the creative hacker teams. Share your markdown notes and snippets instantly with your team. **We will release it at August!** 🏃💨
-* [Support us via Bountysource](https://salt.bountysource.com/teams/boostnote) : Thank you for your support 🎉
-* [Development](https://github.com/BoostIO/Boostnote/blob/master/docs/build.md) : Development configurations for Boostnote 🚀
+* [Subscribe to the Newsletter](https://boostnote.io/#community): Get updates on Boostnote progress. No spam, ever :)
+* [Development](https://github.com/BoostIO/Boostnote/blob/master/docs/build.md): Development configurations for Boostnote.
 * Copyright (C) 2017 Maisin&Co.
 
-## License
+#### License
 
 [GPL v3](./LICENSE).

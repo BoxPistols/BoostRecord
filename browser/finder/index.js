@@ -1,8 +1,8 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import ReactDOM from 'react-dom'
 import { connect, Provider } from 'react-redux'
 import _ from 'lodash'
-import ipc from './ipcClient'
 import store from './store'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './FinderMain.styl'
@@ -13,13 +13,14 @@ import SideNavFilter from 'browser/components/SideNavFilter'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 require('!!style!css!stylus?sourceMap!../main/global.styl')
 require('../lib/customMeta')
+require('./ipcClient.js')
 
 const electron = require('electron')
 const { remote } = electron
 const { Menu } = remote
 
 function hideFinder () {
-  let finderWindow = remote.getCurrentWindow()
+  const finderWindow = remote.getCurrentWindow()
   if (global.process.platform === 'win32') {
     finderWindow.blur()
     finderWindow.hide()
@@ -136,7 +137,7 @@ class FinderMain extends React.Component {
   }
 
   handleOnlySnippetCheckboxChange (e) {
-    let { filter } = this.state
+    const { filter } = this.state
     filter.includeSnippet = e.target.checked
     this.setState({
       filter: filter,
@@ -147,7 +148,7 @@ class FinderMain extends React.Component {
   }
 
   handleOnlyMarkdownCheckboxChange (e) {
-    let { filter } = this.state
+    const { filter } = this.state
     filter.includeMarkdown = e.target.checked
     this.refs.list.resetScroll()
     this.setState({
@@ -159,7 +160,7 @@ class FinderMain extends React.Component {
   }
 
   handleAllNotesButtonClick (e) {
-    let { filter } = this.state
+    const { filter } = this.state
     filter.type = 'ALL'
     this.refs.list.resetScroll()
     this.setState({
@@ -171,7 +172,7 @@ class FinderMain extends React.Component {
   }
 
   handleStarredButtonClick (e) {
-    let { filter } = this.state
+    const { filter } = this.state
     filter.type = 'STARRED'
     this.refs.list.resetScroll()
     this.setState({
@@ -183,7 +184,7 @@ class FinderMain extends React.Component {
   }
 
   handleStorageButtonClick (e, storage) {
-    let { filter } = this.state
+    const { filter } = this.state
     filter.type = 'STORAGE'
     filter.storage = storage
     this.refs.list.resetScroll()
@@ -196,7 +197,7 @@ class FinderMain extends React.Component {
   }
 
   handleFolderButtonClick (e, storage, folder) {
-    let { filter } = this.state
+    const { filter } = this.state
     filter.type = 'FOLDER'
     filter.storage = storage
     filter.folder = folder
@@ -218,12 +219,12 @@ class FinderMain extends React.Component {
   }
 
   render () {
-    let { data, config } = this.props
-    let { filter, search } = this.state
-    let storageList = []
-    for (let key in data.storageMap) {
-      let storage = data.storageMap[key]
-      let item = (
+    const { data, config } = this.props
+    const { filter, search } = this.state
+    const storageList = []
+    for (const key in data.storageMap) {
+      const storage = data.storageMap[key]
+      const item = (
         <StorageSection
           filter={filter}
           storage={storage}
@@ -252,7 +253,7 @@ class FinderMain extends React.Component {
         notes.push(data.noteMap[id])
       })
     } else {
-      for (let key in data.noteMap) {
+      for (const key in data.noteMap) {
         notes.push(data.noteMap[key])
       }
     }
@@ -264,13 +265,13 @@ class FinderMain extends React.Component {
     }
 
     if (search.trim().length > 0) {
-      let needle = new RegExp(_.escapeRegExp(search.trim()), 'i')
+      const needle = new RegExp(_.escapeRegExp(search.trim()), 'i')
       notes = notes.filter((note) => note.title.match(needle))
     }
     notes = notes
       .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
 
-    let activeNote = notes[this.state.index]
+    const activeNote = notes[this.state.index]
     this.noteCount = notes.length
 
     return (

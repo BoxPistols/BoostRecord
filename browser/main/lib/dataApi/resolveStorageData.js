@@ -4,7 +4,7 @@ const CSON = require('@rokt33r/season')
 const migrateFromV6Storage = require('./migrateFromV6Storage')
 
 function resolveStorageData (storageCache) {
-  let storage = {
+  const storage = {
     key: storageCache.key,
     name: storageCache.name,
     type: storageCache.type,
@@ -13,7 +13,7 @@ function resolveStorageData (storageCache) {
 
   const boostnoteJSONPath = path.join(storageCache.path, 'boostnote.json')
   try {
-    let jsonData = CSON.readFileSync(boostnoteJSONPath)
+    const jsonData = CSON.readFileSync(boostnoteJSONPath)
     if (!_.isArray(jsonData.folders)) throw new Error('folders should be an array.')
     storage.folders = jsonData.folders
     storage.version = jsonData.version
@@ -28,7 +28,7 @@ function resolveStorageData (storageCache) {
     storage.version = '1.0'
   }
 
-  let version = parseInt(storage.version, 10)
+  const version = parseInt(storage.version, 10)
   if (version >= 1) {
     if (version > 1) {
       console.log('The repository version is newer than one of current app.')

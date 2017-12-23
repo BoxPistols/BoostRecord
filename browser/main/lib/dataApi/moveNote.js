@@ -20,7 +20,7 @@ function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
     .then(function saveNote (_oldStorage) {
       oldStorage = _oldStorage
       let noteData
-      let notePath = path.join(oldStorage.path, 'notes', noteKey + '.cson')
+      const notePath = path.join(oldStorage.path, 'notes', noteKey + '.cson')
       try {
         noteData = CSON.readFileSync(notePath)
       } catch (err) {

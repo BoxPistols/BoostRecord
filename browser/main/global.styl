@@ -1,4 +1,5 @@
 global-reset()
+@import '../styles/vars.styl'
 
 DEFAULT_FONTS = 'OpenSans', helvetica, arial, sans-serif
 
@@ -12,6 +13,7 @@ body
   color textColor
   font-size fontSize
   font-weight 200
+  -webkit-font-smoothing antialiased
 
 button, input, select, textarea
   font-family DEFAULT_FONTS
@@ -64,7 +66,7 @@ textarea.block-input
   fullsize()
 
 modalZIndex= 1000
-modalBackColor = transparentify(white, 65%)
+modalBackColor = white
 .ace_focus
   outline-color rgb(59, 153, 252)
   outline-offset 0px
@@ -83,15 +85,19 @@ modalBackColor = transparentify(white, 65%)
     absolute top left bottom right
     background-color modalBackColor
     z-index modalZIndex + 1
+    
+
 body[data-theme="dark"]
   .ModalBase
     .modalBack
-      background-color alpha(black, 60%)
+      background-color $ui-dark-backgroundColor
+  .sortableItemHelper
+    color: $ui-dark-text-color
 
 .CodeMirror
   font-family inherit !important
   line-height 1.4em
-  height 100%
+  height 96%
 .CodeMirror > div > textarea
   margin-bottom -1em
 .CodeMirror-focused .CodeMirror-selected
@@ -102,3 +108,15 @@ body[data-theme="dark"]
   background #B1D7FE
 ::selection
   background #B1D7FE
+
+.sortableItemHelper
+  z-index modalZIndex + 5
+
+body[data-theme="solarized-dark"]
+  .ModalBase
+    .modalBack
+      background-color $ui-solarized-dark-backgroundColor
+  .sortableItemHelper
+    color: $ui-solarized-dark-text-color
+
+

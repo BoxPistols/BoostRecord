@@ -42,13 +42,29 @@
     color #4E8EC6
     text-decoration none
 
+.separate-line
+  margin 40px 0
+
 .policy
+  width 100%
   font-size 20px
   margin-bottom 10px
 
 .policy-submit
   margin-top 10px
 
+.policy-confirm
+  margin-top 10px
+  font-size 12px
+
 body[data-theme="dark"]
   .root
     color alpha($tab--dark-text-color, 80%)
+    
+
+body[data-theme="solarized-dark"]
+  .root
+    color $ui-solarized-dark-text-color
+.list
+  a
+    color $ui-solarized-dark-active-color

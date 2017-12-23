@@ -31,10 +31,10 @@ test.serial('Delete a folder', (t) => {
     })
     .then(function assert (data) {
       t.true(_.find(data.storage.folders, {key: folderKey}) == null)
-      let jsonData = CSON.readFileSync(path.join(data.storage.path, 'boostnote.json'))
+      const jsonData = CSON.readFileSync(path.join(data.storage.path, 'boostnote.json'))
 
       t.true(_.find(jsonData.folders, {key: folderKey}) == null)
-      let notePaths = sander.readdirSync(data.storage.path, 'notes')
+      const notePaths = sander.readdirSync(data.storage.path, 'notes')
       t.is(notePaths.length, t.context.storage.notes.filter((note) => note.folder !== folderKey).length)
     })
 })

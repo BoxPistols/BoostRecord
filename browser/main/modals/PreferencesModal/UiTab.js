@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
@@ -9,6 +10,11 @@ import CodeMirror from 'codemirror'
 
 const OSX = global.process.platform === 'darwin'
 
+import _ from 'lodash'
+
+const electron = require('electron')
+const ipc = electron.ipcRenderer
+
 class UiTab extends React.Component {
   constructor (props) {
     super(props)
@@ -18,8 +24,27 @@ class UiTab extends React.Component {
     }
   }
 
-  componentWillMount () {
-    CodeMirror.autoLoadMode(ReactCodeMirror, 'javascript')
+  componentDidMount () {
+    CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
+    this.handleSettingDone = () => {
+      this.setState({UiAlert: {
+        type: 'success',
+        message: 'Successfully applied!'
+      }})
+    }
+    this.handleSettingError = (err) => {
+      this.setState({UiAlert: {
+        type: 'error',
+        message: err.message != null ? err.message : 'Error occurs!'
+      }})
+    }
+    ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
+    ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
+  }
+
+  componentWillUnmount () {
+    ipc.removeListener('APP_SETTING_DONE', this.handleSettingDone)
+    ipc.removeListener('APP_SETTING_ERROR', this.handleSettingError)
   }
 
   handleUIChange (e) {
@@ -36,6 +61,7 @@ class UiTab extends React.Component {
     const newConfig = {
       ui: {
         theme: this.refs.uiTheme.value,
+        showCopyNotification: this.refs.showCopyNotification.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
           : false
@@ -48,20 +74,25 @@ class UiTab extends React.Component {
         indentSize: this.refs.editorIndentSize.value,
         displayLineNumbers: this.refs.editorDisplayLineNumbers.checked,
         switchPreview: this.refs.editorSwitchPreview.value,
-        keyMap: this.refs.editorKeyMap.value
+        keyMap: this.refs.editorKeyMap.value,
+        scrollPastEnd: this.refs.scrollPastEnd.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
         fontFamily: this.refs.previewFontFamily.value,
         codeBlockTheme: this.refs.previewCodeBlockTheme.value,
-        lineNumber: this.refs.previewLineNumber.checked
+        lineNumber: this.refs.previewLineNumber.checked,
+        latexInlineOpen: this.refs.previewLatexInlineOpen.value,
+        latexInlineClose: this.refs.previewLatexInlineClose.value,
+        latexBlockOpen: this.refs.previewLatexBlockOpen.value,
+        latexBlockClose: this.refs.previewLatexBlockClose.value
       }
     }
 
     const newCodemirrorTheme = this.refs.editorTheme.value
 
     if (newCodemirrorTheme !== codemirrorTheme) {
-      checkHighLight.setAttribute('href', `../node_modules/codemirror/theme/${newCodemirrorTheme}.css`)
+      checkHighLight.setAttribute('href', `../node_modules/codemirror/theme/${newCodemirrorTheme.split(' ')[0]}.css`)
     }
 
     this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme })
@@ -80,9 +111,25 @@ class UiTab extends React.Component {
       type: 'SET_UI',
       config: newConfig
     })
+    this.clearMessage()
+  }
+
+  clearMessage () {
+    _.debounce(() => {
+      this.setState({
+        UiAlert: null
+      })
+    }, 2000)()
   }
 
   render () {
+    const UiAlert = this.state.UiAlert
+    const UiAlertElement = UiAlert != null
+      ? <p className={`alert ${UiAlert.type}`}>
+        {UiAlert.message}
+      </p>
+      : null
+
     const themes = consts.THEMES
     const { config, codemirrorTheme } = this.state
     const codemirrorSampleCode = 'function iamHappy (happy) {\n\tif (happy) {\n\t  console.log("I am Happy!")\n\t} else {\n\t  console.log("I am not Happy!")\n\t}\n};'
@@ -91,18 +138,29 @@ class UiTab extends React.Component {
         <div styleName='group'>
           <div styleName='group-header'>UI</div>
 
-          <div styleName='group-header2'>Theme</div>
-
           <div styleName='group-section'>
+            Color Theme
             <div styleName='group-section-control'>
               <select value={config.ui.theme}
                 onChange={(e) => this.handleUIChange(e)}
                 ref='uiTheme'
               >
-                <option value='default'>Light</option>
+                <option value='default'>Default</option>
+                <option value='white'>White</option>
+                <option value='solarized-dark'>Solarized Dark</option>
                 <option value='dark'>Dark</option>
               </select>
             </div>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showCopyNotification}
+                ref='showCopyNotification'
+                type='checkbox'
+              />&nbsp;
+              Show &quot;Saved to Clipboard&quot; notification when copying
+            </label>
           </div>
           {
             global.process.platform === 'win32'
@@ -137,7 +195,7 @@ class UiTab extends React.Component {
                 }
               </select>
               <div styleName='code-mirror'>
-                <ReactCodeMirror value={codemirrorSampleCode} options={{ lineNumbers: true, readOnly: true, mode: 'javascript', theme: codemirrorTheme }} />
+                <ReactCodeMirror ref={e => (this.codeMirrorInstance = e)} value={codemirrorSampleCode} options={{ lineNumbers: true, readOnly: true, mode: 'javascript', theme: codemirrorTheme }} />
               </div>
             </div>
           </div>
@@ -219,7 +277,7 @@ class UiTab extends React.Component {
                 <option value='vim'>vim</option>
                 <option value='emacs'>emacs</option>
               </select>
-              <span styleName='note-for-keymap'>Please restart boostnote after you change the keymap</span>
+              <p styleName='note-for-keymap'>⚠️ Please restart boostnote after you change the keymap</p>
             </div>
           </div>
 
@@ -233,6 +291,18 @@ class UiTab extends React.Component {
               Show line numbers in the editor
             </label>
           </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.scrollPastEnd}
+                ref='scrollPastEnd'
+                type='checkbox'
+              />&nbsp;
+              Allow editor to scroll past the last line
+            </label>
+          </div>
+
 
           <div styleName='group-header2'>Preview</div>
           <div styleName='group-section'>
@@ -286,13 +356,64 @@ class UiTab extends React.Component {
               Show line numbers for preview code blocks
             </label>
           </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              LaTeX Inline Open Delimiter
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='previewLatexInlineOpen'
+                value={config.preview.latexInlineOpen}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              LaTeX Inline Close Delimiter
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='previewLatexInlineClose'
+                value={config.preview.latexInlineClose}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              LaTeX Block Open Delimiter
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='previewLatexBlockOpen'
+                value={config.preview.latexBlockOpen}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              LaTeX Block Close Delimiter
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='previewLatexBlockClose'
+                value={config.preview.latexBlockClose}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
 
-          <div className='group-control'>
+          <div styleName='group-control'>
             <button styleName='group-control-rightButton'
-              onClick={(e) => this.handleSaveUIClick(e)}
-            >
-              Save
+              onClick={(e) => this.handleSaveUIClick(e)}>Save
             </button>
+            {UiAlertElement}
           </div>
         </div>
       </div>

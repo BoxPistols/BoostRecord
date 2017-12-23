@@ -2,20 +2,21 @@ import _ from 'lodash'
 
 export default function searchFromNotes (notes, search) {
   if (search.trim().length === 0) return []
-  let searchBlocks = search.split(' ')
+  const searchBlocks = search.split(' ').filter(block => { return block !== '' })
+
+  let foundNotes = findByWord(notes, searchBlocks[0])
   searchBlocks.forEach((block) => {
+    foundNotes = findByWord(foundNotes, block)
     if (block.match(/^#.+/)) {
-      notes = findByTag(notes, block)
-    } else {
-      notes = findByWord(notes, block)
+      foundNotes = foundNotes.concat(findByTag(notes, block))
     }
   })
-  return notes
+  return foundNotes
 }
 
 function findByTag (notes, block) {
   const tag = block.match(/#(.+)/)[1]
-  let regExp = new RegExp(_.escapeRegExp(tag), 'i')
+  const regExp = new RegExp(_.escapeRegExp(tag), 'i')
   return notes.filter((note) => {
     if (!_.isArray(note.tags)) return false
     return note.tags.some((_tag) => {
@@ -25,7 +26,7 @@ function findByTag (notes, block) {
 }
 
 function findByWord (notes, block) {
-  let regExp = new RegExp(_.escapeRegExp(block), 'i')
+  const regExp = new RegExp(_.escapeRegExp(block), 'i')
   return notes.filter((note) => {
     if (_.isArray(note.tags) && note.tags.some((_tag) => {
       return _tag.match(regExp)

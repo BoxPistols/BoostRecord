@@ -4,6 +4,7 @@ import styles from './InfoTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import store from 'browser/main/store'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
+import _ from 'lodash'
 
 const electron = require('electron')
 const { shell, remote } = electron
@@ -36,7 +37,20 @@ class InfoTab extends React.Component {
 
     if (!newConfig.amaEnabled) {
       AwsMobileAnalyticsConfig.recordDynamicCustomEvent('DISABLE_AMA')
+      this.setState({
+        amaMessage: 'We hope we will gain your trust'
+      })
+    } else {
+      this.setState({
+        amaMessage: 'Thank\'s for trust us'
+      })
     }
+
+    _.debounce(() => {
+      this.setState({
+        amaMessage: ''
+      })
+    }, 3000)()
 
     ConfigManager.set(newConfig)
 
@@ -46,10 +60,49 @@ class InfoTab extends React.Component {
     })
   }
 
+  infoMessage () {
+    const { amaMessage } = this.state
+    return amaMessage ? <p styleName='policy-confirm'>{amaMessage}</p> : null
+  }
+
   render () {
     return (
       <div styleName='root'>
-        <div styleName='header'>Info</div>
+
+        <div styleName='header--sub'>Community</div>
+        <div styleName='top'>
+          <ul styleName='list'>
+            <li>
+              <a href='https://boostnote.io/#subscribe'
+                onClick={(e) => this.handleLinkClick(e)}
+              >Subscribe to Newsletter</a>
+            </li>
+            <li>
+              <a href='https://github.com/BoostIO/Boostnote/issues'
+                onClick={(e) => this.handleLinkClick(e)}
+              >GitHub</a>
+            </li>
+            <li>
+              <a href='https://medium.com/boostnote'
+                onClick={(e) => this.handleLinkClick(e)}
+              >Blog</a>
+            </li>
+            <li>
+              <a href='https://www.facebook.com/groups/boostnote'
+                onClick={(e) => this.handleLinkClick(e)}
+              >Facebook Group</a>
+            </li>
+            <li>
+              <a href='https://twitter.com/boostnoteapp'
+                onClick={(e) => this.handleLinkClick(e)}
+              >Twitter</a>
+            </li>
+          </ul>
+        </div>
+
+        <hr />
+
+        <div styleName='header--sub'>Info</div>
 
         <div styleName='top'>
           <div styleName='icon-space'>
@@ -62,6 +115,7 @@ class InfoTab extends React.Component {
             </div>
           </div>
         </div>
+
         <ul styleName='list'>
           <li>
             <a href='https://boostnote.io'
@@ -69,24 +123,9 @@ class InfoTab extends React.Component {
             >Website</a>
           </li>
           <li>
-            <a href='https://boostnote.paintory.com/'
-              onClick={(e) => this.handleLinkClick(e)}
-            >Boostnote Shop</a> : Products are shipped to all over the world 🌏
-          </li>
-          <li>
-            <a href='https://salt.bountysource.com/teams/boostnote'
-              onClick={(e) => this.handleLinkClick(e)}
-            >Donate via Bountysource</a> : Thank you for your support 🎉
-          </li>
-          <li>
-            <a href='https://github.com/BoostIO/Boostnote/issues'
-              onClick={(e) => this.handleLinkClick(e)}
-            >GitHub Issues</a> : We&apos;d love to hear your feedback 🙌
-          </li>
-          <li>
             <a href='https://github.com/BoostIO/Boostnote/blob/master/docs/build.md'
               onClick={(e) => this.handleLinkClick(e)}
-            >Development</a> : Development configurations for Boostnote 🚀
+            >Development</a> : Development configurations for Boostnote.
           </li>
           <li styleName='cc'>
             Copyright (C) 2017 Maisin&Co.
@@ -95,11 +134,13 @@ class InfoTab extends React.Component {
             License: GPL v3
           </li>
         </ul>
-        <hr />
+
+        <hr styleName='separate-line' />
+
         <div styleName='policy'>Data collection policy</div>
-        <p>We collect only the number of DAU for Boostnote and DO NOT collect any detail information</p>
-        <p>such as your note content. You can see how it works on <a href='https://github.com/BoostIO/Boostnote' onClick={(e) => this.handleLinkClick(e)}>GitHub</a>.</p>
-        <p>These data are only used for Boostnote improvements.</p>
+        <div>We collect only the number of DAU for Boostnote and **DO NOT collect** any detail information such as your note content.</div>
+        <div>You can see how it works on <a href='https://github.com/BoostIO/Boostnote' onClick={(e) => this.handleLinkClick(e)}>GitHub</a>.</div>
+        <div>This data is only used for Boostnote improvements.</div>
         <input onChange={(e) => this.handleConfigChange(e)}
           checked={this.state.config.amaEnabled}
           ref='amaEnabled'
@@ -107,6 +148,7 @@ class InfoTab extends React.Component {
         />
         Enable to send analytics to our servers<br />
         <button styleName='policy-submit' onClick={(e) => this.handleSaveButtonClick(e)}>Save</button>
+        {this.infoMessage()}
       </div>
     )
   }

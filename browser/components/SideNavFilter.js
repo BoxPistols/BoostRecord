@@ -1,7 +1,8 @@
 /**
  * @fileoverview Filter for all notes.
  */
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './SideNavFilter.styl'
 
@@ -15,27 +16,53 @@ import styles from './SideNavFilter.styl'
  */
 const SideNavFilter = ({
   isFolded, isHomeActive, handleAllNotesButtonClick,
-  isStarredActive, handleStarredButtonClick, isTrashedActive, handleTrashedButtonClick
+  isStarredActive, handleStarredButtonClick, isTrashedActive, handleTrashedButtonClick, counterDelNote,
+  counterTotalNote, counterStarredNote
 }) => (
   <div styleName={isFolded ? 'menu--folded' : 'menu'}>
+
     <button styleName={isHomeActive ? 'menu-button--active' : 'menu-button'}
       onClick={handleAllNotesButtonClick}
     >
-      <i className='fa fa-archive fa-fw' />
+      <div styleName='iconWrap'>
+        <img src={isHomeActive
+            ? '../resources/icon/icon-all-active.svg'
+            : '../resources/icon/icon-all.svg'
+          }
+        />
+      </div>
       <span styleName='menu-button-label'>All Notes</span>
+      <span styleName='counters'>{counterTotalNote}</span>
     </button>
+
     <button styleName={isStarredActive ? 'menu-button-star--active' : 'menu-button'}
       onClick={handleStarredButtonClick}
     >
-      <i className='fa fa-star fa-fw' />
+      <div styleName='iconWrap'>
+        <img src={isStarredActive
+            ? '../resources/icon/icon-star-active.svg'
+            : '../resources/icon/icon-star-sidenav.svg'
+          }
+        />
+      </div>
       <span styleName='menu-button-label'>Starred</span>
+      <span styleName='counters'>{counterStarredNote}</span>
     </button>
-    <button styleName={isTrashedActive ? 'menu-button--active' : 'menu-button'}
+
+    <button styleName={isTrashedActive ? 'menu-button-trash--active' : 'menu-button'}
       onClick={handleTrashedButtonClick}
     >
-      <i className='fa fa-trash fa-fw' />
+      <div styleName='iconWrap'>
+        <img src={isTrashedActive
+            ? '../resources/icon/icon-trash-active.svg'
+            : '../resources/icon/icon-trash-sidenav.svg'
+          }
+        />
+      </div>
       <span styleName='menu-button-label'>Trash</span>
+      <span styleName='counters'>{counterDelNote}</span>
     </button>
+
   </div>
 )
 

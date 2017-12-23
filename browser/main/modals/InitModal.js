@@ -5,7 +5,6 @@ import dataApi from 'browser/main/lib/dataApi'
 import store from 'browser/main/store'
 import { hashHistory } from 'react-router'
 import _ from 'lodash'
-import ModalEscButton from 'browser/components/ModalEscButton'
 
 const CSON = require('@rokt33r/season')
 const path = require('path')
@@ -13,9 +12,9 @@ const electron = require('electron')
 const { remote } = electron
 
 function browseFolder () {
-  let dialog = remote.dialog
+  const dialog = remote.dialog
 
-  let defaultPath = remote.app.getPath('home')
+  const defaultPath = remote.app.getPath('home')
   return new Promise((resolve, reject) => {
     dialog.showOpenDialog({
       title: 'Select Directory',
@@ -55,7 +54,7 @@ class InitModal extends React.Component {
     } catch (err) {
       console.error(err)
     }
-    let newState = {
+    const newState = {
       isLoading: false
     }
     if (data != null) {
@@ -122,7 +121,7 @@ class InitModal extends React.Component {
             notes: data.notes
           })
 
-          let defaultSnippetNote = dataApi
+          const defaultSnippetNote = dataApi
             .createNote(data.storage.key, {
               type: 'SNIPPET_NOTE',
               folder: data.storage.folders[0].key,
@@ -147,12 +146,12 @@ class InitModal extends React.Component {
                 note: note
               })
             })
-          let defaultMarkdownNote = dataApi
+          const defaultMarkdownNote = dataApi
             .createNote(data.storage.key, {
               type: 'MARKDOWN_NOTE',
               folder: data.storage.folders[0].key,
               title: 'Welcome to Boostnote!',
-              content: '# Welcome to Boostnote! \n### _Click to edit this note._\n\n---\n\nBoostnote is an *open source* note-taking app. \nRepository is published on [GitHub](https://github.com/BoostIO/Boostnote), and tweeting everyday on [@Boostnoteapp](https://twitter.com/boostnoteapp)!\n\n## Features \n- [x] No Internet and Registration Required. \n- [ ] Quick search and copy the content of note. `macOS: Cmd + Alt + S / windows: Ctrl + Alt + S` \n- [ ] Markdown & Snippet note. \n- [ ] Available for `vim` and `emacs` mode. \n- [ ] Choose your favorite theme on UI, Editor and Code Block! \n--- \n\n- Copy Codeblock on Markdown Preview.\n```javascript\nvar boostnote = document.getElementById(\'enjoy\').innerHTML\n\nconsole.log(boostnote)\n```'
+              content: '# Welcome to Boostnote!\n## Click here to edit markdown :wave:\n\n<iframe width="560" height="315" src="https://www.youtube.com/embed/L0qNPLsvmyM" frameborder="0" allowfullscreen></iframe>\n\n## Docs :memo:\n- [Boostnote | Boost your happiness, productivity and creativity.](https://hackernoon.com/boostnote-boost-your-happiness-productivity-and-creativity-315034efeebe)\n- [Cloud Syncing & Backups](https://github.com/BoostIO/Boostnote/wiki/Cloud-Syncing-and-Backup)\n- [How to sync your data across Desktop and Mobile apps](https://github.com/BoostIO/Boostnote/wiki/Sync-Data-Across-Desktop-and-Mobile-apps)\n- [Convert data from **Evernote** to Boostnote.](https://github.com/BoostIO/Boostnote/wiki/Evernote)\n- [Keyboard Shortcuts](https://github.com/BoostIO/Boostnote/wiki/Keyboard-Shortcuts)\n- [Keymaps in Editor mode](https://github.com/BoostIO/Boostnote/wiki/Keymaps-in-Editor-mode)\n- [How to set syntax highlight in Snippet note](https://github.com/BoostIO/Boostnote/wiki/Syntax-Highlighting)\n\n---\n\n## Article Archive :books:\n- [Reddit English](http://bit.ly/2mOJPu7)\n- [Reddit Spanish](https://www.reddit.com/r/boostnote_es/)\n- [Reddit Chinese](https://www.reddit.com/r/boostnote_cn/)\n- [Reddit Japanese](https://www.reddit.com/r/boostnote_jp/)\n\n---\n\n## Community :beers:\n- [GitHub](http://bit.ly/2AWWzkD)\n- [Twitter](http://bit.ly/2z8BUJZ)\n- [Facebook Group](http://bit.ly/2jcca8t)'
             })
             .then((note) => {
               store.dispatch({
@@ -184,6 +183,12 @@ class InitModal extends React.Component {
     })
   }
 
+  handleKeyDown (e) {
+    if (e.keyCode === 27) {
+      this.props.close()
+    }
+  }
+
   render () {
     if (this.state.isLoading) {
       return <div styleName='root--loading'>
@@ -196,17 +201,12 @@ class InitModal extends React.Component {
         tabIndex='-1'
         onKeyDown={(e) => this.handleKeyDown(e)}
       >
-
-        <div styleName='header'>
-          <div styleName='header-title'>Initialize Storage</div>
-        </div>
-        <ModalEscButton handleEscButtonClick={(e) => this.handleCloseButtonClick(e)} />
         <div styleName='body'>
           <div styleName='body-welcome'>
-            Welcome!
+            Welcome to Boostnote!
           </div>
           <div styleName='body-description'>
-           Please select a directory for Boostnote storage.
+           Please select a directory for data storage.
           </div>
           <div styleName='body-path'>
             <input styleName='body-path-input'
@@ -237,7 +237,7 @@ class InitModal extends React.Component {
                 ? <span>
                   <i className='fa fa-spin fa-spinner' /> Loading...
                 </span>
-                : 'Let\'s Go!'
+                : 'CREATE'
               }
             </button>
           </div>

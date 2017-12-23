@@ -5,7 +5,7 @@ $danger-color = #c9302c
 $danger-lighten-color = lighten(#c9302c, 5%)
 
 // Layouts
-$statusBar-height = 24px
+$statusBar-height = 0px
 $sideNav-width = 200px
 $sideNav--folded-width = 44px
 $topBar-height = 60px
@@ -15,18 +15,18 @@ $ui-text-color = #333333
 $ui-inactive-text-color = #939395
 $ui-borderColor = #D1D1D1
 $ui-backgroundColor = #FFFFFF
-$ui-noteList-backgroundColor = #F3F3F3
-$ui-noteDetail-backgroundColor = #F4F4F4
+$ui-noteList-backgroundColor = #FBFBFB
+$ui-noteDetail-backgroundColor = #FFFFFF
 $ui-border = solid 1px $ui-borderColor
 $ui-active-color = #6AA5E9
 $ui-tag-backgroundColor = rgba(0, 0, 0, 0.3)
 
-// UI Button
-$ui-button-color = #939395
-$ui-button--hover-backgroundColor = #D9D9D9
-$ui-button--active-color = white
-$ui-button--active-backgroundColor = #D9D9D9
-$ui-button--focus-borderColor = lighten(#369DCD, 25%)
+// UI Default Button
+$ui-button-default-color = #FBFBFB
+$ui-button-default--hover-backgroundColor = #2B8976
+$ui-button-default--active-color = white
+$ui-button-default--active-backgroundColor = #2B8976
+$ui-button-default--focus-borderColor = lighten(#369DCD, 25%)
 
 // UI Tooltip
 $ui-tooltip-text-color = white
@@ -86,6 +86,7 @@ colorPrimaryButton()
   color $ui-text-color
   background-color $default-button-background--hover
   &:hover
+    transition 0.2s
     background-color $default-button-background--active
   &:active
   &:active:hover
@@ -105,6 +106,18 @@ colorDarkPrimaryButton()
   &:active:hover
     background-color $dark-primary-button-background--active
 
+
+colorSolarizedDarkPrimaryButton()
+  color $ui-solarized-dark-text-color
+  background-color $ui-solarized-dark-button-backgroundColor
+  border none
+  &:hover
+    background-color $dark-primary-button-background--hover
+  &:active
+  &:active:hover
+    background-color $dark-primary-button-background--active
+
+
 // Danger button(Brand color)
 $danger-button-background = #c9302c
 $danger-button-background--hover = darken(#c9302c, 5%)
@@ -120,6 +133,22 @@ colorDangerButton()
     background-color $danger-button-background--active
 
 /**
+* SideNav
+*/
+SideNavFilter()
+  background-color $ui-button-default--active-backgroundColor
+  .counters
+    color $ui-button-default-color
+  .menu-button-label
+    color $ui-button-default-color
+  &:hover
+    background-color alpha($ui-button-default--hover-backgroundColor, 20%)
+  &:active, &:active:hover
+    background-color alpha($ui-button-default--hover-backgroundColor, 20%)
+    .menu-button-label
+      color #1EC38B
+
+/**
 * Nav
 */
 
@@ -129,13 +158,12 @@ navButtonColor()
   background-color transparent
   transition 0.15s
   &:hover
-    background-color alpha($ui-button--active-backgroundColor, 20%)
     transition  0.15s
-    color $ui-text-color
+    color $ui-button-default-color
   &:active, &:active:hover
-    background-color $ui-button--active-backgroundColor
-    color $ui-text-color
+    color $ui-button-default-color
     transition 0.15s
+
 /**
 * # Modal Stuff
 * These will be moved lib/modal
@@ -150,34 +178,68 @@ modal()
   position relative
   z-index $modal-z-index
   width 100%
+  margin-left 80px
+  margin-right 80px
+  margin-bottom 80px
+  margin-top 100px
   background-color $modal-background
   overflow hidden
   border-radius $modal-border-radius
-  box-shadow 0 0 1px rgba(76,86,103,.15), 0 2px 18px rgba(31,37,50,.22)
 
-topBarButtonLight()
+topBarButtonRight()
+  position absolute
   width 34px
   height 34px
   border-radius 17px
   font-size 14px
-  margin 15px 7px
   border none
-  color $ui-button-color
+  color alpha($ui-button-color, 0.2)
   fill $ui-button-color
   background-color transparent
   &:active
     border-color $ui-button--active-backgroundColor
   &:hover
-    background-color alpha($ui-button--hover-backgroundColor, 60%)
+    // transform scale(1.1)
+    transition 0.4s
+    color $ui-button-color
     .control-lockButton-tooltip
       opacity 1
 
-// Dark theme
+// White theme
+$ui-white-noteList-backgroundColor = #F3F3F3
+$ui-white-noteDetail-backgroundColor = #F4F4F4
+
+/**
+* Nav
+*/
+navWhiteButtonColor()
+  border none
+  color $ui-button-color
+  background-color transparent
+  transition 0.15s
+  &:hover
+    background-color alpha($ui-button--active-backgroundColor, 20%)
+    transition  0.15s
+    color $ui-text-color
+  &:active, &:active:hover
+    background-color $ui-button--active-backgroundColor
+    color $ui-text-color
+    transition 0.15s
+
+// UI Button
+$ui-button-color = #939395
+$ui-button--hover-backgroundColor = #F6F6F6
+$ui-button--active-color = white
+$ui-button--active-backgroundColor = #D9D9D9
+$ui-button--focus-borderColor = lighten(#369DCD, 25%)
+
+/******* Dark theme ********/
 $ui-dark-active-color = #3A404C
-$ui-dark-borderColor = lighten(#21252B, 20%)
-$ui-dark-backgroundColor = #1E2124
-$ui-dark-noteList-backgroundColor = #282C30
-$ui-dark-noteDetail-backgroundColor = #2D3033
+$ui-dark-borderColor = #444444
+$ui-dark-backgroundColor = #2C3033
+$ui-dark-noteList-backgroundColor = #2C3033
+$ui-dark-noteDetail-backgroundColor = #2C3033
+
 $ui-dark-tag-backgroundColor = #3A404C
 $dark-background-color = lighten($ui-dark-backgroundColor, 10%)
 $ui-dark-text-color = #DDDDDD
@@ -199,6 +261,7 @@ colorDarkDefaultButton()
   &:active
   &:active:hover
     background-color $ui-dark-button--active-backgroundColor
+
 
 $dark-danger-button-background = #c9302c
 $dark-danger-button-background--hover = darken(#c9302c, 5%)
@@ -230,12 +293,10 @@ topBarButtonDark()
   border-color $ui-dark-borderColor
   color $ui-dark-topbar-button-color
   &:hover
-    background-color $dark-default-button-background--hover
     color $ui-dark-tooltip-text-color
   &:active
     border-color $ui-dark-button--focus-borderColor
   &:active:hover
-    background-color $ui-dark-button--active-backgroundColor
     color $ui-dark-tooltip-text-color
   &:focus
     border-color $ui-button--focus-borderColor
@@ -260,4 +321,22 @@ modalDark()
   background-color $ui-dark-backgroundColor
   overflow hidden
   border-radius $modal-border-radius
-  box-shadow 2px 2px 10px black
+
+
+/******* Solarized Dark theme ********/
+$ui-solarized-dark-backgroundColor = #073642
+$ui-solarized-dark-noteList-backgroundColor = #073642
+$ui-solarized-dark-noteDetail-backgroundColor = #073642
+
+$ui-solarized-dark-text-color = #93a1a1
+$ui-solarized-dark-active-color = #2aa198
+
+$ui-solarized-dark-borderColor = #586e75
+
+$ui-solarized-dark-tag-backgroundColor = #002b36
+
+$ui-solarized-dark-button-backgroundColor = #002b36
+$ui-solarized-dark-button--active-color = #93a1a1
+$ui-solarized-dark-button--active-backgroundColor = #073642
+$ui-solarized-dark-button--hover-backgroundColor = lighten($ui-dark-backgroundColor, 10%)
+$ui-solarized-dark-button--focus-borderColor = lighten(#369DCD, 25%)

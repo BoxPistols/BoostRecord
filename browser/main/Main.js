@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './Main.styl'
 import { connect } from 'react-redux'
@@ -11,15 +12,11 @@ import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import modal from 'browser/main/lib/modal'
 import InitModal from 'browser/main/modals/InitModal'
-import mixpanel from 'browser/main/lib/mixpanel'
 import mobileAnalytics from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 
-function focused () {
-  mixpanel.track('MAIN_FOCUSED')
-}
-
 class Main extends React.Component {
+
   constructor (props) {
     super(props)
 
@@ -27,7 +24,7 @@ class Main extends React.Component {
       mobileAnalytics.initAwsMobileAnalytics()
     }
 
-    let { config } = props
+    const { config } = props
 
     this.state = {
       isRightSliderFocused: false,
@@ -43,7 +40,7 @@ class Main extends React.Component {
   }
 
   getChildContext () {
-    let { status, config } = this.props
+    const { status, config } = this.props
 
     return {
       status,
@@ -52,10 +49,14 @@ class Main extends React.Component {
   }
 
   componentDidMount () {
-    let { dispatch, config } = this.props
+    const { dispatch, config } = this.props
 
     if (config.ui.theme === 'dark') {
       document.body.setAttribute('data-theme', 'dark')
+    } else if (config.ui.theme === 'white') {
+      document.body.setAttribute('data-theme', 'white')
+    } else if (config.ui.theme === 'solarized-dark') {
+      document.body.setAttribute('data-theme', 'solarized-dark')
     } else {
       document.body.setAttribute('data-theme', 'default')
     }
@@ -75,11 +76,9 @@ class Main extends React.Component {
       })
 
     eventEmitter.on('editor:fullscreen', this.toggleFullScreen)
-    window.addEventListener('focus', focused)
   }
 
   componentWillUnmount () {
-    window.removeEventListener('focus', focused)
     eventEmitter.off('editor:fullscreen', this.toggleFullScreen)
   }
 
@@ -103,8 +102,8 @@ class Main extends React.Component {
       this.setState({
         isRightSliderFocused: false
       }, () => {
-        let { dispatch } = this.props
-        let newListWidth = this.state.listWidth
+        const { dispatch } = this.props
+        const newListWidth = this.state.listWidth
         // TODO: ConfigManager should dispatch itself.
         ConfigManager.set({listWidth: newListWidth})
         dispatch({
@@ -119,8 +118,8 @@ class Main extends React.Component {
       this.setState({
         isLeftSliderFocused: false
       }, () => {
-        let { dispatch } = this.props
-        let navWidth = this.state.navWidth
+        const { dispatch } = this.props
+        const navWidth = this.state.navWidth
         // TODO: ConfigManager should dispatch itself.
         ConfigManager.set({ navWidth })
         dispatch({
@@ -133,7 +132,7 @@ class Main extends React.Component {
 
   handleMouseMove (e) {
     if (this.state.isRightSliderFocused) {
-      let offset = this.refs.body.getBoundingClientRect().left
+      const offset = this.refs.body.getBoundingClientRect().left
       let newListWidth = e.pageX - offset
       if (newListWidth < 10) {
         newListWidth = 10
@@ -186,7 +185,10 @@ class Main extends React.Component {
   }
 
   render () {
-    let { config } = this.props
+    const { config } = this.props
+
+    // the width of the navigation bar when it is folded/collapsed
+    const foldedNavigationWidth = 44
 
     return (
       <div
@@ -216,7 +218,7 @@ class Main extends React.Component {
         <div styleName={config.isSideNavFolded ? 'body--expanded' : 'body'}
           id='main-body'
           ref='body'
-          style={{left: config.isSideNavFolded ? 44 : this.state.navWidth}}
+          style={{left: config.isSideNavFolded ? foldedNavigationWidth : this.state.navWidth}}
         >
           <TopBar style={{width: this.state.listWidth}}
             {..._.pick(this.props, [

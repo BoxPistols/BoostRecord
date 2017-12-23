@@ -74,8 +74,8 @@ test.serial('Update a note', (t) => {
           createNote(storageKey, input2)
         ])
         .then(function updateNotes (data) {
-          let data1 = data[0]
-          let data2 = data[1]
+          const data1 = data[0]
+          const data2 = data[1]
           return Promise.all([
             updateNote(data1.storage, data1.key, input3),
             updateNote(data1.storage, data2.key, input4)
@@ -83,10 +83,10 @@ test.serial('Update a note', (t) => {
         })
     })
     .then(function assert (data) {
-      let data1 = data[0]
-      let data2 = data[1]
+      const data1 = data[0]
+      const data2 = data[1]
 
-      let jsonData1 = CSON.readFileSync(path.join(storagePath, 'notes', data1.key + '.cson'))
+      const jsonData1 = CSON.readFileSync(path.join(storagePath, 'notes', data1.key + '.cson'))
       t.is(input3.title, data1.title)
       t.is(input3.title, jsonData1.title)
       t.is(input3.description, data1.description)
@@ -100,7 +100,7 @@ test.serial('Update a note', (t) => {
       t.is(input3.snippets[0].name, data1.snippets[0].name)
       t.is(input3.snippets[0].name, jsonData1.snippets[0].name)
 
-      let jsonData2 = CSON.readFileSync(path.join(storagePath, 'notes', data2.key + '.cson'))
+      const jsonData2 = CSON.readFileSync(path.join(storagePath, 'notes', data2.key + '.cson'))
       t.is(input4.title, data2.title)
       t.is(input4.title, jsonData2.title)
       t.is(input4.content, data2.content)

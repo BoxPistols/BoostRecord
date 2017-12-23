@@ -1,0 +1,61 @@
+.control-toggleModeButton
+  border 1px solid #eee
+  height 34px
+  display flex
+  align-items center
+
+  div
+    width 40px
+    height 100%
+    background-color #f9f9f9
+    display flex
+    align-items center
+    justify-content center
+    cursor pointer
+
+    &:first-child
+      border-right 1px solid #eee
+    .active
+      background-color #fff
+      box-shadow 2px 0px 7px #eee
+      z-index 1
+  &:hover .tooltip
+    opacity 1
+
+.tooltip
+  tooltip()
+  position absolute
+  pointer-events none
+  top 47px
+  right 11px
+  z-index 200
+  padding 5px
+  line-height normal
+  border-radius 2px
+  opacity 0
+  transition 0.1s
+
+body[data-theme="dark"]
+  .control-fullScreenButton
+    topBarButtonDark()
+
+  .control-toggleModeButton
+    border 1px solid #444444
+    div
+      background-color $ui-dark-noteDetail-backgroundColor
+      &:first-child
+        border-right 1px solid #444444
+    .active
+      background-color #3A404C
+      box-shadow 2px 0px 7px #444444
+
+body[data-theme="solarized-dark"]
+  .control-toggleModeButton
+    border 1px solid #586E75
+    div
+      background-color $ui-solarized-dark-noteDetail-backgroundColor
+      &:first-child
+        border-right 1px solid #586E75
+    .active
+      background-color #002B36
+      box-shadow 2px 0px 7px #222222

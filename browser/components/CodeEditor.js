@@ -1,9 +1,11 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
 import path from 'path'
 import copyImage from 'browser/main/lib/dataApi/copyImage'
 import { findStorage } from 'browser/lib/findStorage'
+import fs from 'fs'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -57,6 +59,7 @@ export default class CodeEditor extends React.Component {
       tabSize: this.props.indentSize,
       indentWithTabs: this.props.indentType !== 'space',
       keyMap: this.props.keyMap,
+      scrollPastEnd: this.props.scrollPastEnd,
       inputStyle: 'textarea',
       dragDrop: false,
       extraKeys: {
@@ -66,7 +69,7 @@ export default class CodeEditor extends React.Component {
           if (cm.somethingSelected()) cm.indentSelection('add')
           else {
             const tabs = cm.getOption('indentWithTabs')
-            if (line.trimLeft() === '- ' || line.trimLeft() === '* ' || line.trimLeft() === '+ ') {
+            if (line.trimLeft().match(/^(-|\*|\+) (\[( |x)\] )?$/)) {
               cm.execCommand('goLineStart')
               if (tabs) {
                 cm.execCommand('insertTab')
@@ -102,15 +105,25 @@ export default class CodeEditor extends React.Component {
     this.editor.on('change', this.changeHandler)
     this.editor.on('paste', this.pasteHandler)
 
-    let editorTheme = document.getElementById('editorTheme')
+    const editorTheme = document.getElementById('editorTheme')
     editorTheme.addEventListener('load', this.loadStyleHandler)
+
+    CodeMirror.Vim.defineEx('quit', 'q', this.quitEditor)
+    CodeMirror.Vim.defineEx('q!', 'q!', this.quitEditor)
+    CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
+    CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
+    CodeMirror.Vim.map('ZZ', ':q', 'normal')
+  }
+
+  quitEditor () {
+    document.querySelector('textarea').blur()
   }
 
   componentWillUnmount () {
     this.editor.off('blur', this.blurHandler)
     this.editor.off('change', this.changeHandler)
     this.editor.off('paste', this.pasteHandler)
-    let editorTheme = document.getElementById('editorTheme')
+    const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
   }
 
@@ -143,6 +156,10 @@ export default class CodeEditor extends React.Component {
 
     if (prevProps.displayLineNumbers !== this.props.displayLineNumbers) {
       this.editor.setOption('lineNumbers', this.props.displayLineNumbers)
+    }
+
+    if (prevProps.scrollPastEnd !== this.props.scrollPastEnd) {
+      this.editor.setOption('scrollPastEnd', this.props.scrollPastEnd)
     }
 
     if (needRefresh) {
@@ -190,7 +207,7 @@ export default class CodeEditor extends React.Component {
   }
 
   setValue (value) {
-    let cursor = this.editor.getCursor()
+    const cursor = this.editor.getCursor()
     this.editor.setValue(value)
     this.editor.setCursor(cursor)
   }
@@ -207,9 +224,7 @@ export default class CodeEditor extends React.Component {
   }
 
   insertImageMd (imageMd) {
-    const textarea = this.editor.getInputField()
-    const cm = this.editor
-    cm.replaceSelection(`${textarea.value.substr(0, textarea.selectionStart)}${imageMd}${textarea.value.substr(textarea.selectionEnd)}`)
+    this.editor.replaceSelection(imageMd)
   }
 
   handlePaste (editor, e) {
@@ -217,7 +232,7 @@ export default class CodeEditor extends React.Component {
     if (!dataTransferItem.type.match('image')) return
 
     const blob = dataTransferItem.getAsFile()
-    let reader = new FileReader()
+    const reader = new FileReader()
     let base64data
 
     reader.readAsDataURL(blob)
@@ -227,16 +242,18 @@ export default class CodeEditor extends React.Component {
       const binaryData = new Buffer(base64data, 'base64').toString('binary')
       const imageName = Math.random().toString(36).slice(-16)
       const storagePath = findStorage(this.props.storageKey).path
-      const imagePath = path.join(`${storagePath}`, 'images', `${imageName}.png`)
-
-      require('fs').writeFile(imagePath, binaryData, 'binary')
+      const imageDir = path.join(storagePath, 'images')
+      if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir)
+      const imagePath = path.join(imageDir, `${imageName}.png`)
+      fs.writeFile(imagePath, binaryData, 'binary')
       const imageMd = `![${imageName}](${path.join('/:storage', `${imageName}.png`)})`
       this.insertImageMd(imageMd)
     }
   }
 
   render () {
-    let { className, fontFamily, fontSize } = this.props
+    const { className, fontSize } = this.props
+    let fontFamily = this.props.className
     fontFamily = _.isString(fontFamily) && fontFamily.length > 0
       ? [fontFamily].concat(defaultEditorFontFamily)
       : defaultEditorFontFamily

@@ -64,7 +64,7 @@ $list-width = 250px
 
 .result-nav-storageList
   absolute bottom left right
-  top 110px + 32px + 10px + 10px
+  top 110px + 32px + 10px + 10px + 20px
   overflow-y auto
 
 .result-list
@@ -116,3 +116,41 @@ body[data-theme="dark"]
     absolute top bottom right
     left $nav-width + $list-width
     background-color $ui-dark-noteDetail-backgroundColor
+
+
+
+body[data-theme="solarized-dark"]
+  .root
+    background-color $ui-solarized-dark-backgroundColor
+  .search
+    border-color $ui-solarized-dark-borderColor
+  .search-input
+    color $ui-dark-text-color
+
+  .result
+    background-color $ui-solarized-dark-backgroundColor
+
+  .result-nav
+    background-color $ui-solarized-dark-backgroundColor
+    label
+      color $ui-dark-text-color
+
+  .result-nav-menu
+    navDarkButtonColor()
+
+  .result-nav-menu--active
+    background-color $ui-solarized-dark-button-backgroundColor
+    color $ui-dark-button--active-color
+    &:hover
+      background-color $ui-dark-button--active-backgroundColor
+
+  .result-list
+    border-color $ui-solarized-dark-borderColor
+    box-shadow none
+    top 0
+
+  .result-detail
+    absolute top bottom right
+    left $nav-width + $list-width
+    background-color $ui-solarized-dark-backgroundColor
+

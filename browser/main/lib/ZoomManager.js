@@ -19,7 +19,7 @@ function setZoom (zoomFactor, noSave = false) {
 }
 
 function getZoom () {
-  let config = ConfigManager.get()
+  const config = ConfigManager.get()
 
   return config.zoom
 }

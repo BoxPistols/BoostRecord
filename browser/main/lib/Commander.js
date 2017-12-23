@@ -13,10 +13,10 @@ function release (el) {
 
 function fire (command) {
   console.info('COMMAND >>', command)
-  let splitted = command.split(':')
-  let target = splitted[0]
-  let targetCommand = splitted[1]
-  let targetCallees = callees
+  const splitted = command.split(':')
+  const target = splitted[0]
+  const targetCommand = splitted[1]
+  const targetCallees = callees
     .filter((callee) => callee.name === target)
 
   targetCallees.forEach((callee) => {

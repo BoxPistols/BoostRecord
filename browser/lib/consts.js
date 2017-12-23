@@ -10,6 +10,7 @@ const themes = fs.readdirSync(themePath)
   .map((themePath) => {
     return themePath.substring(0, themePath.lastIndexOf('.'))
   })
+themes.splice(themes.indexOf('solarized'), 1, 'solarized dark', 'solarized light')
 
 const consts = {
   FOLDER_COLORS: [

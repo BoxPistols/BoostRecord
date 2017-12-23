@@ -2,12 +2,15 @@ import markdownit from 'markdown-it'
 import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
 import _ from 'lodash'
+import ConfigManager from 'browser/main/lib/ConfigManager'
 
+// FIXME We should not depend on global variable.
 const katex = window.katex
+const config = ConfigManager.get()
 
 function createGutter (str) {
-  let lc = (str.match(/\n/g) || []).length
-  let lines = []
+  const lc = (str.match(/\n/g) || []).length
+  const lines = []
   for (let i = 1; i <= lc; i++) {
     lines.push('<span class="CodeMirror-linenumber">' + i + '</span>')
   }
@@ -38,6 +41,10 @@ md.use(emoji, {
   shortcuts: {}
 })
 md.use(math, {
+  inlineOpen: config.preview.latexInlineOpen,
+  inlineClose: config.preview.latexInlineClose,
+  blockOpen: config.preview.latexBlockOpen,
+  blockClose: config.preview.latexBlockClose,
   inlineRenderer: function (str) {
     let output = ''
     try {
@@ -68,12 +75,15 @@ md.use(require('markdown-it-named-headers'), {
       .replace(/\-+$/, '')
   }
 })
+md.use(require('markdown-it-kbd'))
+md.use(require('markdown-it-plantuml'))
+
 // Override task item
 md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
   let content, terminate, i, l, token
   let nextLine = startLine + 1
-  let terminatorRules = state.md.block.ruler.getRules('paragraph')
-  let endLine = state.lineMax
+  const terminatorRules = state.md.block.ruler.getRules('paragraph')
+  const endLine = state.lineMax
 
   // jump line-by-line until empty one or EOF
   for (; nextLine < endLine && !state.isEmpty(nextLine); nextLine++) {
@@ -103,9 +113,9 @@ md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
   token.map = [ startLine, state.line ]
 
   if (state.parentType === 'list') {
-    let match = content.match(/^\[( |x)\] ?(.+)/i)
+    const match = content.match(/^\[( |x)\] ?(.+)/i)
     if (match) {
-      content = `<label class='taskListItem' for='checkbox-${startLine + 1}'><input type='checkbox'${match[1] !== ' ' ? ' checked' : ''} id='checkbox-${startLine + 1}'/> ${content.substring(4, content.length)}</label>`
+      content = `<label class='taskListItem${match[1] !== ' ' ? ' checked' : ''}' for='checkbox-${startLine + 1}'><input type='checkbox'${match[1] !== ' ' ? ' checked' : ''} id='checkbox-${startLine + 1}'/> ${content.substring(4, content.length)}</label>`
     }
   }
 
@@ -120,7 +130,7 @@ md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
 })
 
 // Add line number attribute for scrolling
-let originalRender = md.renderer.render
+const originalRender = md.renderer.render
 md.renderer.render = function render (tokens, options, env) {
   tokens.forEach((token) => {
     switch (token.type) {
@@ -131,39 +141,11 @@ md.renderer.render = function render (tokens, options, env) {
         token.attrPush(['data-line', token.map[0]])
     }
   })
-  let result = originalRender.call(md.renderer, tokens, options, env)
+  const result = originalRender.call(md.renderer, tokens, options, env)
   return result
 }
+// FIXME We should not depend on global variable.
 window.md = md
-
-function strip (input) {
-  var output = input
-  try {
-    output = output
-      .replace(/^([\s\t]*)([\*\-\+]|\d\.)\s+/gm, '$1')
-      .replace(/\n={2,}/g, '\n')
-      .replace(/~~/g, '')
-      .replace(/`{3}.*\n/g, '')
-      .replace(/<(.*?)>/g, '$1')
-      .replace(/^[=\-]{2,}\s*$/g, '')
-      .replace(/\[\^.+?\](: .*?$)?/g, '')
-      .replace(/\s{0,2}\[.*?\]: .*?$/g, '')
-      .replace(/!\[.*?\][\[\(].*?[\]\)]/g, '')
-      .replace(/\[(.*?)\][\[\(].*?[\]\)]/g, '$1')
-      .replace(/>/g, '')
-      .replace(/^\s{1,2}\[(.*?)\]: (\S+)( ".*?")?\s*$/g, '')
-      .replace(/^#{1,6}\s*([^#]*)\s*(#{1,6})?/gm, '$1')
-      .replace(/([\*_]{1,3})(\S.*?\S)\1/g, '$2')
-      .replace(/(`{3,})(.*?)\1/gm, '$2')
-      .replace(/^-{3,}\s*$/g, '')
-      .replace(/`(.+?)`/g, '$1')
-      .replace(/\n{2,}/g, '\n\n')
-  } catch (e) {
-    console.error(e)
-    return input
-  }
-  return output
-}
 
 function normalizeLinkText (linkText) {
   return md.normalizeLinkText(linkText)
@@ -175,7 +157,7 @@ const markdown = {
     const renderedContent = md.render(content)
     return renderedContent
   },
-  strip,
   normalizeLinkText
 }
+
 export default markdown

@@ -10,7 +10,7 @@ nodeIpc.config.retry = 1500
 nodeIpc.config.silent = true
 
 function killFinder () {
-  let finderWindow = remote.getCurrentWindow()
+  const finderWindow = remote.getCurrentWindow()
   finderWindow.removeAllListeners()
   if (global.process.platform === 'darwin') {
     // Only OSX has another app process.
@@ -21,7 +21,7 @@ function killFinder () {
 }
 
 function toggleFinder () {
-  let finderWindow = remote.getCurrentWindow()
+  const finderWindow = remote.getCurrentWindow()
   if (global.process.platform === 'darwin') {
     if (finderWindow.isVisible()) {
       finderWindow.hide()
@@ -84,6 +84,10 @@ nodeIpc.connectTo(
       const { config } = payload
       if (config.ui.theme === 'dark') {
         document.body.setAttribute('data-theme', 'dark')
+      } else if (config.ui.theme === 'white') {
+        document.body.setAttribute('data-theme', 'white')
+      } else if (config.ui.theme === 'solarized-dark') {
+        document.body.setAttribute('data-theme', 'solarized-dark')
       } else {
         document.body.setAttribute('data-theme', 'default')
       }

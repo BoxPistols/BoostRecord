@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import markdown from 'browser/lib/markdown'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
@@ -10,6 +11,7 @@ import eventEmitter from 'browser/main/lib/eventEmitter'
 import fs from 'fs'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import copy from 'copy-to-clipboard'
+import mdurl from 'mdurl'
 
 const { remote } = require('electron')
 const { app } = remote
@@ -32,19 +34,27 @@ function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber) {
   font-weight: normal;
   text-rendering: optimizeLegibility;
 }
+@font-face {
+  font-family: 'Lato';
+  src: url('${appPath}/resources/fonts/Lato-Black.woff2') format('woff2'), /* Modern Browsers */
+       url('${appPath}/resources/fonts/Lato-Black.woff') format('woff'), /* Modern Browsers */
+       url('${appPath}/resources/fonts/Lato-Black.ttf') format('truetype');
+  font-style: normal;
+  font-weight: 700;
+  text-rendering: optimizeLegibility;
+}
 ${markdownStyle}
 body {
-  font-family: ${fontFamily.join(', ')};
+  font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
 }
 code {
-  font-family: ${codeBlockFontFamily.join(', ')};
+  font-family: '${codeBlockFontFamily.join("','")}';
   background-color: rgba(0,0,0,0.04);
-  color: #CC305F;
 }
 .lineNumber {
   ${lineNumber && 'display: block !important;'}
-  font-family: ${codeBlockFontFamily.join(', ')};
+  font-family: '${codeBlockFontFamily.join("','")}';
 }
 
 .clipboardButton {
@@ -92,7 +102,7 @@ const OSX = global.process.platform === 'darwin'
 
 const defaultFontFamily = ['helvetica', 'arial', 'sans-serif']
 if (!OSX) {
-  defaultFontFamily.unshift('\'Microsoft YaHei\'')
+  defaultFontFamily.unshift('Microsoft YaHei')
   defaultFontFamily.unshift('meiryo')
 }
 const defaultCodeBlockFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
@@ -117,10 +127,10 @@ export default class MarkdownPreview extends React.Component {
     e.preventDefault()
     e.stopPropagation()
 
-    let anchor = e.target.closest('a')
-    let href = anchor.getAttribute('href')
+    const anchor = e.target.closest('a')
+    const href = anchor.getAttribute('href')
     if (_.isString(href) && href.match(/^#/)) {
-      let targetElement = this.refs.root.contentWindow.document.getElementById(href.substring(1, href.length))
+      const targetElement = this.refs.root.contentWindow.document.getElementById(href.substring(1, href.length))
       if (targetElement != null) {
         this.getWindow().scrollTo(0, targetElement.offsetTop)
       }
@@ -134,10 +144,12 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleContextMenu (e) {
+    if (!this.props.onContextMenu) return
     this.props.onContextMenu(e)
   }
 
   handleMouseDown (e) {
+    if (!this.props.onMouseDown) return
     if (e.target != null) {
       switch (e.target.tagName) {
         case 'A':
@@ -149,6 +161,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleMouseUp (e) {
+    if (!this.props.onMouseUp) return
     if (e.target != null && e.target.tagName === 'A') {
       return null
     }
@@ -182,6 +195,16 @@ export default class MarkdownPreview extends React.Component {
         })
       }
     })
+  }
+
+  fixDecodedURI (node) {
+    if (node && node.children.length === 1 && typeof node.children[0] === 'string') {
+      const { innerText, href } = node
+
+      node.innerText = mdurl.decode(href) === innerText
+        ? href
+        : innerText
+    }
   }
 
   componentDidMount () {
@@ -224,6 +247,7 @@ export default class MarkdownPreview extends React.Component {
       prevProps.codeBlockFontFamily !== this.props.codeBlockFontFamily ||
       prevProps.codeBlockTheme !== this.props.codeBlockTheme ||
       prevProps.lineNumber !== this.props.lineNumber ||
+      prevProps.showCopyNotification !== this.props.showCopyNotification ||
       prevProps.theme !== this.props.theme) {
       this.applyStyle()
       this.rewriteIframe()
@@ -231,12 +255,13 @@ export default class MarkdownPreview extends React.Component {
   }
 
   applyStyle () {
-    let { fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme } = this.props
+    const { fontSize, lineNumber, codeBlockTheme } = this.props
+    let { fontFamily, codeBlockFontFamily } = this.props
     fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
-      ? [fontFamily].concat(defaultFontFamily)
+      ? fontFamily.split(',').map(fontName => fontName.trim()).concat(defaultFontFamily)
       : defaultFontFamily
     codeBlockFontFamily = _.isString(codeBlockFontFamily) && codeBlockFontFamily.trim().length > 0
-      ? [codeBlockFontFamily].concat(defaultCodeBlockFontFamily)
+      ? codeBlockFontFamily.split(',').map(fontName => fontName.trim()).concat(defaultCodeBlockFontFamily)
       : defaultCodeBlockFontFamily
 
     this.setCodeTheme(codeBlockTheme)
@@ -247,7 +272,9 @@ export default class MarkdownPreview extends React.Component {
     theme = consts.THEMES.some((_theme) => _theme === theme) && theme !== 'default'
       ? theme
       : 'elegant'
-    this.getWindow().document.getElementById('codeTheme').href = `${appPath}/node_modules/codemirror/theme/${theme}.css`
+    this.getWindow().document.getElementById('codeTheme').href = theme.startsWith('solarized')
+      ? `${appPath}/node_modules/codemirror/theme/solarized.css`
+      : `${appPath}/node_modules/codemirror/theme/${theme}.css`
   }
 
   rewriteIframe () {
@@ -262,7 +289,8 @@ export default class MarkdownPreview extends React.Component {
       el.removeEventListener('click', this.linkClickHandler)
     })
 
-    let { value, theme, indentSize, codeBlockTheme, storagePath } = this.props
+    const { theme, indentSize, showCopyNotification, storagePath } = this.props
+    let { value, codeBlockTheme } = this.props
 
     this.refs.root.contentWindow.document.body.setAttribute('data-theme', theme)
 
@@ -279,6 +307,7 @@ export default class MarkdownPreview extends React.Component {
     })
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
+      this.fixDecodedURI(el)
       el.addEventListener('click', this.anchorClickHandler)
     })
 
@@ -304,25 +333,32 @@ export default class MarkdownPreview extends React.Component {
       let syntax = CodeMirror.findModeByName(el.className)
       if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
       CodeMirror.requireMode(syntax.mode, () => {
-        let content = htmlTextHelper.decodeEntities(el.innerHTML)
+        const content = htmlTextHelper.decodeEntities(el.innerHTML)
         const copyIcon = document.createElement('i')
         copyIcon.innerHTML = '<button class="clipboardButton"><svg width="13" height="13" viewBox="0 0 1792 1792" ><path d="M768 1664h896v-640h-416q-40 0-68-28t-28-68v-416h-384v1152zm256-1440v-64q0-13-9.5-22.5t-22.5-9.5h-704q-13 0-22.5 9.5t-9.5 22.5v64q0 13 9.5 22.5t22.5 9.5h704q13 0 22.5-9.5t9.5-22.5zm256 672h299l-299-299v299zm512 128v672q0 40-28 68t-68 28h-960q-40 0-68-28t-28-68v-160h-544q-40 0-68-28t-28-68v-1344q0-40 28-68t68-28h1088q40 0 68 28t28 68v328q21 13 36 28l408 408q28 28 48 76t20 88z"/></svg></button>'
         copyIcon.onclick = (e) => {
           copy(content)
-          this.notify('Saved to Clipboard!', {
-            body: 'Paste it wherever you want!',
-            silent: true
-          })
+          if (showCopyNotification) {
+            this.notify('Saved to Clipboard!', {
+              body: 'Paste it wherever you want!',
+              silent: true
+            })
+          }
         }
         el.parentNode.appendChild(copyIcon)
         el.innerHTML = ''
-        el.parentNode.className += ` cm-s-${codeBlockTheme} CodeMirror`
+        if (codeBlockTheme.indexOf('solarized') === 0) {
+          const [refThema, color] = codeBlockTheme.split(' ')
+          el.parentNode.className += ` cm-s-${refThema} cm-s-${color} CodeMirror`
+        } else {
+          el.parentNode.className += ` cm-s-${codeBlockTheme} CodeMirror`
+        }
         CodeMirror.runMode(content, syntax.mime, el, {
           tabSize: indentSize
         })
       })
     })
-    let opts = {}
+    const opts = {}
     // if (this.props.theme === 'dark') {
     //   opts['font-color'] = '#DDD'
     //   opts['line-color'] = '#DDD'
@@ -332,7 +368,7 @@ export default class MarkdownPreview extends React.Component {
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('.flowchart'), (el) => {
       Raphael.setWindow(this.getWindow())
       try {
-        let diagram = flowchart.parse(htmlTextHelper.decodeEntities(el.innerHTML))
+        const diagram = flowchart.parse(htmlTextHelper.decodeEntities(el.innerHTML))
         el.innerHTML = ''
         diagram.drawSVG(el, opts)
         _.forEach(el.querySelectorAll('a'), (el) => {
@@ -348,7 +384,7 @@ export default class MarkdownPreview extends React.Component {
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('.sequence'), (el) => {
       Raphael.setWindow(this.getWindow())
       try {
-        let diagram = SequenceDiagram.parse(htmlTextHelper.decodeEntities(el.innerHTML))
+        const diagram = SequenceDiagram.parse(htmlTextHelper.decodeEntities(el.innerHTML))
         el.innerHTML = ''
         diagram.drawSVG(el, {theme: 'simple'})
         _.forEach(el.querySelectorAll('a'), (el) => {
@@ -371,11 +407,11 @@ export default class MarkdownPreview extends React.Component {
   }
 
   scrollTo (targetRow) {
-    let blocks = this.getWindow().document.querySelectorAll('body>[data-line]')
+    const blocks = this.getWindow().document.querySelectorAll('body>[data-line]')
 
     for (let index = 0; index < blocks.length; index++) {
       let block = blocks[index]
-      let row = parseInt(block.getAttribute('data-line'))
+      const row = parseInt(block.getAttribute('data-line'))
       if (row > targetRow || index === blocks.length - 1) {
         block = blocks[index - 1]
         block != null && this.getWindow().scrollTo(0, block.offsetTop)
@@ -405,7 +441,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   render () {
-    let { className, style, tabIndex } = this.props
+    const { className, style, tabIndex } = this.props
     return (
       <iframe className={className != null
           ? 'MarkdownPreview ' + className
@@ -426,5 +462,6 @@ MarkdownPreview.propTypes = {
   onMouseDown: PropTypes.func,
   className: PropTypes.string,
   value: PropTypes.string,
+  showCopyNotification: PropTypes.bool,
   storagePath: PropTypes.string
 }

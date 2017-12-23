@@ -31,10 +31,15 @@
 
 .group-section-control
   flex 1
+  margin-left 5px
 
 .group-section-control select
   outline none
   border 1px solid $ui-borderColor
+  font-size 16px
+  height 30px
+  width 250px
+  margin-bottom 5px
   background-color transparent
 
 .group-section-control-input
@@ -62,10 +67,17 @@
   text-align right
   :global
     .alert
-      font-size 12px
-      line-height 30px
-      padding 0 5px
-      float right
+      display inline-block
+      position absolute
+      top 60px
+      right 15px
+      font-size 14px
+    .success
+      color #1EC38B
+    .error
+      color red
+
+
 
 .group-control-leftButton
   colorDefaultButton()
@@ -77,14 +89,16 @@
   margin-right 10px
 
 .group-control-rightButton
-  float right
+  position absolute
+  top 10px
+  right 20px
   colorPrimaryButton()
   border none
   border-radius 2px
   font-size $tab--button-font-size
-  height 35px
-  width 100px
-  margin-right 10px
+  height 40px
+  width 120px
+  padding 0 15px
 
 .group-hint
   border $ui-border
@@ -101,7 +115,6 @@
     line-height 1.2
 
 .note-for-keymap
-  margin-left: 10px
   font-size: 12px
 
 .code-mirror
@@ -114,6 +127,12 @@ colorDarkControl()
   border-color $ui-dark-borderColor
   background-color $ui-dark-backgroundColor
   color $ui-dark-text-color
+  
+colorSolarizedDarkControl()
+  border none
+  background-color $ui-solarized-dark-button-backgroundColor
+  color $ui-solarized-dark-text-color
+
 
 body[data-theme="dark"]
   .root
@@ -141,3 +160,33 @@ body[data-theme="dark"]
   .group-section-control
     select, .group-section-control-input
       colorDarkControl()
+     
+      
+body[data-theme="solarized-dark"]
+  .root
+    color $ui-solarized-dark-text-color
+
+  .group-header
+    color $ui-solarized-dark-text-color
+    border-color $ui-solarized-dark-borderColor 
+
+  .group-header2
+    color $ui-solarized-dark-text-color
+
+  .group-section-control-input
+    border-color $ui-solarized-dark-borderColor 
+
+  .group-control
+    border-color $ui-solarized-dark-borderColor 
+  .group-control-leftButton
+    colorDarkDefaultButton()
+    border-color $ui-solarized-dark-borderColor 
+  .group-control-rightButton
+    colorSolarizedDarkPrimaryButton()
+  .group-hint
+    colorSolarizedDarkControl()
+  .group-section-control
+    select, .group-section-control-input
+      colorSolarizedDarkControl()
+
+

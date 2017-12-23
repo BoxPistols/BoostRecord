@@ -17,7 +17,7 @@ const os = require('os')
 const dummyStoragePath = path.join(os.tmpdir(), 'test/migrate-test-storage')
 
 test.beforeEach((t) => {
-  let dummyData = t.context.dummyData = TestDummy.dummyLegacyStorage(dummyStoragePath)
+  const dummyData = t.context.dummyData = TestDummy.dummyLegacyStorage(dummyStoragePath)
   console.log('init count', dummyData.notes.length)
   localStorage.setItem('storages', JSON.stringify([dummyData.cache]))
 })
@@ -32,11 +32,11 @@ test.serial('Migrate legacy storage into v1 storage', (t) => {
       t.true(data)
 
       // Check all notes migrated.
-      let dummyData = t.context.dummyData
-      let noteDirPath = path.join(dummyStoragePath, 'notes')
-      let fileList = sander.readdirSync(noteDirPath)
+      const dummyData = t.context.dummyData
+      const noteDirPath = path.join(dummyStoragePath, 'notes')
+      const fileList = sander.readdirSync(noteDirPath)
       t.is(dummyData.notes.length, fileList.length)
-      let noteMap = fileList
+      const noteMap = fileList
         .map((filePath) => {
           return CSON.readFileSync(path.join(noteDirPath, filePath))
         })

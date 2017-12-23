@@ -46,3 +46,32 @@ grunt pre-build
 実行ファイルは`dist`から見つかります。この場合、認証されていないため、自動アップデーターは使えません。
 
 必要であれば、この実行ファイルからCodesignやAuthenticodeなどの署名ができます。
+
+## ディストリビューション用パッケージ (deb, rpm)
+
+ディストリビューション用パッケージはLinuxプラットフォーム(Ubuntu や Fedora)上で `grunt build` を実行する事で作成されます。
+
+> 一つの環境で `.deb` と `.rpm` の両方を作成する事が出来ます。
+
+
+対応するバージョンの `node` と `npm` をインストールした後、必要なパッケージをインストールします。
+
+Ubuntu/Debian:
+
+```
+$ sudo apt-get install -y rpm fakeroot
+```
+
+Fedora:
+
+```
+$ sudo dnf install -y dpkg dpkg-dev rpm-build fakeroot
+```
+
+`grunt build` を実行します。
+
+```
+$ grunt build
+```
+
+`.deb` と `.rpm` は `dist` 配下に作成されます。

@@ -85,8 +85,17 @@ class SnippetTab extends React.Component {
     })
   }
 
+  handleDragStart (e) {
+    e.dataTransfer.dropEffect = 'move'
+    this.props.onDragStart(e)
+  }
+
+  handleDrop (e) {
+    this.props.onDrop(e)
+  }
+
   render () {
-    let { isActive, snippet, isDeletable } = this.props
+    const { isActive, snippet, isDeletable } = this.props
     return (
       <div styleName={isActive
           ? 'root--active'
@@ -98,6 +107,9 @@ class SnippetTab extends React.Component {
             onClick={(e) => this.handleClick(e)}
             onDoubleClick={(e) => this.handleRenameClick(e)}
             onContextMenu={(e) => this.handleContextMenu(e)}
+            onDragStart={(e) => this.handleDragStart(e)}
+            onDrop={(e) => this.handleDrop(e)}
+            draggable='true'
           >
             {snippet.name.trim().length > 0
               ? snippet.name
@@ -127,6 +139,7 @@ class SnippetTab extends React.Component {
 }
 
 SnippetTab.propTypes = {
+
 }
 
 export default CSSModules(SnippetTab, styles)

@@ -33,7 +33,7 @@ test.serial('Create a folder', (t) => {
     })
     .then(function assert (data) {
       t.true(_.find(data.storage.folders, input) != null)
-      let jsonData = CSON.readFileSync(path.join(data.storage.path, 'boostnote.json'))
+      const jsonData = CSON.readFileSync(path.join(data.storage.path, 'boostnote.json'))
       console.log(path.join(data.storage.path, 'boostnote.json'))
       t.true(_.find(jsonData.folders, input) != null)
     })

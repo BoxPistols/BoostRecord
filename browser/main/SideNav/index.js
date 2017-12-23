@@ -1,30 +1,47 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './SideNav.styl'
 import { openModal } from 'browser/main/lib/modal'
 import PreferencesModal from '../modals/PreferencesModal'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import StorageItem from './StorageItem'
+import TagListItem from 'browser/components/TagListItem'
 import SideNavFilter from 'browser/components/SideNavFilter'
+import StorageList from 'browser/components/StorageList'
+import NavToggleButton from 'browser/components/NavToggleButton'
+import EventEmitter from 'browser/main/lib/eventEmitter'
+import PreferenceButton from './PreferenceButton'
+import ListButton from './ListButton'
+import TagButton from './TagButton'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
+
+  componentDidMount () {
+    EventEmitter.on('side:preferences', this.handleMenuButtonClick)
+  }
+
+  componentWillUnmount () {
+    EventEmitter.off('side:preferences', this.handleMenuButtonClick)
+  }
+
   handleMenuButtonClick (e) {
     openModal(PreferencesModal)
   }
 
   handleHomeButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/home')
   }
 
   handleStarredButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/starred')
   }
 
   handleToggleButtonClick (e) {
-    let { dispatch, config } = this.props
+    const { dispatch, config } = this.props
 
     ConfigManager.set({isSideNavFolded: !config.isSideNavFolded})
     dispatch({
@@ -34,19 +51,100 @@ class SideNav extends React.Component {
   }
 
   handleTrashedButtonClick (e) {
-    let { router } = this.context
+    const { router } = this.context
     router.push('/trashed')
   }
 
+  handleSwitchFoldersButtonClick () {
+    const { router } = this.context
+    router.push('/home')
+  }
+
+  handleSwitchTagsButtonClick () {
+    const { router } = this.context
+    router.push('/alltags')
+  }
+
+  SideNavComponent (isFolded, storageList) {
+    const { location, data } = this.props
+
+    const isHomeActive = !!location.pathname.match(/^\/home$/)
+    const isStarredActive = !!location.pathname.match(/^\/starred$/)
+    const isTrashedActive = !!location.pathname.match(/^\/trashed$/)
+
+    let component
+
+    // TagsMode is not selected
+    if (!location.pathname.match('/tags') && !location.pathname.match('/alltags')) {
+      component = (
+        <div>
+          <SideNavFilter
+            isFolded={isFolded}
+            isHomeActive={isHomeActive}
+            handleAllNotesButtonClick={(e) => this.handleHomeButtonClick(e)}
+            isStarredActive={isStarredActive}
+            isTrashedActive={isTrashedActive}
+            handleStarredButtonClick={(e) => this.handleStarredButtonClick(e)}
+            handleTrashedButtonClick={(e) => this.handleTrashedButtonClick(e)}
+            counterTotalNote={data.noteMap._map.size}
+            counterStarredNote={data.starredSet._set.size}
+            counterDelNote={data.trashedSet._set.size}
+          />
+
+          <StorageList storageList={storageList} />
+          <NavToggleButton isFolded={isFolded} handleToggleButtonClick={this.handleToggleButtonClick.bind(this)} />
+        </div>
+      )
+    } else {
+      component = (
+        <div styleName='tabBody'>
+          <div styleName='tag-title'>
+            <p>Tags</p>
+          </div>
+          <div styleName='tagList'>
+            {this.tagListComponent(data)}
+          </div>
+        </div>
+      )
+    }
+
+    return component
+  }
+
+  tagListComponent () {
+    const { data, location } = this.props
+    const tagList = data.tagNoteMap.map((tag, key) => {
+      return key
+    })
+    return (
+      tagList.map(tag => (
+        <TagListItem
+          name={tag}
+          handleClickTagListItem={this.handleClickTagListItem.bind(this)}
+          isActive={this.getTagActive(location.pathname, tag)}
+          key={tag}
+        />
+      ))
+    )
+  }
+
+  getTagActive (path, tag) {
+    const pathSegments = path.split('/')
+    const pathTag = pathSegments[pathSegments.length - 1]
+    return pathTag === tag
+  }
+
+  handleClickTagListItem (name) {
+    const { router } = this.context
+    router.push(`/tags/${name}`)
+  }
+
   render () {
-    let { data, location, config, dispatch } = this.props
+    const { data, location, config, dispatch } = this.props
 
-    let isFolded = config.isSideNavFolded
-    let isHomeActive = !!location.pathname.match(/^\/home$/)
-    let isStarredActive = !!location.pathname.match(/^\/starred$/)
-    let isTrashedActive = !!location.pathname.match(/^\/trashed$/)
+    const isFolded = config.isSideNavFolded
 
-    let storageList = data.storageMap.map((storage, key) => {
+    const storageList = data.storageMap.map((storage, key) => {
       return <StorageItem
         key={storage.key}
         storage={storage}
@@ -56,8 +154,9 @@ class SideNav extends React.Component {
         dispatch={dispatch}
       />
     })
-    let style = {}
+    const style = {}
     if (!isFolded) style.width = this.props.width
+    const isTagActive = location.pathname.match(/tag/)
     return (
       <div className='SideNav'
         styleName={isFolded ? 'root--folded' : 'root'}
@@ -65,37 +164,15 @@ class SideNav extends React.Component {
         style={style}
       >
         <div styleName='top'>
-          <button styleName='top-menu'
-            onClick={(e) => this.handleMenuButtonClick(e)}
-          >
-            <i className='fa fa-wrench fa-fw' />
-            <span styleName='top-menu-label'>Preferences</span>
-          </button>
+          <div styleName='switch-buttons'>
+            <ListButton onClick={this.handleSwitchFoldersButtonClick.bind(this)} isTagActive={isTagActive} />
+            <TagButton onClick={this.handleSwitchTagsButtonClick.bind(this)} isTagActive={isTagActive} />
+          </div>
+          <div>
+            <PreferenceButton onClick={this.handleMenuButtonClick} />
+          </div>
         </div>
-
-        <SideNavFilter
-          isFolded={isFolded}
-          isHomeActive={isHomeActive}
-          handleAllNotesButtonClick={(e) => this.handleHomeButtonClick(e)}
-          isStarredActive={isStarredActive}
-          isTrashedActive={isTrashedActive}
-          handleStarredButtonClick={(e) => this.handleStarredButtonClick(e)}
-          handleTrashedButtonClick={(e) => this.handleTrashedButtonClick(e)}
-        />
-
-        <div styleName='storageList'>
-          {storageList.length > 0 ? storageList : (
-            <div styleName='storageList-empty'>No storage mount.</div>
-          )}
-        </div>
-        <button styleName='navToggle'
-          onClick={(e) => this.handleToggleButtonClick(e)}
-        >
-          {isFolded
-            ? <i className='fa fa-angle-double-right' />
-            : <i className='fa fa-angle-double-left' />
-          }
-        </button>
+        {this.SideNavComponent(isFolded, storageList)}
       </div>
     )
   }

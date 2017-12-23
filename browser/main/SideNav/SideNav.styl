@@ -1,62 +1,57 @@
 .root
   absolute top left bottom
   width $sideNav-width
-  background-color #f9f9f9
+  background-color #2E3235
   user-select none
   color $ui-text-color
+  height: 100vh
+  display: flex
+  flex-direction column
 
 .top
-  height $topBar-height
+  padding-bottom 15px
 
-.top-menu
-  navButtonColor()
-  height $topBar-height
-  padding 0 15px
-  font-size 12px
-  width 100%
-  text-align left
-  &:hover
-    color $ui-text-color
-  &:active, &:active:hover
-    color $ui-text-color
-    background-color alpha($ui-button--active-backgroundColor, 20%)
+.switch-buttons
+  background-color transparent
+  border 0
+  margin 24px auto 4px 14px
+  display flex
+  text-align center
 
+
+  
 .top-menu-label
   margin-left 5px
   overflow ellipsis
+  opacity 0
 
-.storageList
-  absolute left right
-  bottom 37px
-  top 160px
+.tabBody
+  flex 1
+  display flex
+  flex-direction column
+
+.tag-title
+  padding-left 15px
+  padding-bottom 13px
+  p
+    color $ui-button-default-color
+
+.tagList
   overflow-y auto
-
-.storageList-empty
-  padding 0 10px
-  margin-top 15px
-  line-height 24px
-  color $ui-inactive-text-color
-
-.navToggle
-  navButtonColor()
-  display block
-  position absolute
-  right 5px
-  bottom 5px
-  border-radius 16.5px
-  height 34px
-  width 34px
-  line-height 32px
-  padding 0
+  flex: 1
 
 .root--folded
-  @extend .root
-  width 44px
-  .storageList-empty
-    white-space nowrap
-    transform rotate(90deg)
+  height 100vh
+  width $sideNav--folded-width
+  background-color #2E3235
+  .switch-buttons
+    display none
+  .top
+    height 60px
   .top-menu
-    width 44px - 1
+    position static
+    width $sideNav--folded-width
+    height 60px
     text-align center
     &:hover .top-menu-label
       transition opacity 0.15s
@@ -65,66 +60,38 @@
     position fixed
     display inline-block
     height 30px
-    left 32px
+    left $sideNav--folded-width
     padding 0 10px
     margin-top -8px
     opacity 0
     margin-left 0
     overflow hidden
-    background-color $ui-tooltip-backgroundColor
     z-index 10
     color white
     line-height 30px
     border-top-right-radius 2px
     border-bottom-right-radius 2px
     pointer-events none
-    font-size 12px
-  .menu-button, .menu-button--active
-    text-align center
-    &:hover .menu-button-label
-      transition opacity 0.15s
-      opacity 1
+    font-size 13px
+  .top-menu-preference
+    position absolute
+    left 7px
 
-  .menu-button-label
-    position fixed
-    display inline-block
-    height 32px
-    left 44px
-    padding 0 10px
-    margin-top -8px
-    margin-left 0
-    overflow ellipsis
-    background-color $ui-tooltip-backgroundColor
-    z-index 10
-    color white
-    line-height 32px
-    border-top-right-radius 2px
-    border-bottom-right-radius 2px
-    pointer-events none
-    opacity 0
-    font-size 12px
+body[data-theme="white"]
+  .root, .root--folded
+    background-color #f9f9f9
+    color $ui-text-color
 
 body[data-theme="dark"]
   .root, .root--folded
-    border-color $ui-dark-borderColor
+    border-right 1px solid $ui-dark-borderColor
     background-color $ui-dark-backgroundColor
     color $ui-dark-text-color
 
   .top
     border-color $ui-dark-borderColor
 
-  .top-menu
-    navDarkButtonColor()
-    &:active
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-    &:hover
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-
-  .storageList-empty
-    color $ui-dark-inactive-text-color
-
-  .navToggle
-    &:hover
-      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
-      transition 0.15s
-      color $ui-dark-text-color
+body[data-theme="solarized-dark"]
+  .root, .root--folded
+    background-color $ui-solarized-dark-backgroundColor
+    border-right 1px solid $ui-solarized-dark-borderColor

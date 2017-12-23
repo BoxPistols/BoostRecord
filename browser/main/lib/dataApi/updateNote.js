@@ -5,7 +5,7 @@ const CSON = require('@rokt33r/season')
 const { findStorage } = require('browser/lib/findStorage')
 
 function validateInput (input) {
-  let validatedInput = {}
+  const validatedInput = {}
 
   if (input.tags != null) {
     if (!_.isArray(input.tags)) validatedInput.tags = []
@@ -24,6 +24,10 @@ function validateInput (input) {
 
   if (input.isTrashed != null) {
     validatedInput.isTrashed = !!input.isTrashed
+  }
+
+  if (input.isPinned !== undefined) {
+    validatedInput.isPinned = !!input.isPinned
   }
 
   validatedInput.type = input.type
@@ -77,7 +81,7 @@ function updateNote (storageKey, noteKey, input) {
   return resolveStorageData(targetStorage)
     .then(function saveNote (storage) {
       let noteData
-      let notePath = path.join(storage.path, 'notes', noteKey + '.cson')
+      const notePath = path.join(storage.path, 'notes', noteKey + '.cson')
       try {
         noteData = CSON.readFileSync(notePath)
       } catch (err) {
@@ -104,6 +108,7 @@ function updateNote (storageKey, noteKey, input) {
         noteData.isStarred = false
         noteData.isTrashed = false
         noteData.tags = []
+        noteData.isPinned = false
       }
 
       if (noteData.type === 'SNIPPET_NOTE') {

@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './CreateFolderModal.styl'
 import dataApi from 'browser/main/lib/dataApi'
@@ -51,8 +52,8 @@ class CreateFolderModal extends React.Component {
   confirm () {
     AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_FOLDER')
     if (this.state.name.trim().length > 0) {
-      let { storage } = this.props
-      let input = {
+      const { storage } = this.props
+      const input = {
         name: this.state.name.trim(),
         color: consts.FOLDER_COLORS[Math.floor(Math.random() * 7) % 7]
       }

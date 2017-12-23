@@ -27,13 +27,16 @@ document.addEventListener('click', function (e) {
   const className = e.target.className
   if (!className && typeof (className) !== 'string') return
   const isInfoButton = className.includes('infoButton')
-  const isInfoPanel = e.target.offsetParent.className.includes('infoPanel')
+  const offsetParent = e.target.offsetParent
+  const isInfoPanel = offsetParent !== null
+    ? offsetParent.className.includes('infoPanel')
+    : false
   if (isInfoButton || isInfoPanel) return
   const infoPanel = document.querySelector('.infoPanel')
   if (infoPanel) infoPanel.style.display = 'none'
 })
 
-let el = document.getElementById('content')
+const el = document.getElementById('content')
 const history = syncHistoryWithStore(hashHistory, store)
 
 function notify (...args) {
@@ -41,7 +44,7 @@ function notify (...args) {
 }
 
 function updateApp () {
-  let index = dialog.showMessageBox(remote.getCurrentWindow(), {
+  const index = dialog.showMessageBox(remote.getCurrentWindow(), {
     type: 'warning',
     message: 'Update Boostnote',
     detail: 'New Boostnote is ready to be installed.',
@@ -62,6 +65,11 @@ ReactDOM.render((
         <Route path='starred' />
         <Route path='searched' />
         <Route path='trashed' />
+        <Route path='alltags' />
+        <Route path='tags'>
+          <IndexRedirect to='/alltags' />
+          <Route path=':tagname' />
+        </Route>
         <Route path='storages'>
           <IndexRedirect to='/home' />
           <Route path=':storageKey'>
@@ -73,7 +81,7 @@ ReactDOM.render((
     </Router>
   </Provider>
 ), el, function () {
-  let loadingCover = document.getElementById('loadingCover')
+  const loadingCover = document.getElementById('loadingCover')
   loadingCover.parentNode.removeChild(loadingCover)
 
   ipcRenderer.on('update-ready', function () {

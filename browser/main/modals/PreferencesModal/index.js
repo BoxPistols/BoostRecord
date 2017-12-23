@@ -1,13 +1,16 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import ReactDOM from 'react-dom'
 import { connect } from 'react-redux'
 import HotkeyTab from './HotkeyTab'
 import UiTab from './UiTab'
 import InfoTab from './InfoTab'
+import Crowdfunding from './Crowdfunding'
 import StoragesTab from './StoragesTab'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './PreferencesModal.styl'
+import RealtimeNotification from 'browser/components/RealtimeNotification'
 
 class Preferences extends React.Component {
   constructor (props) {
@@ -40,7 +43,7 @@ class Preferences extends React.Component {
 
   renderContent () {
     const { boundingBox } = this.state
-    let { dispatch, config, data } = this.props
+    const { dispatch, config, data } = this.props
 
     switch (this.state.currentTab) {
       case 'INFO':
@@ -63,6 +66,10 @@ class Preferences extends React.Component {
             dispatch={dispatch}
             config={config}
           />
+        )
+      case 'CROWDFUNDING':
+        return (
+          <Crowdfunding />
         )
       case 'STORAGES':
       default:
@@ -88,17 +95,18 @@ class Preferences extends React.Component {
   }
 
   render () {
-    let content = this.renderContent()
+    const content = this.renderContent()
 
-    let tabs = [
+    const tabs = [
       {target: 'STORAGES', label: 'Storages'},
       {target: 'HOTKEY', label: 'Hotkey'},
       {target: 'UI', label: 'UI'},
-      {target: 'INFO', label: 'Info'}
+      {target: 'INFO', label: 'Community / Info'},
+      {target: 'CROWDFUNDING', label: 'Crowdfunding'}
     ]
 
-    let navButtons = tabs.map((tab) => {
-      let isActive = this.state.currentTab === tab.target
+    const navButtons = tabs.map((tab) => {
+      const isActive = this.state.currentTab === tab.target
       return (
         <button styleName={isActive
             ? 'nav-button--active'
@@ -130,6 +138,7 @@ class Preferences extends React.Component {
         <div ref='content' styleName='content'>
           {content}
         </div>
+        <RealtimeNotification />
       </div>
     )
   }

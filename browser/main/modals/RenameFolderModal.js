@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react'
+import PropTypes from 'prop-types'
+import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './RenameFolderModal.styl'
 import dataApi from 'browser/main/lib/dataApi'
@@ -48,7 +49,7 @@ class RenameFolderModal extends React.Component {
 
   confirm () {
     if (this.state.name.trim().length > 0) {
-      let { storage, folder } = this.props
+      const { storage, folder } = this.props
       dataApi
         .updateFolder(storage.key, folder.key, {
           name: this.state.name,

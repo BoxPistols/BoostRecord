@@ -175,6 +175,10 @@ class MarkdownNoteDetail extends React.Component {
     ee.emit('export:save-text')
   }
 
+  exportAsHtml () {
+    ee.emit('export:save-html')
+  }
+
   handleTrashButtonClick (e) {
     const { note } = this.state
     const { isTrashed } = note
@@ -334,6 +338,7 @@ class MarkdownNoteDetail extends React.Component {
           folderName={currentOption.folder.name}
           updatedAt={formatDate(note.updatedAt)}
           createdAt={formatDate(note.createdAt)}
+          exportAsHtml={this.exportAsHtml}
           exportAsMd={this.exportAsMd}
           exportAsTxt={this.exportAsTxt}
         />
@@ -398,6 +403,7 @@ class MarkdownNoteDetail extends React.Component {
           createdAt={formatDate(note.createdAt)}
           exportAsMd={this.exportAsMd}
           exportAsTxt={this.exportAsTxt}
+          exportAsHtml={this.exportAsHtml}
           wordCount={note.content.split(' ').length}
           letterCount={note.content.replace(/\r?\n/g, '').length}
           type={note.type}

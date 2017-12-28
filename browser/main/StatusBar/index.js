@@ -63,7 +63,7 @@ class StatusBar extends React.Component {
         {status.updateReady
           ? <button onClick={this.updateApp} styleName='update'>
             <i styleName='update-icon' className='fa fa-cloud-download' /> Ready to Update!
-            </button>
+          </button>
           : null
         }
       </div>

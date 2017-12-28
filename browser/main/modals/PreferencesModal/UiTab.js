@@ -7,10 +7,9 @@ import store from 'browser/main/store'
 import consts from 'browser/lib/consts'
 import ReactCodeMirror from 'react-codemirror'
 import CodeMirror from 'codemirror'
+import _ from 'lodash'
 
 const OSX = global.process.platform === 'darwin'
-
-import _ from 'lodash'
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer
@@ -93,8 +92,19 @@ class UiTab extends React.Component {
     if (newCodemirrorTheme !== codemirrorTheme) {
       checkHighLight.setAttribute('href', `../node_modules/codemirror/theme/${newCodemirrorTheme.split(' ')[0]}.css`)
     }
-
-    this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme })
+    this.setState({ config: newConfig, codemirrorTheme: newCodemirrorTheme }, () => {
+      const {ui, editor, preview} = this.props.config
+      this.currentConfig = {ui, editor, preview}
+      if (_.isEqual(this.currentConfig, this.state.config)) {
+        this.props.haveToSave()
+      } else {
+        this.props.haveToSave({
+          tab: 'UI',
+          type: 'warning',
+          message: 'You have to save!'
+        })
+      }
+    })
   }
 
   handleSaveUIClick (e) {
@@ -111,6 +121,7 @@ class UiTab extends React.Component {
       config: newConfig
     })
     this.clearMessage()
+    this.props.haveToSave()
   }
 
   clearMessage () {
@@ -412,7 +423,8 @@ UiTab.propTypes = {
   user: PropTypes.shape({
     name: PropTypes.string
   }),
-  dispatch: PropTypes.func
+  dispatch: PropTypes.func,
+  haveToSave: PropTypes.func
 }
 
 export default CSSModules(UiTab, styles)

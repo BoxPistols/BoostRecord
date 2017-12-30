@@ -45,6 +45,10 @@ class MarkdownSplitEditor extends React.Component {
   render () {
     const { config, value, storageKey } = this.props
     const storage = findStorage(storageKey)
+    let editorFontSize = parseInt(config.editor.fontSize, 10)
+    if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
+    let editorIndentSize = parseInt(config.editor.indentSize, 10)
+    if (!(editorFontSize > 0 && editorFontSize < 132)) editorIndentSize = 4
     const previewStyle = {}
     if (this.props.ignorePreviewPointerEvents) previewStyle.pointerEvents = 'none'
     return (
@@ -57,7 +61,9 @@ class MarkdownSplitEditor extends React.Component {
           theme={config.editor.theme}
           keyMap={config.editor.keyMap}
           fontFamily={config.editor.fontFamily}
+          fontSize={editorFontSize}
           indentType={config.editor.indentType}
+          indentSize={editorIndentSize}
           scrollPastEnd={config.editor.scrollPastEnd}
           storageKey={storageKey}
           onChange={this.handleOnChange.bind(this)}

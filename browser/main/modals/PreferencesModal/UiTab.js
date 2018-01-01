@@ -7,6 +7,7 @@ import store from 'browser/main/store'
 import consts from 'browser/lib/consts'
 import ReactCodeMirror from 'react-codemirror'
 import CodeMirror from 'codemirror'
+import 'codemirror-mode-elixir'
 import _ from 'lodash'
 
 const OSX = global.process.platform === 'darwin'

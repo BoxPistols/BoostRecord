@@ -10,7 +10,7 @@ import dataApi from 'browser/main/lib/dataApi'
 import StorageItemChild from 'browser/components/StorageItem'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import _ from 'lodash'
-import * as path  from 'path'
+import * as path from 'path'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote

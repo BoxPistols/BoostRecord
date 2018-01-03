@@ -28,7 +28,6 @@ import striptags from 'striptags'
 
 const electron = require('electron')
 const { remote } = electron
-const { dialog } = remote
 
 class MarkdownNoteDetail extends React.Component {
   constructor (props) {
@@ -203,9 +202,11 @@ class MarkdownNoteDetail extends React.Component {
         }, () => {
           this.save()
         })
+
+        ee.emit('list:next')
       }
     }
-    ee.emit('list:next')
+    
   }
 
   handleUndoButtonClick (e) {

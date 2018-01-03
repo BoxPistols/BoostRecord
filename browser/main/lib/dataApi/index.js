@@ -7,6 +7,7 @@ const dataApi = {
   updateFolder: require('./updateFolder'),
   deleteFolder: require('./deleteFolder'),
   reorderFolder: require('./reorderFolder'),
+  exportFolder: require('./exportFolder'),
   createNote: require('./createNote'),
   updateNote: require('./updateNote'),
   deleteNote: require('./deleteNote'),

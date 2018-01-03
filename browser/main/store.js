@@ -354,6 +354,13 @@ function data (state = defaultDataMap(), action) {
       state.storageMap = new Map(state.storageMap)
       state.storageMap.set(action.storage.key, action.storage)
       return state
+    case 'EXPORT_FOLDER':
+      {
+        state = Object.assign({}, state)
+        state.storageMap = new Map(state.storageMap)
+        state.storageMap.set(action.storage.key, action.storage)
+      }
+      return state
     case 'DELETE_FOLDER':
       {
         state = Object.assign({}, state)

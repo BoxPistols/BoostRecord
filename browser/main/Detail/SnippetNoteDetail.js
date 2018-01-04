@@ -11,6 +11,7 @@ import dataApi from 'browser/main/lib/dataApi'
 import { hashHistory } from 'react-router'
 import ee from 'browser/main/lib/eventEmitter'
 import CodeMirror from 'codemirror'
+import 'codemirror-mode-elixir'
 import SnippetTab from 'browser/components/SnippetTab'
 import StatusBar from '../StatusBar'
 import context from 'browser/lib/context'
@@ -380,7 +381,7 @@ class SnippetNoteDetail extends React.Component {
 
   handleModeButtonClick (e, index) {
     const menu = new Menu()
-    CodeMirror.modeInfo.forEach((mode) => {
+    CodeMirror.modeInfo.sort(function (a, b) { return a.name.localeCompare(b.name) }).forEach((mode) => {
       menu.append(new MenuItem({
         label: mode.name,
         click: (e) => this.handleModeOptionClick(index, mode.name)(e)

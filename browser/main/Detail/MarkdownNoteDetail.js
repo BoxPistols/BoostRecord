@@ -26,9 +26,6 @@ import { formatDate } from 'browser/lib/date-formatter'
 import { getTodoPercentageOfCompleted } from 'browser/lib/getTodoStatus'
 import striptags from 'striptags'
 
-const electron = require('electron')
-const { remote } = electron
-
 class MarkdownNoteDetail extends React.Component {
   constructor (props) {
     super(props)
@@ -206,7 +203,6 @@ class MarkdownNoteDetail extends React.Component {
         ee.emit('list:next')
       }
     }
-    
   }
 
   handleUndoButtonClick (e) {

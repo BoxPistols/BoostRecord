@@ -79,17 +79,22 @@ class MarkdownNoteDetail extends React.Component {
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
   }
 
-  handleChange (e) {
+  handleUpdateTag () {
     const { note } = this.state
-
-    note.content = this.refs.content.value
     if (this.refs.tags) note.tags = this.refs.tags.value
-    note.title = markdown.strip(striptags(findNoteTitle(note.content)))
-    note.updatedAt = new Date()
+    this.updateNote(note)
+  }
 
-    this.setState({
-      note
-    }, () => {
+  handleUpdateContent () {
+    const { note } = this.state
+    note.content = this.refs.content.value
+    note.title = markdown.strip(striptags(findNoteTitle(note.content)))
+    this.updateNote(note)
+  }
+
+  updateNote (note) {
+    note.updatedAt = new Date()
+    this.setState({note}, () => {
       this.save()
     })
   }
@@ -289,7 +294,7 @@ class MarkdownNoteDetail extends React.Component {
         config={config}
         value={note.content}
         storageKey={note.storage}
-        onChange={(e) => this.handleChange(e)}
+        onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
     } else {
@@ -298,7 +303,7 @@ class MarkdownNoteDetail extends React.Component {
         config={config}
         value={note.content}
         storageKey={note.storage}
-        onChange={(e) => this.handleChange(e)}
+        onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
     }
@@ -359,7 +364,7 @@ class MarkdownNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
-          onChange={(e) => this.handleChange(e)}
+          onChange={this.handleUpdateTag.bind(this)}
         />
 
         <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />

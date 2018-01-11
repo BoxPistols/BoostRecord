@@ -76,3 +76,29 @@ body[data-theme="dark"]
 
   .control-confirmButton
     colorDarkPrimaryButton()
+
+body[data-theme="solarized-dark"]
+  .root
+    modalSolarizedDark()
+    width 500px
+    height 270px
+    overflow hidden
+    position relative
+
+  .header
+    background-color transparent
+    border-color $ui-dark-borderColor
+    color $ui-solarized-dark-text-color
+
+  .control-folder-label
+    color $ui-solarized-dark-text-color
+
+  .control-folder-input
+    border 1px solid #C9C9C9 // TODO: use variable.
+    color white
+
+   .description
+    color $ui-inactive-text-color
+
+  .control-confirmButton
+    colorDarkPrimaryButton()

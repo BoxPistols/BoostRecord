@@ -62,6 +62,7 @@ class UiTab extends React.Component {
       ui: {
         theme: this.refs.uiTheme.value,
         showCopyNotification: this.refs.showCopyNotification.checked,
+        confirmDeletion: this.refs.confirmDeletion.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
           : false
@@ -173,6 +174,16 @@ class UiTab extends React.Component {
               Show &quot;Saved to Clipboard&quot; notification when copying
             </label>
           </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.confirmDeletion}
+                ref='confirmDeletion'
+                type='checkbox'
+              />&nbsp;
+              Show a confirmation dialog when deleting notes
+            </label>
+          </div>
           {
             global.process.platform === 'win32'
             ? <div styleName='group-checkBoxSection'>
@@ -182,7 +193,7 @@ class UiTab extends React.Component {
                   refs='uiD2w'
                   disabled={OSX}
                   type='checkbox'
-                />
+                />&nbsp;
                 Disable Direct Write(It will be applied after restarting)
               </label>
             </div>

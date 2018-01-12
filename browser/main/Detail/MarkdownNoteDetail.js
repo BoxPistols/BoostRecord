@@ -28,10 +28,6 @@ import { formatDate } from 'browser/lib/date-formatter'
 import { getTodoPercentageOfCompleted } from 'browser/lib/getTodoStatus'
 import striptags from 'striptags'
 
-const electron = require('electron')
-const { remote } = electron
-const { dialog } = remote
-
 class MarkdownNoteDetail extends React.Component {
   constructor (props) {
     super(props)
@@ -187,38 +183,37 @@ class MarkdownNoteDetail extends React.Component {
   handleTrashButtonClick (e) {
     const { note } = this.state
     const { isTrashed } = note
+    const { confirmDeletion } = this.props
 
     if (isTrashed) {
-      const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
-        type: 'warning',
-        message: 'Confirm note deletion',
-        detail: 'This will permanently remove this note.',
-        buttons: ['Confirm', 'Cancel']
-      })
-      if (dialogueButtonIndex === 1) return
-      const { note, dispatch } = this.props
-      dataApi
-        .deleteNote(note.storage, note.key)
-        .then((data) => {
-          const dispatchHandler = () => {
-            dispatch({
-              type: 'DELETE_NOTE',
-              storageKey: data.storageKey,
-              noteKey: data.noteKey
-            })
-          }
-          ee.once('list:moved', dispatchHandler)
-        })
+      if (confirmDeletion(true)) {
+        const {note, dispatch} = this.props
+        dataApi
+          .deleteNote(note.storage, note.key)
+          .then((data) => {
+            const dispatchHandler = () => {
+              dispatch({
+                type: 'DELETE_NOTE',
+                storageKey: data.storageKey,
+                noteKey: data.noteKey
+              })
+            }
+            ee.once('list:moved', dispatchHandler)
+          })
+      }
     } else {
-      note.isTrashed = true
+      if (confirmDeletion()) {
+        note.isTrashed = true
 
-      this.setState({
-        note
-      }, () => {
-        this.save()
-      })
+        this.setState({
+          note
+        }, () => {
+          this.save()
+        })
+
+        ee.emit('list:next')
+      }
     }
-    ee.emit('list:next')
   }
 
   handleUndoButtonClick (e) {
@@ -447,7 +442,8 @@ MarkdownNoteDetail.propTypes = {
   style: PropTypes.shape({
     left: PropTypes.number
   }),
-  ignorePreviewPointerEvents: PropTypes.bool
+  ignorePreviewPointerEvents: PropTypes.bool,
+  confirmDeletion: PropTypes.bool.isRequired
 }
 
 export default CSSModules(MarkdownNoteDetail, styles)

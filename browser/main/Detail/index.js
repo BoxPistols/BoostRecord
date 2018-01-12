@@ -32,6 +32,26 @@ class Detail extends React.Component {
     ee.off('detail:delete', this.deleteHandler)
   }
 
+  confirmDeletion (permanent) {
+    if (this.props.config.ui.confirmDeletion || permanent) {
+      const electron = require('electron')
+      const { remote } = electron
+      const { dialog } = remote
+
+      const alertConfig = {
+        type: 'warning',
+        message: 'Confirm note deletion',
+        detail: 'This will permanently remove this note.',
+        buttons: ['Confirm', 'Cancel']
+      }
+
+      const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), alertConfig)
+      return dialogueButtonIndex === 0
+    }
+
+    return true
+  }
+
   render () {
     const { location, data, config } = this.props
     let note = null
@@ -64,6 +84,7 @@ class Detail extends React.Component {
         <SnippetNoteDetail
           note={note}
           config={config}
+          confirmDeletion={(permanent) => this.confirmDeletion(permanent)}
           ref='root'
           {..._.pick(this.props, [
             'dispatch',
@@ -80,6 +101,7 @@ class Detail extends React.Component {
       <MarkdownNoteDetail
         note={note}
         config={config}
+        confirmDeletion={(permanent) => this.confirmDeletion(permanent)}
         ref='root'
         {..._.pick(this.props, [
           'dispatch',

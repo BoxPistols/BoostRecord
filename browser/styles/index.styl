@@ -46,6 +46,7 @@ tooltip()
 // UI Input
 $ui-input--focus-borderColor = #369DCD
 $ui-input--disabled-backgroundColor = #DDD
+$ui-input--create-folder-modal = #C9C9C9
 
 // Parts
 $ui-favorite-star-button-color = #FFC216
@@ -340,3 +341,11 @@ $ui-solarized-dark-button--active-color = #93a1a1
 $ui-solarized-dark-button--active-backgroundColor = #073642
 $ui-solarized-dark-button--hover-backgroundColor = lighten($ui-dark-backgroundColor, 10%)
 $ui-solarized-dark-button--focus-borderColor = lighten(#369DCD, 25%)
+
+modalSolarizedDark()
+  position relative
+  z-index $modal-z-index
+  width 100%
+  background-color $ui-solarized-dark-backgroundColor
+  overflow hidden
+  border-radius $modal-border-radius

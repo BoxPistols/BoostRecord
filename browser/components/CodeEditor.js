@@ -63,6 +63,7 @@ export default class CodeEditor extends React.Component {
       scrollPastEnd: this.props.scrollPastEnd,
       inputStyle: 'textarea',
       dragDrop: false,
+      autoCloseBrackets: true,
       extraKeys: {
         Tab: function (cm) {
           const cursor = cm.getCursor()

@@ -245,18 +245,6 @@ asar@^0.9.0:
     mkdirp "^0.5.0"
     mksnapshot "0.1.0"
 
-asar@~0.8.0:
-  version "0.8.3"
-  resolved "https://registry.yarnpkg.com/asar/-/asar-0.8.3.tgz#c2e03f9054516dbbf56759e854e9ce8d1a9d39d3"
-  dependencies:
-    chromium-pickle-js "0.1.0"
-    commander "2.3.0"
-    cuint "0.1.5"
-    glob "^5.0.5"
-    minimatch "2.0.4"
-    mkdirp "^0.5.0"
-    mksnapshot "0.1.0"
-
 asn1@0.1.11:
   version "0.1.11"
   resolved "https://registry.yarnpkg.com/asn1/-/asn1-0.1.11.tgz#559be18376d08a4ec4dbe80877d27818639b2df7"
@@ -1183,6 +1171,10 @@ bluebird@^3.0.0, bluebird@^3.1.1, bluebird@^3.4.1:
   version "3.5.0"
   resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.0.tgz#791420d7f551eea2897453a8a77653f96606d67c"
 
+bluebird@^3.3.4:
+  version "3.5.1"
+  resolved "https://registry.yarnpkg.com/bluebird/-/bluebird-3.5.1.tgz#d9551f9de98f1fcda1e683d17ee91a0602ee2eb9"
+
 boom@2.x.x:
   version "2.10.1"
   resolved "https://registry.yarnpkg.com/boom/-/boom-2.10.1.tgz#39c8918ceff5799f83f9492a848f625add0c766f"
@@ -1503,9 +1495,19 @@ code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
 
+codemirror-mode-elixir@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/codemirror-mode-elixir/-/codemirror-mode-elixir-1.1.1.tgz#cc5b79bf5f93b6da426e32364a673a681391416c"
+  dependencies:
+    codemirror "^5.20.2"
+
 codemirror@^5.18.2, codemirror@^5.19.0:
   version "5.26.0"
   resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.26.0.tgz#bcbee86816ed123870c260461c2b5c40b68746e5"
+
+codemirror@^5.20.2:
+  version "5.33.0"
+  resolved "https://registry.yarnpkg.com/codemirror/-/codemirror-5.33.0.tgz#462ad9a6fe8d38b541a9536a3997e1ef93b40c6a"
 
 coffee-script@^1.10.0:
   version "1.12.6"
@@ -2199,9 +2201,20 @@ electron-to-chromium@^1.2.7:
   version "1.3.11"
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.3.11.tgz#744761df1d67b492b322ce9aa0aba5393260eb61"
 
-electron@^1.6.15:
-  version "1.7.9"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-1.7.9.tgz#add54e9f8f83ed02f6519ec10135f698b19336cf"
+electron-winstaller@^2.2.0:
+  version "2.6.3"
+  resolved "https://registry.yarnpkg.com/electron-winstaller/-/electron-winstaller-2.6.3.tgz#d54f77c0cececc4fc55eeb5968d345cf69645ea4"
+  dependencies:
+    asar "^0.11.0"
+    bluebird "^3.3.4"
+    debug "^2.2.0"
+    fs-extra "^0.26.7"
+    lodash.template "^4.2.2"
+    temp "^0.8.3"
+
+electron@1.7.10:
+  version "1.7.10"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-1.7.10.tgz#3a3e83d965fd7fafe473be8ddf8f472561b6253d"
   dependencies:
     "@types/node" "^7.0.18"
     electron-download "^3.0.1"
@@ -2885,7 +2898,7 @@ fs-extra@0.18.2:
     jsonfile "^2.0.0"
     rimraf "^2.2.8"
 
-fs-extra@0.26.7, fs-extra@^0.26.0, fs-extra@^0.26.5:
+fs-extra@0.26.7, fs-extra@^0.26.0, fs-extra@^0.26.5, fs-extra@^0.26.7:
   version "0.26.7"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-0.26.7.tgz#9ae1fdd94897798edab76d0918cf42d0c3184fa9"
   dependencies:
@@ -3156,13 +3169,11 @@ grunt-electron-installer-redhat@^0.3.1:
   dependencies:
     electron-installer-redhat "^0.3.0"
 
-grunt-electron-installer@^1.2.0:
-  version "1.2.3"
-  resolved "https://registry.yarnpkg.com/grunt-electron-installer/-/grunt-electron-installer-1.2.3.tgz#50652ec4d0248233da76b4ac2ca69f3894c7240e"
+grunt-electron-installer@2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/grunt-electron-installer/-/grunt-electron-installer-2.1.0.tgz#b39e7eb1abb4488a1d8b7587fd4e72d68a741030"
   dependencies:
-    asar "~0.8.0"
-    temp "^0.8.1"
-    underscore "^1.7.0"
+    electron-winstaller "^2.2.0"
 
 grunt-legacy-log-utils@~0.1.1:
   version "0.1.1"
@@ -4016,7 +4027,7 @@ lodash.some@^4.5.1:
   version "4.6.0"
   resolved "https://registry.yarnpkg.com/lodash.some/-/lodash.some-4.6.0.tgz#1bb9f314ef6b8baded13b549169b2a945eb68e4d"
 
-lodash.template@^4.3.0:
+lodash.template@^4.2.2, lodash.template@^4.3.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/lodash.template/-/lodash.template-4.4.0.tgz#e73a0385c8355591746e020b99679c690e68fba0"
   dependencies:
@@ -6336,7 +6347,7 @@ tar@^2.2.1:
     fstream "^1.0.2"
     inherits "2"
 
-temp@^0.8.1, temp@^0.8.3:
+temp@^0.8.3:
   version "0.8.3"
   resolved "https://registry.yarnpkg.com/temp/-/temp-0.8.3.tgz#e0c6bc4d26b903124410e4fed81103014dfc1f59"
   dependencies:
@@ -6540,7 +6551,7 @@ underscore.string@~2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/underscore.string/-/underscore.string-2.4.0.tgz#8cdd8fbac4e2d2ea1e7e2e8097c42f442280f85b"
 
-underscore@^1.7.0, underscore@^1.8.2:
+underscore@^1.8.2:
   version "1.8.3"
   resolved "https://registry.yarnpkg.com/underscore/-/underscore-1.8.3.tgz#4f3fb53b106e6097fcf9cb4109f2a5e9bdfa5022"
 

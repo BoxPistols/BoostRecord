@@ -46,9 +46,7 @@ function exportFolder (storageKey, folderKey, fileType, exportDir) {
         .filter(note => note.folder === folderKey && note.isTrashed === false && note.type === 'MARKDOWN_NOTE')
         .forEach(snippet => {
           const notePath = path.join(exportDir, `${snippet.title}.${fileType}`)
-          fs.writeFileSync(notePath, snippet.content, (err) => {
-            if (err) throw err
-          })
+          fs.writeFileSync(notePath, snippet.content)
         })
 
       return {

@@ -76,9 +76,10 @@ md.use(require('markdown-it-named-headers'), {
   }
 })
 md.use(require('markdown-it-kbd'))
+
+const deflate = require('markdown-it-plantuml/lib/deflate')
 md.use(require('markdown-it-plantuml'), '', {
   generateSource: function (umlCode) {
-    const deflate = require('markdown-it-plantuml/lib/deflate')
     const s = unescape(encodeURIComponent(umlCode))
     const zippedCode = deflate.encode64(
       deflate.zip_deflate(`@startuml\n${s}\n@enduml`, 9)

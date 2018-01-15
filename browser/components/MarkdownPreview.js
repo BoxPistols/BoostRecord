@@ -226,6 +226,7 @@ export default class MarkdownPreview extends React.Component {
       <link rel="stylesheet" href="${appPath}/node_modules/katex/dist/katex.min.css">
       <link rel="stylesheet" href="${appPath}/node_modules/codemirror/lib/codemirror.css">
       <link rel="stylesheet" id="codeTheme">
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     `
     this.rewriteIframe()
     this.applyStyle()

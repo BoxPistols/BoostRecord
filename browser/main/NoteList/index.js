@@ -11,10 +11,8 @@ import NoteItem from 'browser/components/NoteItem'
 import NoteItemSimple from 'browser/components/NoteItemSimple'
 import searchFromNotes from 'browser/lib/search'
 import fs from 'fs'
+import path from 'path'
 import { hashHistory } from 'react-router'
-import markdown from 'browser/lib/markdownTextHelper'
-import { findNoteTitle } from 'browser/lib/findNoteTitle'
-import store from 'browser/main/store'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 
 const { remote } = require('electron')
@@ -582,7 +580,7 @@ class NoteList extends React.Component {
           const newNote = {
             content: content,
             folder: folder.key,
-            title: markdown.strip(findNoteTitle(content)),
+            title: path.basename(filepath, path.extname(filepath)),
             type: 'MARKDOWN_NOTE',
             createdAt: birthtime,
             updatedAt: mtime

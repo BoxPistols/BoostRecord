@@ -31,10 +31,10 @@ var md = markdownit({
       return `<pre class="sequence">${str}</pre>`
     }
     return '<pre class="code">' +
-    createGutter(str) +
-    '<code class="' + lang + '">' +
-    str +
-    '</code></pre>'
+      createGutter(str) +
+      '<code class="' + lang + '">' +
+      str +
+      '</code></pre>'
   }
 })
 md.use(emoji, {
@@ -57,7 +57,7 @@ md.use(math, {
   blockRenderer: function (str) {
     let output = ''
     try {
-      output = katex.renderToString(str.trim(), {displayMode: true})
+      output = katex.renderToString(str.trim(), { displayMode: true })
     } catch (err) {
       output = `<div class="katex-error">${err.message}</div>`
     }
@@ -76,7 +76,17 @@ md.use(require('markdown-it-named-headers'), {
   }
 })
 md.use(require('markdown-it-kbd'))
-md.use(require('markdown-it-plantuml'))
+
+const deflate = require('markdown-it-plantuml/lib/deflate')
+md.use(require('markdown-it-plantuml'), '', {
+  generateSource: function (umlCode) {
+    const s = unescape(encodeURIComponent(umlCode))
+    const zippedCode = deflate.encode64(
+      deflate.zip_deflate(`@startuml\n${s}\n@enduml`, 9)
+    )
+    return `http://www.plantuml.com/plantuml/svg/${zippedCode}`
+  }
+})
 
 // Override task item
 md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
@@ -110,7 +120,7 @@ md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
   state.line = nextLine
 
   token = state.push('paragraph_open', 'p', 1)
-  token.map = [ startLine, state.line ]
+  token.map = [startLine, state.line]
 
   if (state.parentType === 'list') {
     const match = content.match(/^\[( |x)\] ?(.+)/i)
@@ -121,7 +131,7 @@ md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
 
   token = state.push('inline', '', 0)
   token.content = content
-  token.map = [ startLine, state.line ]
+  token.map = [startLine, state.line]
   token.children = []
 
   token = state.push('paragraph_close', 'p', -1)

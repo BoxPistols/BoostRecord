@@ -1,24 +1,28 @@
 .control-toggleModeButton
-  border 1px solid #eee
-  height 34px
+  height 29px
+  border-radius 50px
+  background-color #F4F4F4
+  width 67px
   display flex
   align-items center
+  position absolute
+  right 165px
+  .active
+    background-color #1EC38B
+    width 33px
+    height 30px
+    box-shadow 2px 0px 7px #eee
+    z-index 1
 
   div
     width 40px
     height 100%
-    background-color #f9f9f9
+    border-radius 50%
     display flex
     align-items center
     justify-content center
     cursor pointer
 
-    &:first-child
-      border-right 1px solid #eee
-    .active
-      background-color #fff
-      box-shadow 2px 0px 7px #eee
-      z-index 1
   &:hover .tooltip
     opacity 1
 
@@ -40,22 +44,16 @@ body[data-theme="dark"]
     topBarButtonDark()
 
   .control-toggleModeButton
-    border 1px solid #444444
     div
       background-color $ui-dark-noteDetail-backgroundColor
-      &:first-child
-        border-right 1px solid #444444
     .active
       background-color #3A404C
       box-shadow 2px 0px 7px #444444
 
 body[data-theme="solarized-dark"]
   .control-toggleModeButton
-    border 1px solid #586E75
     div
       background-color $ui-solarized-dark-noteDetail-backgroundColor
-      &:first-child
-        border-right 1px solid #586E75
     .active
       background-color #002B36
       box-shadow 2px 0px 7px #222222

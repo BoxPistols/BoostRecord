@@ -626,10 +626,6 @@ class SnippetNoteDetail extends React.Component {
         />
       </div>
       <div styleName='info-right'>
-        <InfoButton
-          onClick={(e) => this.handleInfoButtonClick(e)}
-        />
-
         <StarButton
           onClick={(e) => this.handleStarButtonClick(e)}
           isActive={note.isStarred}
@@ -641,6 +637,11 @@ class SnippetNoteDetail extends React.Component {
         </button>
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
+
+        <InfoButton
+          onClick={(e) => this.handleInfoButtonClick(e)}
+        />
+
         <InfoPanel
           storageName={currentOption.storage.name}
           folderName={currentOption.folder.name}

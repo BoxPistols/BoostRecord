@@ -196,7 +196,7 @@ class StoragesTab extends React.Component {
           <div styleName='addStorage-body-control'>
             <button styleName='addStorage-body-control-createButton'
               onClick={(e) => this.handleAddStorageCreateButton(e)}
-            >Create</button>
+            >Add</button>
             <button styleName='addStorage-body-control-cancelButton'
               onClick={(e) => this.handleAddStorageCancelButton(e)}
             >Cancel</button>

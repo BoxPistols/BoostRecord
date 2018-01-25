@@ -60,7 +60,8 @@ class InfoTab extends React.Component {
     })
   }
 
-  infoMessage () {
+  
+  Message () {
     const { amaMessage } = this.state
     return amaMessage ? <p styleName='policy-confirm'>{amaMessage}</p> : null
   }
@@ -102,7 +103,7 @@ class InfoTab extends React.Component {
 
         <hr />
 
-        <div styleName='header--sub'>Info</div>
+        <div styleName='header--sub'>About</div>
 
         <div styleName='top'>
           <div styleName='icon-space'>
@@ -137,17 +138,19 @@ class InfoTab extends React.Component {
 
         <hr styleName='separate-line' />
 
-        <div styleName='policy'>Data collection policy</div>
-        <div>We collect only the number of DAU for Boostnote and **DO NOT collect** any detail information such as your note content.</div>
+        <div styleName='policy'>Analytics</div>
+        <div>Boostnote collects anonymous data for the sole purpose of improving the application, and strictly does not collect any personal information such the contents of your notes.</div>
         <div>You can see how it works on <a href='https://github.com/BoostIO/Boostnote' onClick={(e) => this.handleLinkClick(e)}>GitHub</a>.</div>
-        <div>This data is only used for Boostnote improvements.</div>
+        <br/>
+        <div>You can choose to enable or disable this option.</div>
         <input onChange={(e) => this.handleConfigChange(e)}
           checked={this.state.config.amaEnabled}
           ref='amaEnabled'
           type='checkbox'
         />
-        Enable to send analytics to our servers<br />
+        Enable analytics to help improve Boostnote<br />
         <button styleName='policy-submit' onClick={(e) => this.handleSaveButtonClick(e)}>Save</button>
+        <br/>
         {this.infoMessage()}
       </div>
     )

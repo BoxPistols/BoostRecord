@@ -104,7 +104,7 @@ class FinderMain extends React.Component {
       hideFinder()
       e.preventDefault()
     }
-    if (e.keyCode === 91 || e.metaKey) {
+    if (e.keyCode === 91) {
       return
     }
   }

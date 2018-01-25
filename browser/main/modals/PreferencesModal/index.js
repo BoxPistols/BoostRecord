@@ -108,10 +108,10 @@ class Preferences extends React.Component {
     const content = this.renderContent()
 
     const tabs = [
-      {target: 'STORAGES', label: 'Storages'},
-      {target: 'HOTKEY', label: 'Hotkey', Hotkey: this.state.HotkeyAlert},
-      {target: 'UI', label: 'UI', UI: this.state.UIAlert},
-      {target: 'INFO', label: 'Community / Info'},
+      {target: 'STORAGES', label: 'Storage'},
+      {target: 'HOTKEY', label: 'Hotkeys', Hotkey: this.state.HotkeyAlert},
+      {target: 'UI', label: 'Interface', UI: this.state.UIAlert},
+      {target: 'INFO', label: 'About'},
       {target: 'CROWDFUNDING', label: 'Crowdfunding'}
     ]
 

@@ -367,10 +367,6 @@ class MarkdownNoteDetail extends React.Component {
         <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
-        <InfoButton
-          onClick={(e) => this.handleInfoButtonClick(e)}
-        />
-
         <StarButton
           onClick={(e) => this.handleStarButtonClick(e)}
           isActive={note.isStarred}
@@ -394,6 +390,10 @@ class MarkdownNoteDetail extends React.Component {
         <FullscreenButton onClick={(e) => this.handleFullScreenButton(e)} />
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
+
+        <InfoButton
+          onClick={(e) => this.handleInfoButtonClick(e)}
+        />
 
         <InfoPanel
           storageName={currentOption.storage.name}

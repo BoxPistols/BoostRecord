@@ -380,6 +380,7 @@ class MarkdownNoteDetail extends React.Component {
               onMouseDown={(e) => this.handleLockButtonMouseDown(e)}
             >
               <img styleName='iconInfo' src={imgSrc} />
+              {this.state.isLocked ? <span styleName='tooltip'>Unlock</span> : <span styleName='tooltip'>Lock</span>}
             </button>
 
           return (

@@ -60,8 +60,7 @@ class InfoTab extends React.Component {
     })
   }
 
-  
-  Message () {
+  infoMessage () {
     const { amaMessage } = this.state
     return amaMessage ? <p styleName='policy-confirm'>{amaMessage}</p> : null
   }

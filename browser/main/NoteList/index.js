@@ -567,7 +567,6 @@ class NoteList extends React.Component {
         content: firstNote.content
       })
       .then((note) => {
-        console.log(note)
         dispatch({
           type: 'UPDATE_NOTE',
           note: note
@@ -577,7 +576,7 @@ class NoteList extends React.Component {
         this.setState({
           selectedNoteKeys: [uniqueKey]
         })
-        
+
         router.push({
           pathname: location.pathname,
           query: {

@@ -441,6 +441,7 @@ class NoteList extends React.Component {
 
     const pinLabel = note.isPinned ? 'Remove pin' : 'Pin to Top'
     const deleteLabel = 'Delete Note'
+    const cloneNote = 'Clone Note'
 
     const menu = new Menu()
     if (!location.pathname.match(/\/home|\/starred|\/trash/)) {
@@ -452,6 +453,10 @@ class NoteList extends React.Component {
     menu.append(new MenuItem({
       label: deleteLabel,
       click: this.deleteNote
+    }))
+    menu.append(new MenuItem({
+      label: cloneNote,
+      click: this.cloneNote.bind(this)
     }))
     menu.popup()
   }
@@ -541,6 +546,45 @@ class NoteList extends React.Component {
       })
     }
     this.setState({ selectedNoteKeys: [] })
+  }
+
+  cloneNote () {
+    const { selectedNoteKeys } = this.state
+    const { dispatch } = this.props
+    const { router } = this.context
+    const { storage, folder } = this.resolveTargetFolder()
+    const notes = this.notes.map((note) => Object.assign({}, note))
+    const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
+    const firstNote = selectedNotes[0]
+
+    AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_MARKDOWN')
+    AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_ALLNOTE')
+    dataApi
+      .createNote(storage.key, {
+        type: firstNote.type,
+        folder: folder.key,
+        title: firstNote.title + ' copy',
+        content: firstNote.content
+      })
+      .then((note) => {
+        console.log(note)
+        dispatch({
+          type: 'UPDATE_NOTE',
+          note: note
+        })
+        let uniqueKey = note.storage + '-'+ note.key;
+
+        this.setState({
+          selectedNoteKeys: [uniqueKey]
+        })
+        
+        router.push({
+          pathname: location.pathname,
+          query: {
+            key: uniqueKey
+          }
+        })
+      })
   }
 
   importFromFile () {

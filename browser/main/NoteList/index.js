@@ -556,8 +556,9 @@ class NoteList extends React.Component {
     const notes = this.notes.map((note) => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const firstNote = selectedNotes[0]
+    const eventName = firstNote.type === 'MARKDOWN_NOTE' ? 'ADD_MARKDOWN' : 'ADD_SNIPPET'
 
-    AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_MARKDOWN')
+    AwsMobileAnalyticsConfig.recordDynamicCustomEvent(eventName)
     AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_ALLNOTE')
     dataApi
       .createNote(storage.key, {
@@ -571,17 +572,11 @@ class NoteList extends React.Component {
           type: 'UPDATE_NOTE',
           note: note
         })
-        let uniqueKey = note.storage + '-' + note.key
+
+        const uniqueKey = note.storage + '-' + note.key
 
         this.setState({
           selectedNoteKeys: [uniqueKey]
-        })
-
-        router.push({
-          pathname: location.pathname,
-          query: {
-            key: uniqueKey
-          }
         })
       })
   }

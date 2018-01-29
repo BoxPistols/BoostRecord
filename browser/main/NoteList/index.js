@@ -550,7 +550,7 @@ class NoteList extends React.Component {
 
   cloneNote () {
     const { selectedNoteKeys } = this.state
-    const { dispatch } = this.props
+    const { dispatch, location } = this.props
     const { router } = this.context
     const { storage, folder } = this.resolveTargetFolder()
     const notes = this.notes.map((note) => Object.assign({}, note))
@@ -577,6 +577,11 @@ class NoteList extends React.Component {
 
         this.setState({
           selectedNoteKeys: [uniqueKey]
+        })
+
+        hashHistory.push({
+          pathname: location.pathname,
+          query: {key: note.storage + '-' + note.key}
         })
       })
   }

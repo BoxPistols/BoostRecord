@@ -567,14 +567,11 @@ class NoteList extends React.Component {
         content: firstNote.content
       })
       .then((note) => {
-      
+        const uniqueKey = note.storage + '-' + note.key
         dispatch({
           type: 'UPDATE_NOTE',
           note: note
         })
-
-        const uniqueKey = note.storage + '-' + note.key
-
         this.setState({
           selectedNoteKeys: [uniqueKey]
         })

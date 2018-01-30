@@ -24,7 +24,7 @@ const appPath = 'file://' + (process.env.NODE_ENV === 'production'
   ? app.getAppPath()
   : path.resolve())
 
-function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber) {
+function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd) {
   return `
 @font-face {
   font-family: 'Lato';
@@ -48,6 +48,7 @@ ${markdownStyle}
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
+  ${scrollPastEnd && 'padding-bottom: 90vh;'}
 }
 code {
   font-family: '${codeBlockFontFamily.join("','")}';
@@ -261,14 +262,15 @@ export default class MarkdownPreview extends React.Component {
       prevProps.codeBlockTheme !== this.props.codeBlockTheme ||
       prevProps.lineNumber !== this.props.lineNumber ||
       prevProps.showCopyNotification !== this.props.showCopyNotification ||
-      prevProps.theme !== this.props.theme) {
+      prevProps.theme !== this.props.theme ||
+      prevProps.scrollPastEnd !== this.props.scrollPastEnd) {
       this.applyStyle()
       this.rewriteIframe()
     }
   }
 
   applyStyle () {
-    const { fontSize, lineNumber, codeBlockTheme } = this.props
+    const { fontSize, lineNumber, codeBlockTheme, scrollPastEnd } = this.props
     let { fontFamily, codeBlockFontFamily } = this.props
     fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
       ? fontFamily.split(',').map(fontName => fontName.trim()).concat(defaultFontFamily)
@@ -278,7 +280,7 @@ export default class MarkdownPreview extends React.Component {
       : defaultCodeBlockFontFamily
 
     this.setCodeTheme(codeBlockTheme)
-    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, lineNumber)
+    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd)
   }
 
   setCodeTheme (theme) {

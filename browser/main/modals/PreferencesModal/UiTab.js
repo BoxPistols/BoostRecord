@@ -85,7 +85,8 @@ class UiTab extends React.Component {
         latexInlineOpen: this.refs.previewLatexInlineOpen.value,
         latexInlineClose: this.refs.previewLatexInlineClose.value,
         latexBlockOpen: this.refs.previewLatexBlockOpen.value,
-        latexBlockClose: this.refs.previewLatexBlockClose.value
+        latexBlockClose: this.refs.previewLatexBlockClose.value,
+        scrollPastEnd: this.refs.previewScrollPastEnd.checked
       }
     }
 
@@ -355,6 +356,16 @@ class UiTab extends React.Component {
                 }
               </select>
             </div>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.scrollPastEnd}
+                ref='previewScrollPastEnd'
+                type='checkbox'
+              />&nbsp;
+              Allow preview to scroll past the last line
+            </label>
           </div>
           <div styleName='group-checkBoxSection'>
             <label>

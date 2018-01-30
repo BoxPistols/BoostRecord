@@ -551,7 +551,6 @@ class NoteList extends React.Component {
   cloneNote () {
     const { selectedNoteKeys } = this.state
     const { dispatch, location } = this.props
-    const { router } = this.context
     const { storage, folder } = this.resolveTargetFolder()
     const notes = this.notes.map((note) => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)

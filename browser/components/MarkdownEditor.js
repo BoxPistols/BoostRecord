@@ -260,7 +260,7 @@ class MarkdownEditor extends React.Component {
           codeBlockFontFamily={config.editor.fontFamily}
           lineNumber={config.preview.lineNumber}
           indentSize={editorIndentSize}
-          scrollPastEnd={config.editor.scrollPastEnd}
+          scrollPastEnd={config.preview.scrollPastEnd}
           ref='preview'
           onContextMenu={(e) => this.handleContextMenu(e)}
           tabIndex='0'

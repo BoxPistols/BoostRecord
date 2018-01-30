@@ -567,6 +567,7 @@ class NoteList extends React.Component {
         content: firstNote.content
       })
       .then((note) => {
+      
         dispatch({
           type: 'UPDATE_NOTE',
           note: note

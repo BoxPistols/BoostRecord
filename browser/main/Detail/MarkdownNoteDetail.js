@@ -210,10 +210,9 @@ class MarkdownNoteDetail extends React.Component {
         }, () => {
           this.save()
         })
-
-        ee.emit('list:next')
       }
     }
+    ee.emit('list:next')
   }
 
   handleUndoButtonClick (e) {

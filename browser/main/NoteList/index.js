@@ -572,6 +572,7 @@ class NoteList extends React.Component {
           type: 'UPDATE_NOTE',
           note: note
         })
+
         this.setState({
           selectedNoteKeys: [uniqueKey]
         })

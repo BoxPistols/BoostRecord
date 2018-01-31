@@ -200,6 +200,7 @@ class MarkdownNoteDetail extends React.Component {
             }
             ee.once('list:moved', dispatchHandler)
           })
+          .then(() => ee.emit('list:moved'))
       }
     } else {
       if (confirmDeletion()) {
@@ -210,9 +211,10 @@ class MarkdownNoteDetail extends React.Component {
         }, () => {
           this.save()
         })
+
+        ee.emit('list:next')
       }
     }
-    ee.emit('list:next')
   }
 
   handleUndoButtonClick (e) {

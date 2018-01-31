@@ -46,7 +46,8 @@ export const DEFAULT_CONFIG = {
     latexInlineOpen: '$',
     latexInlineClose: '$',
     latexBlockOpen: '$$',
-    latexBlockClose: '$$'
+    latexBlockClose: '$$',
+    scrollPastEnd: false
   }
 }
 

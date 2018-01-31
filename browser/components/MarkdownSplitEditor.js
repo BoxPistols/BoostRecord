@@ -78,6 +78,7 @@ class MarkdownSplitEditor extends React.Component {
           codeBlockTheme={config.preview.codeBlockTheme}
           codeBlockFontFamily={config.editor.fontFamily}
           lineNumber={config.preview.lineNumber}
+          scrollPastEnd={config.preview.scrollPastEnd}
           ref='preview'
           tabInde='0'
           value={value}

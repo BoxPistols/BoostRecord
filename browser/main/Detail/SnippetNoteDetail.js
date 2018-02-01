@@ -191,9 +191,9 @@ class SnippetNoteDetail extends React.Component {
                 noteKey: data.noteKey
               })
             }
-            ee.once('list:moved', dispatchHandler)
+            ee.once('list:next', dispatchHandler)
           })
-          .then(() => ee.emit('list:moved'))
+          .then(() => ee.emit('list:next'))
       }
     } else {
       if (confirmDeletion()) {

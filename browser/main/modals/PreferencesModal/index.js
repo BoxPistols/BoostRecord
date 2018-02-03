@@ -1,6 +1,5 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import ReactDOM from 'react-dom'
 import { connect } from 'react-redux'
 import HotkeyTab from './HotkeyTab'
 import UiTab from './UiTab'
@@ -11,6 +10,7 @@ import ModalEscButton from 'browser/components/ModalEscButton'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './PreferencesModal.styl'
 import RealtimeNotification from 'browser/components/RealtimeNotification'
+import _ from 'lodash'
 
 class Preferences extends React.Component {
   constructor (props) {
@@ -94,8 +94,8 @@ class Preferences extends React.Component {
   }
 
   getContentBoundingBox () {
-    const node = ReactDOM.findDOMNode(this.refs.content)
-    return node.getBoundingClientRect()
+    console.log(this.refs.content.getBoundingClientRect())
+    return this.refs.content.getBoundingClientRect()
   }
 
   haveToSaveNotif (type, message) {

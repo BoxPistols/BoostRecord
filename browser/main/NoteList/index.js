@@ -169,9 +169,8 @@ class NoteList extends React.Component {
     if (this.notes == null || this.notes.length === 0) {
       return
     }
-    let { router } = this.context
-    let { location } = this.props
-    let { selectedNoteKeys, shiftKeyDown } = this.state
+    let { selectedNoteKeys } = this.state
+    const { shiftKeyDown } = this.state
 
     let targetIndex = this.getTargetIndex()
 
@@ -197,9 +196,8 @@ class NoteList extends React.Component {
     if (this.notes == null || this.notes.length === 0) {
       return
     }
-    let { router } = this.context
-    let { location } = this.props
-    let { selectedNoteKeys, shiftKeyDown } = this.state
+    let { selectedNoteKeys } = this.state
+    const { shiftKeyDown } = this.state
 
     let targetIndex = this.getTargetIndex()
     const isTargetLastNote = targetIndex === this.notes.length - 1
@@ -240,7 +238,6 @@ class NoteList extends React.Component {
   }
 
   handleNoteListKeyDown (e) {
-    const { shiftKeyDown } = this.state
     if (e.metaKey || e.ctrlKey) return true
 
     if (e.keyCode === 65 && !e.shiftKey) {
@@ -282,7 +279,7 @@ class NoteList extends React.Component {
   getNotes () {
     const { data, params, location } = this.props
 
-    if (location.pathname.match(/\/home/) || location.pathname.match(/\alltags/)) {
+    if (location.pathname.match(/\/home/) || location.pathname.match(/alltags/)) {
       const allNotes = data.noteMap.map((note) => note)
       this.contextNotes = allNotes
       return allNotes
@@ -353,9 +350,10 @@ class NoteList extends React.Component {
   }
 
   handleNoteClick (e, uniqueKey) {
-    let { router } = this.context
-    let { location } = this.props
-    let { shiftKeyDown, selectedNoteKeys } = this.state
+    const { router } = this.context
+    const { location } = this.props
+    let { selectedNoteKeys } = this.state
+    const { shiftKeyDown } = this.state
 
     if (shiftKeyDown && selectedNoteKeys.includes(uniqueKey)) {
       const newSelectedNoteKeys = selectedNoteKeys.filter((noteKey) => noteKey !== uniqueKey)
@@ -640,9 +638,10 @@ class NoteList extends React.Component {
   }
 
   render () {
-    let { location, notes, config, dispatch } = this.props
-    let { selectedNoteKeys } = this.state
-    let sortFunc = config.sortBy === 'CREATED_AT'
+    const { location, config } = this.props
+    let { notes } = this.props
+    const { selectedNoteKeys } = this.state
+    const sortFunc = config.sortBy === 'CREATED_AT'
       ? sortByCreatedAt
       : config.sortBy === 'ALPHABETICAL'
       ? sortByAlphabetical
@@ -687,7 +686,6 @@ class NoteList extends React.Component {
           config.sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt
         ).fromNow('D')
-        const key = `${note.storage}-${note.key}`
 
         if (isDefault) {
           return (

@@ -31,7 +31,7 @@ class InfoTab extends React.Component {
   }
 
   handleSaveButtonClick (e) {
-    let newConfig = {
+    const newConfig = {
       amaEnabled: this.state.config.amaEnabled
     }
 
@@ -140,7 +140,7 @@ class InfoTab extends React.Component {
         <div styleName='policy'>Analytics</div>
         <div>Boostnote collects anonymous data for the sole purpose of improving the application, and strictly does not collect any personal information such the contents of your notes.</div>
         <div>You can see how it works on <a href='https://github.com/BoostIO/Boostnote' onClick={(e) => this.handleLinkClick(e)}>GitHub</a>.</div>
-        <br/>
+        <br />
         <div>You can choose to enable or disable this option.</div>
         <input onChange={(e) => this.handleConfigChange(e)}
           checked={this.state.config.amaEnabled}
@@ -149,7 +149,7 @@ class InfoTab extends React.Component {
         />
         Enable analytics to help improve Boostnote<br />
         <button styleName='policy-submit' onClick={(e) => this.handleSaveButtonClick(e)}>Save</button>
-        <br/>
+        <br />
         {this.infoMessage()}
       </div>
     )

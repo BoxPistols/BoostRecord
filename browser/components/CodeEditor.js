@@ -51,9 +51,10 @@ export default class CodeEditor extends React.Component {
 
   componentDidMount () {
     this.value = this.props.value
+
     this.editor = CodeMirror(this.refs.root, {
       value: this.props.value,
-      lineNumbers: true,
+      lineNumbers: this.props.displayLineNumbers,
       lineWrapping: true,
       theme: this.props.theme,
       indentUnit: this.props.indentSize,
@@ -71,7 +72,7 @@ export default class CodeEditor extends React.Component {
           if (cm.somethingSelected()) cm.indentSelection('add')
           else {
             const tabs = cm.getOption('indentWithTabs')
-            if (line.trimLeft().match(/^(-|\*|\+) (\[( |x)\] )?$/)) {
+            if (line.trimLeft().match(/^(-|\*|\+) (\[( |x)] )?$/)) {
               cm.execCommand('goLineStart')
               if (tabs) {
                 cm.execCommand('insertTab')
@@ -156,6 +157,10 @@ export default class CodeEditor extends React.Component {
       this.editor.setOption('indentWithTabs', this.props.indentType !== 'space')
     }
 
+    if (prevProps.displayLineNumbers !== this.props.displayLineNumbers) {
+      this.editor.setOption('lineNumbers', this.props.displayLineNumbers)
+    }
+
     if (prevProps.scrollPastEnd !== this.props.scrollPastEnd) {
       this.editor.setOption('scrollPastEnd', this.props.scrollPastEnd)
     }
@@ -230,7 +235,7 @@ export default class CodeEditor extends React.Component {
     if (!dataTransferItem.type.match('image')) return
 
     const blob = dataTransferItem.getAsFile()
-    const reader = new FileReader()
+    const reader = new window.FileReader()
     let base64data
 
     reader.readAsDataURL(blob)

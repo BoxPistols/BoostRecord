@@ -86,7 +86,7 @@ class NewNoteButton extends React.Component {
             onClick={(e) => this.handleNewNoteButtonClick(e)}>
             <img styleName='iconTag' src='../resources/icon/icon-newnote.svg' />
             <span styleName='control-newNoteButton-tooltip'>
-              Make a Note {OSX ? '⌘' : '^'} + n
+              Make a note {OSX ? '⌘' : 'Ctrl'} + N
             </span>
           </button>
         </div>

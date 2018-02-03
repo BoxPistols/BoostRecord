@@ -62,6 +62,7 @@ class MarkdownSplitEditor extends React.Component {
           keyMap={config.editor.keyMap}
           fontFamily={config.editor.fontFamily}
           fontSize={editorFontSize}
+          displayLineNumbers={config.editor.displayLineNumbers}
           indentType={config.editor.indentType}
           indentSize={editorIndentSize}
           scrollPastEnd={config.editor.scrollPastEnd}
@@ -78,6 +79,7 @@ class MarkdownSplitEditor extends React.Component {
           codeBlockTheme={config.preview.codeBlockTheme}
           codeBlockFontFamily={config.editor.fontFamily}
           lineNumber={config.preview.lineNumber}
+          scrollPastEnd={config.preview.scrollPastEnd}
           ref='preview'
           tabInde='0'
           value={value}

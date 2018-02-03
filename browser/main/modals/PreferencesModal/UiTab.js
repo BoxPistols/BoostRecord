@@ -73,6 +73,7 @@ class UiTab extends React.Component {
         fontFamily: this.refs.editorFontFamily.value,
         indentType: this.refs.editorIndentType.value,
         indentSize: this.refs.editorIndentSize.value,
+        displayLineNumbers: this.refs.editorDisplayLineNumbers.checked,
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked
@@ -85,7 +86,8 @@ class UiTab extends React.Component {
         latexInlineOpen: this.refs.previewLatexInlineOpen.value,
         latexInlineClose: this.refs.previewLatexInlineClose.value,
         latexBlockOpen: this.refs.previewLatexBlockOpen.value,
-        latexBlockClose: this.refs.previewLatexBlockClose.value
+        latexBlockClose: this.refs.previewLatexBlockClose.value,
+        scrollPastEnd: this.refs.previewScrollPastEnd.checked
       }
     }
 
@@ -148,10 +150,10 @@ class UiTab extends React.Component {
     return (
       <div styleName='root'>
         <div styleName='group'>
-          <div styleName='group-header'>UI</div>
+          <div styleName='group-header'>Interface</div>
 
           <div styleName='group-section'>
-            Color Theme
+            Interface Theme
             <div styleName='group-section-control'>
               <select value={config.ui.theme}
                 onChange={(e) => this.handleUIChange(e)}
@@ -306,6 +308,17 @@ class UiTab extends React.Component {
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.displayLineNumbers}
+                ref='editorDisplayLineNumbers'
+                type='checkbox'
+              />&nbsp;
+              Show line numbers in the editor
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
                 checked={this.state.config.editor.scrollPastEnd}
                 ref='scrollPastEnd'
                 type='checkbox'
@@ -355,6 +368,16 @@ class UiTab extends React.Component {
                 }
               </select>
             </div>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.scrollPastEnd}
+                ref='previewScrollPastEnd'
+                type='checkbox'
+              />&nbsp;
+              Allow preview to scroll past the last line
+            </label>
           </div>
           <div styleName='group-checkBoxSection'>
             <label>

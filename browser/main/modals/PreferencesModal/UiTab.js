@@ -73,6 +73,7 @@ class UiTab extends React.Component {
         fontFamily: this.refs.editorFontFamily.value,
         indentType: this.refs.editorIndentType.value,
         indentSize: this.refs.editorIndentSize.value,
+        displayLineNumbers: this.refs.editorDisplayLineNumbers.checked,
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked
@@ -307,6 +308,17 @@ class UiTab extends React.Component {
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.displayLineNumbers}
+                ref='editorDisplayLineNumbers'
+                type='checkbox'
+              />&nbsp;
+              Show line numbers in the editor
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
                 checked={this.state.config.editor.scrollPastEnd}
                 ref='scrollPastEnd'
                 type='checkbox'
@@ -314,6 +326,7 @@ class UiTab extends React.Component {
               Allow editor to scroll past the last line
             </label>
           </div>
+
 
           <div styleName='group-header2'>Preview</div>
           <div styleName='group-section'>

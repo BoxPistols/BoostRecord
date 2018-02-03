@@ -94,7 +94,6 @@ class Preferences extends React.Component {
   }
 
   getContentBoundingBox () {
-    console.log(this.refs.content.getBoundingClientRect())
     return this.refs.content.getBoundingClientRect()
   }
 

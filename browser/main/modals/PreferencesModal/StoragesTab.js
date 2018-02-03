@@ -78,7 +78,7 @@ class StoragesTab extends React.Component {
           <button styleName='list-control-addStorageButton'
             onClick={(e) => this.handleAddStorageButton(e)}
           >
-            <i className='fa fa-plus' /> Add Storage
+            <i className='fa fa-plus' /> Add Storage Location
           </button>
         </div>
       </div>
@@ -167,7 +167,7 @@ class StoragesTab extends React.Component {
                 <option value='FILESYSTEM'>File System</option>
               </select>
               <div styleName='addStorage-body-section-type-description'>
-                3rd party cloud integration:
+                Setting up 3rd-party cloud storage integration:{' '}
                 <a href='https://github.com/BoostIO/Boostnote/wiki/Cloud-Syncing-and-Backup'
                   onClick={(e) => this.handleLinkClick(e)}
                 >Cloud-Syncing-and-Backup</a>
@@ -196,7 +196,7 @@ class StoragesTab extends React.Component {
           <div styleName='addStorage-body-control'>
             <button styleName='addStorage-body-control-createButton'
               onClick={(e) => this.handleAddStorageCreateButton(e)}
-            >Create</button>
+            >Add</button>
             <button styleName='addStorage-body-control-cancelButton'
               onClick={(e) => this.handleAddStorageCancelButton(e)}
             >Cancel</button>

@@ -327,7 +327,6 @@ class UiTab extends React.Component {
             </label>
           </div>
 
-
           <div styleName='group-header2'>Preview</div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>

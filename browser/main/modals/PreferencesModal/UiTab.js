@@ -75,7 +75,8 @@ class UiTab extends React.Component {
         indentSize: this.refs.editorIndentSize.value,
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
-        scrollPastEnd: this.refs.scrollPastEnd.checked
+        scrollPastEnd: this.refs.scrollPastEnd.checked,
+        fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -312,6 +313,17 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               Allow editor to scroll past the last line
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.fetchUrlTitle}
+                ref='editorFetchUrlTitle'
+                type='checkbox'
+              />&nbsp;
+              Allow editor to fetch url titles on when pasting url
             </label>
           </div>
 

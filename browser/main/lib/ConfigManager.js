@@ -36,7 +36,8 @@ export const DEFAULT_CONFIG = {
     indentSize: '2',
     switchPreview: 'BLUR', // Available value: RIGHTCLICK, BLUR
     scrollPastEnd: false,
-    type: 'SPLIT'
+    type: 'SPLIT',
+    fetchUrlTitle: true
   },
   preview: {
     fontSize: '14',

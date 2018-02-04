@@ -244,6 +244,7 @@ class MarkdownEditor extends React.Component {
           indentSize={editorIndentSize}
           scrollPastEnd={config.editor.scrollPastEnd}
           storageKey={storageKey}
+          fetchUrlTitle={config.editor.fetchUrlTitle}
           onChange={(e) => this.handleChange(e)}
           onBlur={(e) => this.handleBlur(e)}
         />

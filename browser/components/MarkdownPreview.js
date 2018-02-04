@@ -9,10 +9,10 @@ import Raphael from 'raphael'
 import flowchart from 'flowchart'
 import SequenceDiagram from 'js-sequence-diagrams'
 import eventEmitter from 'browser/main/lib/eventEmitter'
-import fs from 'fs'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
+import exportNote from 'browser/main/lib/dataApi/exportNote';
 
 const { remote } = require('electron')
 const { app } = remote
@@ -23,6 +23,11 @@ const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
 const appPath = 'file://' + (process.env.NODE_ENV === 'production'
   ? app.getAppPath()
   : path.resolve())
+
+const CSS_FILES = [
+  `${appPath}/node_modules/katex/dist/katex.min.css`,
+  `${appPath}/node_modules/codemirror/lib/codemirror.css`
+]
 
 function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber) {
   return `
@@ -146,12 +151,10 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleContextMenu (e) {
-    if (!this.props.onContextMenu) return
     this.props.onContextMenu(e)
   }
 
   handleMouseDown (e) {
-    if (!this.props.onMouseDown) return
     if (e.target != null) {
       switch (e.target.tagName) {
         case 'A':
@@ -179,8 +182,33 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsHtml () {
-    this.exportAsDocument('html', (value) => {
-      return this.refs.root.contentWindow.document.documentElement.outerHTML
+    this.exportAsDocument('html', (noteContent, exportTasks) => {
+      const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme} = this.getStyleParams()
+
+      const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, lineNumber)
+      const body = markdown.render(noteContent)
+      const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
+
+      files.forEach((file) => {
+        file = file.replace('file://', '')
+        exportTasks.push({
+          src: file,
+          dst: 'css'
+        })
+      })
+
+      let styles = ''
+      files.forEach((file) => {
+        styles += `<link rel="stylesheet" href="css/${path.basename(file)}">`
+      })
+
+      return `<html>
+                 <head>
+                   <style id="style">${inlineStyles}</style>
+                   ${styles}
+                 </head>
+                 <body>${body}</body>
+              </html>`
     })
   }
 
@@ -188,23 +216,29 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.print()
   }
 
-  exportAsDocument (fileType, formatter) {
+  exportAsDocument (fileType, contentFormatter) {
     const options = {
       filters: [
-        { name: 'Documents', extensions: [fileType] }
+        {name: 'Documents', extensions: [fileType]}
       ],
       properties: ['openFile', 'createDirectory']
     }
-    const value = formatter ? formatter.call(this, this.props.value) : this.props.value
 
     dialog.showSaveDialog(remote.getCurrentWindow(), options,
-    (filename) => {
-      if (filename) {
-        fs.writeFile(filename, value, (err) => {
-          if (err) throw err
+        (filename) => {
+          if (filename) {
+            const content = this.props.value
+            const storage = this.props.storagePath
+
+            exportNote(storage, content, filename, contentFormatter)
+                .then((res) => {
+                  dialog.showMessageBox(remote.getCurrentWindow(), {type: 'info', message: `Exported to ${filename}`})
+                }).catch((err) => {
+                  dialog.showErrorBox('Export error', err ? err.message || err : 'Unexpected error during export')
+                  throw err
+                })
+          }
         })
-      }
-    })
   }
 
   fixDecodedURI (node) {
@@ -221,12 +255,16 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.setAttribute('sandbox', 'allow-scripts')
     this.refs.root.contentWindow.document.body.addEventListener('contextmenu', this.contextMenuHandler)
 
-    this.refs.root.contentWindow.document.head.innerHTML = `
+    let styles = `
       <style id='style'></style>
-      <link rel="stylesheet" href="${appPath}/node_modules/katex/dist/katex.min.css">
-      <link rel="stylesheet" href="${appPath}/node_modules/codemirror/lib/codemirror.css">
       <link rel="stylesheet" id="codeTheme">
     `
+
+    CSS_FILES.forEach((file) => {
+      styles += `<link rel="stylesheet" href="${file}">`
+    })
+
+    this.refs.root.contentWindow.document.head.innerHTML = styles
     this.rewriteIframe()
     this.applyStyle()
 
@@ -266,25 +304,31 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
-  applyStyle () {
-    const { fontSize, lineNumber, codeBlockTheme } = this.props
-    let { fontFamily, codeBlockFontFamily } = this.props
+  getStyleParams () {
+    const {fontSize, lineNumber, codeBlockTheme} = this.props
+    let {fontFamily, codeBlockFontFamily} = this.props
     fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
-      ? fontFamily.split(',').map(fontName => fontName.trim()).concat(defaultFontFamily)
-      : defaultFontFamily
+        ? fontFamily.split(',').map(fontName => fontName.trim()).concat(defaultFontFamily)
+        : defaultFontFamily
     codeBlockFontFamily = _.isString(codeBlockFontFamily) && codeBlockFontFamily.trim().length > 0
-      ? codeBlockFontFamily.split(',').map(fontName => fontName.trim()).concat(defaultCodeBlockFontFamily)
-      : defaultCodeBlockFontFamily
+        ? codeBlockFontFamily.split(',').map(fontName => fontName.trim()).concat(defaultCodeBlockFontFamily)
+        : defaultCodeBlockFontFamily
 
-    this.setCodeTheme(codeBlockTheme)
+    return {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme}
+  }
+
+  applyStyle () {
+    const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme} = this.getStyleParams()
+
+    this.getWindow().document.getElementById('codeTheme').href = this.GetCodeThemeLink(codeBlockTheme)
     this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, lineNumber)
   }
 
-  setCodeTheme (theme) {
+  GetCodeThemeLink (theme) {
     theme = consts.THEMES.some((_theme) => _theme === theme) && theme !== 'default'
       ? theme
       : 'elegant'
-    this.getWindow().document.getElementById('codeTheme').href = theme.startsWith('solarized')
+    return theme.startsWith('solarized')
       ? `${appPath}/node_modules/codemirror/theme/solarized.css`
       : `${appPath}/node_modules/codemirror/theme/${theme}.css`
   }

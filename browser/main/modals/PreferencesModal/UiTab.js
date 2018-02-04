@@ -323,7 +323,7 @@ class UiTab extends React.Component {
                 ref='editorFetchUrlTitle'
                 type='checkbox'
               />&nbsp;
-              Allow editor to fetch url titles on when pasting url
+              Bring in web page title when pasting URL on editor
             </label>
           </div>
 

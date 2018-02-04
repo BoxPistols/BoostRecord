@@ -92,7 +92,7 @@ export default class CodeEditor extends React.Component {
         'Cmd-T': function (cm) {
           // Do nothing
         },
-        Enter: 'newlineAndIndentContinueMarkdownList',
+        Enter: 'boostNewLineAndIndentContinueMarkdownList',
         'Ctrl-C': (cm) => {
           if (cm.getOption('keyMap').substr(0, 3) === 'vim') {
             document.execCommand('copy')

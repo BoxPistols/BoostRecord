@@ -76,7 +76,7 @@ class UiTab extends React.Component {
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked,
-        fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
+        fetchUrlTitle: this.refs.editorFetchUrlTitle.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,

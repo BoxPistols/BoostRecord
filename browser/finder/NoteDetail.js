@@ -5,6 +5,7 @@ import MarkdownPreview from 'browser/components/MarkdownPreview'
 import MarkdownEditor from 'browser/components/MarkdownEditor'
 import CodeEditor from 'browser/components/CodeEditor'
 import CodeMirror from 'codemirror'
+import 'codemirror-mode-elixir'
 import { findStorage } from 'browser/lib/findStorage'
 
 const electron = require('electron')

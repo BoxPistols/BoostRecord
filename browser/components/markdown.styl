@@ -120,6 +120,7 @@ hr
   margin 15px 0
 h1, h2, h3, h4, h5, h6
   font-weight bold
+  word-wrap break-word
 h1
   font-size 2.55em
   padding-bottom 0.3em
@@ -157,6 +158,7 @@ p
   line-height 1.6em
   margin 0 0 1em
   white-space pre-line
+  word-wrap break-word
 img
   max-width 100%
 strong, b
@@ -334,8 +336,29 @@ body[data-theme="dark"]
     background-color themeDarkBorder
     color themeDarkText
 
+themeSolarizedDarkTableOdd = $ui-solarized-dark-noteDetail-backgroundColor
+themeSolarizedDarkTableEven = darken($ui-solarized-dark-noteDetail-backgroundColor, 10%)
+themeSolarizedDarkTableHead = themeSolarizedDarkTableEven
+themeSolarizedDarkTableBorder = themeDarkBorder
 
 body[data-theme="solarized-dark"]
   color $ui-solarized-dark-text-color
   border-color themeDarkBorder
   background-color $ui-solarized-dark-noteDetail-backgroundColor
+  table
+    thead
+      tr
+        background-color themeSolarizedDarkTableHead
+      th
+        border-color themeSolarizedDarkTableBorder
+        &:last-child
+          border-right solid 1px themeSolarizedDarkTableBorder
+    tbody
+      tr:nth-child(2n + 1)
+        background-color themeSolarizedDarkTableOdd
+      tr:nth-child(2n)
+        background-color themeSolarizedDarkTableEven
+      td
+        border-color themeSolarizedDarkTableBorder
+        &:last-child
+          border-right solid 1px themeSolarizedDarkTableBorder

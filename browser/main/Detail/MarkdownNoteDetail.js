@@ -3,6 +3,7 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './MarkdownNoteDetail.styl'
 import MarkdownEditor from 'browser/components/MarkdownEditor'
+import MarkdownSplitEditor from 'browser/components/MarkdownSplitEditor'
 import TodoListPercentage from 'browser/components/TodoListPercentage'
 import StarButton from './StarButton'
 import TagSelect from './TagSelect'
@@ -15,15 +16,17 @@ import StatusBar from '../StatusBar'
 import _ from 'lodash'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
+import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
+import FullscreenButton from './FullscreenButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
+import ToggleModeButton from './ToggleModeButton'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
 import { getTodoPercentageOfCompleted } from 'browser/lib/getTodoStatus'
 import striptags from 'striptags'
-import exportNote from 'browser/main/lib/dataApi/exportNote'
 
 const electron = require('electron')
 const { remote } = electron
@@ -40,13 +43,12 @@ class MarkdownNoteDetail extends React.Component {
         content: ''
       }, props.note),
       isLockButtonShown: false,
-      isLocked: false
+      isLocked: false,
+      editorType: props.config.editor.type
     }
     this.dispatchTimer = null
 
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
-    this.saveAsText = this.handleSaveAsText.bind(this)
-    this.saveAsMd = this.handleSaveAsMd.bind(this)
   }
 
   focus () {
@@ -55,8 +57,6 @@ class MarkdownNoteDetail extends React.Component {
 
   componentDidMount () {
     ee.on('topbar:togglelockbutton', this.toggleLockButton)
-    ee.on('export:save-text', this.saveAsText)
-    ee.on('export:save-md', this.saveAsMd)
   }
 
   componentWillReceiveProps (nextProps) {
@@ -77,21 +77,24 @@ class MarkdownNoteDetail extends React.Component {
 
   componentDidUnmount () {
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
-    ee.off('export:save-text', this.saveAsTextHandler)
-    ee.off('export:save-md', this.saveAsMdHandler)
   }
 
-  handleChange (e) {
+  handleUpdateTag () {
     const { note } = this.state
-
-    note.content = this.refs.content.value
     if (this.refs.tags) note.tags = this.refs.tags.value
-    note.title = markdown.strip(striptags(findNoteTitle(note.content)))
-    note.updatedAt = new Date()
+    this.updateNote(note)
+  }
 
-    this.setState({
-      note
-    }, () => {
+  handleUpdateContent () {
+    const { note } = this.state
+    note.content = this.refs.content.value
+    note.title = markdown.strip(striptags(findNoteTitle(note.content)))
+    this.updateNote(note)
+  }
+
+  updateNote (note) {
+    note.updatedAt = new Date()
+    this.setState({note}, () => {
       this.save()
     })
   }
@@ -177,28 +180,8 @@ class MarkdownNoteDetail extends React.Component {
     ee.emit('export:save-text')
   }
 
-  exportAsDocument (fileType) {
-    const options = {
-      filters: [
-        { name: 'Documents', extensions: [fileType] }
-      ],
-      properties: ['openFile', 'createDirectory']
-    }
-
-    dialog.showSaveDialog(remote.getCurrentWindow(), options,
-        (filename) => {
-          if (filename) {
-            const note = this.props.note
-
-            exportNote(note.storage, note.content, filename)
-                .then((res) => {
-                  dialog.showMessageBox(remote.getCurrentWindow(), {type: 'info', message: `Exported to ${filename}`})
-                }).catch((err) => {
-                  dialog.showErrorBox('Export error', err ? err.message || err : 'Unexpected error during export')
-                  throw err
-                })
-          }
-        })
+  exportAsHtml () {
+    ee.emit('export:save-html')
   }
 
   handleTrashButtonClick (e) {
@@ -238,14 +221,6 @@ class MarkdownNoteDetail extends React.Component {
     ee.emit('list:next')
   }
 
-  handleSaveAsText () {
-    this.exportAsDocument('txt')
-  }
-
-  handleSaveAsMd () {
-    this.exportAsDocument('md')
-  }
-
   handleUndoButtonClick (e) {
     const { note } = this.state
 
@@ -272,7 +247,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   getToggleLockButton () {
-    return this.state.isLocked ? '../resources/icon/icon-edit-lock.svg' : '../resources/icon/icon-edit.svg'
+    return this.state.isLocked ? '../resources/icon/icon-previewoff-on.svg' : '../resources/icon/icon-previewoff-off.svg'
   }
 
   handleDeleteKeyDown (e) {
@@ -301,9 +276,42 @@ class MarkdownNoteDetail extends React.Component {
     ee.emit('print')
   }
 
-  render () {
-    const { data, config, location } = this.props
+  handleSwitchMode (type) {
+    this.setState({ editorType: type }, () => {
+      const newConfig = Object.assign({}, this.props.config)
+      newConfig.editor.type = type
+      ConfigManager.set(newConfig)
+    })
+  }
+
+  renderEditor () {
+    const { config, ignorePreviewPointerEvents } = this.props
     const { note } = this.state
+    if (this.state.editorType === 'EDITOR_PREVIEW') {
+      return <MarkdownEditor
+        ref='content'
+        styleName='body-noteEditor'
+        config={config}
+        value={note.content}
+        storageKey={note.storage}
+        onChange={this.handleUpdateContent.bind(this)}
+        ignorePreviewPointerEvents={ignorePreviewPointerEvents}
+      />
+    } else {
+      return <MarkdownSplitEditor
+        ref='content'
+        config={config}
+        value={note.content}
+        storageKey={note.storage}
+        onChange={this.handleUpdateContent.bind(this)}
+        ignorePreviewPointerEvents={ignorePreviewPointerEvents}
+      />
+    }
+  }
+
+  render () {
+    const { data, location } = this.props
+    const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -335,6 +343,7 @@ class MarkdownNoteDetail extends React.Component {
           folderName={currentOption.folder.name}
           updatedAt={formatDate(note.updatedAt)}
           createdAt={formatDate(note.createdAt)}
+          exportAsHtml={this.exportAsHtml}
           exportAsMd={this.exportAsMd}
           exportAsTxt={this.exportAsTxt}
         />
@@ -355,21 +364,12 @@ class MarkdownNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
-          onChange={(e) => this.handleChange(e)}
+          onChange={this.handleUpdateTag.bind(this)}
         />
 
-        <div styleName='mode-tab'>
-          <div styleName='active'>
-            <img styleName='item-star' src='../resources/icon/icon-WYSIWYG-on.svg' />
-          </div>
-          <div>
-            <img styleName='item-star' src='../resources/icon/icon-code-off.svg' />
-          </div>
-        </div>
+        <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
 
-        <TodoListPercentage
-          percentageOfTodo={getTodoPercentageOfCompleted(note.content)}
-        />
+        <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
         <InfoButton
@@ -396,11 +396,7 @@ class MarkdownNoteDetail extends React.Component {
           )
         })()}
 
-        <button styleName='control-fullScreenButton'
-          onMouseDown={(e) => this.handleFullScreenButton(e)}
-        >
-          <img styleName='iconInfo' src='../resources/icon/icon-sidebar.svg' />
-        </button>
+        <FullscreenButton onClick={(e) => this.handleFullScreenButton(e)} />
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
 
@@ -412,6 +408,7 @@ class MarkdownNoteDetail extends React.Component {
           createdAt={formatDate(note.createdAt)}
           exportAsMd={this.exportAsMd}
           exportAsTxt={this.exportAsTxt}
+          exportAsHtml={this.exportAsHtml}
           wordCount={note.content.split(' ').length}
           letterCount={note.content.replace(/\r?\n/g, '').length}
           type={note.type}
@@ -429,15 +426,7 @@ class MarkdownNoteDetail extends React.Component {
         {location.pathname === '/trashed' ? trashTopBar : detailTopBar}
 
         <div styleName='body'>
-          <MarkdownEditor
-            ref='content'
-            styleName='body-noteEditor'
-            config={config}
-            value={this.state.note.content}
-            storageKey={this.state.note.storage}
-            onChange={(e) => this.handleChange(e)}
-            ignorePreviewPointerEvents={this.props.ignorePreviewPointerEvents}
-          />
+          {this.renderEditor()}
         </div>
 
         <StatusBar

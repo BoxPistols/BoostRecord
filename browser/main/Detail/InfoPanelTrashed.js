@@ -4,7 +4,7 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './InfoPanel.styl'
 
 const InfoPanelTrashed = ({
-  storageName, folderName, updatedAt, createdAt, exportAsMd, exportAsTxt
+  storageName, folderName, updatedAt, createdAt, exportAsMd, exportAsTxt, exportAsHtml
 }) => (
   <div className='infoPanel' styleName='control-infoButton-panel-trash' style={{display: 'none'}}>
     <div>
@@ -31,17 +31,22 @@ const InfoPanelTrashed = ({
 
     <div id='export-wrap'>
       <button styleName='export--enable' onClick={(e) => exportAsMd(e)}>
-        <i className='fa fa-file-code-o fa-fw' />
+        <i className='fa fa-file-code-o' />
         <p>.md</p>
       </button>
 
       <button styleName='export--enable' onClick={(e) => exportAsTxt(e)}>
-        <i className='fa fa-file-text-o fa-fw' />
+        <i className='fa fa-file-text-o' />
         <p>.txt</p>
       </button>
 
+      <button styleName='export--enable' onClick={(e) => exportAsHtml(e)}>
+        <i className='fa fa-html5' />
+        <p>.html</p>
+      </button>
+
       <button styleName='export--unable'>
-        <i className='fa fa-file-pdf-o fa-fw' />
+        <i className='fa fa-file-pdf-o' />
         <p>.pdf</p>
       </button>
     </div>
@@ -54,7 +59,8 @@ InfoPanelTrashed.propTypes = {
   updatedAt: PropTypes.string.isRequired,
   createdAt: PropTypes.string.isRequired,
   exportAsMd: PropTypes.func.isRequired,
-  exportAsTxt: PropTypes.func.isRequired
+  exportAsTxt: PropTypes.func.isRequired,
+  exportAsHtml: PropTypes.func.isRequired
 }
 
 export default CSSModules(InfoPanelTrashed, styles)

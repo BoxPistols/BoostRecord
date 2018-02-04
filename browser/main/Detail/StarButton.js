@@ -46,14 +46,14 @@ class StarButton extends React.Component {
         onMouseDown={(e) => this.handleMouseDown(e)}
         onMouseUp={(e) => this.handleMouseUp(e)}
         onMouseLeave={(e) => this.handleMouseLeave(e)}
-        onClick={this.props.onClick}
-      >
+        onClick={this.props.onClick}>
         <img styleName='icon'
           src={this.state.isActive || this.props.isActive
             ? '../resources/icon/icon-starred.svg'
             : '../resources/icon/icon-star.svg'
           }
         />
+        <span styleName='tooltip'>Star</span>
       </button>
     )
   }

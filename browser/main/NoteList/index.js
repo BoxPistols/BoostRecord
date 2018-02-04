@@ -235,18 +235,8 @@ class NoteList extends React.Component {
       return
     }
 
-    const { router } = this.context
-    const { location } = this.props
-
-    let targetIndex = this.getTargetIndex()
-
-    if (targetIndex < 0) targetIndex = 0
-
-    const selectedNoteKeys = []
-    const nextNoteKey = this.getNoteKeyFromTargetIndex(targetIndex)
-    selectedNoteKeys.push(nextNoteKey)
-
-    this.focusNote(selectedNoteKeys, nextNoteKey)
+    const selectedNoteKeys = [noteHash]
+    this.focusNote(selectedNoteKeys, noteHash)
 
     ee.emit('list:moved')
   }

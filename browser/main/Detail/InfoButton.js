@@ -10,6 +10,7 @@ const InfoButton = ({
     onClick={(e) => onClick(e)}
   >
     <img className='infoButton' src='../resources/icon/icon-info.svg' />
+    <span styleName='tooltip'>Info</span>
   </button>
 )
 

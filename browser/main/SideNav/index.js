@@ -11,6 +11,9 @@ import SideNavFilter from 'browser/components/SideNavFilter'
 import StorageList from 'browser/components/StorageList'
 import NavToggleButton from 'browser/components/NavToggleButton'
 import EventEmitter from 'browser/main/lib/eventEmitter'
+import PreferenceButton from './PreferenceButton'
+import ListButton from './ListButton'
+import TagButton from './TagButton'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
@@ -162,27 +165,11 @@ class SideNav extends React.Component {
       >
         <div styleName='top'>
           <div styleName='switch-buttons'>
-            <button styleName={isTagActive ? 'non-active-button' : 'active-button'} onClick={this.handleSwitchFoldersButtonClick.bind(this)}>
-              <img src={isTagActive
-                  ? '../resources/icon/icon-list.svg'
-                  : '../resources/icon/icon-list-active.svg'
-                }
-              />
-            </button>
-            <button styleName={isTagActive ? 'active-button' : 'non-active-button'} onClick={this.handleSwitchTagsButtonClick.bind(this)}>
-              <img src={isTagActive
-                  ? '../resources/icon/icon-tag-active.svg'
-                  : '../resources/icon/icon-tag.svg'
-                }
-              />
-            </button>
+            <ListButton onClick={this.handleSwitchFoldersButtonClick.bind(this)} isTagActive={isTagActive} />
+            <TagButton onClick={this.handleSwitchTagsButtonClick.bind(this)} isTagActive={isTagActive} />
           </div>
           <div>
-            <button styleName='top-menu-preference'
-              onClick={(e) => this.handleMenuButtonClick(e)}
-            >
-              <img styleName='iconTag' src='../resources/icon/icon-setting.svg' />
-            </button>
+            <PreferenceButton onClick={this.handleMenuButtonClick} />
           </div>
         </div>
         {this.SideNavComponent(isFolded, storageList)}

@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
+import 'codemirror-mode-elixir'
 import path from 'path'
 import copyImage from 'browser/main/lib/dataApi/copyImage'
 import { findStorage } from 'browser/lib/findStorage'
@@ -249,7 +250,7 @@ export default class CodeEditor extends React.Component {
 
   render () {
     const { className, fontSize } = this.props
-    let fontFamily = this.props.className
+    let fontFamily = this.props.fontFamily
     fontFamily = _.isString(fontFamily) && fontFamily.length > 0
       ? [fontFamily].concat(defaultEditorFontFamily)
       : defaultEditorFontFamily

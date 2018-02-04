@@ -17,7 +17,9 @@ class Preferences extends React.Component {
     super(props)
 
     this.state = {
-      currentTab: 'STORAGES'
+      currentTab: 'STORAGES',
+      UIAlert: '',
+      HotkeyAlert: ''
     }
   }
 
@@ -58,6 +60,7 @@ class Preferences extends React.Component {
           <HotkeyTab
             dispatch={dispatch}
             config={config}
+            haveToSave={alert => this.setState({HotkeyAlert: alert})}
           />
         )
       case 'UI':
@@ -65,6 +68,7 @@ class Preferences extends React.Component {
           <UiTab
             dispatch={dispatch}
             config={config}
+            haveToSave={alert => this.setState({UIAlert: alert})}
           />
         )
       case 'CROWDFUNDING':
@@ -94,19 +98,26 @@ class Preferences extends React.Component {
     return node.getBoundingClientRect()
   }
 
+  haveToSaveNotif (type, message) {
+    return (
+      <p styleName={`saving--${type}`}>{message}</p>
+    )
+  }
+
   render () {
     const content = this.renderContent()
 
     const tabs = [
       {target: 'STORAGES', label: 'Storages'},
-      {target: 'HOTKEY', label: 'Hotkey'},
-      {target: 'UI', label: 'UI'},
+      {target: 'HOTKEY', label: 'Hotkey', Hotkey: this.state.HotkeyAlert},
+      {target: 'UI', label: 'UI', UI: this.state.UIAlert},
       {target: 'INFO', label: 'Community / Info'},
       {target: 'CROWDFUNDING', label: 'Crowdfunding'}
     ]
 
     const navButtons = tabs.map((tab) => {
       const isActive = this.state.currentTab === tab.target
+      const isUiHotkeyTab = _.isObject(tab[tab.label]) && tab.label === tab[tab.label].tab
       return (
         <button styleName={isActive
             ? 'nav-button--active'
@@ -118,6 +129,7 @@ class Preferences extends React.Component {
           <span styleName='nav-button-label'>
             {tab.label}
           </span>
+          {isUiHotkeyTab ? this.haveToSaveNotif(tab[tab.label].type, tab[tab.label].message) : null}
         </button>
       )
     })

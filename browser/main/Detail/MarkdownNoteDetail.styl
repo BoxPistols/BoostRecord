@@ -19,10 +19,6 @@
   top 40px
   position relative
 
-.control-fullScreenButton
-  top 80px
-  topBarButtonRight()
-
 .body
   absolute left right
   left 0
@@ -32,28 +28,6 @@
   margin 0 45px
 .body-noteEditor
   absolute top bottom left right
-
-.mode-tab
-  border 1px solid #eee
-  height 34px
-  display flex
-  align-items center
-  div
-    width 100px
-    height 100%
-    background-color #f9f9f9
-    display flex
-    align-items center
-    justify-content center
-    cursor pointer
-    &:first-child
-      border-right 1px solid #eee
-    img
-      transform scale(0.7)
-  .active
-    background-color #fff
-    box-shadow 2px 0px 7px #eee
-    z-index 1
   
 body[data-theme="white"]
   .root
@@ -74,6 +48,7 @@ body[data-theme="dark"]
 
   .control-fullScreenButton
     topBarButtonDark()
+
 
 body[data-theme="solarized-dark"]
   .root

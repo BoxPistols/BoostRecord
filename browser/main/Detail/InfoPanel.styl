@@ -41,12 +41,12 @@
   box-shadow 2px 12px 15px 2px rgba(0, 0, 0, 0.1), 2px 1px 50px 2px rgba(0, 0, 0, 0.1)
   border-radius 2px
 
-.count-wrap 
+.count-wrap
 	display flex
 	position relative
 	width 100%
 
-.count-number 
+.count-number
 	position relative
 	display block
 	width 50%
@@ -81,15 +81,15 @@
   margin-bottom 6px
 
 .infoPanel-trash
-  color #EA4447		
-  font-weight 600		
+  color #EA4447
+  font-weight 600
   font-size 14px
   width 70px
   background-color rgba(226,33,113,0.1)
-  border none		
+  border none
   outline none
-  border-radius 2px		
-  margin-right 5px		
+  border-radius 2px
+  margin-right 5px
   padding 2px 5px
 
 [id=export-wrap]
@@ -161,3 +161,43 @@ body[data-theme="dark"]
       color $ui-dark-inactive-text-color
       &:hover
         color $ui-dark-text-color
+
+body[data-theme="solarized-dark"]
+  .control-infoButton-panel
+    background-color $ui-solarized-dark-noteList-backgroundColor
+
+  .control-infoButton-panel-trash
+    background-color $ui-solarized-ark-noteList-backgroundColor
+
+  .modification-date
+    color $ui-solarized-ark-text-color
+
+  .modification-date-desc
+    color $ui-inactive-text-color
+
+  .infoPanel-defaul-count
+    color $ui-solarized-dark-text-color
+
+  .infoPanel-sub-count
+    color $ui-inactive-text-color
+
+  .infoPanel-default
+    color $ui-solarized-ark-text-color
+
+  .infoPanel-sub
+    color $ui-inactive-text-color
+
+  .infoPanel-noteLink
+    background-color alpha($ui-solarized-dark-borderColor, 20%)
+    color $ui-solarized-dark-text-color
+
+  [id=export-wrap]
+    button
+      color $ui-dark-inactive-text-color
+      &:hover
+        background-color alpha($ui-solarized-dark-borderColor, 20%)
+        color $ui-solarized-ark-text-color
+    p
+      color $ui-dark-inactive-text-color
+      &:hover
+        color $ui-solarized-ark-text-color

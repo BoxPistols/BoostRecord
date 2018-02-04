@@ -3,11 +3,13 @@ import React from 'react'
 import markdown from 'browser/lib/markdown'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
+import 'codemirror-mode-elixir'
 import consts from 'browser/lib/consts'
 import Raphael from 'raphael'
 import flowchart from 'flowchart'
 import SequenceDiagram from 'js-sequence-diagrams'
 import eventEmitter from 'browser/main/lib/eventEmitter'
+import fs from 'fs'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
@@ -115,6 +117,9 @@ export default class MarkdownPreview extends React.Component {
     this.mouseUpHandler = (e) => this.handleMouseUp(e)
     this.anchorClickHandler = (e) => this.handlePreviewAnchorClick(e)
     this.checkboxClickHandler = (e) => this.handleCheckboxClick(e)
+    this.saveAsTextHandler = () => this.handleSaveAsText()
+    this.saveAsMdHandler = () => this.handleSaveAsMd()
+    this.saveAsHtmlHandler = () => this.handleSaveAsHtml()
     this.printHandler = () => this.handlePrint()
 
     this.linkClickHandler = this.handlelinkClick.bind(this)
@@ -141,10 +146,12 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleContextMenu (e) {
+    if (!this.props.onContextMenu) return
     this.props.onContextMenu(e)
   }
 
   handleMouseDown (e) {
+    if (!this.props.onMouseDown) return
     if (e.target != null) {
       switch (e.target.tagName) {
         case 'A':
@@ -156,14 +163,48 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleMouseUp (e) {
+    if (!this.props.onMouseUp) return
     if (e.target != null && e.target.tagName === 'A') {
       return null
     }
     if (this.props.onMouseUp != null) this.props.onMouseUp(e)
   }
 
+  handleSaveAsText () {
+    this.exportAsDocument('txt')
+  }
+
+  handleSaveAsMd () {
+    this.exportAsDocument('md')
+  }
+
+  handleSaveAsHtml () {
+    this.exportAsDocument('html', (value) => {
+      return this.refs.root.contentWindow.document.documentElement.outerHTML
+    })
+  }
+
   handlePrint () {
     this.refs.root.contentWindow.print()
+  }
+
+  exportAsDocument (fileType, formatter) {
+    const options = {
+      filters: [
+        { name: 'Documents', extensions: [fileType] }
+      ],
+      properties: ['openFile', 'createDirectory']
+    }
+    const value = formatter ? formatter.call(this, this.props.value) : this.props.value
+
+    dialog.showSaveDialog(remote.getCurrentWindow(), options,
+    (filename) => {
+      if (filename) {
+        fs.writeFile(filename, value, (err) => {
+          if (err) throw err
+        })
+      }
+    })
   }
 
   fixDecodedURI (node) {
@@ -193,6 +234,9 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.addEventListener('mouseup', this.mouseUpHandler)
     this.refs.root.contentWindow.document.addEventListener('drop', this.preventImageDroppedHandler)
     this.refs.root.contentWindow.document.addEventListener('dragover', this.preventImageDroppedHandler)
+    eventEmitter.on('export:save-text', this.saveAsTextHandler)
+    eventEmitter.on('export:save-md', this.saveAsMdHandler)
+    eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
     eventEmitter.on('print', this.printHandler)
   }
 
@@ -202,6 +246,9 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.removeEventListener('mouseup', this.mouseUpHandler)
     this.refs.root.contentWindow.document.removeEventListener('drop', this.preventImageDroppedHandler)
     this.refs.root.contentWindow.document.removeEventListener('dragover', this.preventImageDroppedHandler)
+    eventEmitter.off('export:save-text', this.saveAsTextHandler)
+    eventEmitter.off('export:save-md', this.saveAsMdHandler)
+    eventEmitter.off('export:save-html', this.saveAsHtmlHandler)
     eventEmitter.off('print', this.printHandler)
   }
 

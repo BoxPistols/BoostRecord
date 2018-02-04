@@ -87,8 +87,13 @@ function data (state = defaultDataMap(), action) {
           state.trashedSet = new Set(state.trashedSet)
           if (note.isTrashed) {
             state.trashedSet.add(uniqueKey)
+            state.starredSet.delete(uniqueKey)
           } else {
             state.trashedSet.delete(uniqueKey)
+
+            if (note.isStarred) {
+              state.starredSet.add(uniqueKey)
+            }
           }
         }
 
@@ -348,6 +353,13 @@ function data (state = defaultDataMap(), action) {
       state = Object.assign({}, state)
       state.storageMap = new Map(state.storageMap)
       state.storageMap.set(action.storage.key, action.storage)
+      return state
+    case 'EXPORT_FOLDER':
+      {
+        state = Object.assign({}, state)
+        state.storageMap = new Map(state.storageMap)
+        state.storageMap.set(action.storage.key, action.storage)
+      }
       return state
     case 'DELETE_FOLDER':
       {

@@ -42,6 +42,8 @@ top-bar--height = 50px
   background-color transparent
   color $ui-text-color
   font-size 16px
+  .saving--warning
+    haveToSave()
 
 .nav-button--active
   @extend .nav-button
@@ -49,6 +51,8 @@ top-bar--height = 50px
   background-color $ui-button--active-backgroundColor
   &:hover
     color $ui-text-color
+  .saving--warning
+    haveToSave()
 
 .nav-button-icon
   display block

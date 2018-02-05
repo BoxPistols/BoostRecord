@@ -11,11 +11,10 @@
 .control-infoButton-panel
   z-index 200
   margin-top 0px
-  right 0
+  right 25px
   position absolute
   padding 20px 25px 0 25px
   width 300px
-  height 350px
   overflow auto
   background-color $ui-noteList-backgroundColor
   box-shadow 2px 12px 15px 2px rgba(0, 0, 0, 0.1), 2px 1px 50px 2px rgba(0, 0, 0, 0.1)
@@ -70,15 +69,30 @@
   color $ui-text-color
 
 .infoPanel-sub
-  font-size 14px
+  font-size 12px
+  font-weight 600
   color $ui-inactive-text-color
   padding-bottom 8px
 
 .infoPanel-noteLink
   padding-right 5px
-  width 200px
+  width 210px
   height 25px
-  margin-bottom 6px
+  margin 6px 0
+
+.infoPanel-copyButton
+  outline none
+  font-size 16px
+  color #A0A0A0
+  background-color transparent
+  border none
+  margin 0 5px
+  border-radius 5px
+  cursor pointer
+  &:hover
+    transition 0.2s
+    background-color alpha($ui-button--hover-backgroundColor, 30%)
+    color $ui-inactive-text-color
 
 .infoPanel-trash
   color #EA4447

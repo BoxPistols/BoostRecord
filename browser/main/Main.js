@@ -10,10 +10,13 @@ import Detail from './Detail'
 import dataApi from 'browser/main/lib/dataApi'
 import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
-import modal from 'browser/main/lib/modal'
-import InitModal from 'browser/main/modals/InitModal'
 import mobileAnalytics from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import eventEmitter from 'browser/main/lib/eventEmitter'
+import { hashHistory } from 'react-router'
+import store from 'browser/main/store'
+const path = require('path')
+const electron = require('electron')
+const { remote } = electron
 
 class Main extends React.Component {
 
@@ -48,6 +51,91 @@ class Main extends React.Component {
     }
   }
 
+  init () {
+    dataApi
+      .addStorage({
+        name: 'My Storage',
+        path: path.join(remote.app.getPath('home'), 'Boostnote')
+      })
+      .then((data) => {
+        return data
+      })
+      .then((data) => {
+        if (data.storage.folders[0] != null) {
+          return data
+        } else {
+          return dataApi
+            .createFolder(data.storage.key, {
+              color: '#1278BD',
+              name: 'Default'
+            })
+            .then((_data) => {
+              return {
+                storage: _data.storage,
+                notes: data.notes
+              }
+            })
+        }
+      })
+      .then((data) => {
+        console.log(data)
+        store.dispatch({
+          type: 'ADD_STORAGE',
+          storage: data.storage,
+          notes: data.notes
+        })
+
+        const defaultSnippetNote = dataApi
+          .createNote(data.storage.key, {
+            type: 'SNIPPET_NOTE',
+            folder: data.storage.folders[0].key,
+            title: 'Snippet note example',
+            description: 'Snippet note example\nYou can store a series of snippets as a single note, like Gist.',
+            snippets: [
+              {
+                name: 'example.html',
+                mode: 'html',
+                content: '<html>\n<body>\n<h1 id=\'hello\'>Enjoy Boostnote!</h1>\n</body>\n</html>'
+              },
+              {
+                name: 'example.js',
+                mode: 'javascript',
+                content: 'var boostnote = document.getElementById(\'enjoy\').innerHTML\n\nconsole.log(boostnote)'
+              }
+            ]
+          })
+          .then((note) => {
+            store.dispatch({
+              type: 'UPDATE_NOTE',
+              note: note
+            })
+          })
+        const defaultMarkdownNote = dataApi
+          .createNote(data.storage.key, {
+            type: 'MARKDOWN_NOTE',
+            folder: data.storage.folders[0].key,
+            title: 'Welcome to Boostnote!',
+            content: '# Welcome to Boostnote!\n## Click here to edit markdown :wave:\n\n<iframe width="560" height="315" src="https://www.youtube.com/embed/L0qNPLsvmyM" frameborder="0" allowfullscreen></iframe>\n\n## Docs :memo:\n- [Boostnote | Boost your happiness, productivity and creativity.](https://hackernoon.com/boostnote-boost-your-happiness-productivity-and-creativity-315034efeebe)\n- [Cloud Syncing & Backups](https://github.com/BoostIO/Boostnote/wiki/Cloud-Syncing-and-Backup)\n- [How to sync your data across Desktop and Mobile apps](https://github.com/BoostIO/Boostnote/wiki/Sync-Data-Across-Desktop-and-Mobile-apps)\n- [Convert data from **Evernote** to Boostnote.](https://github.com/BoostIO/Boostnote/wiki/Evernote)\n- [Keyboard Shortcuts](https://github.com/BoostIO/Boostnote/wiki/Keyboard-Shortcuts)\n- [Keymaps in Editor mode](https://github.com/BoostIO/Boostnote/wiki/Keymaps-in-Editor-mode)\n- [How to set syntax highlight in Snippet note](https://github.com/BoostIO/Boostnote/wiki/Syntax-Highlighting)\n\n---\n\n## Article Archive :books:\n- [Reddit English](http://bit.ly/2mOJPu7)\n- [Reddit Spanish](https://www.reddit.com/r/boostnote_es/)\n- [Reddit Chinese](https://www.reddit.com/r/boostnote_cn/)\n- [Reddit Japanese](https://www.reddit.com/r/boostnote_jp/)\n\n---\n\n## Community :beers:\n- [GitHub](http://bit.ly/2AWWzkD)\n- [Twitter](http://bit.ly/2z8BUJZ)\n- [Facebook Group](http://bit.ly/2jcca8t)'
+          })
+          .then((note) => {
+            store.dispatch({
+              type: 'UPDATE_NOTE',
+              note: note
+            })
+          })
+
+        return Promise.resolve(defaultSnippetNote)
+          .then(defaultMarkdownNote)
+          .then(() => data.storage)
+      })
+      .then((storage) => {
+        hashHistory.push('/storages/' + storage.key)
+      })
+      .catch((err) => {
+        throw err
+      })
+  }
+
   componentDidMount () {
     const { dispatch, config } = this.props
 
@@ -71,7 +159,7 @@ class Main extends React.Component {
         })
 
         if (data.storages.length < 1) {
-          modal.open(InitModal)
+          this.init()
         }
       })
 

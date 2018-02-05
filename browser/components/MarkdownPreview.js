@@ -23,13 +23,12 @@ const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
 const appPath = 'file://' + (process.env.NODE_ENV === 'production'
   ? app.getAppPath()
   : path.resolve())
-
 const CSS_FILES = [
   `${appPath}/node_modules/katex/dist/katex.min.css`,
   `${appPath}/node_modules/codemirror/lib/codemirror.css`
 ]
 
-function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber) {
+function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd) {
   return `
 @font-face {
   font-family: 'Lato';
@@ -53,6 +52,7 @@ ${markdownStyle}
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
+  ${scrollPastEnd && 'padding-bottom: 90vh;'}
 }
 code {
   font-family: '${codeBlockFontFamily.join("','")}';
@@ -258,6 +258,7 @@ export default class MarkdownPreview extends React.Component {
     let styles = `
       <style id='style'></style>
       <link rel="stylesheet" id="codeTheme">
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     `
 
     CSS_FILES.forEach((file) => {
@@ -298,15 +299,16 @@ export default class MarkdownPreview extends React.Component {
       prevProps.codeBlockTheme !== this.props.codeBlockTheme ||
       prevProps.lineNumber !== this.props.lineNumber ||
       prevProps.showCopyNotification !== this.props.showCopyNotification ||
-      prevProps.theme !== this.props.theme) {
+      prevProps.theme !== this.props.theme ||
+      prevProps.scrollPastEnd !== this.props.scrollPastEnd) {
       this.applyStyle()
       this.rewriteIframe()
     }
   }
 
   getStyleParams () {
-    const {fontSize, lineNumber, codeBlockTheme} = this.props
-    let {fontFamily, codeBlockFontFamily} = this.props
+    const { fontSize, lineNumber, codeBlockTheme, scrollPastEnd } = this.props
+    let { fontFamily, codeBlockFontFamily } = this.props
     fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
         ? fontFamily.split(',').map(fontName => fontName.trim()).concat(defaultFontFamily)
         : defaultFontFamily
@@ -314,14 +316,14 @@ export default class MarkdownPreview extends React.Component {
         ? codeBlockFontFamily.split(',').map(fontName => fontName.trim()).concat(defaultCodeBlockFontFamily)
         : defaultCodeBlockFontFamily
 
-    return {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme}
+    return {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd}
   }
 
   applyStyle () {
-    const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme} = this.getStyleParams()
+    const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd} = this.getStyleParams()
 
     this.getWindow().document.getElementById('codeTheme').href = this.GetCodeThemeLink(codeBlockTheme)
-    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, lineNumber)
+    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd)
   }
 
   GetCodeThemeLink (theme) {

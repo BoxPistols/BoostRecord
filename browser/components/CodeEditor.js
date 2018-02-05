@@ -228,7 +228,7 @@ export default class CodeEditor extends React.Component {
   handlePaste (editor, e) {
     const clipboardData = e.clipboardData
     const dataTransferItem = clipboardData.items[0]
-    const pasteTxt = clipboardData.getData('text')
+    const pastedTxt = clipboardData.getData('text')
     const isURL = (str) => {
       const matcher = /^(?:\w+:)?\/\/([^\s\.]+\.\S{2}|localhost[\:?\d]*)\S*$/
       return matcher.test(str)
@@ -252,31 +252,35 @@ export default class CodeEditor extends React.Component {
         const imageMd = `![${imageName}](${path.join('/:storage', `${imageName}.png`)})`
         this.insertImageMd(imageMd)
       }
-    } else if (this.props.fetchUrlTitle && isURL(pasteTxt)) {
-      e.preventDefault()
-      const taggedUrl = '[' + pasteTxt + ']'
-      editor.replaceSelection(taggedUrl)
-
-      fetch(pasteTxt, {
-        method: 'get'
-      }).then((response) => {
-        return (response.text())
-      }).then((response) => {
-        const parsedResponse = (new window.DOMParser()).parseFromString(response, 'text/html')
-        const value = editor.getValue()
-        const cursor = editor.getCursor()
-        const LinkWithTitle = `[${parsedResponse.title}](${pasteTxt})`
-        const newValue = value.replace(taggedUrl, LinkWithTitle)
-        editor.setValue(newValue)
-        editor.setCursor(cursor)
-      }).catch((e) => {
-        const value = editor.getValue()
-        const newValue = value.replace(taggedUrl, pasteTxt)
-        const cursor = editor.getCursor()
-        editor.setValue(newValue)
-        editor.setCursor(cursor)
-      })
+    } else if (this.props.fetchUrlTitle && isURL(pastedTxt)) {
+      this.handlePasteUrl(e, editor, pastedTxt)
     }
+  }
+
+  handlePasteUrl(e, editor, pastedTxt){
+    e.preventDefault()
+    const taggedUrl = '[' + pastedTxt + ']'
+    editor.replaceSelection(taggedUrl)
+
+    fetch(pastedTxt, {
+      method: 'get'
+    }).then((response) => {
+      return (response.text())
+    }).then((response) => {
+      const parsedResponse = (new window.DOMParser()).parseFromString(response, 'text/html')
+      const value = editor.getValue()
+      const cursor = editor.getCursor()
+      const LinkWithTitle = `[${parsedResponse.title}](${pastedTxt})`
+      const newValue = value.replace(taggedUrl, LinkWithTitle)
+      editor.setValue(newValue)
+      editor.setCursor(cursor)
+    }).catch((e) => {
+      const value = editor.getValue()
+      const newValue = value.replace(taggedUrl, pastedTxt)
+      const cursor = editor.getCursor()
+      editor.setValue(newValue)
+      editor.setCursor(cursor)
+    })
   }
 
   render () {

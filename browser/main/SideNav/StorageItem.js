@@ -8,12 +8,10 @@ import CreateFolderModal from 'browser/main/modals/CreateFolderModal'
 import RenameFolderModal from 'browser/main/modals/RenameFolderModal'
 import dataApi from 'browser/main/lib/dataApi'
 import StorageItemChild from 'browser/components/StorageItem'
-import eventEmitter from 'browser/main/lib/eventEmitter'
 import _ from 'lodash'
-import * as path from 'path'
 
 const { remote } = require('electron')
-const { Menu, MenuItem, dialog } = remote
+const { Menu, dialog } = remote
 
 class StorageItem extends React.Component {
   constructor (props) {

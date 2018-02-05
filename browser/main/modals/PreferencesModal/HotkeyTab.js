@@ -66,7 +66,6 @@ class HotkeyTab extends React.Component {
   handleHotkeyChange (e) {
     const { config } = this.state
     config.hotkey = {
-      toggleFinder: this.refs.toggleFinder.value,
       toggleMain: this.refs.toggleMain.value
     }
     this.setState({
@@ -103,9 +102,9 @@ class HotkeyTab extends React.Component {
     return (
       <div styleName='root'>
         <div styleName='group'>
-          <div styleName='group-header'>Hotkey</div>
+          <div styleName='group-header'>Hotkeys</div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>Toggle Main</div>
+            <div styleName='group-section-label'>Show/Hide Boostnote</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
                 onChange={(e) => this.handleHotkeyChange(e)}
@@ -115,24 +114,13 @@ class HotkeyTab extends React.Component {
               />
             </div>
           </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>Toggle Finder (Quick search)</div>
-            <div styleName='group-section-control'>
-              <input styleName='group-section-control-input'
-                onChange={(e) => this.handleHotkeyChange(e)}
-                ref='toggleFinder'
-                value={config.hotkey.toggleFinder}
-                type='text'
-              />
-            </div>
-          </div>
           <div styleName='group-control'>
             <button styleName='group-control-leftButton'
               onClick={(e) => this.handleHintToggleButtonClick(e)}
             >
               {this.state.isHotkeyHintOpen
-                ? 'Hide Hint'
-                : 'Hint?'
+                ? 'Hide Help'
+                : 'Help'
               }
             </button>
             <button styleName='group-control-rightButton'

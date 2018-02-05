@@ -22,18 +22,18 @@ class Crowdfunding extends React.Component {
     return (
       <div styleName='root'>
         <div styleName='header'>Crowdfunding</div>
-        <p>Dear all,</p>
+        <p>Dear everyone,</p>
         <br />
-        <p>Thanks for your using!</p>
-        <p>Boostnote is used in about 200 countries and regions, it is a awesome developer community.</p>
+        <p>Thank you for using Boostnote!</p>
+        <p>Boostnote is used in about 200 different countries and regions by an awesome community of developers.</p>
         <br />
         <p>To continue supporting this growth, and to satisfy community expectations,</p>
-        <p>we would like to invest more time in this project.</p>
+        <p>we would like to invest more time and resources in this project.</p>
         <br />
-        <p>If you like this project and see its potential, you can help!</p>
+        <p>If you like this project and see its potential, you can help by supporting us on OpenCollective!</p>
         <br />
         <p>Thanks,</p>
-        <p>Boostnote maintainers.</p>
+        <p>Boostnote maintainers</p>
         <br />
         <button styleName='cf-link'>
           <a href='https://opencollective.com/boostnoteio' onClick={(e) => this.handleLinkClick(e)}>Support via OpenCollective</a>

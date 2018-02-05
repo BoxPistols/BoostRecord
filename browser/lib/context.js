@@ -2,7 +2,7 @@ const { remote } = require('electron')
 const { Menu, MenuItem } = remote
 
 function popup (templates) {
-  let menu = new Menu()
+  const menu = new Menu()
   templates.forEach((item) => {
     menu.append(new MenuItem(item))
   })

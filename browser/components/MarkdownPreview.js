@@ -12,7 +12,7 @@ import eventEmitter from 'browser/main/lib/eventEmitter'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
-import exportNote from 'browser/main/lib/dataApi/exportNote';
+import exportNote from 'browser/main/lib/dataApi/exportNote'
 
 const { remote } = require('electron')
 const { app } = remote

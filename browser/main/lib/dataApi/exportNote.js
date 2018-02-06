@@ -74,7 +74,7 @@ function prepareTasks (tasks, storagePath, targetPath) {
 function saveToFile (data, filename) {
   return new Promise((resolve, reject) => {
     fs.writeFile(filename, data, (err) => {
-      if (err) throw err
+      if (err) return reject(err)
 
       resolve(filename)
     })

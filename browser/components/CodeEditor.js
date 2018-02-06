@@ -264,7 +264,7 @@ export default class CodeEditor extends React.Component {
 
   handlePasteUrl (e, editor, pastedTxt) {
     e.preventDefault()
-    const taggedUrl = '<' + pastedTxt + '>'
+    const taggedUrl = `<${pastedTxt}>`
     editor.replaceSelection(taggedUrl)
 
     fetch(pastedTxt, {

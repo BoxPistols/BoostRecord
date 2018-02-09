@@ -7,6 +7,7 @@ import path from 'path'
 import copyImage from 'browser/main/lib/dataApi/copyImage'
 import { findStorage } from 'browser/lib/findStorage'
 import fs from 'fs'
+import eventEmitter from 'browser/main/lib/eventEmitter'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -47,6 +48,39 @@ export default class CodeEditor extends React.Component {
     this.loadStyleHandler = (e) => {
       this.editor.refresh()
     }
+    this.searchHandler = (e, msg) => this.handleSearch(msg)
+    this.searchState = null
+  }
+
+  handleSearch (msg) {
+    const cm = this.editor
+    const component = this
+
+    if (component.searchState) cm.removeOverlay(component.searchState)
+    if (msg.length < 3) return
+
+    cm.operation(function () {
+      component.searchState = makeOverlay(msg, 'searching')
+      cm.addOverlay(component.searchState)
+
+      function makeOverlay (query, style) {
+        query = new RegExp(query.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'gi')
+        return {
+          token: function (stream) {
+            query.lastIndex = stream.pos
+            var match = query.exec(stream.string)
+            if (match && match.index === stream.pos) {
+              stream.pos += match[0].length || 1
+              return style
+            } else if (match) {
+              stream.pos = match.index
+            } else {
+              stream.skipToEnd()
+            }
+          }
+        }
+      }
+    })
   }
 
   componentDidMount () {
@@ -107,6 +141,9 @@ export default class CodeEditor extends React.Component {
     this.editor.on('blur', this.blurHandler)
     this.editor.on('change', this.changeHandler)
     this.editor.on('paste', this.pasteHandler)
+    eventEmitter.on('top:search', this.searchHandler)
+
+    eventEmitter.emit('code:init')
 
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.addEventListener('load', this.loadStyleHandler)
@@ -126,6 +163,7 @@ export default class CodeEditor extends React.Component {
     this.editor.off('blur', this.blurHandler)
     this.editor.off('change', this.changeHandler)
     this.editor.off('paste', this.pasteHandler)
+    eventEmitter.off('top:search', this.searchHandler)
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
   }

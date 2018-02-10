@@ -3,6 +3,7 @@ import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
 import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
+import {lastFindInArray} from './utils'
 
 // FIXME We should not depend on global variable.
 const katex = window.katex
@@ -125,6 +126,13 @@ md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
   if (state.parentType === 'list') {
     const match = content.match(/^\[( |x)\] ?(.+)/i)
     if (match) {
+      const liToken = lastFindInArray(state.tokens, token => token.type === 'list_item_open')
+      if (liToken) {
+        if (!liToken.attrs) {
+          liToken.attrs = []
+        }
+        liToken.attrs.push(['class', 'taskListItem'])
+      }
       content = `<label class='taskListItem${match[1] !== ' ' ? ' checked' : ''}' for='checkbox-${startLine + 1}'><input type='checkbox'${match[1] !== ' ' ? ' checked' : ''} id='checkbox-${startLine + 1}'/> ${content.substring(4, content.length)}</label>`
     }
   }

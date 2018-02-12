@@ -766,16 +766,17 @@ class NoteList extends React.Component {
           <div styleName='control-sortBy'>
             <i className='fa fa-angle-down' />
             <select styleName='control-sortBy-select'
+              title='Select filter mode'
               value={config.sortBy}
               onChange={(e) => this.handleSortByChange(e)}
             >
-              <option value='UPDATED_AT'>Updated</option>
-              <option value='CREATED_AT'>Created</option>
-              <option value='ALPHABETICAL'>Alphabetically</option>
+              <option title='Sort by update time' value='UPDATED_AT'>Updated</option>
+              <option title='Sort by create time' value='CREATED_AT'>Created</option>
+              <option title='Sort alphabetically' value='ALPHABETICAL'>Alphabetically</option>
             </select>
           </div>
           <div styleName='control-button-area'>
-            <button styleName={config.listStyle === 'DEFAULT'
+            <button title='Default View' styleName={config.listStyle === 'DEFAULT'
                 ? 'control-button--active'
                 : 'control-button'
               }
@@ -783,7 +784,7 @@ class NoteList extends React.Component {
             >
               <img styleName='iconTag' src='../resources/icon/icon-column.svg' />
             </button>
-            <button styleName={config.listStyle === 'SMALL'
+            <button title='Compressed View' styleName={config.listStyle === 'SMALL'
                 ? 'control-button--active'
                 : 'control-button'
               }

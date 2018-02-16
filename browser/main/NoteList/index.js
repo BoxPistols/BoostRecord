@@ -66,6 +66,7 @@ class NoteList extends React.Component {
     this.deleteNote = this.deleteNote.bind(this)
     this.focusNote = this.focusNote.bind(this)
     this.pinToTop = this.pinToTop.bind(this)
+    this.restoreNote = this.restoreNote.bind(this)
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
@@ -440,6 +441,7 @@ class NoteList extends React.Component {
     const pinLabel = note.isPinned ? 'Remove pin' : 'Pin to Top'
     const deleteLabel = 'Delete Note'
     const cloneNote = 'Clone Note'
+    const restoreNote = 'Restore Note'
 
     const menu = new Menu()
     if (!location.pathname.match(/\/starred|\/trash/)) {
@@ -448,6 +450,14 @@ class NoteList extends React.Component {
         click: this.pinToTop
       }))
     }
+
+    if (location.pathname.match(/\/trash/)) {
+      menu.append(new MenuItem({
+        label: restoreNote,
+        click: this.restoreNote
+      }))
+    }
+
     menu.append(new MenuItem({
       label: deleteLabel,
       click: this.deleteNote
@@ -459,28 +469,50 @@ class NoteList extends React.Component {
     menu.popup()
   }
 
-  pinToTop () {
+  updateSelectedNotes (updateFunc, cleanSelection = true) {
     const { selectedNoteKeys } = this.state
     const { dispatch } = this.props
     const notes = this.notes.map((note) => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
 
+    if (!_.isFunction(updateFunc)) {
+      console.warn('Update function is not defined. No update will happen')
+      updateFunc = (note) => { return note }
+    }
+
     Promise.all(
-      selectedNotes.map((note) => {
-        note.isPinned = !note.isPinned
-        return dataApi
-          .updateNote(note.storage, note.key, note)
-      })
-    )
-    .then((updatedNotes) => {
-      updatedNotes.forEach((note) => {
-        dispatch({
-          type: 'UPDATE_NOTE',
-          note
+        selectedNotes.map((note) => {
+          note = updateFunc(note)
+          return dataApi
+              .updateNote(note.storage, note.key, note)
         })
-      })
+    )
+        .then((updatedNotes) => {
+          updatedNotes.forEach((note) => {
+            dispatch({
+              type: 'UPDATE_NOTE',
+              note
+            })
+          })
+        })
+
+    if (cleanSelection) {
+      this.selectNextNote()
+    }
+  }
+
+  pinToTop () {
+    this.updateSelectedNotes((note) => {
+      note.isPinned = !note.isPinned
+      return note
     })
-    this.setState({ selectedNoteKeys: [] })
+  }
+
+  restoreNote () {
+    this.updateSelectedNotes((note) => {
+      note.isTrashed = false
+      return note
+    })
   }
 
   deleteNote () {

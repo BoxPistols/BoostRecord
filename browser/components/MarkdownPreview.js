@@ -120,6 +120,7 @@ export default class MarkdownPreview extends React.Component {
     this.contextMenuHandler = (e) => this.handleContextMenu(e)
     this.mouseDownHandler = (e) => this.handleMouseDown(e)
     this.mouseUpHandler = (e) => this.handleMouseUp(e)
+    this.DoubleClickHandler = (e) => this.handleDoubleClick(e)
     this.anchorClickHandler = (e) => this.handlePreviewAnchorClick(e)
     this.checkboxClickHandler = (e) => this.handleCheckboxClick(e)
     this.saveAsTextHandler = () => this.handleSaveAsText()
@@ -152,6 +153,10 @@ export default class MarkdownPreview extends React.Component {
 
   handleContextMenu (e) {
     this.props.onContextMenu(e)
+  }
+
+  handleDoubleClick (e) {
+    if (this.props.onDoubleClick != null) this.props.onDoubleClick(e)
   }
 
   handleMouseDown (e) {
@@ -271,6 +276,7 @@ export default class MarkdownPreview extends React.Component {
 
     this.refs.root.contentWindow.document.addEventListener('mousedown', this.mouseDownHandler)
     this.refs.root.contentWindow.document.addEventListener('mouseup', this.mouseUpHandler)
+    this.refs.root.contentWindow.document.addEventListener('dblclick', this.DoubleClickHandler)
     this.refs.root.contentWindow.document.addEventListener('drop', this.preventImageDroppedHandler)
     this.refs.root.contentWindow.document.addEventListener('dragover', this.preventImageDroppedHandler)
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
@@ -283,6 +289,7 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.body.removeEventListener('contextmenu', this.contextMenuHandler)
     this.refs.root.contentWindow.document.removeEventListener('mousedown', this.mouseDownHandler)
     this.refs.root.contentWindow.document.removeEventListener('mouseup', this.mouseUpHandler)
+    this.refs.root.contentWindow.document.removeEventListener('dblclick', this.DoubleClickHandler)
     this.refs.root.contentWindow.document.removeEventListener('drop', this.preventImageDroppedHandler)
     this.refs.root.contentWindow.document.removeEventListener('dragover', this.preventImageDroppedHandler)
     eventEmitter.off('export:save-text', this.saveAsTextHandler)

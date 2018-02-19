@@ -283,6 +283,7 @@ class UiTab extends React.Component {
                 onChange={(e) => this.handleUIChange(e)}
               >
                 <option value='BLUR'>When Editor Blurred</option>
+                <option value='DBL_CLICK'>When Editor Blurred, Edit On Double Click</option>
                 <option value='RIGHTCLICK'>On Right Click</option>
               </select>
             </div>

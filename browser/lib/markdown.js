@@ -10,7 +10,7 @@ const katex = window.katex
 const config = ConfigManager.get()
 
 function createGutter (str, fc) {
-  if(Number.isNaN(fc)) fc = 1
+  if (Number.isNaN(fc)) fc = 1
   const lc = (str.match(/\n/g) || []).length + fc - 1
   const lines = []
   for (let i = fc; i <= lc; i++) {
@@ -26,22 +26,22 @@ var md = markdownit({
   xhtmlOut: true,
   breaks: true,
   highlight: function (str, lang) {
-    let delimiter = ":";
-    let langinfo = lang.split(delimiter);
-    let lang = langinfo[0];
-    let filename = langinfo[1] || "";
-    let fc = parseInt(langinfo[2],10);
+    const delimiter = ':'
+    const langInfo = lang.split(delimiter)
+    const langType = langInfo[0]
+    const fileName = langInfo[1] || ''
+    const fc = parseInt(langInfo[2], 10)
 
-    if (lang === 'flowchart') {
+    if (langType === 'flowchart') {
       return `<pre class="flowchart">${str}</pre>`
     }
-    if (lang === 'sequence') {
+    if (langType === 'sequence') {
       return `<pre class="sequence">${str}</pre>`
     }
     return '<pre class="code">' +
-      '<span class="filename">' + filename + '</span>' +
+      '<span class="filename">' + fileName + '</span>' +
       createGutter(str, fc) +
-      '<code class="' + lang + '">' +
+      '<code class="' + langType + '">' +
       str +
       '</code></pre>'
   }

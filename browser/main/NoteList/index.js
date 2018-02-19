@@ -66,6 +66,7 @@ class NoteList extends React.Component {
     this.deleteNote = this.deleteNote.bind(this)
     this.focusNote = this.focusNote.bind(this)
     this.pinToTop = this.pinToTop.bind(this)
+    this.getNoteStorage = this.getNoteStorage.bind(this)
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
@@ -691,6 +692,10 @@ class NoteList extends React.Component {
     })
   }
 
+  getNoteStorage (note) { // note.storage = storage key
+    return this.props.data.storageMap.toJS()[note.storage]
+  }
+
   render () {
     const { location, config } = this.props
     let { notes } = this.props
@@ -745,6 +750,7 @@ class NoteList extends React.Component {
           return (
             <NoteItem
               isActive={isActive}
+              isAllNotesView={location.pathname === '/home'}
               note={note}
               dateDisplay={dateDisplay}
               key={uniqueKey}
@@ -752,6 +758,7 @@ class NoteList extends React.Component {
               handleNoteClick={this.handleNoteClick.bind(this)}
               handleDragStart={this.handleDragStart.bind(this)}
               pathname={location.pathname}
+              storage={this.getNoteStorage(note)}
             />
           )
         }
@@ -759,12 +766,14 @@ class NoteList extends React.Component {
         return (
           <NoteItemSimple
             isActive={isActive}
+            isAllNotesView={location.pathname === '/home'}
             note={note}
             key={uniqueKey}
             handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
             handleNoteClick={this.handleNoteClick.bind(this)}
             handleDragStart={this.handleDragStart.bind(this)}
             pathname={location.pathname}
+            storage={this.getNoteStorage(note)}
           />
         )
       })

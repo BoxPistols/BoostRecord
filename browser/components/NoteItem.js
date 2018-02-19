@@ -46,11 +46,21 @@ const TagElementList = (tags) => {
  * @param {Function} handleDragStart
  * @param {string} dateDisplay
  */
-const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteContextMenu, handleDragStart, pathname }) => (
+const NoteItem = ({
+  isActive,
+  isAllNotesView,
+  note,
+  dateDisplay,
+  handleNoteClick,
+  handleNoteContextMenu,
+  handleDragStart,
+  pathname,
+  storage
+}) => (
   <div styleName={isActive
-      ? 'item--active'
-      : 'item'
-    }
+    ? 'item--active'
+    : 'item'
+  }
     key={`${note.storage}-${note.key}`}
     onClick={e => handleNoteClick(e, `${note.storage}-${note.key}`)}
     onContextMenu={e => handleNoteContextMenu(e, `${note.storage}-${note.key}`)}
@@ -68,23 +78,34 @@ const NoteItem = ({ isActive, note, dateDisplay, handleNoteClick, handleNoteCont
           : <span styleName='item-title-empty'>Empty</span>
         }
       </div>
+      {isAllNotesView && <div styleName='item-middle'>
+        <div styleName='item-middle-time'>{dateDisplay}</div>
+        <div styleName='item-middle-app-meta'>
+          <div style={{display: 'inline-block'}}>
+            <span styleName='item-middle-app-meta-label'>
+              {storage.name}
+            </span>
+          </div>
+        </div>
+      </div>}
 
-      <div styleName='item-bottom-time'>{dateDisplay}</div>
-      {note.isStarred
-        ? <img styleName='item-star' src='../resources/icon/icon-starred.svg' /> : ''
-      }
-      {note.isPinned && !pathname.match(/\/starred|\/trash/)
-        ? <i styleName='item-pin' className='fa fa-thumb-tack' /> : ''
-      }
-      {note.type === 'MARKDOWN_NOTE'
-        ? <TodoProcess todoStatus={getTodoStatus(note.content)} />
-        : ''
-      }
       <div styleName='item-bottom'>
         <div styleName='item-bottom-tagList'>
           {note.tags.length > 0
             ? TagElementList(note.tags)
-            : <span styleName='item-bottom-tagList-empty' />
+            : <span style={{ fontStyle: 'italic', opacity: 0.5 }} styleName='item-bottom-tagList-empty'>No tags</span>
+          }
+        </div>
+        <div>
+          {note.isStarred
+            ? <img styleName='item-star' src='../resources/icon/icon-starred.svg' /> : ''
+          }
+          {note.isPinned && !pathname.match(/\/home|\/starred|\/trash/)
+            ? <i styleName='item-pin' className='fa fa-thumb-tack' /> : ''
+          }
+          {note.type === 'MARKDOWN_NOTE'
+            ? <TodoProcess todoStatus={getTodoStatus(note.content)} />
+            : ''
           }
         </div>
       </div>

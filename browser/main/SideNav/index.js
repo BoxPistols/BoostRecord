@@ -163,14 +163,12 @@ class SideNav extends React.Component {
   }
 
   handleFilterButtonContextMenu (event) {
-    const { location, data } = this.props
-    if (location.pathname === '/trashed') {
-      const entries = data.trashedSet.toJS()
-      const menu = Menu.buildFromTemplate([
-        { label: 'Empty Trash', click: () => this.emptyTrash(entries) }
-      ])
-      menu.popup()
-    }
+    const { data } = this.props
+    const entries = data.trashedSet.toJS()
+    const menu = Menu.buildFromTemplate([
+      { label: 'Empty Trash', click: () => this.emptyTrash(entries) }
+    ])
+    menu.popup()
   }
 
   render () {

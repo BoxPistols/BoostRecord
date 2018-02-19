@@ -109,14 +109,27 @@ class NoteList extends React.Component {
 
   componentDidUpdate (prevProps) {
     const { location } = this.props
+    const { selectedNoteKeys } = this.state
+    const visibleNoteKeys = this.notes.map(note => `${note.storage}-${note.key}`)
+    const note = this.notes[0]
+    const prevKey = prevProps.location.query.key
+    const noteKey = visibleNoteKeys.includes(prevKey) ? prevKey : note && `${note.storage}-${note.key}`
 
-    if (this.notes.length > 0 && location.query.key == null) {
+    if (note && location.query.key == null) {
       const { router } = this.context
       if (!location.pathname.match(/\/searched/)) this.contextNotes = this.getContextNotes()
+
+      // A visible note is an active note
+      if (!selectedNoteKeys.includes(noteKey)) {
+        if (selectedNoteKeys.length === 1) selectedNoteKeys.pop()
+        selectedNoteKeys.push(noteKey)
+        ee.emit('list:moved')
+      }
+
       router.replace({
         pathname: location.pathname,
         query: {
-          key: this.notes[0].storage + '-' + this.notes[0].key
+          key: noteKey
         }
       })
       return

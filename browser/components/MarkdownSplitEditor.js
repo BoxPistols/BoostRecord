@@ -39,25 +39,28 @@ class MarkdownSplitEditor extends React.Component {
         targetHeight = _.get(codeDoc, 'height')
       }
 
-      const factor = srcTop / srcHeight
-      const previewTarget = targetHeight * factor
-      const distance = previewTarget - targetTop
+      const distance = (targetHeight * srcTop / srcHeight) - targetTop
+      const framerate = 1000 / 60
+      const frames = 20
+      const refractory = frames * framerate
 
       this.userScroll = false
-      const s = 20
-      let i = s
-      let f, t
+
+      let frame = 0
+      let scrollPos, time
       const timer = setInterval(() => {
-        t = (s - i) / s
-        f = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t
-        if (e.doc) _.set(previewDoc, 'body.scrollTop', targetTop + f * distance)
-        else _.get(this, 'refs.code.editor').scrollTo(0, targetTop + f * distance)
-        if (!i) {
+        time = frame / frames
+        scrollPos = time < 0.5
+                  ? 2 * time * time // ease in
+                  : -1 + (4 - 2 * time) * time // ease out
+        if (e.doc) _.set(previewDoc, 'body.scrollTop', targetTop + scrollPos * distance)
+        else _.get(this, 'refs.code.editor').scrollTo(0, targetTop + scrollPos * distance)
+        if (frame >= frames) {
           clearInterval(timer)
-          setTimeout(() => { this.userScroll = true }, 400)
+          setTimeout(() => { this.userScroll = true }, refractory)
         }
-        i -= 1
-      }, 1000 / 60)
+        frame++
+      }, framerate)
     }
   }
 

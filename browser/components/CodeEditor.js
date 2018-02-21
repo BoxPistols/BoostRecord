@@ -47,6 +47,7 @@ export default class CodeEditor extends React.Component {
     this.loadStyleHandler = (e) => {
       this.editor.refresh()
     }
+    this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {leading: false, trailing: true})
   }
 
   componentDidMount () {
@@ -107,6 +108,7 @@ export default class CodeEditor extends React.Component {
     this.editor.on('blur', this.blurHandler)
     this.editor.on('change', this.changeHandler)
     this.editor.on('paste', this.pasteHandler)
+    this.editor.on('scroll', this.scrollHandler)
 
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.addEventListener('load', this.loadStyleHandler)
@@ -126,6 +128,7 @@ export default class CodeEditor extends React.Component {
     this.editor.off('blur', this.blurHandler)
     this.editor.off('change', this.changeHandler)
     this.editor.off('paste', this.pasteHandler)
+    this.editor.off('scroll', this.scrollHandler)
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
   }
@@ -259,6 +262,12 @@ export default class CodeEditor extends React.Component {
       }
     } else if (this.props.fetchUrlTitle && isURL(pastedTxt)) {
       this.handlePasteUrl(e, editor, pastedTxt)
+    }
+  }
+
+  handleScroll (e) {
+    if (this.props.onScroll) {
+      this.props.onScroll(e)
     }
   }
 

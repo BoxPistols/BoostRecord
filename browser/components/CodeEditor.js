@@ -269,6 +269,7 @@ export default class CodeEditor extends React.Component {
     if (this.props.onScroll) {
       this.props.onScroll(e)
     }
+  }
 
   handlePasteUrl (e, editor, pastedTxt) {
     e.preventDefault()

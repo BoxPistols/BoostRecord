@@ -568,6 +568,7 @@ class SnippetNoteDetail extends React.Component {
             displayLineNumbers={config.editor.displayLineNumbers}
             keyMap={config.editor.keyMap}
             scrollPastEnd={config.editor.scrollPastEnd}
+            fetchUrlTitle={config.editor.fetchUrlTitle}
             onChange={(e) => this.handleCodeChange(index)(e)}
             ref={'code-' + index}
           />

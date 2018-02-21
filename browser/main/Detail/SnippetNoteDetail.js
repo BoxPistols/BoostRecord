@@ -8,7 +8,7 @@ import StarButton from './StarButton'
 import TagSelect from './TagSelect'
 import FolderSelect from './FolderSelect'
 import dataApi from 'browser/main/lib/dataApi'
-import { hashHistory } from 'react-router'
+import {hashHistory} from 'react-router'
 import ee from 'browser/main/lib/eventEmitter'
 import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
@@ -17,14 +17,14 @@ import StatusBar from '../StatusBar'
 import context from 'browser/lib/context'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import _ from 'lodash'
-import { findNoteTitle } from 'browser/lib/findNoteTitle'
+import {findNoteTitle} from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import TrashButton from './TrashButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
-import { formatDate } from 'browser/lib/date-formatter'
+import {formatDate} from 'browser/lib/date-formatter'
 
 function pass (name) {
   switch (name) {
@@ -52,10 +52,26 @@ class SnippetNoteDetail extends React.Component {
     this.state = {
       isMovingNote: false,
       snippetIndex: 0,
+      showArrows: false,
+      enableLeftArrow: false,
+      enableRightArrow: false,
       note: Object.assign({
         description: ''
       }, props.note, {
         snippets: props.note.snippets.map((snippet) => Object.assign({}, snippet))
+      })
+    }
+  }
+
+  componentDidMount () {
+    const visibleTabs = this.visibleTabs
+    const allTabs = this.allTabs
+
+    if (visibleTabs.offsetWidth < allTabs.offsetWidth) {
+      this.setState({
+        showArrows: visibleTabs.offsetWidth < allTabs.offsetWidth,
+        enableRightArrow: allTabs.offsetLeft !== visibleTabs.offsetWidth - allTabs.offsetWidth,
+        enableLeftArrow: allTabs.offsetLeft !== 0
       })
     }
   }
@@ -225,6 +241,47 @@ class SnippetNoteDetail extends React.Component {
 
   handleFullScreenButton (e) {
     ee.emit('editor:fullscreen')
+  }
+
+  handleTabMoveLeftButtonClick (e) {
+    {
+      const left = Math.abs(this.allTabs.offsetLeft)
+
+      const tabs = this.allTabs.querySelectorAll('div')
+      const lastVisibleTab = Array.from(tabs).find((tab) => {
+        return tab.offsetLeft + tab.offsetWidth >= left
+      })
+
+      const visiblePart = lastVisibleTab.offsetWidth - left + lastVisibleTab.offsetLeft
+      const showTab = (visiblePart > lastVisibleTab.offsetWidth * 0.75) ? lastVisibleTab.previousSibling : lastVisibleTab
+
+      let newLeft = showTab.offsetLeft
+      if (showTab.previousSibling) {
+        newLeft -= showTab.previousSibling.offsetWidth * 0.6
+      }
+
+      this.moveTabBarBy(-newLeft)
+    }
+  }
+
+  handleTabMoveRightButtonClick (e) {
+    const left = this.allTabs.offsetLeft
+    const width = this.visibleTabs.offsetWidth
+
+    const tabs = this.allTabs.querySelectorAll('div')
+    const lastVisibleTab = Array.from(tabs).find((tab) => {
+      return tab.offsetLeft + tab.offsetWidth >= width - left
+    })
+
+    if (lastVisibleTab) {
+      let newLeft = lastVisibleTab.offsetLeft + lastVisibleTab.offsetWidth - width
+
+      if (width - left - lastVisibleTab.offsetLeft > lastVisibleTab.offsetWidth * 0.75) {
+        newLeft += lastVisibleTab.nextSibling.offsetWidth
+      }
+
+      this.moveTabBarBy(-newLeft)
+    }
   }
 
   handleTabPlusButtonClick (e) {
@@ -456,6 +513,17 @@ class SnippetNoteDetail extends React.Component {
     this.refs.description.focus()
   }
 
+  moveTabBarBy (x) {
+    this.allTabs.addEventListener('transitionend', () => {
+      this.setState({
+        enableRightArrow: this.allTabs.offsetLeft !== this.visibleTabs.offsetWidth - this.allTabs.offsetWidth,
+        enableLeftArrow: this.allTabs.offsetLeft !== 0
+      })
+    }, {once: true})
+
+    this.allTabs.style.left = `${x}px`
+  }
+
   addSnippet () {
     const { note } = this.state
 
@@ -470,6 +538,8 @@ class SnippetNoteDetail extends React.Component {
       note,
       snippetIndex
     }, () => {
+      const newLeft = this.visibleTabs.offsetWidth - this.allTabs.offsetWidth
+      this.moveTabBarBy(newLeft)
       this.refs['tab-' + snippetIndex].startRenaming()
     })
   }
@@ -680,10 +750,26 @@ class SnippetNoteDetail extends React.Component {
             />
           </div>
           <div styleName='tabList'>
-            <div styleName='list'>
-              {tabList}
+            <button styleName='tabButton'
+              hidden={!this.state.showArrows}
+              disabled={!this.state.enableLeftArrow}
+              onClick={(e) => this.handleTabMoveLeftButtonClick(e)}
+            >
+              <i className='fa fa-chevron-left' />
+            </button>
+            <div styleName='list' ref={(tabs) => { this.visibleTabs = tabs }}>
+              <div styleName='allTabs' ref={(tabs) => { this.allTabs = tabs }}>
+                {tabList}
+              </div>
             </div>
-            <button styleName='plusButton'
+            <button styleName='tabButton'
+              hidden={!this.state.showArrows}
+              disabled={!this.state.enableRightArrow}
+              onClick={(e) => this.handleTabMoveRightButtonClick(e)}
+            >
+              <i className='fa fa-chevron-right' />
+            </button>
+            <button styleName='tabButton'
               onClick={(e) => this.handleTabPlusButtonClick(e)}
             >
               <i className='fa fa-plus' />

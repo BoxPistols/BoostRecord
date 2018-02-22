@@ -30,7 +30,7 @@ var md = markdownit({
     const langInfo = lang.split(delimiter)
     const langType = langInfo[0]
     const fileName = langInfo[1] || ''
-    const fc = parseInt(langInfo[2], 10)
+    const firstLineNumber = parseInt(langInfo[2], 10)
 
     if (langType === 'flowchart') {
       return `<pre class="flowchart">${str}</pre>`
@@ -40,7 +40,7 @@ var md = markdownit({
     }
     return '<pre class="code">' +
       '<span class="filename">' + fileName + '</span>' +
-      createGutter(str, fc) +
+      createGutter(str, firstLineNumber) +
       '<code class="' + langType + '">' +
       str +
       '</code></pre>'

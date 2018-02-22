@@ -68,11 +68,8 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   componentWillUnmount () {
-    if (this.saveQueue != null) this.saveNow()
-  }
-
-  componentDidUnmount () {
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
+    if (this.saveQueue != null) this.saveNow()
   }
 
   handleUpdateTag () {

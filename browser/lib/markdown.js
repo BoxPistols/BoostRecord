@@ -9,11 +9,11 @@ import {lastFindInArray} from './utils'
 const katex = window.katex
 const config = ConfigManager.get()
 
-function createGutter (str, fc) {
-  if (Number.isNaN(fc)) fc = 1
-  const lc = (str.match(/\n/g) || []).length + fc - 1
+function createGutter (str, firstLineNumber) {
+  if (Number.isNaN(firstLineNumber)) firstLineNumber = 1
+  const lastLineNumber = (str.match(/\n/g) || []).length + firstLineNumber - 1
   const lines = []
-  for (let i = fc; i <= lc; i++) {
+  for (let i = firstLineNumber; i <= lastLineNumber; i++) {
     lines.push('<span class="CodeMirror-linenumber">' + i + '</span>')
   }
   return '<span class="lineNumber CodeMirror-gutters">' + lines.join('') + '</span>'

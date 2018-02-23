@@ -7,7 +7,7 @@ const RestoreButton = ({
   onClick
 }) => (
   <button styleName='control-restoreButton'
-    onClick={(e) => onClick(e)}
+    onClick={onClick}
   >
     <i className='fa fa-undo fa-fw' styleName='iconRestore' />
     <span styleName='tooltip'>Restore</span>

@@ -40,7 +40,12 @@
 .tabList .list
   flex 1
   overflow hidden
+  overflow-x scroll
   position relative
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 
   .allTabs
     display flex

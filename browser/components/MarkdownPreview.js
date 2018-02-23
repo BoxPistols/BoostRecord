@@ -121,6 +121,7 @@ export default class MarkdownPreview extends React.Component {
     this.mouseDownHandler = (e) => this.handleMouseDown(e)
     this.mouseUpHandler = (e) => this.handleMouseUp(e)
     this.DoubleClickHandler = (e) => this.handleDoubleClick(e)
+    this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {leading: false, trailing: true})
     this.anchorClickHandler = (e) => this.handlePreviewAnchorClick(e)
     this.checkboxClickHandler = (e) => this.handleCheckboxClick(e)
     this.saveAsTextHandler = () => this.handleSaveAsText()
@@ -149,6 +150,12 @@ export default class MarkdownPreview extends React.Component {
 
   handleCheckboxClick (e) {
     this.props.onCheckboxClick(e)
+  }
+
+  handleScroll (e) {
+    if (this.props.onScroll) {
+      this.props.onScroll(e)
+    }
   }
 
   handleContextMenu (e) {
@@ -279,6 +286,7 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.addEventListener('dblclick', this.DoubleClickHandler)
     this.refs.root.contentWindow.document.addEventListener('drop', this.preventImageDroppedHandler)
     this.refs.root.contentWindow.document.addEventListener('dragover', this.preventImageDroppedHandler)
+    this.refs.root.contentWindow.document.addEventListener('scroll', this.scrollHandler)
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
@@ -292,6 +300,7 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.removeEventListener('dblclick', this.DoubleClickHandler)
     this.refs.root.contentWindow.document.removeEventListener('drop', this.preventImageDroppedHandler)
     this.refs.root.contentWindow.document.removeEventListener('dragover', this.preventImageDroppedHandler)
+    this.refs.root.contentWindow.document.removeEventListener('scroll', this.scrollHandler)
     eventEmitter.off('export:save-text', this.saveAsTextHandler)
     eventEmitter.off('export:save-md', this.saveAsMdHandler)
     eventEmitter.off('export:save-html', this.saveAsHtmlHandler)

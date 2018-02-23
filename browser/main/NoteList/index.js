@@ -687,9 +687,10 @@ class NoteList extends React.Component {
     } else {
       token = `Bearer ${token}`
     }
+    let contentToRender = firstNote.content.replace(`# ${firstNote.title}`, '')
     var data = {
       title: firstNote.title,
-      content: markdown.render(firstNote.content),
+      content: markdown.render(contentToRender),
       status: 'publish'
     }
 

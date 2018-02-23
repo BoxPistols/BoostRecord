@@ -8,7 +8,7 @@ import StarButton from './StarButton'
 import TagSelect from './TagSelect'
 import FolderSelect from './FolderSelect'
 import dataApi from 'browser/main/lib/dataApi'
-import { hashHistory } from 'react-router'
+import {hashHistory} from 'react-router'
 import ee from 'browser/main/lib/eventEmitter'
 import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
@@ -17,14 +17,14 @@ import StatusBar from '../StatusBar'
 import context from 'browser/lib/context'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import _ from 'lodash'
-import { findNoteTitle } from 'browser/lib/findNoteTitle'
+import {findNoteTitle} from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import TrashButton from './TrashButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
-import { formatDate } from 'browser/lib/date-formatter'
+import {formatDate} from 'browser/lib/date-formatter'
 
 function pass (name) {
   switch (name) {
@@ -93,6 +93,7 @@ class SnippetNoteDetail extends React.Component {
           this.refs['code-' + index].reload()
         })
         if (this.refs.tags) this.refs.tags.reset()
+        this.setState(this.getArrowsState())
       })
     }
   }
@@ -340,7 +341,7 @@ class SnippetNoteDetail extends React.Component {
     const snippetIndex = this.state.snippetIndex >= snippets.length
       ? snippets.length - 1
       : this.state.snippetIndex
-    this.setState({ note, snippetIndex }, () => {
+    this.setState(Object.assign({ note, snippetIndex }, this.getArrowsState()), () => {
       this.save()
       this.refs['code-' + this.state.snippetIndex].reload()
     })
@@ -515,13 +516,20 @@ class SnippetNoteDetail extends React.Component {
 
   moveTabBarBy (x) {
     this.allTabs.addEventListener('transitionend', () => {
-      this.setState({
-        enableRightArrow: this.allTabs.offsetLeft !== this.visibleTabs.offsetWidth - this.allTabs.offsetWidth,
-        enableLeftArrow: this.allTabs.offsetLeft !== 0
-      })
+      this.setState(this.getArrowsState())
     }, {once: true})
 
     this.allTabs.style.left = `${x}px`
+  }
+
+  getArrowsState () {
+    const allTabs = this.allTabs
+    const visibleTabs = this.visibleTabs
+    const showArrows = visibleTabs.offsetWidth < allTabs.offsetWidth
+    const enableRightArrow = allTabs.offsetLeft !== visibleTabs.offsetWidth - allTabs.offsetWidth
+    const enableLeftArrow = allTabs.offsetLeft !== 0
+
+    return {showArrows, enableRightArrow, enableLeftArrow}
   }
 
   addSnippet () {
@@ -534,12 +542,14 @@ class SnippetNoteDetail extends React.Component {
     }])
     const snippetIndex = note.snippets.length - 1
 
-    this.setState({
+    this.setState(Object.assign({
       note,
       snippetIndex
-    }, () => {
-      const newLeft = this.visibleTabs.offsetWidth - this.allTabs.offsetWidth
-      this.moveTabBarBy(newLeft)
+    }, this.getArrowsState()), () => {
+      if (this.state.showArrows) {
+        const newLeft = this.visibleTabs.offsetWidth - this.allTabs.offsetWidth
+        this.moveTabBarBy(newLeft)
+      }
       this.refs['tab-' + snippetIndex].startRenaming()
     })
   }

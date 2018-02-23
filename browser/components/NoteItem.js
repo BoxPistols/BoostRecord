@@ -48,14 +48,15 @@ const TagElementList = (tags) => {
  */
 const NoteItem = ({
   isActive,
-  isAllNotesView,
   note,
   dateDisplay,
   handleNoteClick,
   handleNoteContextMenu,
   handleDragStart,
   pathname,
-  storage
+  storageName,
+  folderName,
+  viewType
 }) => (
   <div styleName={isActive
     ? 'item--active'
@@ -78,12 +79,13 @@ const NoteItem = ({
           : <span styleName='item-title-empty'>Empty</span>
         }
       </div>
-      {isAllNotesView && <div styleName='item-middle'>
+      {['ALL', 'STORAGE'].includes(viewType) && <div styleName='item-middle'>
         <div styleName='item-middle-time'>{dateDisplay}</div>
         <div styleName='item-middle-app-meta'>
           <div style={{display: 'inline-block'}}>
             <span styleName='item-middle-app-meta-label'>
-              {storage.name}
+              {viewType === 'ALL' && storageName}
+              {viewType === 'STORAGE' && folderName}
             </span>
           </div>
         </div>

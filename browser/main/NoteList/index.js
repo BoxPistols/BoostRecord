@@ -67,6 +67,8 @@ class NoteList extends React.Component {
     this.focusNote = this.focusNote.bind(this)
     this.pinToTop = this.pinToTop.bind(this)
     this.getNoteStorage = this.getNoteStorage.bind(this)
+    this.getNoteFolder = this.getNoteFolder.bind(this)
+    this.getViewType = this.getViewType.bind(this)
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
@@ -696,6 +698,20 @@ class NoteList extends React.Component {
     return this.props.data.storageMap.toJS()[note.storage]
   }
 
+  getNoteFolder (note) { // note.folder = folder key
+    return _.find(this.getNoteStorage(note).folders, ({ key }) => key === note.folder)
+  }
+
+  getViewType () {
+    const { pathname } = this.props.location
+    const folder = /\/folders\/[a-zA-Z0-9]+/.test(pathname)
+    const storage = /\/storages\/[a-zA-Z0-9]+/.test(pathname) && !folder
+    const allNotes = pathname === '/home'
+    if (allNotes) return 'ALL'
+    if (folder) return 'FOLDER'
+    if (storage) return 'STORAGE'
+  }
+
   render () {
     const { location, config } = this.props
     let { notes } = this.props
@@ -750,7 +766,6 @@ class NoteList extends React.Component {
           return (
             <NoteItem
               isActive={isActive}
-              isAllNotesView={location.pathname === '/home'}
               note={note}
               dateDisplay={dateDisplay}
               key={uniqueKey}
@@ -758,7 +773,9 @@ class NoteList extends React.Component {
               handleNoteClick={this.handleNoteClick.bind(this)}
               handleDragStart={this.handleDragStart.bind(this)}
               pathname={location.pathname}
-              storage={this.getNoteStorage(note)}
+              folderName={this.getNoteFolder(note).name}
+              storageName={this.getNoteStorage(note).name}
+              viewType={this.getViewType()}
             />
           )
         }
@@ -766,14 +783,15 @@ class NoteList extends React.Component {
         return (
           <NoteItemSimple
             isActive={isActive}
-            isAllNotesView={location.pathname === '/home'}
             note={note}
             key={uniqueKey}
             handleNoteContextMenu={this.handleNoteContextMenu.bind(this)}
             handleNoteClick={this.handleNoteClick.bind(this)}
             handleDragStart={this.handleDragStart.bind(this)}
             pathname={location.pathname}
-            storage={this.getNoteStorage(note)}
+            folderName={this.getNoteFolder(note).name}
+            storageName={this.getNoteStorage(note).name}
+            viewType={this.getViewType()}
           />
         )
       })

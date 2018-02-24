@@ -100,14 +100,15 @@ $control-height = 30px
   display inline-block
 
 .item-middle-app-meta
-  display inline-block
   float right
-  opacity 0.8
-
-.item-middle-app-meta-label
-  color $ui-inactive-text-color
-  opacity 0.6
-  padding 0 3px
+  .item-middle-app-meta-label
+    opacity 0.4
+    color $ui-inactive-text-color
+    padding 0 3px
+    white-space nowrap
+    text-overflow ellipsis
+    overflow hidden
+    max-width 200px
 
 .item-bottom
   position relative

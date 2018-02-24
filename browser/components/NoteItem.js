@@ -82,11 +82,9 @@ const NoteItem = ({
       {['ALL', 'STORAGE'].includes(viewType) && <div styleName='item-middle'>
         <div styleName='item-middle-time'>{dateDisplay}</div>
         <div styleName='item-middle-app-meta'>
-          <div style={{display: 'inline-block'}}>
-            <span styleName='item-middle-app-meta-label'>
-              {viewType === 'ALL' && storageName}
-              {viewType === 'STORAGE' && folderName}
-            </span>
+          <div title={viewType === 'ALL' ? storageName : viewType === 'STORAGE' ? folderName : null} styleName='item-middle-app-meta-label'>
+            {viewType === 'ALL' && storageName}
+            {viewType === 'STORAGE' && folderName}
           </div>
         </div>
       </div>}

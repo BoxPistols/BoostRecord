@@ -780,6 +780,8 @@ class NoteList extends React.Component {
       }
     })
 
+    const viewType = this.getViewType()
+
     const noteList = notes
       .map(note => {
         if (note == null) {
@@ -807,7 +809,7 @@ class NoteList extends React.Component {
               pathname={location.pathname}
               folderName={this.getNoteFolder(note).name}
               storageName={this.getNoteStorage(note).name}
-              viewType={this.getViewType()}
+              viewType={viewType}
             />
           )
         }
@@ -823,7 +825,7 @@ class NoteList extends React.Component {
             pathname={location.pathname}
             folderName={this.getNoteFolder(note).name}
             storageName={this.getNoteStorage(note).name}
-            viewType={this.getViewType()}
+            viewType={viewType}
           />
         )
       })

@@ -19,6 +19,7 @@ import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
 import FullscreenButton from './FullscreenButton'
+import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import ToggleModeButton from './ToggleModeButton'
@@ -321,10 +322,7 @@ class MarkdownNoteDetail extends React.Component {
 
     const trashTopBar = <div styleName='info'>
       <div styleName='info-left'>
-        <i styleName='undo-button'
-          className='fa fa-undo fa-fw'
-          onClick={(e) => this.handleUndoButtonClick(e)}
-        />
+        <RestoreButton onClick={(e) => this.handleUndoButtonClick(e)} />
       </div>
       <div styleName='info-right'>
         <PermanentDeleteButton onClick={(e) => this.handleTrashButtonClick(e)} />
@@ -359,12 +357,10 @@ class MarkdownNoteDetail extends React.Component {
           value={this.state.note.tags}
           onChange={this.handleUpdateTag.bind(this)}
         />
-
-        <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
-
         <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
+        <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
         <StarButton
           onClick={(e) => this.handleStarButtonClick(e)}
           isActive={note.isStarred}

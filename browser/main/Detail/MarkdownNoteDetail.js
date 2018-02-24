@@ -357,12 +357,10 @@ class MarkdownNoteDetail extends React.Component {
           value={this.state.note.tags}
           onChange={this.handleUpdateTag.bind(this)}
         />
-
-        <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
-
         <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
+        <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
         <StarButton
           onClick={(e) => this.handleStarButtonClick(e)}
           isActive={note.isStarred}

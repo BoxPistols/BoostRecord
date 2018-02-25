@@ -681,13 +681,14 @@ class NoteList extends React.Component {
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const firstNote = selectedNotes[0]
     const config = ConfigManager.get()
-    let {address, token, authMethod, username, password} = config.blog
+    const {address, token, authMethod, username, password} = config.blog
+    let authToken = ''
     if (authMethod === 'USER') {
-      token = `Basic ${window.btoa(`${username}:${password}`)}`
+      authToken = `Basic ${window.btoa(`${username}:${password}`)}`
     } else {
-      token = `Bearer ${token}`
+      authToken = `Bearer ${token}`
     }
-    let contentToRender = firstNote.content.replace(`# ${firstNote.title}`, '')
+    const contentToRender = firstNote.content.replace(`# ${firstNote.title}`, '')
     var data = {
       title: firstNote.title,
       content: markdown.render(contentToRender),
@@ -708,7 +709,7 @@ class NoteList extends React.Component {
       method: method,
       body: JSON.stringify(data),
       headers: {
-        'Authorization': token,
+        'Authorization': authToken,
         'Content-Type': 'application/json'
       }
     }).then(res => res.json())

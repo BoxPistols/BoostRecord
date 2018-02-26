@@ -715,7 +715,7 @@ class NoteList extends React.Component {
     }).then(res => res.json())
       .then(response => {
         if (_.isNil(response.link) || _.isNil(response.id)) {
-          return Promise.reject();
+          return Promise.reject()
         }
         firstNote.blog = {
           blogLink: response.link,

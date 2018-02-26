@@ -489,7 +489,7 @@ class NoteList extends React.Component {
       click: this.cloneNote.bind(this)
     }))
     if (note.type === 'MARKDOWN_NOTE') {
-      if (note.blog) {
+      if (note.blog && note.blog.blogLink && note.blog.blogId) {
         menu.append(new MenuItem({
           label: updateLabel,
           click: this.publishMarkdown.bind(this)
@@ -697,7 +697,7 @@ class NoteList extends React.Component {
 
     let url = ''
     let method = ''
-    if (firstNote.blog) {
+    if (firstNote.blog && firstNote.blog.blogId) {
       url = `${address}${WP_POST_PATH}/${firstNote.blog.blogId}`
       method = 'PUT'
     } else {
@@ -714,6 +714,9 @@ class NoteList extends React.Component {
       }
     }).then(res => res.json())
       .then(response => {
+        if (_.isNil(response.link) || _.isNil(response.id)) {
+          return Promise.reject();
+        }
         firstNote.blog = {
           blogLink: response.link,
           blogId: response.id
@@ -721,7 +724,8 @@ class NoteList extends React.Component {
         this.save(firstNote)
         this.confirmPublish(firstNote)
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error(error)
         this.confirmPublishError()
       })
   }
@@ -753,7 +757,6 @@ class NoteList extends React.Component {
 
   openBlog (note) {
     const { shell } = electron
-    console.log(note)
     shell.openExternal(note.blog.blogLink)
   }
 

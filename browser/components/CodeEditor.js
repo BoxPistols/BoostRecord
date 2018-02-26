@@ -32,6 +32,7 @@ export default class CodeEditor extends React.Component {
   constructor (props) {
     super(props)
 
+    this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {leading: false, trailing: true})
     this.changeHandler = (e) => this.handleChange(e)
     this.blurHandler = (editor, e) => {
       if (e == null) return null
@@ -81,7 +82,6 @@ export default class CodeEditor extends React.Component {
         }
       }
     })
-    this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {leading: false, trailing: true})
   }
 
   componentDidMount () {

@@ -59,6 +59,18 @@ class TopBar extends React.Component {
       return this.handleSearchClearButton(e)
     }
 
+    // Next note on DOWN key
+    if (e.keyCode === 40) {
+      ee.emit('list:next')
+      e.preventDefault()
+    }
+
+    // Prev note on UP key
+    if (e.keyCode === 38) {
+      ee.emit('list:prior')
+      e.preventDefault()
+    }
+
     // When the key is an alphabet, del, enter or ctr
     if (e.keyCode <= 90 || e.keyCode >= 186 && e.keyCode <= 222) {
       this.setState({

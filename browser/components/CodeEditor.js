@@ -8,6 +8,7 @@ import copyImage from 'browser/main/lib/dataApi/copyImage'
 import { findStorage } from 'browser/lib/findStorage'
 import fs from 'fs'
 import eventEmitter from 'browser/main/lib/eventEmitter'
+import iconv from 'iconv-lite'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -317,7 +318,7 @@ export default class CodeEditor extends React.Component {
     fetch(pastedTxt, {
       method: 'get'
     }).then((response) => {
-      return (response.text())
+      return this.decodeResponse(response)
     }).then((response) => {
       const parsedResponse = (new window.DOMParser()).parseFromString(response, 'text/html')
       const value = editor.getValue()
@@ -333,6 +334,31 @@ export default class CodeEditor extends React.Component {
       editor.setValue(newValue)
       editor.setCursor(cursor)
     })
+  }
+
+  decodeResponse (response) {
+    const headers = response.headers
+    const _charset = headers.has('content-type')
+      ? this.extractContentTypeCharset(headers.get('content-type'))
+      : undefined
+    return response.arrayBuffer().then((buff) => {
+      return new Promise((resolve, reject) => {
+        try {
+          const charset = _charset !== undefined && iconv.encodingExists(_charset) ? _charset : 'utf-8'
+          resolve(iconv.decode(new Buffer(buff), charset).toString())
+        } catch (e) {
+          reject(e)
+        }
+      })
+    })
+  }
+
+  extractContentTypeCharset (contentType) {
+    return contentType.split(';').filter((str) => {
+      return str.trim().toLowerCase().startsWith('charset')
+    }).map((str) => {
+      return str.replace(/['"]/g, '').split('=')[1]
+    })[0]
   }
 
   render () {

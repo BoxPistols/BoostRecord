@@ -48,7 +48,8 @@ export const DEFAULT_CONFIG = {
     latexInlineClose: '$',
     latexBlockOpen: '$$',
     latexBlockClose: '$$',
-    scrollPastEnd: false
+    scrollPastEnd: false,
+    smartQuotes: true
   }
 }
 

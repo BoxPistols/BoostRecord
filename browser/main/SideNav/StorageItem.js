@@ -9,6 +9,7 @@ import RenameFolderModal from 'browser/main/modals/RenameFolderModal'
 import dataApi from 'browser/main/lib/dataApi'
 import StorageItemChild from 'browser/components/StorageItem'
 import _ from 'lodash'
+import { SortableElement } from 'react-sortable-hoc'
 
 const { remote } = require('electron')
 const { Menu, dialog } = remote
@@ -236,7 +237,8 @@ class StorageItem extends React.Component {
   render () {
     const { storage, location, isFolded, data, dispatch } = this.props
     const { folderNoteMap, trashedSet } = data
-    const folderList = storage.folders.map((folder) => {
+    const SortableStorageItemChild = SortableElement(StorageItemChild)
+    const folderList = storage.folders.map((folder, index) => {
       const isActive = !!(location.pathname.match(new RegExp('\/storages\/' + storage.key + '\/folders\/' + folder.key)))
       const noteSet = folderNoteMap.get(storage.key + '-' + folder.key)
 
@@ -250,8 +252,9 @@ class StorageItem extends React.Component {
         noteCount = noteSet.size - trashedNoteCount
       }
       return (
-        <StorageItemChild
+        <SortableStorageItemChild
           key={folder.key}
+          index={index}
           isActive={isActive}
           handleButtonClick={(e) => this.handleFolderButtonClick(folder.key)(e)}
           handleContextMenu={(e) => this.handleFolderButtonContextMenu(e, folder)}
@@ -273,9 +276,9 @@ class StorageItem extends React.Component {
         key={storage.key}
       >
         <div styleName={isActive
-            ? 'header--active'
-            : 'header'
-          }
+          ? 'header--active'
+          : 'header'
+        }
           onContextMenu={(e) => this.handleHeaderContextMenu(e)}
         >
           <button styleName='header-toggleButton'
@@ -284,7 +287,7 @@ class StorageItem extends React.Component {
             <img src={this.state.isOpen
               ? '../resources/icon/icon-down.svg'
               : '../resources/icon/icon-right.svg'
-              }
+            }
             />
           </button>
 

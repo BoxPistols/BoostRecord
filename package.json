@@ -84,6 +84,7 @@
     "react-sortable-hoc": "^0.6.7",
     "redux": "^3.5.2",
     "sander": "^0.5.1",
+    "sanitize-html": "^1.18.2",
     "striptags": "^2.2.1",
     "superagent": "^1.2.0",
     "superagent-promise": "^1.0.3"

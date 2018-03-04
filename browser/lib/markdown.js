@@ -1,4 +1,5 @@
 import markdownit from 'markdown-it'
+import sanitize from './markdown-it-sanitize-html'
 import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
 import _ from 'lodash'
@@ -45,6 +46,16 @@ var md = markdownit({
       str +
       '</code></pre>'
   }
+})
+// Sanitize use rinput before other plugins
+md.use(sanitize, {
+  allowedTags: ['img', 'iframe'],
+  allowedAttributes: {
+    '*': ['alt', 'style'],
+    'img': ['src', 'height', 'width'],
+    'iframe': ['src']
+  },
+  allowedIframeHostnames: ['www.youtube.com']
 })
 md.use(emoji, {
   shortcuts: {}

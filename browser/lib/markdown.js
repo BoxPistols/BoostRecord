@@ -52,8 +52,8 @@ md.use(sanitize, {
   allowedTags: ['img', 'iframe'],
   allowedAttributes: {
     '*': ['alt', 'style'],
-    'img': ['src', 'height', 'width'],
-    'iframe': ['src']
+    'img': ['src', 'width', 'height'],
+    'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen']
   },
   allowedIframeHostnames: ['www.youtube.com']
 })

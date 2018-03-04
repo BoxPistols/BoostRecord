@@ -66,6 +66,10 @@ class NoteList extends React.Component {
     this.deleteNote = this.deleteNote.bind(this)
     this.focusNote = this.focusNote.bind(this)
     this.pinToTop = this.pinToTop.bind(this)
+    this.getNoteStorage = this.getNoteStorage.bind(this)
+    this.getNoteFolder = this.getNoteFolder.bind(this)
+    this.getViewType = this.getViewType.bind(this)
+    this.restoreNote = this.restoreNote.bind(this)
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
@@ -109,14 +113,27 @@ class NoteList extends React.Component {
 
   componentDidUpdate (prevProps) {
     const { location } = this.props
+    const { selectedNoteKeys } = this.state
+    const visibleNoteKeys = this.notes.map(note => `${note.storage}-${note.key}`)
+    const note = this.notes[0]
+    const prevKey = prevProps.location.query.key
+    const noteKey = visibleNoteKeys.includes(prevKey) ? prevKey : note && `${note.storage}-${note.key}`
 
-    if (this.notes.length > 0 && location.query.key == null) {
+    if (note && location.query.key == null) {
       const { router } = this.context
       if (!location.pathname.match(/\/searched/)) this.contextNotes = this.getContextNotes()
+
+      // A visible note is an active note
+      if (!selectedNoteKeys.includes(noteKey)) {
+        if (selectedNoteKeys.length === 1) selectedNoteKeys.pop()
+        selectedNoteKeys.push(noteKey)
+        ee.emit('list:moved')
+      }
+
       router.replace({
         pathname: location.pathname,
         query: {
-          key: this.notes[0].storage + '-' + this.notes[0].key
+          key: noteKey
         }
       })
       return
@@ -440,6 +457,7 @@ class NoteList extends React.Component {
     const pinLabel = note.isPinned ? 'Remove pin' : 'Pin to Top'
     const deleteLabel = 'Delete Note'
     const cloneNote = 'Clone Note'
+    const restoreNote = 'Restore Note'
 
     const menu = new Menu()
     if (!location.pathname.match(/\/starred|\/trash/)) {
@@ -448,6 +466,14 @@ class NoteList extends React.Component {
         click: this.pinToTop
       }))
     }
+
+    if (location.pathname.match(/\/trash/)) {
+      menu.append(new MenuItem({
+        label: restoreNote,
+        click: this.restoreNote
+      }))
+    }
+
     menu.append(new MenuItem({
       label: deleteLabel,
       click: this.deleteNote
@@ -459,28 +485,50 @@ class NoteList extends React.Component {
     menu.popup()
   }
 
-  pinToTop () {
+  updateSelectedNotes (updateFunc, cleanSelection = true) {
     const { selectedNoteKeys } = this.state
     const { dispatch } = this.props
     const notes = this.notes.map((note) => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
 
+    if (!_.isFunction(updateFunc)) {
+      console.warn('Update function is not defined. No update will happen')
+      updateFunc = (note) => { return note }
+    }
+
     Promise.all(
-      selectedNotes.map((note) => {
-        note.isPinned = !note.isPinned
-        return dataApi
-          .updateNote(note.storage, note.key, note)
-      })
-    )
-    .then((updatedNotes) => {
-      updatedNotes.forEach((note) => {
-        dispatch({
-          type: 'UPDATE_NOTE',
-          note
+        selectedNotes.map((note) => {
+          note = updateFunc(note)
+          return dataApi
+              .updateNote(note.storage, note.key, note)
         })
-      })
+    )
+        .then((updatedNotes) => {
+          updatedNotes.forEach((note) => {
+            dispatch({
+              type: 'UPDATE_NOTE',
+              note
+            })
+          })
+        })
+
+    if (cleanSelection) {
+      this.selectNextNote()
+    }
+  }
+
+  pinToTop () {
+    this.updateSelectedNotes((note) => {
+      note.isPinned = !note.isPinned
+      return note
     })
-    this.setState({ selectedNoteKeys: [] })
+  }
+
+  restoreNote () {
+    this.updateSelectedNotes((note) => {
+      note.isTrashed = false
+      return note
+    })
   }
 
   deleteNote () {
@@ -678,6 +726,24 @@ class NoteList extends React.Component {
     })
   }
 
+  getNoteStorage (note) { // note.storage = storage key
+    return this.props.data.storageMap.toJS()[note.storage]
+  }
+
+  getNoteFolder (note) { // note.folder = folder key
+    return _.find(this.getNoteStorage(note).folders, ({ key }) => key === note.folder)
+  }
+
+  getViewType () {
+    const { pathname } = this.props.location
+    const folder = /\/folders\/[a-zA-Z0-9]+/.test(pathname)
+    const storage = /\/storages\/[a-zA-Z0-9]+/.test(pathname) && !folder
+    const allNotes = pathname === '/home'
+    if (allNotes) return 'ALL'
+    if (folder) return 'FOLDER'
+    if (storage) return 'STORAGE'
+  }
+
   render () {
     const { location, config } = this.props
     let { notes } = this.props
@@ -714,6 +780,8 @@ class NoteList extends React.Component {
       }
     })
 
+    const viewType = this.getViewType()
+
     const noteList = notes
       .map(note => {
         if (note == null) {
@@ -739,6 +807,9 @@ class NoteList extends React.Component {
               handleNoteClick={this.handleNoteClick.bind(this)}
               handleDragStart={this.handleDragStart.bind(this)}
               pathname={location.pathname}
+              folderName={this.getNoteFolder(note).name}
+              storageName={this.getNoteStorage(note).name}
+              viewType={viewType}
             />
           )
         }
@@ -752,6 +823,9 @@ class NoteList extends React.Component {
             handleNoteClick={this.handleNoteClick.bind(this)}
             handleDragStart={this.handleDragStart.bind(this)}
             pathname={location.pathname}
+            folderName={this.getNoteFolder(note).name}
+            storageName={this.getNoteStorage(note).name}
+            viewType={viewType}
           />
         )
       })

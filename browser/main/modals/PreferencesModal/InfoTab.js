@@ -83,7 +83,7 @@ class InfoTab extends React.Component {
               >GitHub</a>
             </li>
             <li>
-              <a href='https://medium.com/boostnote'
+              <a href='https://boostlog.io/@junp1234'
                 onClick={(e) => this.handleLinkClick(e)}
               >Blog</a>
             </li>

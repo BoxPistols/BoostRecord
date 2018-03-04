@@ -37,12 +37,12 @@ function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
           return resolveStorageData(newStorage)
             .then(function findNewNoteKey (_newStorage) {
               newStorage = _newStorage
-              newNoteKey = keygen()
+              newNoteKey = keygen(true)
               let isUnique = false
               while (!isUnique) {
                 try {
                   sander.statSync(path.join(newStorage.path, 'notes', newNoteKey + '.cson'))
-                  newNoteKey = keygen()
+                  newNoteKey = keygen(true)
                 } catch (err) {
                   if (err.code === 'ENOENT') {
                     isUnique = true

@@ -548,11 +548,9 @@ class NoteList extends React.Component {
       })
       if (dialogueButtonIndex === 1) return
       Promise.all(
-        selectedNoteKeys.map((uniqueKey) => {
-          const storageKey = uniqueKey.split('-')[0]
-          const noteKey = uniqueKey.split('-')[1]
+        selectedNotes.map((note) => {
           return dataApi
-            .deleteNote(storageKey, noteKey)
+            .deleteNote(note.storage, note.key)
         })
       )
       .then((data) => {

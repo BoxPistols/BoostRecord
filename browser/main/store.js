@@ -297,7 +297,7 @@ function data (state = defaultDataMap(), action) {
       }
     case 'DELETE_NOTE':
       {
-        const uniqueKey = action.storageKey + '-' + action.noteKey
+        const uniqueKey = action.noteKey
         const targetNote = state.noteMap.get(uniqueKey)
 
         state = Object.assign({}, state)

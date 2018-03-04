@@ -35,7 +35,7 @@ class NewNoteModal extends React.Component {
         content: ''
       })
       .then((note) => {
-        const noteHash = `${note.storage}-${note.key}`
+        const noteHash = note.key
         dispatch({
           type: 'UPDATE_NOTE',
           note: note
@@ -75,7 +75,7 @@ class NewNoteModal extends React.Component {
         }]
       })
       .then((note) => {
-        const noteHash = `${note.storage}-${note.key}`
+        const noteHash = note.key
         dispatch({
           type: 'UPDATE_NOTE',
           note: note

@@ -149,9 +149,9 @@ function dummyLegacyStorage (storagePath, override = {}) {
     var folderNotes = []
     var noteCount = Math.floor((Math.random() * 5)) + 1
     for (var i = 0; i < noteCount; i++) {
-      var key = keygen(6)
+      var key = keygen()
       while (folderNotes.some((note) => note.key === key)) {
-        key = keygen(6)
+        key = keygen()
       }
 
       var noteData = dummyNote({

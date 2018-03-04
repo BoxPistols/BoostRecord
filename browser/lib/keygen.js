@@ -1,7 +1,5 @@
-const crypto = require('crypto')
-const _ = require('lodash')
+const uuidv4 = require('uuid/v4')
 
-module.exports = function (length) {
-  if (!_.isFinite(length)) length = 10
-  return crypto.randomBytes(length).toString('hex')
+module.exports = function () {
+  return uuidv4()
 }

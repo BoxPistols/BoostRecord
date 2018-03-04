@@ -86,7 +86,8 @@
     "sander": "^0.5.1",
     "striptags": "^2.2.1",
     "superagent": "^1.2.0",
-    "superagent-promise": "^1.0.3"
+    "superagent-promise": "^1.0.3",
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "ava": "^0.16.0",

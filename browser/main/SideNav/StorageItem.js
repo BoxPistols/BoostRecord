@@ -191,33 +191,16 @@ class StorageItem extends React.Component {
   dropNote (storage, folder, dispatch, location, noteData) {
     noteData = noteData.filter((note) => folder.key !== note.folder)
     if (noteData.length === 0) return
-    const newNoteData = noteData.map((note) => Object.assign({}, note, {storage: storage, folder: folder.key}))
 
     Promise.all(
-      newNoteData.map((note) => dataApi.createNote(storage.key, note))
+      noteData.map((note) => dataApi.moveNote(note.storage, note.key, storage.key, folder.key))
     )
     .then((createdNoteData) => {
-      createdNoteData.forEach((note) => {
+      createdNoteData.forEach((newNote) => {
         dispatch({
-          type: 'UPDATE_NOTE',
-          note: note
-        })
-      })
-    })
-    .catch((err) => {
-      console.error(`error on create notes: ${err}`)
-    })
-    .then(() => {
-      return Promise.all(
-        noteData.map((note) => dataApi.deleteNote(note.storage, note.key))
-      )
-    })
-    .then((deletedNoteData) => {
-      deletedNoteData.forEach((note) => {
-        dispatch({
-          type: 'DELETE_NOTE',
-          storageKey: note.storageKey,
-          noteKey: note.noteKey
+          type: 'MOVE_NOTE',
+          originNote: noteData.find((note) => note.content === newNote.content),
+          note: newNote
         })
       })
     })

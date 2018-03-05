@@ -49,6 +49,14 @@ export const DEFAULT_CONFIG = {
     latexBlockOpen: '$$',
     latexBlockClose: '$$',
     scrollPastEnd: false
+  },
+  blog: {
+    type: 'wordpress', // Available value: wordpress, add more types in the future plz
+    address: 'http://wordpress.com/wp-json',
+    authMethod: 'JWT', // Available value: JWT, USER
+    token: '',
+    username: '',
+    password: ''
   }
 }
 
@@ -151,6 +159,7 @@ function set (updates) {
 function assignConfigValues (originalConfig, rcConfig) {
   const config = Object.assign({}, DEFAULT_CONFIG, originalConfig, rcConfig)
   config.hotkey = Object.assign({}, DEFAULT_CONFIG.hotkey, originalConfig.hotkey, rcConfig.hotkey)
+  config.blog = Object.assign({}, DEFAULT_CONFIG.blog, originalConfig.blog, rcConfig.blog)
   config.ui = Object.assign({}, DEFAULT_CONFIG.ui, originalConfig.ui, rcConfig.ui)
   config.editor = Object.assign({}, DEFAULT_CONFIG.editor, originalConfig.editor, rcConfig.editor)
   config.preview = Object.assign({}, DEFAULT_CONFIG.preview, originalConfig.preview, rcConfig.preview)

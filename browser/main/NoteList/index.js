@@ -261,27 +261,38 @@ class NoteList extends React.Component {
   handleNoteListKeyDown (e) {
     if (e.metaKey || e.ctrlKey) return true
 
+    // A key
     if (e.keyCode === 65 && !e.shiftKey) {
       e.preventDefault()
       ee.emit('top:new-note')
     }
 
+    // D key
     if (e.keyCode === 68) {
       e.preventDefault()
       this.deleteNote()
     }
 
+    // E key
     if (e.keyCode === 69) {
       e.preventDefault()
       ee.emit('detail:focus')
     }
 
-    if (e.keyCode === 38) {
+    // F or S key
+    if (e.keyCode === 70 || e.keyCode === 83) {
+      e.preventDefault()
+      ee.emit('top:focus-search')
+    }
+
+    // UP or K key
+    if (e.keyCode === 38 || e.keyCode === 75) {
       e.preventDefault()
       this.selectPriorNote()
     }
 
-    if (e.keyCode === 40) {
+    // DOWN or J key
+    if (e.keyCode === 40 || e.keyCode === 74) {
       e.preventDefault()
       this.selectNextNote()
     }

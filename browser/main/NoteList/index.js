@@ -15,9 +15,11 @@ import path from 'path'
 import { hashHistory } from 'react-router'
 import copy from 'copy-to-clipboard'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
+import markdown from '../../lib/markdown'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
+const WP_POST_PATH = '/wp/v2/posts'
 
 function sortByCreatedAt (a, b) {
   return new Date(b.createdAt) - new Date(a.createdAt)
@@ -461,6 +463,9 @@ class NoteList extends React.Component {
     const cloneNote = 'Clone Note'
     const restoreNote = 'Restore Note'
     const copyNoteLink = 'Copy Note Link'
+    const publishLabel = 'Publish Blog'
+    const updateLabel = 'Update Blog'
+    const openBlogLabel = 'Open Blog'
 
     const menu = new Menu()
     if (!location.pathname.match(/\/starred|\/trash/)) {
@@ -489,6 +494,24 @@ class NoteList extends React.Component {
       label: copyNoteLink,
       click: this.copyNoteLink(note)
     }))
+    if (note.type === 'MARKDOWN_NOTE') {
+      if (note.blog && note.blog.blogLink && note.blog.blogId) {
+        menu.append(new MenuItem({
+          label: updateLabel,
+          click: this.publishMarkdown.bind(this)
+        }))
+        menu.append(new MenuItem({
+          label: openBlogLabel,
+          click: () => this.openBlog.bind(this)(note)
+        }))
+      } else {
+        menu.append(new MenuItem({
+          label: publishLabel,
+          click: this.publishMarkdown.bind(this)
+        }))
+      }
+    }
+
     menu.popup()
   }
 
@@ -640,6 +663,112 @@ class NoteList extends React.Component {
   copyNoteLink (note) {
     const noteLink = `[${note.title}](${note.storage}-${note.key})`
     return copy(noteLink)
+  }
+
+  save (note) {
+    const { dispatch } = this.props
+    dataApi
+      .updateNote(note.storage, note.key, note)
+      .then((note) => {
+        dispatch({
+          type: 'UPDATE_NOTE',
+          note: note
+        })
+      })
+  }
+
+  publishMarkdown () {
+    if (this.pendingPublish) {
+      clearTimeout(this.pendingPublish)
+    }
+    this.pendingPublish = setTimeout(() => {
+      this.publishMarkdownNow()
+    }, 1000)
+  }
+
+  publishMarkdownNow () {
+    const {selectedNoteKeys} = this.state
+    const notes = this.notes.map((note) => Object.assign({}, note))
+    const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
+    const firstNote = selectedNotes[0]
+    const config = ConfigManager.get()
+    const {address, token, authMethod, username, password} = config.blog
+    let authToken = ''
+    if (authMethod === 'USER') {
+      authToken = `Basic ${window.btoa(`${username}:${password}`)}`
+    } else {
+      authToken = `Bearer ${token}`
+    }
+    const contentToRender = firstNote.content.replace(`# ${firstNote.title}`, '')
+    var data = {
+      title: firstNote.title,
+      content: markdown.render(contentToRender),
+      status: 'publish'
+    }
+
+    let url = ''
+    let method = ''
+    if (firstNote.blog && firstNote.blog.blogId) {
+      url = `${address}${WP_POST_PATH}/${firstNote.blog.blogId}`
+      method = 'PUT'
+    } else {
+      url = `${address}${WP_POST_PATH}`
+      method = 'POST'
+    }
+    // eslint-disable-next-line no-undef
+    fetch(url, {
+      method: method,
+      body: JSON.stringify(data),
+      headers: {
+        'Authorization': authToken,
+        'Content-Type': 'application/json'
+      }
+    }).then(res => res.json())
+      .then(response => {
+        if (_.isNil(response.link) || _.isNil(response.id)) {
+          return Promise.reject()
+        }
+        firstNote.blog = {
+          blogLink: response.link,
+          blogId: response.id
+        }
+        this.save(firstNote)
+        this.confirmPublish(firstNote)
+      })
+      .catch((error) => {
+        console.error(error)
+        this.confirmPublishError()
+      })
+  }
+
+  confirmPublishError () {
+    const { remote } = electron
+    const { dialog } = remote
+    const alertError = {
+      type: 'warning',
+      message: 'Publish Failed',
+      detail: 'Check and update your blog setting and try again.',
+      buttons: ['Confirm']
+    }
+    dialog.showMessageBox(remote.getCurrentWindow(), alertError)
+  }
+
+  confirmPublish (note) {
+    const buttonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
+      type: 'warning',
+      message: 'Publish Succeeded',
+      detail: `${note.title} is published at ${note.blog.blogLink}`,
+      buttons: ['Confirm', 'Open Blog']
+    })
+
+    if (buttonIndex === 1) {
+      this.openBlog(note)
+    }
+  }
+
+  openBlog (note) {
+    const { shell } = electron
+    shell.openExternal(note.blog.blogLink)
   }
 
   importFromFile () {

@@ -13,7 +13,7 @@ import searchFromNotes from 'browser/lib/search'
 import fs from 'fs'
 import path from 'path'
 import { hashHistory } from 'react-router'
-import electron from 'electron'
+import copy from 'copy-to-clipboard'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import markdown from '../../lib/markdown'
 
@@ -73,6 +73,7 @@ class NoteList extends React.Component {
     this.getNoteFolder = this.getNoteFolder.bind(this)
     this.getViewType = this.getViewType.bind(this)
     this.restoreNote = this.restoreNote.bind(this)
+    this.copyNoteLink = this.copyNoteLink.bind(this)
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
@@ -461,6 +462,7 @@ class NoteList extends React.Component {
     const deleteLabel = 'Delete Note'
     const cloneNote = 'Clone Note'
     const restoreNote = 'Restore Note'
+    const copyNoteLink = 'Copy Note Link'
     const publishLabel = 'Publish Blog'
     const updateLabel = 'Update Blog'
     const openBlogLabel = 'Open Blog'
@@ -487,6 +489,10 @@ class NoteList extends React.Component {
     menu.append(new MenuItem({
       label: cloneNote,
       click: this.cloneNote.bind(this)
+    }))
+    menu.append(new MenuItem({
+      label: copyNoteLink,
+      click: this.copyNoteLink(note)
     }))
     if (note.type === 'MARKDOWN_NOTE') {
       if (note.blog && note.blog.blogLink && note.blog.blogId) {
@@ -652,6 +658,11 @@ class NoteList extends React.Component {
           query: {key: uniqueKey}
         })
       })
+  }
+
+  copyNoteLink (note) {
+    const noteLink = `[${note.title}](${note.storage}-${note.key})`
+    return copy(noteLink)
   }
 
   save (note) {

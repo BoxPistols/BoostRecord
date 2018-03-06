@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './SideNavFilter.styl'
+import i18n from 'browser/lib/i18n'
 
 /**
  * @param {boolean} isFolded
@@ -31,7 +32,7 @@ const SideNavFilter = ({
         }
         />
       </div>
-      <span styleName='menu-button-label'>All Notes</span>
+      <span styleName='menu-button-label'>{i18n.__('All Notes')}</span>
       <span styleName='counters'>{counterTotalNote}</span>
     </button>
 
@@ -45,7 +46,7 @@ const SideNavFilter = ({
         }
         />
       </div>
-      <span styleName='menu-button-label'>Starred</span>
+      <span styleName='menu-button-label'>{i18n.__('Starred')}</span>
       <span styleName='counters'>{counterStarredNote}</span>
     </button>
 
@@ -59,7 +60,7 @@ const SideNavFilter = ({
         }
         />
       </div>
-      <span onContextMenu={handleFilterButtonContextMenu} styleName='menu-button-label'>Trash</span>
+      <span onContextMenu={handleFilterButtonContextMenu} styleName='menu-button-label'>{i18n.__('Trash')}</span>
       <span styleName='counters'>{counterDelNote}</span>
     </button>
 

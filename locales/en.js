@@ -95,5 +95,7 @@
 	"Language": "Language",
 	"English": "English",
 	"German": "German",
-	"French": "French"
+	"French": "French",
+	"All Notes": "All Notes",
+	"Starred": "Starred"
 }

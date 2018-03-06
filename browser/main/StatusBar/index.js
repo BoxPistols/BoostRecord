@@ -3,6 +3,7 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './StatusBar.styl'
 import ZoomManager from 'browser/main/lib/ZoomManager'
+import i18n from 'browser/lib/i18n'
 
 const electron = require('electron')
 const { remote, ipcRenderer } = electron
@@ -62,7 +63,7 @@ class StatusBar extends React.Component {
 
         {status.updateReady
           ? <button onClick={this.updateApp} styleName='update'>
-            <i styleName='update-icon' className='fa fa-cloud-download' /> Ready to Update!
+            <i styleName='update-icon' className='fa fa-cloud-download' /> {i18n.__('Ready to Update!')}
           </button>
           : null
         }

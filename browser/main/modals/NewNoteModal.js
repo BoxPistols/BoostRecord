@@ -6,6 +6,7 @@ import { hashHistory } from 'react-router'
 import ee from 'browser/main/lib/eventEmitter'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
+import i18n from 'browser/lib/i18n'
 
 class NewNoteModal extends React.Component {
   constructor (props) {
@@ -122,8 +123,8 @@ class NewNoteModal extends React.Component {
             <i styleName='control-button-icon'
               className='fa fa-file-text-o'
             /><br />
-            <span styleName='control-button-label'>Markdown Note</span><br />
-            <span styleName='control-button-description'>This format is for creating text documents. Checklists, code blocks and Latex blocks are available.</span>
+            <span styleName='control-button-label'>{i18n.__('Markdown Note')}</span><br />
+            <span styleName='control-button-description'>{i18n.__('This format is for creating text documents. Checklists, code blocks and Latex blocks are available.')}</span>
           </button>
 
           <button styleName='control-button'
@@ -134,13 +135,13 @@ class NewNoteModal extends React.Component {
             <i styleName='control-button-icon'
               className='fa fa-code'
             /><br />
-            <span styleName='control-button-label'>Snippet Note</span><br />
-            <span styleName='control-button-description'>This format is for creating code snippets. Multiple snippets can be grouped into a single note.
+            <span styleName='control-button-label'>{i18n.__('Snippet Note')}</span><br />
+            <span styleName='control-button-description'>{i18n.__('This format is for creating code snippets. Multiple snippets can be grouped into a single note.')}
             </span>
           </button>
 
         </div>
-        <div styleName='description'><i className='fa fa-arrows-h' /> Tab to switch format</div>
+        <div styleName='description'><i className='fa fa-arrows-h' />{i18n.__('Tab to switch format')}</div>
 
       </div>
     )

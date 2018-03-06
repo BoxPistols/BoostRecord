@@ -6,6 +6,7 @@ import consts from 'browser/lib/consts'
 import dataApi from 'browser/main/lib/dataApi'
 import store from 'browser/main/store'
 import FolderList from './FolderList'
+import i18n from 'browser/lib/i18n'
 
 const { shell, remote } = require('electron')
 const { dialog } = remote
@@ -127,7 +128,7 @@ class StorageItem extends React.Component {
               <i className='fa fa-plus' />
               <span styleName='header-control-button-tooltip'
                 style={{left: -20}}
-              >Add Folder</span>
+              >{i18n.__('Add Folder')}</span>
             </button>
             <button styleName='header-control-button'
               onClick={(e) => this.handleExternalButtonClick(e)}
@@ -135,7 +136,7 @@ class StorageItem extends React.Component {
               <i className='fa fa-external-link' />
               <span styleName='header-control-button-tooltip'
                 style={{left: -50}}
-              >Open Storage folder</span>
+              >{i18n.__('Open Storage folder')}</span>
             </button>
             <button styleName='header-control-button'
               onClick={(e) => this.handleUnlinkButtonClick(e)}
@@ -143,7 +144,7 @@ class StorageItem extends React.Component {
               <i className='fa fa-unlink' />
               <span styleName='header-control-button-tooltip'
                 style={{left: -10}}
-              >Unlink</span>
+              >{i18n.__('Unlink')}</span>
             </button>
           </div>
         </div>

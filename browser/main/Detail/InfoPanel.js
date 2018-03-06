@@ -82,7 +82,7 @@ class InfoPanel extends React.Component {
 
           <button styleName='export--enable' onClick={(e) => exportAsHtml(e)}>
             <i className='fa fa-html5' />
-            <p>{i18n.__('.html</p')}</p>
+            <p>{i18n.__('.html')}</p>
           </button>
 
           <button styleName='export--enable' onClick={(e) => print(e)}>

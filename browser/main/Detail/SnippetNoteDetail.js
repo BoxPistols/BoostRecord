@@ -68,10 +68,10 @@ class SnippetNoteDetail extends React.Component {
     const visibleTabs = this.visibleTabs
     const allTabs = this.allTabs
 
-    if (visibleTabs.offsetWidth < allTabs.offsetWidth) {
+    if (visibleTabs.offsetWidth < allTabs.scrollWidth) {
       this.setState({
-        showArrows: visibleTabs.offsetWidth < allTabs.offsetWidth,
-        enableRightArrow: allTabs.offsetLeft !== visibleTabs.offsetWidth - allTabs.offsetWidth,
+        showArrows: visibleTabs.offsetWidth < allTabs.scrollWidth,
+        enableRightArrow: allTabs.offsetLeft !== visibleTabs.offsetWidth - allTabs.scrollWidth,
         enableLeftArrow: allTabs.offsetLeft !== 0
       })
     }
@@ -247,42 +247,47 @@ class SnippetNoteDetail extends React.Component {
 
   handleTabMoveLeftButtonClick (e) {
     {
-      const left = Math.abs(this.allTabs.offsetLeft)
+      const left = this.visibleTabs.scrollLeft
 
       const tabs = this.allTabs.querySelectorAll('div')
       const lastVisibleTab = Array.from(tabs).find((tab) => {
         return tab.offsetLeft + tab.offsetWidth >= left
       })
 
-      const visiblePart = lastVisibleTab.offsetWidth - left + lastVisibleTab.offsetLeft
-      const showTab = (visiblePart > lastVisibleTab.offsetWidth * 0.75) ? lastVisibleTab.previousSibling : lastVisibleTab
+      if (lastVisibleTab) {
+        const visiblePart = lastVisibleTab.offsetWidth + lastVisibleTab.offsetLeft - left
+        let scrollToTab = lastVisibleTab
+        if (visiblePart > lastVisibleTab.offsetWidth * 0.75 && lastVisibleTab.previousSibling) {
+          scrollToTab = lastVisibleTab.previousSibling
+        }
 
-      let newLeft = showTab.offsetLeft
-      if (showTab.previousSibling) {
-        newLeft -= showTab.previousSibling.offsetWidth * 0.6
+        // FIXME use `scrollIntoView()` instead of custom method after update to Electron2.0 (with Chrome 61)
+        this.moveToTab(scrollToTab)
+        // scrollToTab.scrollIntoView({block: 'end'})
       }
-
-      this.moveTabBarBy(-newLeft)
     }
   }
 
   handleTabMoveRightButtonClick (e) {
-    const left = this.allTabs.offsetLeft
+    const left = this.visibleTabs.scrollLeft
     const width = this.visibleTabs.offsetWidth
 
     const tabs = this.allTabs.querySelectorAll('div')
     const lastVisibleTab = Array.from(tabs).find((tab) => {
-      return tab.offsetLeft + tab.offsetWidth >= width - left
+      return tab.offsetLeft + tab.offsetWidth >= width + left
     })
 
     if (lastVisibleTab) {
-      let newLeft = lastVisibleTab.offsetLeft + lastVisibleTab.offsetWidth - width
+      let scrollToTab = lastVisibleTab
+      const visiblePart = width + left - lastVisibleTab.offsetLeft
 
-      if (width - left - lastVisibleTab.offsetLeft > lastVisibleTab.offsetWidth * 0.75) {
-        newLeft += lastVisibleTab.nextSibling.offsetWidth
+      if (visiblePart > lastVisibleTab.offsetWidth * 0.75 && lastVisibleTab.nextSibling) {
+        scrollToTab = lastVisibleTab.nextSibling
       }
 
-      this.moveTabBarBy(-newLeft)
+      // FIXME use `scrollIntoView()` instead of custom method after update to Electron2.0 (with Chrome 61)
+      // scrollToTab.scrollIntoView({inline: 'end', block: 'end'})
+      this.moveToTab(scrollToTab)
     }
   }
 
@@ -342,9 +347,24 @@ class SnippetNoteDetail extends React.Component {
     const snippetIndex = this.state.snippetIndex >= snippets.length
       ? snippets.length - 1
       : this.state.snippetIndex
-    this.setState(Object.assign({ note, snippetIndex }, this.getArrowsState()), () => {
+    this.setState({ note, snippetIndex }, () => {
       this.save()
       this.refs['code-' + this.state.snippetIndex].reload()
+
+      if (this.visibleTabs.offsetWidth > this.allTabs.scrollWidth) {
+        console.log('no need for arrows')
+        this.moveTabBarBy(0)
+      } else {
+        const lastTab = this.allTabs.lastChild
+        if (lastTab.offsetLeft + lastTab.offsetWidth < this.visibleTabs.offsetWidth) {
+          console.log('need to scroll')
+          const width = this.visibleTabs.offsetWidth
+          const newLeft = lastTab.offsetLeft + lastTab.offsetWidth - width
+          this.moveTabBarBy(newLeft > 0 ? -newLeft : 0)
+        } else {
+          this.setState(this.getArrowsState())
+        }
+      }
     })
   }
 
@@ -515,20 +535,35 @@ class SnippetNoteDetail extends React.Component {
     this.refs.description.focus()
   }
 
-  moveTabBarBy (x) {
-    this.allTabs.addEventListener('transitionend', () => {
-      this.setState(this.getArrowsState())
-    }, {once: true})
+  moveToTab (tab) {
+    const easeOutCubic = t => (--t) * t * t + 1
+    const targetScrollChange = 50 // TODO count target value
+    const animationTiming = 300
+    const startScrollPosition = this.visibleTabs.scrollLeft
 
-    this.allTabs.style.left = `${x}px`
+    let startTime = null
+    const scrollAnimation = time => {
+      startTime = startTime || time
+      const elapsed = (time - startTime) / animationTiming
+
+      this.visibleTabs.scrollLeft = startScrollPosition + easeOutCubic(elapsed) * targetScrollChange
+      if (elapsed < 1) {
+        window.requestAnimationFrame(scrollAnimation)
+      } else {
+        this.setState(this.getArrowsState())
+      }
+    }
+
+    window.requestAnimationFrame(scrollAnimation)
   }
 
   getArrowsState () {
     const allTabs = this.allTabs
     const visibleTabs = this.visibleTabs
-    const showArrows = visibleTabs.offsetWidth < allTabs.offsetWidth
-    const enableRightArrow = allTabs.offsetLeft !== visibleTabs.offsetWidth - allTabs.offsetWidth
-    const enableLeftArrow = allTabs.offsetLeft !== 0
+
+    const showArrows = visibleTabs.offsetWidth < allTabs.scrollWidth
+    const enableRightArrow = visibleTabs.scrollLeft !== allTabs.scrollWidth - visibleTabs.offsetWidth
+    const enableLeftArrow = visibleTabs.scrollLeft !== 0
 
     return {showArrows, enableRightArrow, enableLeftArrow}
   }
@@ -548,7 +583,7 @@ class SnippetNoteDetail extends React.Component {
       snippetIndex
     }, this.getArrowsState()), () => {
       if (this.state.showArrows) {
-        const newLeft = this.visibleTabs.offsetWidth - this.allTabs.offsetWidth
+        const newLeft = this.visibleTabs.offsetWidth - this.allTabs.scrollWidth
         this.moveTabBarBy(newLeft)
       }
       this.refs['tab-' + snippetIndex].startRenaming()
@@ -766,7 +801,7 @@ class SnippetNoteDetail extends React.Component {
             >
               <i className='fa fa-chevron-left' />
             </button>
-            <div styleName='list' ref={(tabs) => { this.visibleTabs = tabs }}>
+            <div styleName='list' onScroll={(e) => { this.setState(this.getArrowsState()) }} ref={(tabs) => { this.visibleTabs = tabs }}>
               <div styleName='allTabs' ref={(tabs) => { this.allTabs = tabs }}>
                 {tabList}
               </div>

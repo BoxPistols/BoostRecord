@@ -7,6 +7,7 @@ import MarkdownNoteDetail from './MarkdownNoteDetail'
 import SnippetNoteDetail from './SnippetNoteDetail'
 import ee from 'browser/main/lib/eventEmitter'
 import StatusBar from '../StatusBar'
+import i18n from 'browser/lib/i18n'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -70,7 +71,7 @@ class Detail extends React.Component {
           tabIndex='0'
         >
           <div styleName='empty'>
-            <div styleName='empty-message'>{OSX ? 'Command(⌘)' : 'Ctrl(^)'} + N<br />to create a new note</div>
+            <div styleName='empty-message'>{OSX ? i18n.__('Command(⌘)') : i18n.__('Ctrl(^)')} + N<br />{i18n.__('to create a new note')}</div>
           </div>
           <StatusBar
             {..._.pick(this.props, ['config', 'location', 'dispatch'])}

@@ -62,6 +62,7 @@ class UiTab extends React.Component {
     const newConfig = {
       ui: {
         theme: this.refs.uiTheme.value,
+        language: this.refs.uiLanguage.value,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
         disableDirectWrite: this.refs.uiD2w != null
@@ -168,6 +169,21 @@ class UiTab extends React.Component {
               </select>
             </div>
           </div>
+
+          <div styleName='group-section'>
+          {i18n.__('Language')}
+            <div styleName='group-section-control'>
+              <select value={config.ui.language}
+                onChange={(e) => this.handleUIChange(e)}
+                ref='uiLanguage'
+              >
+                <option value='en'>{i18n.__('English')}</option>
+                <option value='de'>{i18n.__('German')}</option>
+                <option value='fr'>{i18n.__('French')}</option>
+              </select>
+            </div>
+          </div>
+
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
@@ -175,7 +191,7 @@ class UiTab extends React.Component {
                 ref='showCopyNotification'
                 type='checkbox'
               />&nbsp;
-              {i18n.__('Show &quot;Saved to Clipboard&quot; notification when copying')}
+              {i18n.__('Show "Saved to Clipboard" notification when copying')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>

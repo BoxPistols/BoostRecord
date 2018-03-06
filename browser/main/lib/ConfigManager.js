@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
+import i18n from 'browser/lib/i18n'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -130,6 +131,14 @@ function set (updates) {
     document.body.setAttribute('data-theme', 'solarized-dark')
   } else {
     document.body.setAttribute('data-theme', 'default')
+  }
+
+  if (newConfig.ui.language === 'en') {
+    i18n.setLocale('en')
+  } else if (newConfig.ui.language === 'de') {
+    i18n.setLocale('de')
+  } else {
+    i18n.setLocale('fr')
   }
 
   let editorTheme = document.getElementById('editorTheme')

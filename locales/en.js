@@ -27,7 +27,6 @@
 	"Thanks,": "Thanks,",
 	"Boostnote maintainers": "Boostnote maintainers",
 	"Support via OpenCollective": "Support via OpenCollective",
-	"Thank you for using Boostnote!": "Thank you for using Boostnote!",
 	"Make a note": "Make a note",
 	"Ctrl": "Ctrl",
 	"Notes": "Notes",
@@ -92,5 +91,9 @@
 	"LaTeX Inline Close Delimiter": "LaTeX Inline Close Delimiter",
 	"LaTeX Block Open Delimiter": "LaTeX Block Open Delimiter",
 	"LaTeX Block Close Delimiter": "LaTeX Block Close Delimiter",
-	".html": ".html"
+	"Show \"Saved to Clipboard\" notification when copying": "Show \"Saved to Clipboard\" notification when copying",
+	"Language": "Language",
+	"English": "English",
+	"German": "German",
+	"French": "French"
 }

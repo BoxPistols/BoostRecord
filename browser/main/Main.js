@@ -14,6 +14,7 @@ import mobileAnalytics from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import { hashHistory } from 'react-router'
 import store from 'browser/main/store'
+import i18n from 'browser/lib/i18n'
 const path = require('path')
 const electron = require('electron')
 const { remote } = electron
@@ -148,7 +149,14 @@ class Main extends React.Component {
     } else {
       document.body.setAttribute('data-theme', 'default')
     }
-
+    if (config.ui.language === 'en') {
+      i18n.setLocale('en')
+    } else if (config.ui.language === 'de') {
+      i18n.setLocale('de')
+    } else {
+      i18n.setLocale('fr')
+    }
+    
     // Reload all data
     dataApi.init()
       .then((data) => {

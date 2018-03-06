@@ -90,5 +90,10 @@
 	"If you like this project and see its potential, you can help by supporting us on OpenCollective!": "If you like this project and see its potential, you can help by supporting us on OpenCollective!",
 	"Thanks,": "Thanks,",
 	"Boostnote maintainers": "Boostnote maintainers",
-	"Support via OpenCollective": "Support via OpenCollective"
+	"Support via OpenCollective": "Support via OpenCollective",
+	"Language": "Language",
+	"English": "Englisch",
+	"German": "Deutsch",
+	"French": "Französisch",
+	"Show \"Saved to Clipboard\" notification when copying": "Show \"Saved to Clipboard\" notification when copying"
 }

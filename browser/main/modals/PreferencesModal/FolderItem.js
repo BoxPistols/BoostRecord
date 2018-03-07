@@ -180,7 +180,7 @@ class FolderItem extends React.Component {
     return (
       <div styleName='folderItem'>
         <div styleName='folderItem-left'>
-        {i18n.__('Are you sure to ')} <span styleName='folderItem-left-danger'>{i18n.__(' delete')}</span> {i18n.__('this folder?')}
+          {i18n.__('Are you sure to ')} <span styleName='folderItem-left-danger'>{i18n.__(' delete')}</span> {i18n.__('this folder?')}
         </div>
         <div styleName='folderItem-right'>
           <button styleName='folderItem-right-dangerButton'

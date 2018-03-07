@@ -147,7 +147,7 @@ class StoragesTab extends React.Component {
 
           <div styleName='addStorage-body-section'>
             <div styleName='addStorage-body-section-label'>
-            {i18n.__('Name')}
+              {i18n.__('Name')}
             </div>
             <div styleName='addStorage-body-section-name'>
               <input styleName='addStorage-body-section-name-input'
@@ -168,7 +168,7 @@ class StoragesTab extends React.Component {
                 <option value='FILESYSTEM'>{i18n.__('File System')}</option>
               </select>
               <div styleName='addStorage-body-section-type-description'>
-              {i18n.__('Setting up 3rd-party cloud storage integration:')}{' '}
+                {i18n.__('Setting up 3rd-party cloud storage integration:')}{' '}
                 <a href='https://github.com/BoostIO/Boostnote/wiki/Cloud-Syncing-and-Backup'
                   onClick={(e) => this.handleLinkClick(e)}
                 >{i18n.__('Cloud-Syncing-and-Backup')}</a>

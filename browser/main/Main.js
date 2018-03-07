@@ -156,7 +156,7 @@ class Main extends React.Component {
     } else {
       i18n.setLocale('fr')
     }
-    
+
     // Reload all data
     dataApi.init()
       .then((data) => {

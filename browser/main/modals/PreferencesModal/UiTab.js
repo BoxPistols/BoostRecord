@@ -156,7 +156,7 @@ class UiTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Interface')}</div>
 
           <div styleName='group-section'>
-          {i18n.__('Interface Theme')}
+            {i18n.__('Interface Theme')}
             <div styleName='group-section-control'>
               <select value={config.ui.theme}
                 onChange={(e) => this.handleUIChange(e)}
@@ -171,7 +171,7 @@ class UiTab extends React.Component {
           </div>
 
           <div styleName='group-section'>
-          {i18n.__('Language')}
+            {i18n.__('Language')}
             <div styleName='group-section-control'>
               <select value={config.ui.language}
                 onChange={(e) => this.handleUIChange(e)}
@@ -223,7 +223,7 @@ class UiTab extends React.Component {
 
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-            {i18n.__('Editor Theme')}
+              {i18n.__('Editor Theme')}
             </div>
             <div styleName='group-section-control'>
               <select value={config.editor.theme}
@@ -243,7 +243,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-            {i18n.__('Editor Font Size')}
+              {i18n.__('Editor Font Size')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -256,7 +256,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-            {i18n.__('Editor Font Family')}
+              {i18n.__('Editor Font Family')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -269,7 +269,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-            {i18n.__('Editor Indent Style')}
+              {i18n.__('Editor Indent Style')}
             </div>
             <div styleName='group-section-control'>
               <select value={config.editor.indentSize}

@@ -223,6 +223,7 @@ export default class MarkdownPreview extends React.Component {
 
       return `<html>
                  <head>
+                   <meta charset="UTF-8">
                    <style id="style">${inlineStyles}</style>
                    ${styles}
                  </head>

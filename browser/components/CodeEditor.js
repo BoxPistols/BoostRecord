@@ -8,6 +8,8 @@ import copyImage from 'browser/main/lib/dataApi/copyImage'
 import { findStorage } from 'browser/lib/findStorage'
 import fs from 'fs'
 import eventEmitter from 'browser/main/lib/eventEmitter'
+import iconv from 'iconv-lite'
+const { ipcRenderer } = require('electron')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -32,8 +34,13 @@ export default class CodeEditor extends React.Component {
   constructor (props) {
     super(props)
 
+    this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {leading: false, trailing: true})
     this.changeHandler = (e) => this.handleChange(e)
+    this.focusHandler = () => {
+      ipcRenderer.send('editor:focused', true)
+    }
     this.blurHandler = (editor, e) => {
+      ipcRenderer.send('editor:focused', false)
       if (e == null) return null
       let el = e.relatedTarget
       while (el != null) {
@@ -81,7 +88,6 @@ export default class CodeEditor extends React.Component {
         }
       }
     })
-    this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {leading: false, trailing: true})
   }
 
   componentDidMount () {
@@ -139,6 +145,7 @@ export default class CodeEditor extends React.Component {
 
     this.setMode(this.props.mode)
 
+    this.editor.on('focus', this.focusHandler)
     this.editor.on('blur', this.blurHandler)
     this.editor.on('change', this.changeHandler)
     this.editor.on('paste', this.pasteHandler)
@@ -162,6 +169,7 @@ export default class CodeEditor extends React.Component {
   }
 
   componentWillUnmount () {
+    this.editor.off('focus', this.focusHandler)
     this.editor.off('blur', this.blurHandler)
     this.editor.off('change', this.changeHandler)
     this.editor.off('paste', this.pasteHandler)
@@ -317,7 +325,7 @@ export default class CodeEditor extends React.Component {
     fetch(pastedTxt, {
       method: 'get'
     }).then((response) => {
-      return (response.text())
+      return this.decodeResponse(response)
     }).then((response) => {
       const parsedResponse = (new window.DOMParser()).parseFromString(response, 'text/html')
       const value = editor.getValue()
@@ -333,6 +341,31 @@ export default class CodeEditor extends React.Component {
       editor.setValue(newValue)
       editor.setCursor(cursor)
     })
+  }
+
+  decodeResponse (response) {
+    const headers = response.headers
+    const _charset = headers.has('content-type')
+      ? this.extractContentTypeCharset(headers.get('content-type'))
+      : undefined
+    return response.arrayBuffer().then((buff) => {
+      return new Promise((resolve, reject) => {
+        try {
+          const charset = _charset !== undefined && iconv.encodingExists(_charset) ? _charset : 'utf-8'
+          resolve(iconv.decode(new Buffer(buff), charset).toString())
+        } catch (e) {
+          reject(e)
+        }
+      })
+    })
+  }
+
+  extractContentTypeCharset (contentType) {
+    return contentType.split(';').filter((str) => {
+      return str.trim().toLowerCase().startsWith('charset')
+    }).map((str) => {
+      return str.replace(/['"]/g, '').split('=')[1]
+    })[0]
   }
 
   render () {

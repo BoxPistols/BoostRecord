@@ -118,12 +118,12 @@ class Preferences extends React.Component {
     const content = this.renderContent()
 
     const tabs = [
-      {target: 'STORAGES', label: 'Storage'},
-      {target: 'HOTKEY', label: 'Hotkeys', Hotkey: this.state.HotkeyAlert},
-      {target: 'UI', label: 'Interface', UI: this.state.UIAlert},
-      {target: 'INFO', label: 'About'},
-      {target: 'CROWDFUNDING', label: 'Crowdfunding'},
-      {target: 'BLOG', label: 'Blog', Blog: this.state.BlogAlert}
+      {target: 'STORAGES', label: i18n.__('Storage')},
+      {target: 'HOTKEY', label: i18n.__('Hotkeys'), Hotkey: this.state.HotkeyAlert},
+      {target: 'UI', label: i18n.__('Interface'), UI: this.state.UIAlert},
+      {target: 'INFO', label: i18n.__('About')},
+      {target: 'CROWDFUNDING', label: i18n.__('Crowdfunding')},
+      {target: 'BLOG', label: i18n.__('Blog'), Blog: this.state.BlogAlert}
     ]
 
     const navButtons = tabs.map((tab) => {

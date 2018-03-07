@@ -5,6 +5,7 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 import store from 'browser/main/store'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
+import i18n from 'browser/lib/i18n'
 
 const electron = require('electron')
 const { shell } = electron
@@ -36,7 +37,7 @@ class Blog extends React.Component {
     this.handleSettingDone = () => {
       this.setState({BlogAlert: {
         type: 'success',
-        message: 'Successfully applied!'
+        message: i18n.__('Successfully applied!')
       }})
     }
     this.handleSettingError = (err) => {
@@ -99,10 +100,10 @@ class Blog extends React.Component {
     return (
       <div styleName='root'>
         <div styleName='group'>
-          <div styleName='group-header'>Blog</div>
+          <div styleName='group-header'>{i18n.__('Blog')}</div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              Blog Type
+              {i18n.__('Blog Type')}
             </div>
             <div styleName='group-section-control'>
               <select
@@ -115,7 +116,7 @@ class Blog extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>Blog Address</div>
+            <div styleName='group-section-label'>{i18n.__('Blog Address')}</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
                 onChange={(e) => this.handleBlogChange(e)}
@@ -127,16 +128,16 @@ class Blog extends React.Component {
           </div>
           <div styleName='group-control'>
             <button styleName='group-control-rightButton'
-              onClick={(e) => this.handleSaveButtonClick(e)}>Save
+              onClick={(e) => this.handleSaveButtonClick(e)}>{i18n.__('Save')}
             </button>
             {blogAlertElement}
           </div>
         </div>
-        <div styleName='group-header2'>Auth</div>
+        <div styleName='group-header2'>{i18n.__('Auth')}</div>
 
         <div styleName='group-section'>
           <div styleName='group-section-label'>
-            Authentication Method
+            {i18n.__('Authentication Method')}
           </div>
           <div styleName='group-section-control'>
             <select
@@ -144,14 +145,14 @@ class Blog extends React.Component {
               ref='authMethodDropdown'
               onChange={(e) => this.handleBlogChange(e)}
             >
-              <option value='JWT' key='JWT'>JWT</option>
-              <option value='USER' key='USER'>USER</option>
+              <option value='JWT' key='JWT'>{i18n.__('JWT')}</option>
+              <option value='USER' key='USER'>{i18n.__('USER')}</option>
             </select>
           </div>
         </div>
         { config.blog.authMethod === 'JWT' &&
           <div styleName='group-section'>
-            <div styleName='group-section-label'>Token</div>
+            <div styleName='group-section-label'>{i18n.__('Token')}</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
                 onChange={(e) => this.handleBlogChange(e)}
@@ -164,7 +165,7 @@ class Blog extends React.Component {
         { config.blog.authMethod === 'USER' &&
           <div>
             <div styleName='group-section'>
-              <div styleName='group-section-label'>UserName</div>
+              <div styleName='group-section-label'>{i18n.__('UserName')}</div>
               <div styleName='group-section-control'>
                 <input styleName='group-section-control-input'
                   onChange={(e) => this.handleBlogChange(e)}
@@ -174,7 +175,7 @@ class Blog extends React.Component {
               </div>
             </div>
             <div styleName='group-section'>
-              <div styleName='group-section-label'>Password</div>
+              <div styleName='group-section-label'>{i18n.__('Password')}</div>
               <div styleName='group-section-control'>
                 <input styleName='group-section-control-input'
                   onChange={(e) => this.handleBlogChange(e)}

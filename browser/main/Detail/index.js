@@ -41,9 +41,9 @@ class Detail extends React.Component {
 
       const alertConfig = {
         type: 'warning',
-        message: 'Confirm note deletion',
-        detail: 'This will permanently remove this note.',
-        buttons: ['Confirm', 'Cancel']
+        message:  i18n.__('Confirm note deletion'),
+        detail:  i18n.__('This will permanently remove this note.'),
+        buttons: [ i18n.__('Confirm'),  i18n.__('Cancel')]
       }
 
       const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), alertConfig)

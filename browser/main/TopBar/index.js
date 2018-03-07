@@ -177,7 +177,7 @@ class TopBar extends React.Component {
                 onChange={(e) => this.handleSearchChange(e)}
                 onKeyDown={(e) => this.handleKeyDown(e)}
                 onKeyUp={(e) => this.handleKeyUp(e)}
-                placeholder='Search'
+                placeholder={i18n.__('Search')}
                 type='text'
                 className='searchInput'
               />

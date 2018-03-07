@@ -47,9 +47,9 @@ class StorageItem extends React.Component {
   handleUnlinkButtonClick (e) {
     const index = dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
-      message: 'Unlink Storage',
-      detail: 'Unlinking removes this linked storage from Boostnote. No data is removed, please manually delete the folder from your hard drive if needed.',
-      buttons: ['Unlink', 'Cancel']
+      message: i18n.__('Unlink Storage'),
+      detail: i18n.__('Unlinking removes this linked storage from Boostnote. No data is removed, please manually delete the folder from your hard drive if needed.'),
+      buttons: [i18n.__('Unlink'), i18n.__('Cancel')]
     })
 
     if (index === 0) {

@@ -30,7 +30,7 @@ class UiTab extends React.Component {
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
-        message: 'Successfully applied!'
+        message: i18n.__('Successfully applied!')
       }})
     }
     this.handleSettingError = (err) => {
@@ -108,7 +108,7 @@ class UiTab extends React.Component {
         this.props.haveToSave({
           tab: 'UI',
           type: 'warning',
-          message: 'You have to save!'
+          message: i18n.__('You have to save!')
         })
       }
     })
@@ -474,7 +474,7 @@ class UiTab extends React.Component {
 
           <div styleName='group-control'>
             <button styleName='group-control-rightButton'
-              onClick={(e) => this.handleSaveUIClick(e)}>Save
+              onClick={(e) => this.handleSaveUIClick(e)}>{i18n.__('Save')}
             </button>
             {UiAlertElement}
           </div>

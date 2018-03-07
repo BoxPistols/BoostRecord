@@ -39,11 +39,11 @@ class InfoTab extends React.Component {
     if (!newConfig.amaEnabled) {
       AwsMobileAnalyticsConfig.recordDynamicCustomEvent('DISABLE_AMA')
       this.setState({
-        amaMessage: 'We hope we will gain your trust'
+        amaMessage: i18n.__('We hope we will gain your trust')
       })
     } else {
       this.setState({
-        amaMessage: 'Thank\'s for trust us'
+        amaMessage: i18n.__('Thank\'s for trust us')
       })
     }
 
@@ -149,7 +149,7 @@ class InfoTab extends React.Component {
           type='checkbox'
         />
         {i18n.__('Enable analytics to help improve Boostnote')}<br />
-        <button styleName='policy-submit' onClick={(e) => this.handleSaveButtonClick(e)}>Save</button>
+        <button styleName='policy-submit' onClick={(e) => this.handleSaveButtonClick(e)}>{i18n.__('Save')}</button>
         <br />
         {this.infoMessage()}
       </div>

@@ -127,5 +127,6 @@
 	"Restore": "Restore",
 	"Permanent Delete": "Permanent Delete",
 	"Confirm note deletion": "Confirm note deletion",
-	"This will permanently remove this note.": "This will permanently remove this note."
+	"This will permanently remove this note.": "This will permanently remove this note.",
+	"Successfully applied!": "Successfully applied!"
 }

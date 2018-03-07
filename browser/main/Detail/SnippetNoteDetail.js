@@ -265,9 +265,9 @@ class SnippetNoteDetail extends React.Component {
       if (this.state.note.snippets[index].content.trim().length > 0) {
         const dialogIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
           type: 'warning',
-          message:  i18n.__('Delete a snippet'),
-          detail:  i18n.__('This work cannot be undone.'),
-          buttons: [ i18n.__('Confirm'),  i18n.__('Cancel')]
+          message: i18n.__('Delete a snippet'),
+          detail: i18n.__('This work cannot be undone.'),
+          buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
         })
         if (dialogIndex === 0) {
           this.deleteSnippetByIndex(index)
@@ -508,8 +508,8 @@ class SnippetNoteDetail extends React.Component {
   showWarning () {
     dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
-      message:  i18n.__('Sorry!'),
-      detail:  i18n.__('md/text import is available only a markdown note.'),
+      message: i18n.__('Sorry!'),
+      detail: i18n.__('md/text import is available only a markdown note.'),
       buttons: ['OK']
     })
   }

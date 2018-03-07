@@ -127,5 +127,6 @@
 	"Restore": "Restore",
 	"Permanent Delete": "Dauerhaft Löschen",
 	"Confirm note deletion": "Löschen bestätigen",
-	"This will permanently remove this note.": "Notiz wird dauerhaft gelöscht"
+	"This will permanently remove this note.": "Notiz wird dauerhaft gelöscht",
+	"You have to save!": "You have to save!"
 }

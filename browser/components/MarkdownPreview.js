@@ -217,6 +217,7 @@ export default class MarkdownPreview extends React.Component {
       return `<html>
                  <head>
                    <meta charset="UTF-8">
+                   <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
                    <style id="style">${inlineStyles}</style>
                    ${styles}
                  </head>

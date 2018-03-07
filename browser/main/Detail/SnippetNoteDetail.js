@@ -62,6 +62,8 @@ class SnippetNoteDetail extends React.Component {
         snippets: props.note.snippets.map((snippet) => Object.assign({}, snippet))
       })
     }
+
+    this.scrollToNextTabThreshold = 0.7
   }
 
   componentDidMount () {
@@ -256,14 +258,14 @@ class SnippetNoteDetail extends React.Component {
 
       if (lastVisibleTab) {
         const visiblePart = lastVisibleTab.offsetWidth + lastVisibleTab.offsetLeft - left
-        let scrollToTab = lastVisibleTab
-        if (visiblePart > lastVisibleTab.offsetWidth * 0.75 && lastVisibleTab.previousSibling) {
-          scrollToTab = lastVisibleTab.previousSibling
-        }
+        const isFullyVisible = visiblePart > lastVisibleTab.offsetWidth * this.scrollToNextTabThreshold
+        const scrollToTab = (isFullyVisible && lastVisibleTab.previousSibling)
+            ? lastVisibleTab.previousSibling
+            : lastVisibleTab
 
-        // FIXME use `scrollIntoView()` instead of custom method after update to Electron2.0 (with Chrome 61)
+        // FIXME use `scrollIntoView()` instead of custom method after update to Electron2.0 (with Chrome 61 its possible animate the scroll)
         this.moveToTab(scrollToTab)
-        // scrollToTab.scrollIntoView({block: 'end'})
+        // scrollToTab.scrollIntoView({behavior: 'smooth', inline: 'start', block: 'start'})
       }
     }
   }
@@ -278,16 +280,15 @@ class SnippetNoteDetail extends React.Component {
     })
 
     if (lastVisibleTab) {
-      let scrollToTab = lastVisibleTab
       const visiblePart = width + left - lastVisibleTab.offsetLeft
+      const isFullyVisible = visiblePart > lastVisibleTab.offsetWidth * this.scrollToNextTabThreshold
+      const scrollToTab = (isFullyVisible && lastVisibleTab.nextSibling)
+          ? lastVisibleTab.nextSibling
+          : lastVisibleTab
 
-      if (visiblePart > lastVisibleTab.offsetWidth * 0.75 && lastVisibleTab.nextSibling) {
-        scrollToTab = lastVisibleTab.nextSibling
-      }
-
-      // FIXME use `scrollIntoView()` instead of custom method after update to Electron2.0 (with Chrome 61)
-      // scrollToTab.scrollIntoView({inline: 'end', block: 'end'})
+      // FIXME use `scrollIntoView()` instead of custom method after update to Electron2.0 (with Chrome 61 its possible animate the scroll)
       this.moveToTab(scrollToTab)
+      // scrollToTab.scrollIntoView({behavior: 'smooth', inline: 'end', block: 'end'})
     }
   }
 
@@ -537,16 +538,28 @@ class SnippetNoteDetail extends React.Component {
 
   moveToTab (tab) {
     const easeOutCubic = t => (--t) * t * t + 1
-    const targetScrollChange = 50 // TODO count target value
-    const animationTiming = 300
     const startScrollPosition = this.visibleTabs.scrollLeft
+    const animationTiming = 300
+    const scrollMoreCoeff = 1.4 // introduce coefficient, because we want to scroll a bit further to see next tab
+
+    let scrollBy = (tab.offsetLeft - startScrollPosition)
+
+    if (tab.offsetLeft > startScrollPosition) {
+      // if tab is on the right side and we want to show the whole tab in visible area,
+      // we need to include width of the tab and visible area in the formula
+      //  ___________________________________________
+      // |____|_______|________|________|_show_this_|
+      //        ↑_____________________↑
+      //            visible area
+      scrollBy += (tab.offsetWidth - this.visibleTabs.offsetWidth)
+    }
 
     let startTime = null
     const scrollAnimation = time => {
       startTime = startTime || time
       const elapsed = (time - startTime) / animationTiming
 
-      this.visibleTabs.scrollLeft = startScrollPosition + easeOutCubic(elapsed) * targetScrollChange
+      this.visibleTabs.scrollLeft = startScrollPosition + easeOutCubic(elapsed) * scrollBy * scrollMoreCoeff
       if (elapsed < 1) {
         window.requestAnimationFrame(scrollAnimation)
       } else {
@@ -583,8 +596,10 @@ class SnippetNoteDetail extends React.Component {
       snippetIndex
     }, this.getArrowsState()), () => {
       if (this.state.showArrows) {
-        const newLeft = this.visibleTabs.offsetWidth - this.allTabs.scrollWidth
-        this.moveTabBarBy(newLeft)
+        const tabs = this.allTabs.querySelectorAll('div')
+        if (tabs) {
+          this.moveToTab(tabs[snippetIndex])
+        }
       }
       this.refs['tab-' + snippetIndex].startRenaming()
     })

@@ -39,7 +39,7 @@ var md = markdownit({
     if (langType === 'sequence') {
       return `<pre class="sequence">${str}</pre>`
     }
-    return '<pre class="code">' +
+    return '<pre class="code CodeMirror">' +
       '<span class="filename">' + fileName + '</span>' +
       createGutter(str, firstLineNumber) +
       '<code class="' + langType + '">' +

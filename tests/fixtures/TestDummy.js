@@ -105,7 +105,7 @@ function dummyStorage (storagePath, override = {}) {
 
   sander.writeFileSync(path.join(storagePath, 'boostnote.json'), JSON.stringify(jsonData))
   var notesData = []
-  var noteCount = Math.floor((Math.random() * 15)) + 1
+  var noteCount = Math.floor((Math.random() * 15)) + 2
   for (var i = 0; i < noteCount; i++) {
     var key = keygen()
     while (notesData.some((note) => note.key === key)) {

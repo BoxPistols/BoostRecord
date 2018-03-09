@@ -48,7 +48,8 @@ export const DEFAULT_CONFIG = {
     latexInlineClose: '$',
     latexBlockOpen: '$$',
     latexBlockClose: '$$',
-    scrollPastEnd: false
+    scrollPastEnd: false,
+    smartQuotes: true
   },
   blog: {
     type: 'wordpress', // Available value: wordpress, add more types in the future plz

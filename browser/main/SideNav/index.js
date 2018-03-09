@@ -117,9 +117,9 @@ class SideNav extends React.Component {
 
   tagListComponent () {
     const { data, location } = this.props
-    const tagList = data.tagNoteMap.map((tag, name) => {
+    const tagList = _.sortBy(data.tagNoteMap.map((tag, name) => {
       return { name, size: tag.size }
-    })
+    }), ['name'])
     return (
       tagList.map(tag => {
         return (

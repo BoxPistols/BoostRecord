@@ -22,7 +22,7 @@ function dummyBoostnoteJSONData (override = {}, isLegacy = false) {
   if (override.folders == null) {
     data.folders = []
 
-    var folderCount = Math.floor((Math.random() * 5)) + 1
+    var folderCount = Math.floor((Math.random() * 5)) + 2
     for (var i = 0; i < folderCount; i++) {
       var key = keygen()
       while (data.folders.some((folder) => folder.key === key)) {

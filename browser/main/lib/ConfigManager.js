@@ -133,12 +133,12 @@ function set (updates) {
     document.body.setAttribute('data-theme', 'default')
   }
 
-  if (newConfig.ui.language === 'en') {
-    i18n.setLocale('en')
+  if (newConfig.ui.language === 'fr') {
+    i18n.setLocale('fr')
   } else if (newConfig.ui.language === 'de') {
     i18n.setLocale('de')
   } else {
-    i18n.setLocale('fr')
+    i18n.setLocale('en')
   }
 
   let editorTheme = document.getElementById('editorTheme')

@@ -149,12 +149,12 @@ class Main extends React.Component {
     } else {
       document.body.setAttribute('data-theme', 'default')
     }
-    if (config.ui.language === 'en') {
-      i18n.setLocale('en')
+    if (config.ui.language === 'fr') {
+      i18n.setLocale('fr')
     } else if (config.ui.language === 'de') {
       i18n.setLocale('de')
     } else {
-      i18n.setLocale('fr')
+      i18n.setLocale('en')
     }
 
     // Reload all data

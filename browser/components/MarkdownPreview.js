@@ -224,6 +224,7 @@ export default class MarkdownPreview extends React.Component {
       return `<html>
                  <head>
                    <meta charset="UTF-8">
+                   <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
                    <style id="style">${inlineStyles}</style>
                    ${styles}
                  </head>
@@ -431,9 +432,9 @@ export default class MarkdownPreview extends React.Component {
         el.innerHTML = ''
         if (codeBlockTheme.indexOf('solarized') === 0) {
           const [refThema, color] = codeBlockTheme.split(' ')
-          el.parentNode.className += ` cm-s-${refThema} cm-s-${color} CodeMirror`
+          el.parentNode.className += ` cm-s-${refThema} cm-s-${color}`
         } else {
-          el.parentNode.className += ` cm-s-${codeBlockTheme} CodeMirror`
+          el.parentNode.className += ` cm-s-${codeBlockTheme}`
         }
         CodeMirror.runMode(content, syntax.mime, el, {
           tabSize: indentSize

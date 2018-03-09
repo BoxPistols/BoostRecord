@@ -127,5 +127,17 @@
 	"Restore": "Restore",
 	"Permanent Delete": "Permanent Delete",
 	"Confirm note deletion": "Confirm note deletion",
-	"This will permanently remove this note.": "This will permanently remove this note."
+	"This will permanently remove this note.": "This will permanently remove this note.",
+	"Successfully applied!": "Successfully applied!",
+	"Albanian": "Albanian",
+	"Chinese (zh-CN)": "Chinese (zh-CN)",
+	"Chinese (zh-TW)": "Chinese (zh-TW)",
+	"Danish": "Danish",
+	"Japanese": "Japanese",
+	"Korean": "Korean",
+	"Norwegian": "Norwegian",
+	"Polish": "Polish",
+	"Portuguese": "Portuguese",
+	"Spanish": "Spanish",
+	"You have to save!": "You have to save!"
 }

@@ -177,9 +177,19 @@ class UiTab extends React.Component {
                 onChange={(e) => this.handleUIChange(e)}
                 ref='uiLanguage'
               >
+                <option value='sq'>{i18n.__('Albanian')}</option>
+                <option value='zh-CN'>{i18n.__('Chinese (zh-CN)')}</option>
+                <option value='zh-TW'>{i18n.__('Chinese (zh-TW)')}</option>
+                <option value='da'>{i18n.__('Danish')}</option>
                 <option value='en'>{i18n.__('English')}</option>
-                <option value='de'>{i18n.__('German')}</option>
                 <option value='fr'>{i18n.__('French')}</option>
+                <option value='de'>{i18n.__('German')}</option>
+                <option value='ja'>{i18n.__('Japanese')}</option>
+                <option value='ko'>{i18n.__('Korean')}</option>
+                <option value='no'>{i18n.__('Norwegian')}</option>
+                <option value='pl'>{i18n.__('Polish')}</option>
+                <option value='pt'>{i18n.__('Portuguese')}</option>
+                <option value='es'>{i18n.__('Spanish')}</option>
               </select>
             </div>
           </div>

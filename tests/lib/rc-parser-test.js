@@ -29,5 +29,5 @@ test('RcParser should return a json object', t => {
 })
 
 function filePath (filename) {
-  return path.join('boostnoterc', filename)
+  return path.join(`${__dirname}/boostnoterc`, filename)
 }

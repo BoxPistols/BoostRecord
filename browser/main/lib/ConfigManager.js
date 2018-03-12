@@ -22,6 +22,7 @@ export const DEFAULT_CONFIG = {
     toggleMain: OSX ? 'Cmd + Alt + L' : 'Super + Alt + E'
   },
   ui: {
+    language: 'en',
     theme: 'default',
     showCopyNotification: true,
     disableDirectWrite: false,

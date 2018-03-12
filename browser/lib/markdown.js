@@ -55,11 +55,12 @@ class Markdown {
 
     // Sanitize use rinput before other plugins
     this.md.use(sanitize, {
-      allowedTags: ['img', 'iframe'],
+      allowedTags: ['img', 'iframe', 'input'],
       allowedAttributes: {
         '*': ['alt', 'style'],
         'img': ['src', 'width', 'height'],
-        'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen']
+        'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen'],
+        'input': ['type', 'id', 'checked']
       },
       allowedIframeHostnames: ['www.youtube.com']
     })

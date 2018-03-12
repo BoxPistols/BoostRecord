@@ -147,7 +147,7 @@ class SnippetNoteDetail extends React.Component {
           hashHistory.replace({
             pathname: location.pathname,
             query: {
-              key: newNote.storage + '-' + newNote.key
+              key: newNote.key
             }
           })
           this.setState({
@@ -650,7 +650,7 @@ class SnippetNoteDetail extends React.Component {
         <InfoPanel
           storageName={currentOption.storage.name}
           folderName={currentOption.folder.name}
-          noteLink={`[${note.title}](${location.query.key})`}
+          noteLink={`[${note.title}](:note:${location.query.key})`}
           updatedAt={formatDate(note.updatedAt)}
           createdAt={formatDate(note.createdAt)}
           exportAsMd={this.showWarning}

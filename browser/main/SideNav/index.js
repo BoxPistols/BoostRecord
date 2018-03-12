@@ -160,10 +160,8 @@ class SideNav extends React.Component {
 
   emptyTrash (entries) {
     const { dispatch } = this.props
-    const deletionPromises = entries.map((storageAndNoteKey) => {
-      const storageKey = storageAndNoteKey.split('-')[0]
-      const noteKey = storageAndNoteKey.split('-')[1]
-      return dataApi.deleteNote(storageKey, noteKey)
+    const deletionPromises = entries.map((note) => {
+      return dataApi.deleteNote(note.storage, note.key)
     })
     Promise.all(deletionPromises)
     .then((arrayOfStorageAndNoteKeys) => {
@@ -179,9 +177,9 @@ class SideNav extends React.Component {
 
   handleFilterButtonContextMenu (event) {
     const { data } = this.props
-    const entries = data.trashedSet.toJS()
+    const trashedNotes = data.trashedSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
     const menu = Menu.buildFromTemplate([
-      { label: 'Empty Trash', click: () => this.emptyTrash(entries) }
+      { label: 'Empty Trash', click: () => this.emptyTrash(trashedNotes) }
     ])
     menu.popup()
   }

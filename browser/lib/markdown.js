@@ -55,7 +55,7 @@ class Markdown {
 
     // Sanitize use rinput before other plugins
     this.md.use(sanitize, {
-      allowedTags: ['img', 'iframe', 'input'],
+      allowedTags: ['img', 'iframe', 'input', 'details', 'summary', 'table', 'th', 'tr', 'td', 'thead', 'tfoot', 'tbody'],
       allowedAttributes: {
         '*': ['alt', 'style'],
         'img': ['src', 'width', 'height'],

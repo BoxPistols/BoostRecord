@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import markdown from 'browser/lib/markdown'
+import Markdown from 'browser/lib/markdown'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
@@ -130,6 +130,13 @@ export default class MarkdownPreview extends React.Component {
     this.printHandler = () => this.handlePrint()
 
     this.linkClickHandler = this.handlelinkClick.bind(this)
+    this.initMarkdown = this.initMarkdown.bind(this)
+    this.initMarkdown()
+  }
+
+  initMarkdown () {
+    const { smartQuotes } = this.props
+    this.markdown = new Markdown({ typographer: smartQuotes })
   }
 
   handlePreviewAnchorClick (e) {
@@ -198,7 +205,7 @@ export default class MarkdownPreview extends React.Component {
       const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme} = this.getStyleParams()
 
       const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, lineNumber)
-      const body = markdown.render(noteContent)
+      const body = this.markdown.render(noteContent)
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
 
       files.forEach((file) => {
@@ -217,6 +224,7 @@ export default class MarkdownPreview extends React.Component {
       return `<html>
                  <head>
                    <meta charset="UTF-8">
+                   <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
                    <style id="style">${inlineStyles}</style>
                    ${styles}
                  </head>
@@ -310,6 +318,10 @@ export default class MarkdownPreview extends React.Component {
 
   componentDidUpdate (prevProps) {
     if (prevProps.value !== this.props.value) this.rewriteIframe()
+    if (prevProps.smartQuotes !== this.props.smartQuotes) {
+      this.initMarkdown()
+      this.rewriteIframe()
+    }
     if (prevProps.fontFamily !== this.props.fontFamily ||
       prevProps.fontSize !== this.props.fontSize ||
       prevProps.codeBlockFontFamily !== this.props.codeBlockFontFamily ||
@@ -375,7 +387,7 @@ export default class MarkdownPreview extends React.Component {
         value = value.replace(codeBlock, htmlTextHelper.encodeEntities(codeBlock))
       })
     }
-    this.refs.root.contentWindow.document.body.innerHTML = markdown.render(value)
+    this.refs.root.contentWindow.document.body.innerHTML = this.markdown.render(value)
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
       this.fixDecodedURI(el)
@@ -391,9 +403,9 @@ export default class MarkdownPreview extends React.Component {
     })
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('img'), (el) => {
-      el.src = markdown.normalizeLinkText(el.src)
+      el.src = this.markdown.normalizeLinkText(el.src)
       if (!/\/:storage/.test(el.src)) return
-      el.src = `file:///${markdown.normalizeLinkText(path.join(storagePath, 'images', path.basename(el.src)))}`
+      el.src = `file:///${this.markdown.normalizeLinkText(path.join(storagePath, 'images', path.basename(el.src)))}`
     })
 
     codeBlockTheme = consts.THEMES.some((_theme) => _theme === codeBlockTheme)
@@ -420,9 +432,9 @@ export default class MarkdownPreview extends React.Component {
         el.innerHTML = ''
         if (codeBlockTheme.indexOf('solarized') === 0) {
           const [refThema, color] = codeBlockTheme.split(' ')
-          el.parentNode.className += ` cm-s-${refThema} cm-s-${color} CodeMirror`
+          el.parentNode.className += ` cm-s-${refThema} cm-s-${color}`
         } else {
-          el.parentNode.className += ` cm-s-${codeBlockTheme} CodeMirror`
+          el.parentNode.className += ` cm-s-${codeBlockTheme}`
         }
         CodeMirror.runMode(content, syntax.mime, el, {
           tabSize: indentSize
@@ -505,9 +517,20 @@ export default class MarkdownPreview extends React.Component {
 
   handlelinkClick (e) {
     const noteHash = e.target.href.split('/').pop()
-    const regexIsNoteLink = /^(.{20})-(.{20})$/
+    // this will match the new uuid v4 hash and the old hash
+    // e.g.
+    // :note:1c211eb7dcb463de6490 and
+    // :note:7dd23275-f2b4-49cb-9e93-3454daf1af9c
+    const regexIsNoteLink = /^:note:([a-zA-Z0-9-]{20,36})$/
     if (regexIsNoteLink.test(noteHash)) {
-      eventEmitter.emit('list:jump', noteHash)
+      eventEmitter.emit('list:jump', noteHash.replace(':note:', ''))
+    }
+    // this will match the old link format storage.key-note.key
+    // e.g.
+    // 877f99c3268608328037-1c211eb7dcb463de6490
+    const regexIsLegacyNoteLink = /^(.{20})-(.{20})$/
+    if (regexIsLegacyNoteLink.test(noteHash)) {
+      eventEmitter.emit('list:jump', noteHash.split('-')[1])
     }
   }
 
@@ -534,5 +557,6 @@ MarkdownPreview.propTypes = {
   className: PropTypes.string,
   value: PropTypes.string,
   showCopyNotification: PropTypes.bool,
-  storagePath: PropTypes.string
+  storagePath: PropTypes.string,
+  smartQuotes: PropTypes.bool
 }

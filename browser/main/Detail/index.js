@@ -57,11 +57,8 @@ class Detail extends React.Component {
     const { location, data, config } = this.props
     let note = null
     if (location.query.key != null) {
-      const splitted = location.query.key.split('-')
-      const storageKey = splitted.shift()
-      const noteKey = splitted.shift()
-
-      note = data.noteMap.get(storageKey + '-' + noteKey)
+      const noteKey = location.query.key
+      note = data.noteMap.get(noteKey)
     }
 
     if (note == null) {

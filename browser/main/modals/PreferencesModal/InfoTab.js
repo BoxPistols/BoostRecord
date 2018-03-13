@@ -43,7 +43,7 @@ class InfoTab extends React.Component {
       })
     } else {
       this.setState({
-        amaMessage: i18n.__('Thank\'s for trust us')
+        amaMessage: i18n.__('Thank\'s for trusting us')
       })
     }
 

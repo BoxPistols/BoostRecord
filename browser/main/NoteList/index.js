@@ -669,7 +669,7 @@ class NoteList extends React.Component {
   }
 
   copyNoteLink (note) {
-    const noteLink = `[${note.title}](${note.storage}-${note.key})`
+    const noteLink = `[${note.title}](${note.key})`
     return copy(noteLink)
   }
 

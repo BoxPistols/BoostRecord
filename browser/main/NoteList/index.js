@@ -15,11 +15,12 @@ import path from 'path'
 import { hashHistory } from 'react-router'
 import copy from 'copy-to-clipboard'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
-import markdown from '../../lib/markdown'
+import Markdown from '../../lib/markdown'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
 const WP_POST_PATH = '/wp/v2/posts'
+const markdown = new Markdown()
 
 function sortByCreatedAt (a, b) {
   return new Date(b.createdAt) - new Date(a.createdAt)
@@ -708,7 +709,7 @@ class NoteList extends React.Component {
       authToken = `Bearer ${token}`
     }
     const contentToRender = firstNote.content.replace(`# ${firstNote.title}`, '')
-    var data = {
+    const data = {
       title: firstNote.title,
       content: markdown.render(contentToRender),
       status: 'publish'

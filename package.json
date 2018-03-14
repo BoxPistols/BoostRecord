@@ -101,6 +101,7 @@
     "babel-preset-react": "^6.3.13",
     "babel-preset-react-hmre": "^1.0.1",
     "babel-register": "^6.11.6",
+    "browser-env": "^3.2.5",
     "concurrently": "^3.4.0",
     "copy-to-clipboard": "^3.0.6",
     "css-loader": "^0.19.0",
@@ -143,7 +144,8 @@
       "tests/**/*-test.js"
     ],
     "require": [
-      "babel-register"
+      "babel-register",
+      "./tests/helpers/setup-browser-env.js"
     ],
     "babel": "inherit"
   }

@@ -100,7 +100,7 @@ const NoteItem = ({
           {note.isStarred
             ? <img styleName='item-star' src='../resources/icon/icon-starred.svg' /> : ''
           }
-          {note.isPinned && !pathname.match(/\/home|\/starred|\/trash/)
+          {note.isPinned && !pathname.match(/\/starred|\/trash/)
             ? <i styleName='item-pin' className='fa fa-thumb-tack' /> : ''
           }
           {note.type === 'MARKDOWN_NOTE'

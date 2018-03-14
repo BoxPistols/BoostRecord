@@ -15,7 +15,7 @@ import path from 'path'
 import { hashHistory } from 'react-router'
 import copy from 'copy-to-clipboard'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
-import markdown from '../../lib/markdown'
+import Markdown from '../../lib/markdown'
 import i18n from 'browser/lib/i18n'
 
 const { remote } = require('electron')

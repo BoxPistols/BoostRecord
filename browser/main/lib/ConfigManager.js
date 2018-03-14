@@ -157,6 +157,8 @@ function set (updates) {
     i18n.setLocale('pl')
   } else if (newConfig.ui.language === 'pt') {
     i18n.setLocale('pt')
+  } else if (newConfig.ui.language === 'ru') {
+    i18n.setLocale('ru')
   } else if (newConfig.ui.language === 'es') {
     i18n.setLocale('es')
   } else {

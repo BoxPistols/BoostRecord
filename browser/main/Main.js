@@ -171,6 +171,8 @@ class Main extends React.Component {
       i18n.setLocale('pl')
     } else if (config.ui.language === 'pt') {
       i18n.setLocale('pt')
+    } else if (config.ui.language === 'ru') {
+      i18n.setLocale('ru')
     } else if (config.ui.language === 'es') {
       i18n.setLocale('es')
     } else {

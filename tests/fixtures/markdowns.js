@@ -41,8 +41,14 @@ c = \pm\sqrt{a^2 + b^2}
 $$
 `
 
+const checkboxes = `
+- [ ] Unchecked
+- [x] Checked
+`
+
 export default {
   basic,
   codeblock,
-  katex
+  katex,
+  checkboxes
 }

@@ -20,3 +20,8 @@ test('Markdown.render() should renders KaTeX correctly', t => {
   const rendered = md.render(markdownFixtures.katex)
   t.snapshot(rendered)
 })
+
+test('Markdown.render() should renders checkboxes', t => {
+  const rendered = md.render(markdownFixtures.checkboxes)
+  t.snapshot(rendered)
+})

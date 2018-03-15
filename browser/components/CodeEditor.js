@@ -287,6 +287,19 @@ export default class CodeEditor extends React.Component {
       const matcher = /^(?:\w+:)?\/\/([^\s\.]+\.\S{2}|localhost[\:?\d]*)\S*$/
       return matcher.test(str)
     }
+    const isInLinkTag = (editor) => {
+      const startCursor = editor.getCursor('start')
+      const prevChar = editor.getRange(
+        { line: startCursor.line, ch: startCursor.ch - 2 },
+        { line: startCursor.line, ch: startCursor.ch }
+      )
+      const endCursor = editor.getCursor('end')
+      const nextChar = editor.getRange(
+        { line: endCursor.line, ch: endCursor.ch },
+        { line: endCursor.line, ch: endCursor.ch + 1 }
+      )
+      return prevChar === '](' && nextChar === ')'
+    }
     if (dataTransferItem.type.match('image')) {
       const blob = dataTransferItem.getAsFile()
       const reader = new FileReader()
@@ -306,7 +319,7 @@ export default class CodeEditor extends React.Component {
         const imageMd = `![${imageName}](${path.join('/:storage', `${imageName}.png`)})`
         this.insertImageMd(imageMd)
       }
-    } else if (this.props.fetchUrlTitle && isURL(pastedTxt)) {
+    } else if (this.props.fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
       this.handlePasteUrl(e, editor, pastedTxt)
     }
   }

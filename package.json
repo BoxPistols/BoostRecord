@@ -121,6 +121,7 @@
     "jsdom": "^9.4.2",
     "json-loader": "^0.5.4",
     "merge-stream": "^1.0.0",
+    "mock-require": "^3.0.1",
     "nib": "^1.1.0",
     "react-color": "^2.2.2",
     "react-css-modules": "^3.7.6",
@@ -145,7 +146,8 @@
     ],
     "require": [
       "babel-register",
-      "./tests/helpers/setup-browser-env.js"
+      "./tests/helpers/setup-browser-env.js",
+      "./tests/helpers/setup-electron-mock.js"
     ],
     "babel": "inherit"
   }

@@ -8,7 +8,6 @@ import {lastFindInArray} from './utils'
 
 // FIXME We should not depend on global variable.
 const katex = window.katex
-const config = ConfigManager.get()
 
 function createGutter (str, firstLineNumber) {
   if (Number.isNaN(firstLineNumber)) firstLineNumber = 1
@@ -22,6 +21,7 @@ function createGutter (str, firstLineNumber) {
 
 class Markdown {
   constructor (options = {}) {
+    const config = ConfigManager.get()
     const defaultOptions = {
       typographer: true,
       linkify: true,

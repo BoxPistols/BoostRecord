@@ -23,7 +23,7 @@ class Markdown {
   constructor (options = {}) {
     const config = ConfigManager.get()
     const defaultOptions = {
-      typographer: true,
+      typographer: config.preview.smartQuotes,
       linkify: true,
       html: true,
       xhtmlOut: true,

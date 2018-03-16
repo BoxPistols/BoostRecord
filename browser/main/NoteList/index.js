@@ -1,3 +1,4 @@
+/* global electron */
 import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'

@@ -6,6 +6,7 @@ import _ from 'lodash'
 import modal from 'browser/main/lib/modal'
 import NewNoteModal from 'browser/main/modals/NewNoteModal'
 import eventEmitter from 'browser/main/lib/eventEmitter'
+import i18n from 'browser/lib/i18n'
 
 const { remote } = require('electron')
 const { dialog } = remote
@@ -86,7 +87,7 @@ class NewNoteButton extends React.Component {
             onClick={(e) => this.handleNewNoteButtonClick(e)}>
             <img styleName='iconTag' src='../resources/icon/icon-newnote.svg' />
             <span styleName='control-newNoteButton-tooltip'>
-              Make a note {OSX ? '⌘' : 'Ctrl'} + N
+              {i18n.__('Make a note')} {OSX ? '⌘' : i18n.__('Ctrl')} + N
             </span>
           </button>
         </div>

@@ -58,6 +58,7 @@
     "electron-gh-releases": "^2.0.2",
     "flowchart.js": "^1.6.5",
     "font-awesome": "^4.3.0",
+    "i18n-2": "^0.7.2",
     "iconv-lite": "^0.4.19",
     "immutable": "^3.8.1",
     "js-sequence-diagrams": "^1000000.0.6",

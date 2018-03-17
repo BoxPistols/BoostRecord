@@ -14,6 +14,7 @@ import mobileAnalytics from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import { hashHistory } from 'react-router'
 import store from 'browser/main/store'
+import i18n from 'browser/lib/i18n'
 const path = require('path')
 const electron = require('electron')
 const { remote } = electron
@@ -147,6 +148,35 @@ class Main extends React.Component {
       document.body.setAttribute('data-theme', 'solarized-dark')
     } else {
       document.body.setAttribute('data-theme', 'default')
+    }
+    if (config.ui.language === 'sq') {
+      i18n.setLocale('sq')
+    } else if (config.ui.language === 'zh-CN') {
+      i18n.setLocale('zh-CN')
+    } else if (config.ui.language === 'zh-TW') {
+      i18n.setLocale('zh-TW')
+    } else if (config.ui.language === 'da') {
+      i18n.setLocale('da')
+    } else if (config.ui.language === 'fr') {
+      i18n.setLocale('fr')
+    } else if (config.ui.language === 'de') {
+      i18n.setLocale('de')
+    } else if (config.ui.language === 'ja') {
+      i18n.setLocale('ja')
+    } else if (config.ui.language === 'ko') {
+      i18n.setLocale('ko')
+    } else if (config.ui.language === 'no') {
+      i18n.setLocale('no')
+    } else if (config.ui.language === 'pl') {
+      i18n.setLocale('pl')
+    } else if (config.ui.language === 'pt') {
+      i18n.setLocale('pt')
+    } else if (config.ui.language === 'ru') {
+      i18n.setLocale('ru')
+    } else if (config.ui.language === 'es') {
+      i18n.setLocale('es')
+    } else {
+      i18n.setLocale('en')
     }
 
     // Reload all data

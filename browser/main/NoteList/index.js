@@ -17,6 +17,7 @@ import { hashHistory } from 'react-router'
 import copy from 'copy-to-clipboard'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import Markdown from '../../lib/markdown'
+import i18n from 'browser/lib/i18n'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
@@ -995,13 +996,13 @@ class NoteList extends React.Component {
               value={config.sortBy}
               onChange={(e) => this.handleSortByChange(e)}
             >
-              <option title='Sort by update time' value='UPDATED_AT'>Updated</option>
-              <option title='Sort by create time' value='CREATED_AT'>Created</option>
-              <option title='Sort alphabetically' value='ALPHABETICAL'>Alphabetically</option>
+              <option title='Sort by update time' value='UPDATED_AT'>{i18n.__('Updated')}</option>
+              <option title='Sort by create time' value='CREATED_AT'>{i18n.__('Created')}</option>
+              <option title='Sort alphabetically' value='ALPHABETICAL'>{i18n.__('Alphabetically')}</option>
             </select>
           </div>
           <div styleName='control-button-area'>
-            <button title='Default View' styleName={config.listStyle === 'DEFAULT'
+            <button title={i18n.__('Default View')} styleName={config.listStyle === 'DEFAULT'
                 ? 'control-button--active'
                 : 'control-button'
               }
@@ -1009,7 +1010,7 @@ class NoteList extends React.Component {
             >
               <img styleName='iconTag' src='../resources/icon/icon-column.svg' />
             </button>
-            <button title='Compressed View' styleName={config.listStyle === 'SMALL'
+            <button title={i18n.__('Compressed View')} styleName={config.listStyle === 'SMALL'
                 ? 'control-button--active'
                 : 'control-button'
               }

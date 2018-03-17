@@ -1,5 +1,6 @@
 import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
+import i18n from 'browser/lib/i18n'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -21,6 +22,7 @@ export const DEFAULT_CONFIG = {
     toggleMain: OSX ? 'Cmd + Alt + L' : 'Super + Alt + E'
   },
   ui: {
+    language: 'en',
     theme: 'default',
     showCopyNotification: true,
     disableDirectWrite: false,
@@ -131,6 +133,36 @@ function set (updates) {
     document.body.setAttribute('data-theme', 'solarized-dark')
   } else {
     document.body.setAttribute('data-theme', 'default')
+  }
+
+  if (newConfig.ui.language === 'sq') {
+    i18n.setLocale('sq')
+  } else if (newConfig.ui.language === 'zh-CN') {
+    i18n.setLocale('zh-CN')
+  } else if (newConfig.ui.language === 'zh-TW') {
+    i18n.setLocale('zh-TW')
+  } else if (newConfig.ui.language === 'da') {
+    i18n.setLocale('da')
+  } else if (newConfig.ui.language === 'fr') {
+    i18n.setLocale('fr')
+  } else if (newConfig.ui.language === 'de') {
+    i18n.setLocale('de')
+  } else if (newConfig.ui.language === 'ja') {
+    i18n.setLocale('ja')
+  } else if (newConfig.ui.language === 'ko') {
+    i18n.setLocale('ko')
+  } else if (newConfig.ui.language === 'no') {
+    i18n.setLocale('no')
+  } else if (newConfig.ui.language === 'pl') {
+    i18n.setLocale('pl')
+  } else if (newConfig.ui.language === 'pt') {
+    i18n.setLocale('pt')
+  } else if (newConfig.ui.language === 'ru') {
+    i18n.setLocale('ru')
+  } else if (newConfig.ui.language === 'es') {
+    i18n.setLocale('es')
+  } else {
+    i18n.setLocale('en')
   }
 
   let editorTheme = document.getElementById('editorTheme')

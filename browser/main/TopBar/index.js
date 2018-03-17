@@ -5,6 +5,7 @@ import styles from './TopBar.styl'
 import _ from 'lodash'
 import ee from 'browser/main/lib/eventEmitter'
 import NewNoteButton from 'browser/main/NewNoteButton'
+import i18n from 'browser/lib/i18n'
 
 class TopBar extends React.Component {
   constructor (props) {
@@ -176,7 +177,7 @@ class TopBar extends React.Component {
                 onChange={(e) => this.handleSearchChange(e)}
                 onKeyDown={(e) => this.handleKeyDown(e)}
                 onKeyUp={(e) => this.handleKeyUp(e)}
-                placeholder='Search'
+                placeholder={i18n.__('Search')}
                 type='text'
                 className='searchInput'
               />
@@ -185,7 +186,7 @@ class TopBar extends React.Component {
                   onClick={(e) => this.handleSearchClearButton(e)}
                 >
                   <i className='fa fa-fw fa-times' />
-                  <span styleName='control-search-input-clear-tooltip'>Clear Search</span>
+                  <span styleName='control-search-input-clear-tooltip'>{i18n.__('Clear Search')}</span>
                 </button>
               }
             </div>

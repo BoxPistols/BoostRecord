@@ -7,8 +7,6 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
 import {lastFindInArray} from './utils'
 
-const config = ConfigManager.get()
-
 function createGutter (str, firstLineNumber) {
   if (Number.isNaN(firstLineNumber)) firstLineNumber = 1
   const lastLineNumber = (str.match(/\n/g) || []).length + firstLineNumber - 1
@@ -21,8 +19,9 @@ function createGutter (str, firstLineNumber) {
 
 class Markdown {
   constructor (options = {}) {
+    const config = ConfigManager.get()
     const defaultOptions = {
-      typographer: true,
+      typographer: config.preview.smartQuotes,
       linkify: true,
       html: true,
       xhtmlOut: true,

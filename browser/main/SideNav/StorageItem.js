@@ -44,9 +44,9 @@ class StorageItem extends React.Component {
   handleUnlinkStorageClick (e) {
     const index = dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
-      message: 'Unlink Storage',
-      detail: 'This work will just detatches a storage from Boostnote. (Any data won\'t be deleted.)',
-      buttons: ['Confirm', 'Cancel']
+      message: i18n.__('Unlink Storage'),
+      detail: i18n.__('This work will just detatches a storage from Boostnote. (Any data won\'t be deleted.)'),
+      buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
     })
 
     if (index === 0) {
@@ -160,9 +160,9 @@ class StorageItem extends React.Component {
   handleFolderDeleteClick (e, folder) {
     const index = dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
-      message: 'Delete Folder',
-      detail: 'This will delete all notes in the folder and can not be undone.',
-      buttons: ['Confirm', 'Cancel']
+      message: i18n.__('Delete Folder'),
+      detail: i18n.__('This will delete all notes in the folder and can not be undone.'),
+      buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
     })
 
     if (index === 0) {

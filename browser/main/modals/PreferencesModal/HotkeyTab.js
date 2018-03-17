@@ -5,6 +5,7 @@ import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import store from 'browser/main/store'
 import _ from 'lodash'
+import i18n from 'browser/lib/i18n'
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer
@@ -23,7 +24,7 @@ class HotkeyTab extends React.Component {
     this.handleSettingDone = () => {
       this.setState({keymapAlert: {
         type: 'success',
-        message: 'Successfully applied!'
+        message: i18n.__('Successfully applied!')
       }})
     }
     this.handleSettingError = (err) => {
@@ -77,7 +78,7 @@ class HotkeyTab extends React.Component {
       this.props.haveToSave({
         tab: 'Hotkey',
         type: 'warning',
-        message: 'You have to save!'
+        message: i18n.__('You have to save!')
       })
     }
   }
@@ -102,9 +103,9 @@ class HotkeyTab extends React.Component {
     return (
       <div styleName='root'>
         <div styleName='group'>
-          <div styleName='group-header'>Hotkeys</div>
+          <div styleName='group-header'>{i18n.__('Hotkeys')}</div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>Show/Hide Boostnote</div>
+            <div styleName='group-section-label'>{i18n.__('Show/Hide Boostnote')}</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
                 onChange={(e) => this.handleHotkeyChange(e)}
@@ -124,7 +125,7 @@ class HotkeyTab extends React.Component {
               }
             </button>
             <button styleName='group-control-rightButton'
-              onClick={(e) => this.handleSaveButtonClick(e)}>Save
+              onClick={(e) => this.handleSaveButtonClick(e)}>{i18n.__('Save')}
             </button>
             {keymapAlertElement}
           </div>

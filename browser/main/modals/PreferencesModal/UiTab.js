@@ -9,6 +9,7 @@ import ReactCodeMirror from 'react-codemirror'
 import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
 import _ from 'lodash'
+import i18n from 'browser/lib/i18n'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -29,7 +30,7 @@ class UiTab extends React.Component {
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
-        message: 'Successfully applied!'
+        message: i18n.__('Successfully applied!')
       }})
     }
     this.handleSettingError = (err) => {
@@ -61,6 +62,7 @@ class UiTab extends React.Component {
     const newConfig = {
       ui: {
         theme: this.refs.uiTheme.value,
+        language: this.refs.uiLanguage.value,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
         disableDirectWrite: this.refs.uiD2w != null
@@ -107,7 +109,7 @@ class UiTab extends React.Component {
         this.props.haveToSave({
           tab: 'UI',
           type: 'warning',
-          message: 'You have to save!'
+          message: i18n.__('You have to save!')
         })
       }
     })
@@ -152,22 +154,48 @@ class UiTab extends React.Component {
     return (
       <div styleName='root'>
         <div styleName='group'>
-          <div styleName='group-header'>Interface</div>
+          <div styleName='group-header'>{i18n.__('Interface')}</div>
 
           <div styleName='group-section'>
-            Interface Theme
+            {i18n.__('Interface Theme')}
             <div styleName='group-section-control'>
               <select value={config.ui.theme}
                 onChange={(e) => this.handleUIChange(e)}
                 ref='uiTheme'
               >
-                <option value='default'>Default</option>
-                <option value='white'>White</option>
-                <option value='solarized-dark'>Solarized Dark</option>
-                <option value='dark'>Dark</option>
+                <option value='default'>{i18n.__('Default')}</option>
+                <option value='white'>{i18n.__('White')}</option>
+                <option value='solarized-dark'>{i18n.__('Solarized Dark')}</option>
+                <option value='dark'>{i18n.__('Dark')}</option>
               </select>
             </div>
           </div>
+
+          <div styleName='group-section'>
+            {i18n.__('Language')}
+            <div styleName='group-section-control'>
+              <select value={config.ui.language}
+                onChange={(e) => this.handleUIChange(e)}
+                ref='uiLanguage'
+              >
+                <option value='sq'>{i18n.__('Albanian')}</option>
+                <option value='zh-CN'>{i18n.__('Chinese (zh-CN)')}</option>
+                <option value='zh-TW'>{i18n.__('Chinese (zh-TW)')}</option>
+                <option value='da'>{i18n.__('Danish')}</option>
+                <option value='en'>{i18n.__('English')}</option>
+                <option value='fr'>{i18n.__('French')}</option>
+                <option value='de'>{i18n.__('German')}</option>
+                <option value='ja'>{i18n.__('Japanese')}</option>
+                <option value='ko'>{i18n.__('Korean')}</option>
+                <option value='no'>{i18n.__('Norwegian')}</option>
+                <option value='pl'>{i18n.__('Polish')}</option>
+                <option value='pt'>{i18n.__('Portuguese')}</option>
+                <option value='ru'>{i18n.__('Russian')}</option>
+                <option value='es'>{i18n.__('Spanish')}</option>
+              </select>
+            </div>
+          </div>
+
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
@@ -175,7 +203,7 @@ class UiTab extends React.Component {
                 ref='showCopyNotification'
                 type='checkbox'
               />&nbsp;
-              Show &quot;Saved to Clipboard&quot; notification when copying
+              {i18n.__('Show "Saved to Clipboard" notification when copying')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>
@@ -185,7 +213,7 @@ class UiTab extends React.Component {
                 ref='confirmDeletion'
                 type='checkbox'
               />&nbsp;
-              Show a confirmation dialog when deleting notes
+              {i18n.__('Show a confirmation dialog when deleting notes')}
             </label>
           </div>
           {
@@ -207,7 +235,7 @@ class UiTab extends React.Component {
 
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              Editor Theme
+              {i18n.__('Editor Theme')}
             </div>
             <div styleName='group-section-control'>
               <select value={config.editor.theme}
@@ -227,7 +255,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              Editor Font Size
+              {i18n.__('Editor Font Size')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -240,7 +268,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              Editor Font Family
+              {i18n.__('Editor Font Family')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -253,7 +281,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              Editor Indent Style
+              {i18n.__('Editor Indent Style')}
             </div>
             <div styleName='group-section-control'>
               <select value={config.editor.indentSize}
@@ -269,42 +297,42 @@ class UiTab extends React.Component {
                 ref='editorIndentType'
                 onChange={(e) => this.handleUIChange(e)}
               >
-                <option value='space'>Spaces</option>
-                <option value='tab'>Tabs</option>
+                <option value='space'>{i18n.__('Spaces')}</option>
+                <option value='tab'>{i18n.__('Tabs')}</option>
               </select>
             </div>
           </div>
 
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              Switch to Preview
+              {i18n.__('Switch to Preview')}
             </div>
             <div styleName='group-section-control'>
               <select value={config.editor.switchPreview}
                 ref='editorSwitchPreview'
                 onChange={(e) => this.handleUIChange(e)}
               >
-                <option value='BLUR'>When Editor Blurred</option>
-                <option value='DBL_CLICK'>When Editor Blurred, Edit On Double Click</option>
-                <option value='RIGHTCLICK'>On Right Click</option>
+                <option value='BLUR'>{i18n.__('When Editor Blurred')}</option>
+                <option value='DBL_CLICK'>{i18n.__('When Editor Blurred, Edit On Double Click')}</option>
+                <option value='RIGHTCLICK'>{i18n.__('On Right Click')}</option>
               </select>
             </div>
           </div>
 
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              Editor Keymap
+              {i18n.__('Editor Keymap')}
             </div>
             <div styleName='group-section-control'>
               <select value={config.editor.keyMap}
                 ref='editorKeyMap'
                 onChange={(e) => this.handleUIChange(e)}
               >
-                <option value='sublime'>default</option>
-                <option value='vim'>vim</option>
-                <option value='emacs'>emacs</option>
+                <option value='sublime'>{i18n.__('default')}</option>
+                <option value='vim'>{i18n.__('vim')}</option>
+                <option value='emacs'>{i18n.__('emacs')}</option>
               </select>
-              <p styleName='note-for-keymap'>⚠️ Please restart boostnote after you change the keymap</p>
+              <p styleName='note-for-keymap'>{i18n.__('⚠️ Please restart boostnote after you change the keymap')}</p>
             </div>
           </div>
 
@@ -315,7 +343,7 @@ class UiTab extends React.Component {
                 ref='editorDisplayLineNumbers'
                 type='checkbox'
               />&nbsp;
-              Show line numbers in the editor
+              {i18n.__('Show line numbers in the editor')}
             </label>
           </div>
 
@@ -326,7 +354,7 @@ class UiTab extends React.Component {
                 ref='scrollPastEnd'
                 type='checkbox'
               />&nbsp;
-              Allow editor to scroll past the last line
+              {i18n.__('Allow editor to scroll past the last line')}
             </label>
           </div>
 
@@ -337,14 +365,14 @@ class UiTab extends React.Component {
                 ref='editorFetchUrlTitle'
                 type='checkbox'
               />&nbsp;
-              Bring in web page title when pasting URL on editor
+              {i18n.__('Bring in web page title when pasting URL on editor')}
             </label>
           </div>
 
           <div styleName='group-header2'>Preview</div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              Preview Font Size
+              {i18n.__('Preview Font Size')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -357,7 +385,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              Preview Font Family
+              {i18n.__('Preview Font Family')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -369,7 +397,7 @@ class UiTab extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>Code block Theme</div>
+            <div styleName='group-section-label'>{i18n.__('Code block Theme')}</div>
             <div styleName='group-section-control'>
               <select value={config.preview.codeBlockTheme}
                 ref='previewCodeBlockTheme'
@@ -390,7 +418,7 @@ class UiTab extends React.Component {
                 ref='previewScrollPastEnd'
                 type='checkbox'
               />&nbsp;
-              Allow preview to scroll past the last line
+              {i18n.__('Allow preview to scroll past the last line')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>
@@ -400,7 +428,7 @@ class UiTab extends React.Component {
                 ref='previewLineNumber'
                 type='checkbox'
               />&nbsp;
-              Show line numbers for preview code blocks
+              {i18n.__('Show line numbers for preview code blocks')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>
@@ -415,7 +443,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              LaTeX Inline Open Delimiter
+              {i18n.__('LaTeX Inline Open Delimiter')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -428,7 +456,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              LaTeX Inline Close Delimiter
+              {i18n.__('LaTeX Inline Close Delimiter')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -441,7 +469,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              LaTeX Block Open Delimiter
+              {i18n.__('LaTeX Block Open Delimiter')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -454,7 +482,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              LaTeX Block Close Delimiter
+              {i18n.__('LaTeX Block Close Delimiter')}
             </div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
@@ -468,7 +496,7 @@ class UiTab extends React.Component {
 
           <div styleName='group-control'>
             <button styleName='group-control-rightButton'
-              onClick={(e) => this.handleSaveUIClick(e)}>Save
+              onClick={(e) => this.handleSaveUIClick(e)}>{i18n.__('Save')}
             </button>
             {UiAlertElement}
           </div>

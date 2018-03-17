@@ -52,6 +52,7 @@
 	"Show line numbers in the editor": "Zeilennummern im Editor anzeigen",
 	"Allow editor to scroll past the last line": "Editor das Scrollen über das Ende hinaus erlauben",
 	"Bring in web page title when pasting URL on editor": "Websitetitel beim Einfügen in den Editor anzeigen",
+	"Preview": "Vorschau",
 	"Preview Font Size": "Vorschau Schriftgröße",
 	"Preview Font Family": "Vorschau Schriftart",
 	"Code block Theme": "Code block Theme",

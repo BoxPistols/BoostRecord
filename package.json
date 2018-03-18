@@ -93,7 +93,7 @@
     "uuid": "^3.2.1"
   },
   "devDependencies": {
-    "ava": "^0.16.0",
+    "ava": "^0.25.0",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.0",
     "babel-plugin-react-transform": "^2.0.0",
@@ -102,6 +102,7 @@
     "babel-preset-react": "^6.3.13",
     "babel-preset-react-hmre": "^1.0.1",
     "babel-register": "^6.11.6",
+    "browser-env": "^3.2.5",
     "concurrently": "^3.4.0",
     "copy-to-clipboard": "^3.0.6",
     "css-loader": "^0.19.0",
@@ -121,6 +122,7 @@
     "jsdom": "^9.4.2",
     "json-loader": "^0.5.4",
     "merge-stream": "^1.0.0",
+    "mock-require": "^3.0.1",
     "nib": "^1.1.0",
     "react-color": "^2.2.2",
     "react-css-modules": "^3.7.6",
@@ -144,7 +146,9 @@
       "tests/**/*-test.js"
     ],
     "require": [
-      "babel-register"
+      "babel-register",
+      "./tests/helpers/setup-browser-env.js",
+      "./tests/helpers/setup-electron-mock.js"
     ],
     "babel": "inherit"
   }

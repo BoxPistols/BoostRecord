@@ -4,10 +4,8 @@ import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
 import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
+import katex from 'katex'
 import {lastFindInArray} from './utils'
-
-// FIXME We should not depend on global variable.
-const katex = window.katex
 
 function createGutter (str, firstLineNumber) {
   if (Number.isNaN(firstLineNumber)) firstLineNumber = 1

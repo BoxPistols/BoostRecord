@@ -25,3 +25,12 @@ test('Markdown.render() should renders checkboxes', t => {
   const rendered = md.render(markdownFixtures.checkboxes)
   t.snapshot(rendered)
 })
+
+test('Markdown.render() should text with quotes correctly', t => {
+  const renderedSmartQuotes = md.render(markdownFixtures.smartQuotes)
+  t.snapshot(renderedSmartQuotes)
+
+  const newmd = new Markdown({ typographer: false })
+  const renderedNonSmartQuotes = newmd.render(markdownFixtures.smartQuotes)
+  t.snapshot(renderedNonSmartQuotes)
+})

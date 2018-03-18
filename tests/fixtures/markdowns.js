@@ -46,9 +46,12 @@ const checkboxes = `
 - [x] Checked
 `
 
+const smartQuotes = 'This is a "QUOTE".'
+
 export default {
   basic,
   codeblock,
   katex,
-  checkboxes
+  checkboxes,
+  smartQuotes
 }

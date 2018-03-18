@@ -671,7 +671,7 @@ class NoteList extends React.Component {
   }
 
   copyNoteLink (note) {
-    const noteLink = `[${note.title}](${note.key})`
+    const noteLink = `[${note.title}](:note:${note.key})`
     return copy(noteLink)
   }
 

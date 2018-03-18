@@ -5,6 +5,7 @@ import styles from './TopBar.styl'
 import _ from 'lodash'
 import ee from 'browser/main/lib/eventEmitter'
 import NewNoteButton from 'browser/main/NewNoteButton'
+import i18n from 'browser/lib/i18n'
 
 class TopBar extends React.Component {
   constructor (props) {
@@ -36,12 +37,40 @@ class TopBar extends React.Component {
     ee.off('code:init', this.codeInitHandler)
   }
 
+  handleSearchClearButton (e) {
+    const { router } = this.context
+    this.setState({
+      search: '',
+      isSearching: false
+    })
+    this.refs.search.childNodes[0].blur
+    router.push('/searched')
+    e.preventDefault()
+  }
+
   handleKeyDown (e) {
     // reset states
     this.setState({
       isAlphabet: false,
       isIME: false
     })
+
+    // Clear search on ESC
+    if (e.keyCode === 27) {
+      return this.handleSearchClearButton(e)
+    }
+
+    // Next note on DOWN key
+    if (e.keyCode === 40) {
+      ee.emit('list:next')
+      e.preventDefault()
+    }
+
+    // Prev note on UP key
+    if (e.keyCode === 38) {
+      ee.emit('list:prior')
+      e.preventDefault()
+    }
 
     // When the key is an alphabet, del, enter or ctr
     if (e.keyCode <= 90 || e.keyCode >= 186 && e.keyCode <= 222) {
@@ -114,10 +143,12 @@ class TopBar extends React.Component {
   }
 
   handleOnSearchFocus () {
+    const el = this.refs.search.childNodes[0]
     if (this.state.isSearching) {
-      this.refs.search.childNodes[0].blur()
+      el.blur()
     } else {
-      this.refs.search.childNodes[0].focus()
+      el.focus()
+      el.setSelectionRange(0, el.value.length)
     }
   }
 
@@ -146,19 +177,19 @@ class TopBar extends React.Component {
                 onChange={(e) => this.handleSearchChange(e)}
                 onKeyDown={(e) => this.handleKeyDown(e)}
                 onKeyUp={(e) => this.handleKeyUp(e)}
-                placeholder='Search'
+                placeholder={i18n.__('Search')}
                 type='text'
                 className='searchInput'
               />
+              {this.state.search !== '' &&
+                <button styleName='control-search-input-clear'
+                  onClick={(e) => this.handleSearchClearButton(e)}
+                >
+                  <i className='fa fa-fw fa-times' />
+                  <span styleName='control-search-input-clear-tooltip'>{i18n.__('Clear Search')}</span>
+                </button>
+              }
             </div>
-            {this.state.search > 0 &&
-              <button styleName='left-search-clearButton'
-                onClick={(e) => this.handleSearchClearButton(e)}
-              >
-                <i className='fa fa-times' />
-              </button>
-            }
-
           </div>
         </div>
         {location.pathname === '/trashed' ? ''

@@ -28,9 +28,9 @@ const NoteItemSimple = ({
     ? 'item-simple--active'
     : 'item-simple'
   }
-    key={`${note.storage}-${note.key}`}
-    onClick={e => handleNoteClick(e, `${note.storage}-${note.key}`)}
-    onContextMenu={e => handleNoteContextMenu(e, `${note.storage}-${note.key}`)}
+    key={note.key}
+    onClick={e => handleNoteClick(e, note.key)}
+    onContextMenu={e => handleNoteContextMenu(e, note.key)}
     onDragStart={e => handleDragStart(e, note)}
     draggable='true'
   >

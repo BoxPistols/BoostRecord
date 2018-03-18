@@ -25,7 +25,8 @@ import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
-import {formatDate} from 'browser/lib/date-formatter'
+import { formatDate } from 'browser/lib/date-formatter'
+import i18n from 'browser/lib/i18n'
 
 function pass (name) {
   switch (name) {
@@ -166,7 +167,7 @@ class SnippetNoteDetail extends React.Component {
           hashHistory.replace({
             pathname: location.pathname,
             query: {
-              key: newNote.storage + '-' + newNote.key
+              key: newNote.key
             }
           })
           this.setState({
@@ -328,9 +329,9 @@ class SnippetNoteDetail extends React.Component {
       if (this.state.note.snippets[index].content.trim().length > 0) {
         const dialogIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
           type: 'warning',
-          message: 'Delete a snippet',
-          detail: 'This work cannot be undone.',
-          buttons: ['Confirm', 'Cancel']
+          message: i18n.__('Delete a snippet'),
+          detail: i18n.__('This work cannot be undone.'),
+          buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
         })
         if (dialogIndex === 0) {
           this.deleteSnippetByIndex(index)
@@ -422,6 +423,7 @@ class SnippetNoteDetail extends React.Component {
 
   handleKeyDown (e) {
     switch (e.keyCode) {
+      // tab key
       case 9:
         if (e.ctrlKey && !e.shiftKey) {
           e.preventDefault()
@@ -434,6 +436,7 @@ class SnippetNoteDetail extends React.Component {
           this.focusEditor()
         }
         break
+      // L key
       case 76:
         {
           const isSuper = global.process.platform === 'darwin'
@@ -445,6 +448,7 @@ class SnippetNoteDetail extends React.Component {
           }
         }
         break
+      // T key
       case 84:
         {
           const isSuper = global.process.platform === 'darwin'
@@ -634,8 +638,8 @@ class SnippetNoteDetail extends React.Component {
   showWarning () {
     dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
-      message: 'Sorry!',
-      detail: 'md/text import is available only a markdown note.',
+      message: i18n.__('Sorry!'),
+      detail: i18n.__('md/text import is available only a markdown note.'),
       buttons: ['OK']
     })
   }
@@ -777,7 +781,7 @@ class SnippetNoteDetail extends React.Component {
         <InfoPanel
           storageName={currentOption.storage.name}
           folderName={currentOption.folder.name}
-          noteLink={`[${note.title}](${location.query.key})`}
+          noteLink={`[${note.title}](:note:${location.query.key})`}
           updatedAt={formatDate(note.updatedAt)}
           createdAt={formatDate(note.createdAt)}
           exportAsMd={this.showWarning}

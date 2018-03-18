@@ -62,9 +62,9 @@ const NoteItem = ({
     ? 'item--active'
     : 'item'
   }
-    key={`${note.storage}-${note.key}`}
-    onClick={e => handleNoteClick(e, `${note.storage}-${note.key}`)}
-    onContextMenu={e => handleNoteContextMenu(e, `${note.storage}-${note.key}`)}
+    key={note.key}
+    onClick={e => handleNoteClick(e, note.key)}
+    onContextMenu={e => handleNoteContextMenu(e, note.key)}
     onDragStart={e => handleDragStart(e, note)}
     draggable='true'
   >
@@ -100,7 +100,7 @@ const NoteItem = ({
           {note.isStarred
             ? <img styleName='item-star' src='../resources/icon/icon-starred.svg' /> : ''
           }
-          {note.isPinned && !pathname.match(/\/home|\/starred|\/trash/)
+          {note.isPinned && !pathname.match(/\/starred|\/trash/)
             ? <i styleName='item-pin' className='fa fa-thumb-tack' /> : ''
           }
           {note.type === 'MARKDOWN_NOTE'
@@ -123,7 +123,11 @@ NoteItem.propTypes = {
     title: PropTypes.string.isrequired,
     tags: PropTypes.array,
     isStarred: PropTypes.bool.isRequired,
-    isTrashed: PropTypes.bool.isRequired
+    isTrashed: PropTypes.bool.isRequired,
+    blog: {
+      blogLink: PropTypes.string,
+      blogId: PropTypes.number
+    }
   }),
   handleNoteClick: PropTypes.func.isRequired,
   handleNoteContextMenu: PropTypes.func.isRequired,

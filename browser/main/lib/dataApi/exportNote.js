@@ -1,5 +1,6 @@
 import copyFile from 'browser/main/lib/dataApi/copyFile'
 import {findStorage} from 'browser/lib/findStorage'
+import filenamify from 'filenamify'
 
 const fs = require('fs')
 const path = require('path')
@@ -28,6 +29,7 @@ function exportNote (storageKey, noteContent, targetPath, outputFormatter) {
   }
 
   let exportedData = noteContent.replace(LOCAL_STORED_REGEX, (match, dstFilename, srcFilename) => {
+    dstFilename = filenamify(dstFilename, {replacement: '_'})
     if (!path.extname(dstFilename)) {
       dstFilename += path.extname(srcFilename)
     }

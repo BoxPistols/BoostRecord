@@ -10,6 +10,7 @@ import dataApi from 'browser/main/lib/dataApi'
 import StorageItemChild from 'browser/components/StorageItem'
 import _ from 'lodash'
 import { SortableElement } from 'react-sortable-hoc'
+import i18n from 'browser/lib/i18n'
 
 const { remote } = require('electron')
 const { Menu, dialog } = remote

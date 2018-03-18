@@ -52,6 +52,7 @@
 	"Show line numbers in the editor": "Показывать номера строк в редакторе",
 	"Allow editor to scroll past the last line": "Разрешить прокрутку дальше последней строки в редакторе",
 	"Bring in web page title when pasting URL on editor": "Копировать заголовок страницы при вставке URL-ссылки в редакторе",
+	"Preview": "Preview",
 	"Preview Font Size": "Размер шрифта",
 	"Preview Font Family": "Шрифт",
 	"Code block Theme": "Тема оформления кода",

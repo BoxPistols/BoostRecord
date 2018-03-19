@@ -8,7 +8,7 @@ import StarButton from './StarButton'
 import TagSelect from './TagSelect'
 import FolderSelect from './FolderSelect'
 import dataApi from 'browser/main/lib/dataApi'
-import { hashHistory } from 'react-router'
+import {hashHistory} from 'react-router'
 import ee from 'browser/main/lib/eventEmitter'
 import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
@@ -17,7 +17,7 @@ import StatusBar from '../StatusBar'
 import context from 'browser/lib/context'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import _ from 'lodash'
-import { findNoteTitle } from 'browser/lib/findNoteTitle'
+import {findNoteTitle} from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import TrashButton from './TrashButton'
 import RestoreButton from './RestoreButton'
@@ -54,10 +54,28 @@ class SnippetNoteDetail extends React.Component {
     this.state = {
       isMovingNote: false,
       snippetIndex: 0,
+      showArrows: false,
+      enableLeftArrow: false,
+      enableRightArrow: false,
       note: Object.assign({
         description: ''
       }, props.note, {
         snippets: props.note.snippets.map((snippet) => Object.assign({}, snippet))
+      })
+    }
+
+    this.scrollToNextTabThreshold = 0.7
+  }
+
+  componentDidMount () {
+    const visibleTabs = this.visibleTabs
+    const allTabs = this.allTabs
+
+    if (visibleTabs.offsetWidth < allTabs.scrollWidth) {
+      this.setState({
+        showArrows: visibleTabs.offsetWidth < allTabs.scrollWidth,
+        enableRightArrow: allTabs.offsetLeft !== visibleTabs.offsetWidth - allTabs.scrollWidth,
+        enableLeftArrow: allTabs.offsetLeft !== 0
       })
     }
   }
@@ -79,6 +97,7 @@ class SnippetNoteDetail extends React.Component {
           this.refs['code-' + index].reload()
         })
         if (this.refs.tags) this.refs.tags.reset()
+        this.setState(this.getArrowsState())
       })
     }
   }
@@ -229,6 +248,51 @@ class SnippetNoteDetail extends React.Component {
     ee.emit('editor:fullscreen')
   }
 
+  handleTabMoveLeftButtonClick (e) {
+    {
+      const left = this.visibleTabs.scrollLeft
+
+      const tabs = this.allTabs.querySelectorAll('div')
+      const lastVisibleTab = Array.from(tabs).find((tab) => {
+        return tab.offsetLeft + tab.offsetWidth >= left
+      })
+
+      if (lastVisibleTab) {
+        const visiblePart = lastVisibleTab.offsetWidth + lastVisibleTab.offsetLeft - left
+        const isFullyVisible = visiblePart > lastVisibleTab.offsetWidth * this.scrollToNextTabThreshold
+        const scrollToTab = (isFullyVisible && lastVisibleTab.previousSibling)
+            ? lastVisibleTab.previousSibling
+            : lastVisibleTab
+
+        // FIXME use `scrollIntoView()` instead of custom method after update to Electron2.0 (with Chrome 61 its possible animate the scroll)
+        this.moveToTab(scrollToTab)
+        // scrollToTab.scrollIntoView({behavior: 'smooth', inline: 'start', block: 'start'})
+      }
+    }
+  }
+
+  handleTabMoveRightButtonClick (e) {
+    const left = this.visibleTabs.scrollLeft
+    const width = this.visibleTabs.offsetWidth
+
+    const tabs = this.allTabs.querySelectorAll('div')
+    const lastVisibleTab = Array.from(tabs).find((tab) => {
+      return tab.offsetLeft + tab.offsetWidth >= width + left
+    })
+
+    if (lastVisibleTab) {
+      const visiblePart = width + left - lastVisibleTab.offsetLeft
+      const isFullyVisible = visiblePart > lastVisibleTab.offsetWidth * this.scrollToNextTabThreshold
+      const scrollToTab = (isFullyVisible && lastVisibleTab.nextSibling)
+          ? lastVisibleTab.nextSibling
+          : lastVisibleTab
+
+      // FIXME use `scrollIntoView()` instead of custom method after update to Electron2.0 (with Chrome 61 its possible animate the scroll)
+      this.moveToTab(scrollToTab)
+      // scrollToTab.scrollIntoView({behavior: 'smooth', inline: 'end', block: 'end'})
+    }
+  }
+
   handleTabPlusButtonClick (e) {
     this.addSnippet()
   }
@@ -288,6 +352,21 @@ class SnippetNoteDetail extends React.Component {
     this.setState({ note, snippetIndex }, () => {
       this.save()
       this.refs['code-' + this.state.snippetIndex].reload()
+
+      if (this.visibleTabs.offsetWidth > this.allTabs.scrollWidth) {
+        console.log('no need for arrows')
+        this.moveTabBarBy(0)
+      } else {
+        const lastTab = this.allTabs.lastChild
+        if (lastTab.offsetLeft + lastTab.offsetWidth < this.visibleTabs.offsetWidth) {
+          console.log('need to scroll')
+          const width = this.visibleTabs.offsetWidth
+          const newLeft = lastTab.offsetLeft + lastTab.offsetWidth - width
+          this.moveTabBarBy(newLeft > 0 ? -newLeft : 0)
+        } else {
+          this.setState(this.getArrowsState())
+        }
+      }
     })
   }
 
@@ -461,6 +540,51 @@ class SnippetNoteDetail extends React.Component {
     this.refs.description.focus()
   }
 
+  moveToTab (tab) {
+    const easeOutCubic = t => (--t) * t * t + 1
+    const startScrollPosition = this.visibleTabs.scrollLeft
+    const animationTiming = 300
+    const scrollMoreCoeff = 1.4 // introduce coefficient, because we want to scroll a bit further to see next tab
+
+    let scrollBy = (tab.offsetLeft - startScrollPosition)
+
+    if (tab.offsetLeft > startScrollPosition) {
+      // if tab is on the right side and we want to show the whole tab in visible area,
+      // we need to include width of the tab and visible area in the formula
+      //  ___________________________________________
+      // |____|_______|________|________|_show_this_|
+      //        ↑_____________________↑
+      //            visible area
+      scrollBy += (tab.offsetWidth - this.visibleTabs.offsetWidth)
+    }
+
+    let startTime = null
+    const scrollAnimation = time => {
+      startTime = startTime || time
+      const elapsed = (time - startTime) / animationTiming
+
+      this.visibleTabs.scrollLeft = startScrollPosition + easeOutCubic(elapsed) * scrollBy * scrollMoreCoeff
+      if (elapsed < 1) {
+        window.requestAnimationFrame(scrollAnimation)
+      } else {
+        this.setState(this.getArrowsState())
+      }
+    }
+
+    window.requestAnimationFrame(scrollAnimation)
+  }
+
+  getArrowsState () {
+    const allTabs = this.allTabs
+    const visibleTabs = this.visibleTabs
+
+    const showArrows = visibleTabs.offsetWidth < allTabs.scrollWidth
+    const enableRightArrow = visibleTabs.scrollLeft !== allTabs.scrollWidth - visibleTabs.offsetWidth
+    const enableLeftArrow = visibleTabs.scrollLeft !== 0
+
+    return {showArrows, enableRightArrow, enableLeftArrow}
+  }
+
   addSnippet () {
     const { note } = this.state
 
@@ -471,10 +595,16 @@ class SnippetNoteDetail extends React.Component {
     }])
     const snippetIndex = note.snippets.length - 1
 
-    this.setState({
+    this.setState(Object.assign({
       note,
       snippetIndex
-    }, () => {
+    }, this.getArrowsState()), () => {
+      if (this.state.showArrows) {
+        const tabs = this.allTabs.querySelectorAll('div')
+        if (tabs) {
+          this.moveToTab(tabs[snippetIndex])
+        }
+      }
       this.refs['tab-' + snippetIndex].startRenaming()
     })
   }
@@ -683,10 +813,26 @@ class SnippetNoteDetail extends React.Component {
             />
           </div>
           <div styleName='tabList'>
-            <div styleName='list'>
-              {tabList}
+            <button styleName='tabButton'
+              hidden={!this.state.showArrows}
+              disabled={!this.state.enableLeftArrow}
+              onClick={(e) => this.handleTabMoveLeftButtonClick(e)}
+            >
+              <i className='fa fa-chevron-left' />
+            </button>
+            <div styleName='list' onScroll={(e) => { this.setState(this.getArrowsState()) }} ref={(tabs) => { this.visibleTabs = tabs }}>
+              <div styleName='allTabs' ref={(tabs) => { this.allTabs = tabs }}>
+                {tabList}
+              </div>
             </div>
-            <button styleName='plusButton'
+            <button styleName='tabButton'
+              hidden={!this.state.showArrows}
+              disabled={!this.state.enableRightArrow}
+              onClick={(e) => this.handleTabMoveRightButtonClick(e)}
+            >
+              <i className='fa fa-chevron-right' />
+            </button>
+            <button styleName='tabButton'
               onClick={(e) => this.handleTabPlusButtonClick(e)}
             >
               <i className='fa fa-plus' />

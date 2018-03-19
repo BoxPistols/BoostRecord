@@ -35,13 +35,26 @@
   height 30px
   display flex
   background-color $ui-noteDetail-backgroundColor
+  overflow hidden
 
 .tabList .list
   flex 1
-  display flex
   overflow hidden
+  overflow-x scroll
+  position relative
 
-.tabList .plusButton
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  .allTabs
+    display flex
+    position relative
+    overflow visible
+    left 0
+    transition left 0.1s
+
+.tabList .tabButton
   navWhiteButtonColor()
   width 30px
 

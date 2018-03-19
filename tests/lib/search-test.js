@@ -20,16 +20,19 @@ test.before(t => {
   notes = [note1, note2, note3]
 })
 
-test('it can find notes by tags or words', t => {
+test('it can find notes by tags and words', t => {
   // [input, expected content (Array)]
   const testCases = [
     ['#tag1', [note1.content, note2.content, note3.content]],
     ['#tag1 #tag2', [note2.content]],
+    ['#tag2 #tag1', [note2.content]],
     ['#tag1 #tag2 #tag3', []],
     ['content1', [note1.content, note2.content]],
     ['content1 content2', [note2.content]],
     ['content1 content2 content3', []],
-    ['#content4', [note3.content]]
+    ['#content4', [note3.content]],
+    ['#tag2 content1', [note2.content]],
+    ['content1 #tag2', [note2.content]]
   ]
 
   testCases.forEach((testCase) => {

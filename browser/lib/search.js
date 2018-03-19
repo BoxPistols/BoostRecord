@@ -4,11 +4,12 @@ export default function searchFromNotes (notes, search) {
   if (search.trim().length === 0) return []
   const searchBlocks = search.split(' ').filter(block => { return block !== '' })
 
-  let foundNotes = findByWord(notes, searchBlocks[0])
+  let foundNotes = notes
   searchBlocks.forEach((block) => {
-    foundNotes = findByWord(foundNotes, block)
     if (block.match(/^#.+/)) {
-      foundNotes = foundNotes.concat(findByTag(notes, block))
+      foundNotes = findByTag(foundNotes, block)
+    } else {
+      foundNotes = findByWord(foundNotes, block)
     }
   })
   return foundNotes

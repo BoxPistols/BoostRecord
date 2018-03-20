@@ -6,38 +6,28 @@ export default function searchFromNotes (notes, search) {
 
   let foundNotes = notes
   searchBlocks.forEach((block) => {
-    if (block.match(/^#.+/)) {
-      foundNotes = findByTag(foundNotes.slice(0), block).concat(findByWord(foundNotes.slice(0), block))
-    } else {
-      foundNotes = findByWord(foundNotes, block)
-    }
+    foundNotes = findByWordOrTag(foundNotes, block)
   })
   return foundNotes
 }
 
-function findByTag (notes, block) {
-  const tag = block.match(/#(.+)/)[1]
-  const regExp = new RegExp(_.escapeRegExp(tag), 'i')
-  return notes.filter((note) => {
-    if (!_.isArray(note.tags)) return false
-    return note.tags.some((_tag) => {
-      return _tag.match(regExp)
-    })
-  })
-}
-
-function findByWord (notes, block) {
-  const regExp = new RegExp(_.escapeRegExp(block), 'i')
+function findByWordOrTag (notes, block) {
+  let tag = block
+  if (tag.match(/^#.+/)) {
+    tag = tag.match(/#(.+)/)[1]
+  }
+  const tagRegExp = new RegExp(_.escapeRegExp(tag), 'i')
+  const wordRegExp = new RegExp(_.escapeRegExp(block), 'i')
   return notes.filter((note) => {
     if (_.isArray(note.tags) && note.tags.some((_tag) => {
-      return _tag.match(regExp)
+      return _tag.match(tagRegExp)
     })) {
       return true
     }
     if (note.type === 'SNIPPET_NOTE') {
-      return note.description.match(regExp)
+      return note.description.match(wordRegExp)
     } else if (note.type === 'MARKDOWN_NOTE') {
-      return note.content.match(regExp)
+      return note.content.match(wordRegExp)
     }
     return false
   })

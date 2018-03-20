@@ -7,7 +7,7 @@ export default function searchFromNotes (notes, search) {
   let foundNotes = notes
   searchBlocks.forEach((block) => {
     if (block.match(/^#.+/)) {
-      foundNotes = findByTag(foundNotes, block)
+      foundNotes = findByTag(foundNotes.slice(0), block).concat(findByWord(foundNotes.slice(0), block))
     } else {
       foundNotes = findByWord(foundNotes, block)
     }

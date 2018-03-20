@@ -1,5 +1,4 @@
 import ConfigManager from './ConfigManager'
-import store from 'browser/main/store'
 
 const nodeIpc = require('node-ipc')
 const { remote, ipcRenderer } = require('electron')

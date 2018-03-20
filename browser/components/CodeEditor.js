@@ -14,6 +14,7 @@ const { ipcRenderer } = require('electron')
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
 const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
+const buildCMRulers = rulers => rulers.map(ruler => ({ column: ruler }))
 
 function pass (name) {
   switch (name) {
@@ -91,9 +92,11 @@ export default class CodeEditor extends React.Component {
   }
 
   componentDidMount () {
+    const { rulers } = this.props
     this.value = this.props.value
 
     this.editor = CodeMirror(this.refs.root, {
+      rulers: buildCMRulers(rulers),
       value: this.props.value,
       lineNumbers: this.props.displayLineNumbers,
       lineWrapping: true,
@@ -196,6 +199,10 @@ export default class CodeEditor extends React.Component {
     }
     if (prevProps.keyMap !== this.props.keyMap) {
       needRefresh = true
+    }
+
+    if (prevProps.rulers !== this.props.rulers) {
+      this.editor.setOption('rulers', buildCMRulers(this.props.rulers))
     }
 
     if (prevProps.indentSize !== this.props.indentSize) {
@@ -407,6 +414,7 @@ export default class CodeEditor extends React.Component {
 
 CodeEditor.propTypes = {
   value: PropTypes.string,
+  rulers: PropTypes.arrayOf(Number),
   mode: PropTypes.string,
   className: PropTypes.string,
   onBlur: PropTypes.func,

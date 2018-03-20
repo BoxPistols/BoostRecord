@@ -75,6 +75,7 @@ class UiTab extends React.Component {
         fontFamily: this.refs.editorFontFamily.value,
         indentType: this.refs.editorIndentType.value,
         indentSize: this.refs.editorIndentSize.value,
+        rulers: this.refs.editorRulers.value.replace(/[^0-9,]/g, '').split(','),
         displayLineNumbers: this.refs.editorDisplayLineNumbers.checked,
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
@@ -300,6 +301,20 @@ class UiTab extends React.Component {
                 <option value='space'>{i18n.__('Spaces')}</option>
                 <option value='tab'>{i18n.__('Tabs')}</option>
               </select>
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Editor Rulers')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='editorRulers'
+                value={config.editor.rulers}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
             </div>
           </div>
 

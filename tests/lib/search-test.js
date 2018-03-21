@@ -22,7 +22,7 @@ test.before(t => {
 
 test('it can find notes by tags and words', t => {
   // [input, expected content (Array)]
-  const testCases = [
+  const testWithTags = [
     ['#tag1', [note1.content, note2.content, note3.content]],
     ['#tag1 #tag2', [note2.content]],
     ['#tag2 #tag1', [note2.content]],
@@ -34,7 +34,11 @@ test('it can find notes by tags and words', t => {
     ['#tag2 content1', [note2.content]],
     ['content1 #tag2', [note2.content]]
   ]
+  const testWithTagsWithoutHash = testWithTags.map(function (testCase) {
+    return [testCase[0].replace(/#/g, ''), testCase[1]]
+  })
 
+  const testCases = testWithTags.concat(testWithTagsWithoutHash)
   testCases.forEach((testCase) => {
     const [input, expectedContents] = testCase
     const results = searchFromNotes(notes, input)

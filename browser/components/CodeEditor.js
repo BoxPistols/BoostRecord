@@ -14,7 +14,8 @@ const { ipcRenderer } = require('electron')
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
 const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
-const buildCMRulers = rulers => rulers.map(ruler => ({ column: ruler }))
+const buildCMRulers = (rulers, enableRulers) =>
+  enableRulers ? rulers.map(ruler => ({ column: ruler })) : []
 
 function pass (name) {
   switch (name) {
@@ -92,11 +93,11 @@ export default class CodeEditor extends React.Component {
   }
 
   componentDidMount () {
-    const { rulers } = this.props
+    const { rulers, enableRulers } = this.props
     this.value = this.props.value
 
     this.editor = CodeMirror(this.refs.root, {
-      rulers: buildCMRulers(rulers),
+      rulers: buildCMRulers(rulers, enableRulers),
       value: this.props.value,
       lineNumbers: this.props.displayLineNumbers,
       lineWrapping: true,
@@ -184,6 +185,7 @@ export default class CodeEditor extends React.Component {
 
   componentDidUpdate (prevProps, prevState) {
     let needRefresh = false
+    const { rulers, enableRulers } = this.props
     if (prevProps.mode !== this.props.mode) {
       this.setMode(this.props.mode)
     }
@@ -201,8 +203,8 @@ export default class CodeEditor extends React.Component {
       needRefresh = true
     }
 
-    if (prevProps.rulers !== this.props.rulers) {
-      this.editor.setOption('rulers', buildCMRulers(this.props.rulers))
+    if (prevProps.enableRulers !== enableRulers || prevProps.rulers !== rulers) {
+      this.editor.setOption('rulers', buildCMRulers(rulers, enableRulers))
     }
 
     if (prevProps.indentSize !== this.props.indentSize) {
@@ -414,6 +416,7 @@ export default class CodeEditor extends React.Component {
 
 CodeEditor.propTypes = {
   value: PropTypes.string,
+  enableRulers: PropTypes.bool,
   rulers: PropTypes.arrayOf(Number),
   mode: PropTypes.string,
   className: PropTypes.string,

@@ -110,6 +110,7 @@ class MarkdownSplitEditor extends React.Component {
           displayLineNumbers={config.editor.displayLineNumbers}
           indentType={config.editor.indentType}
           indentSize={editorIndentSize}
+          enableRulers={config.editor.enableRulers}
           rulers={config.editor.rulers}
           scrollPastEnd={config.editor.scrollPastEnd}
           fetchUrlTitle={config.editor.fetchUrlTitle}

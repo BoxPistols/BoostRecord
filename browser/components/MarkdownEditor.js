@@ -258,6 +258,7 @@ class MarkdownEditor extends React.Component {
           fontSize={editorFontSize}
           indentType={config.editor.indentType}
           indentSize={editorIndentSize}
+          enableRulers={config.editor.enableRulers}
           rulers={config.editor.rulers}
           displayLineNumbers={config.editor.displayLineNumbers}
           scrollPastEnd={config.editor.scrollPastEnd}

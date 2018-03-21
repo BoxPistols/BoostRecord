@@ -144,5 +144,8 @@
 	"UserName": "UserName",
 	"Password": "Password",
 	"Russian": "Russian",
-	"Command(⌘)": "Command(⌘)"
+	"Command(⌘)": "Command(⌘)",
+	"Editor Rulers": "Editor Rulers",
+	"Enable": "Enable",
+	"Disable": "Disable"
 }

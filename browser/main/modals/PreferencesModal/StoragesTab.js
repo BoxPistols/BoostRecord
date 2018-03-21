@@ -15,7 +15,7 @@ function browseFolder () {
   const defaultPath = remote.app.getPath('home')
   return new Promise((resolve, reject) => {
     dialog.showOpenDialog({
-      title: 'Select Directory',
+      title: i18n.__('Select Directory'),
       defaultPath,
       properties: ['openDirectory', 'createDirectory']
     }, function (targetPaths) {

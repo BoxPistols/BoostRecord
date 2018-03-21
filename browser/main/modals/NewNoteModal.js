@@ -111,7 +111,7 @@ class NewNoteModal extends React.Component {
         onKeyDown={(e) => this.handleKeyDown(e)}
       >
         <div styleName='header'>
-          <div styleName='title'>Make a note</div>
+          <div styleName='title'>{i18n.__('Make a note')}</div>
         </div>
         <ModalEscButton handleEscButtonClick={(e) => this.handleCloseButtonClick(e)} />
         <div styleName='control'>

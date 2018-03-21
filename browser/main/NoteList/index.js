@@ -445,9 +445,9 @@ class NoteList extends React.Component {
     if (this.notes[targetIndex].type === 'SNIPPET_NOTE') {
       dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
-        message: 'Sorry!',
-        detail: 'md/text import is available only a markdown note.',
-        buttons: ['OK', 'Cancel']
+        message: i18n.__('Sorry!'),
+        detail: i18n.__('md/text import is available only a markdown note.'),
+        buttons: [i18n.__('OK'), i18n.__('Cancel')]
       })
     }
   }
@@ -471,14 +471,14 @@ class NoteList extends React.Component {
       this.handleNoteClick(e, uniqueKey)
     }
 
-    const pinLabel = note.isPinned ? 'Remove pin' : 'Pin to Top'
-    const deleteLabel = 'Delete Note'
-    const cloneNote = 'Clone Note'
-    const restoreNote = 'Restore Note'
-    const copyNoteLink = 'Copy Note Link'
-    const publishLabel = 'Publish Blog'
-    const updateLabel = 'Update Blog'
-    const openBlogLabel = 'Open Blog'
+    const pinLabel = note.isPinned ? i18n.__('Remove pin') : i18n.__('Pin to Top')
+    const deleteLabel = i18n.__('Delete Note')
+    const cloneNote = i18n.__('Clone Note')
+    const restoreNote = i18n.__('Restore Note')
+    const copyNoteLink = i18n.__('Copy Note Link')
+    const publishLabel = i18n.__('Publish Blog')
+    const updateLabel = i18n.__('Update Blog')
+    const openBlogLabel = i18n.__('Open Blog')
 
     const menu = new Menu()
     if (!location.pathname.match(/\/starred|\/trash/)) {
@@ -585,9 +585,9 @@ class NoteList extends React.Component {
       const noteExp = selectedNotes.length > 1 ? 'notes' : 'note'
       const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
-        message: 'Confirm note deletion',
+        message: i18n.__('Confirm note deletion'),
         detail: `This will permanently remove ${selectedNotes.length} ${noteExp}.`,
-        buttons: ['Confirm', 'Cancel']
+        buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
       })
       if (dialogueButtonIndex === 1) return
       Promise.all(
@@ -757,9 +757,9 @@ class NoteList extends React.Component {
     const { dialog } = remote
     const alertError = {
       type: 'warning',
-      message: 'Publish Failed',
-      detail: 'Check and update your blog setting and try again.',
-      buttons: ['Confirm']
+      message: i18n.__('Publish Failed'),
+      detail: i18n.__('Check and update your blog setting and try again.'),
+      buttons: [i18n.__('Confirm')]
     }
     dialog.showMessageBox(remote.getCurrentWindow(), alertError)
   }
@@ -767,9 +767,9 @@ class NoteList extends React.Component {
   confirmPublish (note) {
     const buttonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
-      message: 'Publish Succeeded',
+      message: i18n.__('Publish Succeeded'),
       detail: `${note.title} is published at ${note.blog.blogLink}`,
-      buttons: ['Confirm', 'Open Blog']
+      buttons: [i18n.__('Confirm'), i18n.__('Open Blog')]
     })
 
     if (buttonIndex === 1) {
@@ -874,7 +874,7 @@ class NoteList extends React.Component {
     dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
       message: message,
-      buttons: ['OK']
+      buttons: [i18n.__('OK')]
     })
   }
 
@@ -992,7 +992,7 @@ class NoteList extends React.Component {
           <div styleName='control-sortBy'>
             <i className='fa fa-angle-down' />
             <select styleName='control-sortBy-select'
-              title='Select filter mode'
+              title={i18n.__('Select filter mode')}
               value={config.sortBy}
               onChange={(e) => this.handleSortByChange(e)}
             >

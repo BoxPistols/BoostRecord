@@ -27,14 +27,14 @@ class StorageItem extends React.Component {
   handleHeaderContextMenu (e) {
     const menu = Menu.buildFromTemplate([
       {
-        label: 'Add Folder',
+        label: i18n.__('Add Folder'),
         click: (e) => this.handleAddFolderButtonClick(e)
       },
       {
         type: 'separator'
       },
       {
-        label: 'Unlink Storage',
+        label: i18n.__('Unlink Storage'),
         click: (e) => this.handleUnlinkStorageClick(e)
       }
     ])
@@ -94,21 +94,21 @@ class StorageItem extends React.Component {
   handleFolderButtonContextMenu (e, folder) {
     const menu = Menu.buildFromTemplate([
       {
-        label: 'Rename Folder',
+        label: i18n.__('Rename Folder'),
         click: (e) => this.handleRenameFolderClick(e, folder)
       },
       {
         type: 'separator'
       },
       {
-        label: 'Export Folder',
+        label: i18n.__('Export Folder'),
         submenu: [
           {
-            label: 'Export as txt',
+            label: i18n.__('Export as txt'),
             click: (e) => this.handleExportFolderClick(e, folder, 'txt')
           },
           {
-            label: 'Export as md',
+            label: i18n.__('Export as md'),
             click: (e) => this.handleExportFolderClick(e, folder, 'md')
           }
         ]
@@ -117,7 +117,7 @@ class StorageItem extends React.Component {
         type: 'separator'
       },
       {
-        label: 'Delete Folder',
+        label: i18n.__('Delete Folder'),
         click: (e) => this.handleFolderDeleteClick(e, folder)
       }
     ])
@@ -136,8 +136,8 @@ class StorageItem extends React.Component {
   handleExportFolderClick (e, folder, fileType) {
     const options = {
       properties: ['openDirectory', 'createDirectory'],
-      buttonLabel: 'Select directory',
-      title: 'Select a folder to export the files to',
+      buttonLabel: i18n.__('Select directory'),
+      title: i18n.__('Select a folder to export the files to'),
       multiSelections: false
     }
     dialog.showOpenDialog(remote.getCurrentWindow(), options,

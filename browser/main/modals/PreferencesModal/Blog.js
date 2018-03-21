@@ -43,7 +43,7 @@ class Blog extends React.Component {
     this.handleSettingError = (err) => {
       this.setState({BlogAlert: {
         type: 'error',
-        message: err.message != null ? err.message : 'Error occurs!'
+        message: err.message != null ? err.message : i18n.__('Error occurs!')
       }})
     }
     this.oldBlog = this.state.config.blog
@@ -70,7 +70,7 @@ class Blog extends React.Component {
       this.props.haveToSave({
         tab: 'Blog',
         type: 'warning',
-        message: 'You have to save!'
+        message: i18n.__('You have to save!')
       })
     }
   }
@@ -111,7 +111,7 @@ class Blog extends React.Component {
                 ref='typeDropdown'
                 onChange={(e) => this.handleBlogChange(e)}
               >
-                <option value='wordpress' key='wordpress'>wordpress</option>
+                <option value='wordpress' key='wordpress'>{i18n.__('wordpress')}</option>
               </select>
             </div>
           </div>

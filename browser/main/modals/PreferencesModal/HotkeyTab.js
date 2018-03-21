@@ -30,7 +30,7 @@ class HotkeyTab extends React.Component {
     this.handleSettingError = (err) => {
       this.setState({keymapAlert: {
         type: 'error',
-        message: err.message != null ? err.message : 'Error occurs!'
+        message: err.message != null ? err.message : i18n.__('Error occurs!')
       }})
     }
     this.oldHotkey = this.state.config.hotkey

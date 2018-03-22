@@ -18,6 +18,7 @@ import PreferenceButton from './PreferenceButton'
 import ListButton from './ListButton'
 import TagButton from './TagButton'
 import {SortableContainer} from 'react-sortable-hoc'
+import i18n from 'browser/lib/i18n'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
@@ -115,7 +116,7 @@ class SideNav extends React.Component {
       component = (
         <div styleName='tabBody'>
           <div styleName='tag-title'>
-            <p>Tags</p>
+            <p>{i18n.__('Tags')}</p>
           </div>
           <div styleName='tagList'>
             {this.tagListComponent(data)}
@@ -179,7 +180,7 @@ class SideNav extends React.Component {
     const { data } = this.props
     const trashedNotes = data.trashedSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
     const menu = Menu.buildFromTemplate([
-      { label: 'Empty Trash', click: () => this.emptyTrash(trashedNotes) }
+      { label: i18n.__('Empty Trash'), click: () => this.emptyTrash(trashedNotes) }
     ])
     menu.popup()
   }

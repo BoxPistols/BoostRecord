@@ -640,7 +640,7 @@ class SnippetNoteDetail extends React.Component {
       type: 'warning',
       message: i18n.__('Sorry!'),
       detail: i18n.__('md/text import is available only a markdown note.'),
-      buttons: ['OK']
+      buttons: [i18n.__('OK')]
     })
   }
 
@@ -766,10 +766,10 @@ class SnippetNoteDetail extends React.Component {
           isActive={note.isStarred}
         />
 
-        <button styleName='control-fullScreenButton' title='Fullscreen'
+        <button styleName='control-fullScreenButton' title={i18n.__('Fullscreen')}
           onMouseDown={(e) => this.handleFullScreenButton(e)}>
           <img styleName='iconInfo' src='../resources/icon/icon-full.svg' />
-          <span styleName='tooltip'>Fullscreen</span>
+          <span styleName='tooltip'>{i18n.__('Fullscreen')}</span>
         </button>
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
@@ -807,7 +807,7 @@ class SnippetNoteDetail extends React.Component {
                 fontSize: parseInt(config.preview.fontSize, 10)
               }}
               ref='description'
-              placeholder='Description...'
+              placeholder={i18n.__('Description...')}
               value={this.state.note.description}
               onChange={(e) => this.handleChange(e)}
             />
@@ -846,7 +846,7 @@ class SnippetNoteDetail extends React.Component {
             onClick={(e) => this.handleModeButtonClick(e, this.state.snippetIndex)}
           >
             {this.state.note.snippets[this.state.snippetIndex].mode == null
-              ? 'Select Syntax...'
+              ? i18n.__('Select Syntax...')
               : this.state.note.snippets[this.state.snippetIndex].mode
             }&nbsp;
             <i className='fa fa-caret-down' />

@@ -45,52 +45,62 @@ class Markdown {
           '<code class="' + langType + '">' +
           str +
           '</code></pre>'
-      }
+      },
+      sanitize: 'STRICT'
     }
 
     const updatedOptions = Object.assign(defaultOptions, options)
     this.md = markdownit(updatedOptions)
 
-    // Sanitize use rinput before other plugins
-    this.md.use(sanitize, {
-      allowedTags: ['iframe', 'input', 'b',
+    if (updatedOptions.sanitize !== 'NONE') {
+      const allowedTags = ['iframe', 'input', 'b',
         'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'h7', 'h8', 'br', 'b', 'i', 'strong', 'em', 'a', 'pre', 'code', 'img', 'tt',
         'div', 'ins', 'del', 'sup', 'sub', 'p', 'ol', 'ul', 'table', 'thead', 'tbody', 'tfoot', 'blockquote',
         'dl', 'dt', 'dd', 'kbd', 'q', 'samp', 'var', 'hr', 'ruby', 'rt', 'rp', 'li', 'tr', 'td', 'th', 's', 'strike', 'summary', 'details'
-      ],
-      allowedAttributes: {
-        '*': [
-          'style',
-          'abbr', 'accept', 'accept-charset',
-          'accesskey', 'action', 'align', 'alt', 'axis',
-          'border', 'cellpadding', 'cellspacing', 'char',
-          'charoff', 'charset', 'checked',
-          'clear', 'cols', 'colspan', 'color',
-          'compact', 'coords', 'datetime', 'dir',
-          'disabled', 'enctype', 'for', 'frame',
-          'headers', 'height', 'hreflang',
-          'hspace', 'ismap', 'label', 'lang',
-          'maxlength', 'media', 'method',
-          'multiple', 'name', 'nohref', 'noshade',
-          'nowrap', 'open', 'prompt', 'readonly', 'rel', 'rev',
-          'rows', 'rowspan', 'rules', 'scope',
-          'selected', 'shape', 'size', 'span',
-          'start', 'summary', 'tabindex', 'target',
-          'title', 'type', 'usemap', 'valign', 'value',
-          'vspace', 'width', 'itemprop'
-        ],
-        'a': ['href'],
-        'div': ['itemscope', 'itemtype'],
-        'blockquote': ['cite'],
-        'del': ['cite'],
-        'ins': ['cite'],
-        'q': ['cite'],
-        'img': ['src', 'width', 'height'],
-        'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen'],
-        'input': ['type', 'id', 'checked']
-      },
-      allowedIframeHostnames: ['www.youtube.com']
-    })
+      ]
+      const allowedAttributes = [
+        'abbr', 'accept', 'accept-charset',
+        'accesskey', 'action', 'align', 'alt', 'axis',
+        'border', 'cellpadding', 'cellspacing', 'char',
+        'charoff', 'charset', 'checked',
+        'clear', 'cols', 'colspan', 'color',
+        'compact', 'coords', 'datetime', 'dir',
+        'disabled', 'enctype', 'for', 'frame',
+        'headers', 'height', 'hreflang',
+        'hspace', 'ismap', 'label', 'lang',
+        'maxlength', 'media', 'method',
+        'multiple', 'name', 'nohref', 'noshade',
+        'nowrap', 'open', 'prompt', 'readonly', 'rel', 'rev',
+        'rows', 'rowspan', 'rules', 'scope',
+        'selected', 'shape', 'size', 'span',
+        'start', 'summary', 'tabindex', 'target',
+        'title', 'type', 'usemap', 'valign', 'value',
+        'vspace', 'width', 'itemprop'
+      ]
+
+      if (updatedOptions.sanitize === 'ALLOW_STYLES') {
+        allowedTags.push('style')
+        allowedAttributes.push('style')
+      }
+
+      // Sanitize use rinput before other plugins
+      this.md.use(sanitize, {
+        allowedTags,
+        allowedAttributes: {
+          '*': allowedAttributes,
+          'a': ['href'],
+          'div': ['itemscope', 'itemtype'],
+          'blockquote': ['cite'],
+          'del': ['cite'],
+          'ins': ['cite'],
+          'q': ['cite'],
+          'img': ['src', 'width', 'height'],
+          'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen'],
+          'input': ['type', 'id', 'checked']
+        },
+        allowedIframeHostnames: ['www.youtube.com']
+      })
+    }
 
     this.md.use(emoji, {
       shortcuts: {}

@@ -145,5 +145,9 @@
 	"Command(⌘)": "Command(⌘)",
 	"Editor Rulers": "Editor Rulers",
 	"Enable": "Enable",
-	"Disable": "Disable"
+	"Disable": "Disable",
+	"Sanitization": "Sanitization",
+	"Only allow secure html tags (recommended)": "Only allow secure html tags (recommended)",
+	"Allow styles": "Allow styles",
+	"Allow dangerous html tags": "Allow dangerous html tags"
 }

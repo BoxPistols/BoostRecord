@@ -282,6 +282,7 @@ class MarkdownEditor extends React.Component {
           indentSize={editorIndentSize}
           scrollPastEnd={config.preview.scrollPastEnd}
           smartQuotes={config.preview.smartQuotes}
+          sanitize={config.preview.sanitize}
           ref='preview'
           onContextMenu={(e) => this.handleContextMenu(e)}
           onDoubleClick={(e) => this.handleDoubleClick(e)}

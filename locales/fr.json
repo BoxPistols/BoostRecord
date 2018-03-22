@@ -144,5 +144,10 @@
 	"Command(⌘)": "Command(⌘)",
 	"Editor Rulers": "Editor Rulers",
 	"Enable": "Enable",
-	"Disable": "Disable"
+	"Disable": "Disable",
+	"Allow preview to scroll past the last line": "Allow preview to scroll past the last line",
+	"Sanitization": "Sanitization",
+	"Only allow secure html tags (recommended)": "Only allow secure html tags (recommended)",
+	"Allow styles": "Allow styles",
+	"Allow dangerous html tags": "Allow dangerous html tags"
 }

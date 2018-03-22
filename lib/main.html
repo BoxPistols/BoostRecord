@@ -57,6 +57,10 @@
     opacity: 1 !important;
     pointer-events: auto !important;
   }
+  .CodeMirror-ruler {
+    border-left-color: rgba(142, 142, 142, 0.5);
+    mix-blend-mode: difference;
+  }
   </style>
 </head>
 <body>
@@ -89,6 +93,7 @@
   <script src="../node_modules/codemirror/addon/search/matchesonscrollbar.js"></script>
   <script src="../node_modules/codemirror/addon/search/jump-to-line.js"></script>
   <script src="../node_modules/codemirror/addon/dialog/dialog.js"></script>
+  <script src="../node_modules/codemirror/addon/display/rulers.js"></script>
 
   <script src="../node_modules/raphael/raphael.min.js"></script>
   <script src="../node_modules/flowchart.js/release/flowchart.min.js"></script>

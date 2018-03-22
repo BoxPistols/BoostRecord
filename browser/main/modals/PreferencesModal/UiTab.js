@@ -75,6 +75,8 @@ class UiTab extends React.Component {
         fontFamily: this.refs.editorFontFamily.value,
         indentType: this.refs.editorIndentType.value,
         indentSize: this.refs.editorIndentSize.value,
+        enableRulers: this.refs.enableEditorRulers.value === 'true',
+        rulers: this.refs.editorRulers.value.replace(/[^0-9,]/g, '').split(','),
         displayLineNumbers: this.refs.editorDisplayLineNumbers.checked,
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
@@ -152,6 +154,7 @@ class UiTab extends React.Component {
     const themes = consts.THEMES
     const { config, codemirrorTheme } = this.state
     const codemirrorSampleCode = 'function iamHappy (happy) {\n\tif (happy) {\n\t  console.log("I am Happy!")\n\t} else {\n\t  console.log("I am not Happy!")\n\t}\n};'
+    const enableEditRulersStyle = config.editor.enableRulers ? 'block' : 'none'
     return (
       <div styleName='root'>
         <div styleName='group'>
@@ -302,6 +305,34 @@ class UiTab extends React.Component {
                 <option value='space'>{i18n.__('Spaces')}</option>
                 <option value='tab'>{i18n.__('Tabs')}</option>
               </select>
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Editor Rulers')}
+            </div>
+            <div styleName='group-section-control'>
+              <div>
+                <select value={config.editor.enableRulers}
+                  ref='enableEditorRulers'
+                  onChange={(e) => this.handleUIChange(e)}
+                >
+                  <option value='true'>
+                    {i18n.__('Enable')}
+                  </option>
+                  <option value='false'>
+                    {i18n.__('Disable')}
+                  </option>
+                </select>
+              </div>
+              <input styleName='group-section-control-input'
+                style={{ display: enableEditRulersStyle }}
+                ref='editorRulers'
+                value={config.editor.rulers}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
             </div>
           </div>
 

@@ -79,7 +79,7 @@ class RenameFolderModal extends React.Component {
 
         <div styleName='control'>
           <input styleName='control-input'
-            placeholder='Folder Name'
+            placeholder={i18n.__('Folder Name')}
             ref='name'
             value={this.state.name}
             onChange={(e) => this.handleChange(e)}

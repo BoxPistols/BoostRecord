@@ -4,6 +4,7 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './TagSelect.styl'
 import _ from 'lodash'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
+import i18n from 'browser/lib/i18n'
 
 class TagSelect extends React.Component {
   constructor (props) {
@@ -137,7 +138,7 @@ class TagSelect extends React.Component {
         <input styleName='newTag'
           ref='newTag'
           value={this.state.newTag}
-          placeholder='Add tag...'
+          placeholder={i18n.__('Add tag...')}
           onChange={(e) => this.handleNewTagInputChange(e)}
           onKeyDown={(e) => this.handleNewTagInputKeyDown(e)}
           onBlur={(e) => this.handleNewTagBlur(e)}

@@ -185,6 +185,7 @@ class UiTab extends React.Component {
                 <option value='en'>{i18n.__('English')}</option>
                 <option value='fr'>{i18n.__('French')}</option>
                 <option value='de'>{i18n.__('German')}</option>
+                <option value='hu'>{i18n.__('Hungarian')}</option>
                 <option value='ja'>{i18n.__('Japanese')}</option>
                 <option value='ko'>{i18n.__('Korean')}</option>
                 <option value='no'>{i18n.__('Norwegian')}</option>

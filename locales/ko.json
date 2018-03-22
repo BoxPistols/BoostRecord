@@ -148,5 +148,8 @@
 	"UserName": "유저명",
 	"Password": "패스워드",
 	"Storage": "저장소",
-	"Hotkeys": "단축키"
+	"Hotkeys": "단축키",
+	"Editor Rulers": "Editor Rulers",
+	"Enable": "Enable",
+	"Disable": "Disable"
 }

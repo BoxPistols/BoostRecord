@@ -143,5 +143,8 @@
 	"You have to save!": "Нужно сохранить!",
 	"UserName": "Имя пользователя",
 	"Password": "Пароль",
-	"Russian": "Русский"
+	"Russian": "Русский",
+	"Editor Rulers": "Editor Rulers",
+	"Enable": "Enable",
+	"Disable": "Disable"
 }

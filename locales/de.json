@@ -143,5 +143,9 @@
 	"Successfully applied!": "Erfolgreich angewendet!",
 	"UserName": "UserName",
 	"Password": "Password",
-	"Russian": "Russian"
+	"Russian": "Russian",
+	"Command(⌘)": "Command(⌘)",
+	"Editor Rulers": "Editor Rulers",
+	"Enable": "Enable",
+	"Disable": "Disable"
 }

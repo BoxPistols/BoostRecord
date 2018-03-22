@@ -141,5 +141,9 @@
 	"Portuguese": "Portuguese",
 	"Spanish": "Spanish",
 	"You have to save!": "You have to save!",
-	"Russian": "Russian"
+	"Russian": "Russian",
+	"Command(⌘)": "Command(⌘)",
+	"Editor Rulers": "Editor Rulers",
+	"Enable": "Enable",
+	"Disable": "Disable"
 }

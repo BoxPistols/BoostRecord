@@ -143,5 +143,9 @@
 	"Successfully applied!": "Erfolgreich angewendet!",
 	"UserName": "UserName",
 	"Password": "Password",
-	"Russian": "Russian"
+	"Russian": "Russian",
+	"Sanitization": "Sanitization",
+	"Only allow secure html tags (recommended)": "Only allow secure html tags (recommended)",
+	"Allow styles": "Allow styles",
+	"Allow dangerous html tags": "Allow dangerous html tags"
 }

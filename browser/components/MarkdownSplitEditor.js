@@ -128,6 +128,7 @@ class MarkdownSplitEditor extends React.Component {
           lineNumber={config.preview.lineNumber}
           scrollPastEnd={config.preview.scrollPastEnd}
           smartQuotes={config.preview.smartQuotes}
+          sanitize={config.preview.sanitize}
           ref='preview'
           tabInde='0'
           value={value}

@@ -135,8 +135,11 @@ export default class MarkdownPreview extends React.Component {
   }
 
   initMarkdown () {
-    const { smartQuotes } = this.props
-    this.markdown = new Markdown({ typographer: smartQuotes })
+    const { smartQuotes, sanitize } = this.props
+    this.markdown = new Markdown({
+      typographer: smartQuotes,
+      sanitize
+    })
   }
 
   handlePreviewAnchorClick (e) {
@@ -318,7 +321,7 @@ export default class MarkdownPreview extends React.Component {
 
   componentDidUpdate (prevProps) {
     if (prevProps.value !== this.props.value) this.rewriteIframe()
-    if (prevProps.smartQuotes !== this.props.smartQuotes) {
+    if (prevProps.smartQuotes !== this.props.smartQuotes || prevProps.sanitize !== this.props.sanitize) {
       this.initMarkdown()
       this.rewriteIframe()
     }

@@ -91,7 +91,8 @@ class UiTab extends React.Component {
         latexBlockOpen: this.refs.previewLatexBlockOpen.value,
         latexBlockClose: this.refs.previewLatexBlockClose.value,
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
-        smartQuotes: this.refs.previewSmartQuotes.checked
+        smartQuotes: this.refs.previewSmartQuotes.checked,
+        sanitize: this.refs.previewSanitize.value
       }
     }
 
@@ -441,6 +442,23 @@ class UiTab extends React.Component {
               />&nbsp;
               Enable smart quotes
             </label>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Sanitization')}
+            </div>
+            <div styleName='group-section-control'>
+              <select value={config.preview.sanitize}
+                ref='previewSanitize'
+                onChange={(e) => this.handleUIChange(e)}
+              >
+                <option value='STRICT'>✅ {i18n.__('Only allow secure html tags (recommended)')}
+                </option>
+                <option value='ALLOW_STYLES'>⚠️ {i18n.__('Allow styles')}</option>
+                <option value='NONE'>❌ {i18n.__('Allow dangerous html tags')}</option>
+              </select>
+            </div>
           </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>

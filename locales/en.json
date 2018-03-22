@@ -144,5 +144,9 @@
 	"UserName": "UserName",
 	"Password": "Password",
 	"Russian": "Russian",
-	"Command(⌘)": "Command(⌘)"
+	"Command(⌘)": "Command(⌘)",
+	"Sanitization": "Sanitization",
+	"Only allow secure html tags (recommended)": "Only allow secure html tags (recommended)",
+	"Allow styles": "Allow styles",
+	"Allow dangerous html tags": "Allow dangerous html tags"
 }

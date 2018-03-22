@@ -51,7 +51,8 @@ export const DEFAULT_CONFIG = {
     latexBlockOpen: '$$',
     latexBlockClose: '$$',
     scrollPastEnd: false,
-    smartQuotes: true
+    smartQuotes: true,
+    sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
   },
   blog: {
     type: 'wordpress', // Available value: wordpress, add more types in the future plz

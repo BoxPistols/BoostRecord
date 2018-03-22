@@ -96,7 +96,7 @@ class CreateFolderModal extends React.Component {
           <button styleName='control-confirmButton'
             onClick={(e) => this.handleConfirmButtonClick(e)}
           >
-            Create
+            {i18n.__('Create')}
           </button>
         </div>
       </div>

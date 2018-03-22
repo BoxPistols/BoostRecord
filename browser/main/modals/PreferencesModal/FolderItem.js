@@ -151,12 +151,12 @@ class FolderItem extends React.Component {
           <button styleName='folderItem-right-confirmButton'
             onClick={(e) => this.handleConfirmButtonClick(e)}
           >
-            Confirm
+            {i18n.__('Confirm')}
           </button>
           <button styleName='folderItem-right-button'
             onClick={(e) => this.handleCancelButtonClick(e)}
           >
-            Cancel
+            {i18n.__('Cancel')}
           </button>
         </div>
       </div>

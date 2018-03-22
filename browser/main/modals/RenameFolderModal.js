@@ -88,7 +88,7 @@ class RenameFolderModal extends React.Component {
           <button styleName='control-confirmButton'
             onClick={(e) => this.handleConfirmButtonClick(e)}
           >
-            Confirm
+            {i18n.__('Confirm')}
           </button>
         </div>
       </div>

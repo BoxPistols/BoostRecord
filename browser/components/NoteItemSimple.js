@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './NoteItemSimple.styl'
+import i18n from 'browser/lib/i18n'
 
 /**
  * @description Note item component when using simple display mode.
@@ -45,7 +46,7 @@ const NoteItemSimple = ({
       }
       {note.title.trim().length > 0
         ? note.title
-        : <span styleName='item-simple-title-empty'>Empty</span>
+        : <span styleName='item-simple-title-empty'>{i18n.__('Empty note')}</span>
       }
       {isAllNotesView && <div styleName='item-simple-right'>
         <span styleName='item-simple-right-storageName'>

@@ -394,6 +394,9 @@ export default class MarkdownPreview extends React.Component {
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
       this.fixDecodedURI(el)
+      el.href = this.markdown.normalizeLinkText(el.href)
+      if (!/\/:storage/.test(el.href)) return
+      el.href = `file:///${this.markdown.normalizeLinkText(path.join(storagePath, 'images', path.basename(el.href)))}`
       el.addEventListener('click', this.anchorClickHandler)
     })
 

@@ -23,7 +23,7 @@ class StorageItem extends React.Component {
   handleNewFolderButtonClick (e) {
     const { storage } = this.props
     const input = {
-      name: 'Untitled',
+      name: i18n.__('New Folder'),
       color: consts.FOLDER_COLORS[Math.floor(Math.random() * 7) % 7]
     }
 

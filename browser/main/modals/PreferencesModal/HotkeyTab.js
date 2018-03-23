@@ -120,8 +120,8 @@ class HotkeyTab extends React.Component {
               onClick={(e) => this.handleHintToggleButtonClick(e)}
             >
               {this.state.isHotkeyHintOpen
-                ? 'Hide Help'
-                : 'Help'
+                ? i18n.__('Hide Help')
+                : i18n.__('Help')
               }
             </button>
             <button styleName='group-control-rightButton'
@@ -131,7 +131,7 @@ class HotkeyTab extends React.Component {
           </div>
           {this.state.isHotkeyHintOpen &&
             <div styleName='group-hint'>
-              <p>Available Keys</p>
+              <p>{i18n.__('Available Keys')}</p>
               <ul>
                 <li><code>0</code> to <code>9</code></li>
                 <li><code>A</code> to <code>Z</code></li>

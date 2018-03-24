@@ -28,6 +28,14 @@ class TopBar extends React.Component {
   }
 
   componentDidMount () {
+    const { params } = this.props
+    const searchWord = params.searchword
+    if (searchWord !== undefined) {
+      this.setState({
+        search: searchWord,
+        isSearching: true
+      })
+    }
     ee.on('top:focus-search', this.focusSearchHandler)
     ee.on('code:init', this.codeInitHandler)
   }
@@ -97,9 +105,10 @@ class TopBar extends React.Component {
       this.setState({
         isConfirmTranslation: true
       })
-      router.push('/searched')
+      const keyword = this.refs.searchInput.value
+      router.push(`/searched/${encodeURIComponent(keyword)}`)
       this.setState({
-        search: this.refs.searchInput.value
+        search: keyword
       })
     }
   }
@@ -108,7 +117,7 @@ class TopBar extends React.Component {
     const { router } = this.context
     const keyword = this.refs.searchInput.value
     if (this.state.isAlphabet || this.state.isConfirmTranslation) {
-      router.push('/searched')
+      router.push(`/searched/${encodeURIComponent(keyword)}`)
     } else {
       e.preventDefault()
     }

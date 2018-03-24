@@ -326,8 +326,10 @@ class NoteList extends React.Component {
     }
 
     if (location.pathname.match(/\/searched/)) {
-      const searchInputText = document.getElementsByClassName('searchInput')[0].value
-      if (searchInputText === '') {
+      const searchInputText = params.searchword
+      const allNotes = data.noteMap.map((note) => note)
+      this.contextNotes = allNotes
+      if (searchInputText === undefined || searchInputText === '') {
         return this.sortByPin(this.contextNotes)
       }
       return searchFromNotes(this.contextNotes, searchInputText)

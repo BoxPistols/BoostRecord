@@ -82,7 +82,7 @@ class SideNav extends React.Component {
   }
 
   SideNavComponent (isFolded, storageList) {
-    const { location, data } = this.props
+    const { location, data, config } = this.props
 
     const isHomeActive = !!location.pathname.match(/^\/home$/)
     const isStarredActive = !!location.pathname.match(/^\/starred$/)
@@ -119,6 +119,21 @@ class SideNav extends React.Component {
             <p>{i18n.__('Tags')}</p>
           </div>
           <div styleName='tagList'>
+            <div styleName='control'>
+              <div styleName='control-sortTagsBy'>
+                <i className='fa fa-angle-down' />
+                <select styleName='control-sortTagsBy-select'
+                  title={i18n.__('Select filter mode')}
+                  value={config.sortTagsBy}
+                  onChange={(e) => this.handleSortTagsByChange(e)}
+                >
+                  <option title='Sort alphabetically'
+                    value='ALPHABETICAL'>{i18n.__('Alphabetically')}</option>
+                  <option title='Sort by update time'
+                    value='COUNTER'>{i18n.__('Counter')}</option>
+                </select>
+              </div>
+            </div>
             {this.tagListComponent(data)}
           </div>
         </div>
@@ -129,10 +144,15 @@ class SideNav extends React.Component {
   }
 
   tagListComponent () {
-    const { data, location } = this.props
-    const tagList = _.sortBy(data.tagNoteMap.map((tag, name) => {
+    const { data, location, config } = this.props
+    let tagList = _.sortBy(data.tagNoteMap.map((tag, name) => {
       return { name, size: tag.size }
     }), ['name'])
+    if (config.sortTagsBy === 'COUNTER') {
+      tagList = _.sortBy(tagList, function (item) {
+        return 0 - item.size
+      })
+    }
     return (
       tagList.map(tag => {
         return (
@@ -157,6 +177,20 @@ class SideNav extends React.Component {
   handleClickTagListItem (name) {
     const { router } = this.context
     router.push(`/tags/${name}`)
+  }
+
+  handleSortTagsByChange (e) {
+    const { dispatch } = this.props
+
+    const config = {
+      sortTagsBy: e.target.value
+    }
+
+    ConfigManager.set(config)
+    dispatch({
+      type: 'SET_CONFIG',
+      config
+    })
   }
 
   emptyTrash (entries) {

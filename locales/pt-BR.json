@@ -20,7 +20,7 @@
 	".html": ".html",
 	"Print": "Imprimir",
 	"Your preferences for Boostnote": "Suas preferências para o Boostnote",
-	"Storages": "Aramazenamentos",
+	"Storages": "Armazenamentos",
 	"Add Storage Location": "Adicionar Local de Armazenamento",
 	"Add Folder": "Adicionar Pasta",
 	"Open Storage folder": "Abrir Local de Armazenamento",
@@ -148,5 +148,5 @@
 	"Sanitization": "Sanitização",
 	"Only allow secure html tags (recommended)": "Permitir apenas tags html seguras (recomendado)",
 	"Allow styles": "Permitir estilos",
-	"Allow dangerous html tags": "Allow tags html perigosas"
+	"Allow dangerous html tags": "Permitir tags html perigosas"
 }

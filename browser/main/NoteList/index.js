@@ -583,7 +583,7 @@ class NoteList extends React.Component {
       buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
     })
 
-    return dialogueButtonIndex === 1 ? false : true
+    return dialogueButtonIndex != 1
   }
 
   deleteNote () {

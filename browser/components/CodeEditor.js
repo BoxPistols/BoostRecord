@@ -113,9 +113,6 @@ export default class CodeEditor extends React.Component {
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
       autoCloseBrackets: true,
       extraKeys: {
-        'Ctrl-G': function (cm) {
-          cm.foldCode(cm.getCursor())
-        },
         Tab: function (cm) {
           const cursor = cm.getCursor()
           const line = cm.getLine(cursor.line)

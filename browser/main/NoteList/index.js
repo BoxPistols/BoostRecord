@@ -574,22 +574,29 @@ class NoteList extends React.Component {
     })
   }
 
+  confirmDeleteNote (selectedNotes) {
+    const noteExp = selectedNotes.length > 1 ? 'notes' : 'note'
+    const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
+      type: 'warning',
+      message: i18n.__('Confirm note deletion'),
+      detail: `This will permanently remove ${selectedNotes.length} ${noteExp}.`,
+      buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
+    })
+
+    return dialogueButtonIndex === 1 ? false : true
+  }
+
   deleteNote () {
     const { dispatch } = this.props
     const { selectedNoteKeys } = this.state
     const notes = this.notes.map((note) => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const firstNote = selectedNotes[0]
+    const confirmDeletion = this.props.config.ui.confirmDeletion
 
     if (firstNote.isTrashed) {
-      const noteExp = selectedNotes.length > 1 ? 'notes' : 'note'
-      const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
-        type: 'warning',
-        message: i18n.__('Confirm note deletion'),
-        detail: `This will permanently remove ${selectedNotes.length} ${noteExp}.`,
-        buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
-      })
-      if (dialogueButtonIndex === 1) return
+      if (!this.confirmDeleteNote(selectedNotes)) return
+
       Promise.all(
         selectedNotes.map((note) => {
           return dataApi
@@ -610,6 +617,10 @@ class NoteList extends React.Component {
       })
       console.log('Notes were all deleted')
     } else {
+      if (confirmDeletion) {
+        if (!this.confirmDeleteNote(selectedNotes)) return
+      }
+
       Promise.all(
         selectedNotes.map((note) => {
           note.isTrashed = true

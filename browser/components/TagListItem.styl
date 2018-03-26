@@ -1,10 +1,10 @@
-.tagList-item
+.tagList-itemContainer
   display flex
-  width 100%
+
+.tagList-item, .tagList-itemNarrow
   height 26px
   background-color transparent
   color $ui-inactive-text-color
-  padding 0
   margin-bottom 5px
   text-align left
   border none
@@ -20,12 +20,18 @@
     color $ui-button-default-color
     background-color $ui-button-default--active-backgroundColor
 
-.tagList-item-active
-  background-color $ui-button-default--active-backgroundColor
+.tagList-item
   display flex
+  flex 1
   width 100%
-  height 26px
   padding 0
+
+.tagList-itemNarrow
+  padding 0 4px
+
+.tagList-item-active, .tagList-itemNarrow-active
+  background-color $ui-button-default--active-backgroundColor
+  height 26px
   margin-bottom 5px
   text-align left
   border none
@@ -36,10 +42,19 @@
     background-color alpha($ui-button-default--active-backgroundColor, 60%)
     transition 0.2s
 
+.tagList-item-active
+  display flex
+  flex 1
+  width 100%
+  padding 0
+
+.tagList-itemNarrow-active
+  padding 0 4px
+
 .tagList-item-name
   display block
   flex 1
-  padding 0 15px
+  padding 0 8px 0 4px
   height 26px
   line-height 26px
   border-width 0 0 0 2px
@@ -55,7 +70,7 @@
   font-size 13px
 
 body[data-theme="white"]
-  .tagList-item
+  .tagList-item, .tagList-itemNarrow
     color $ui-inactive-text-color
     &:hover
       color $ui-text-color
@@ -64,7 +79,7 @@ body[data-theme="white"]
       color $ui-text-color
       background-color $ui-button--active-backgroundColor
 
-  .tagList-item-active
+  .tagList-item-active, .tagList-itemNarrow-active
     background-color $ui-button--active-backgroundColor
     color $ui-text-color
     &:hover
@@ -73,7 +88,7 @@ body[data-theme="white"]
     color $ui-text-color
 
 body[data-theme="dark"]
-  .tagList-item
+  .tagList-item, .tagList-itemNarrow
     color $ui-dark-inactive-text-color
     &:hover
       color $ui-dark-text-color
@@ -82,7 +97,7 @@ body[data-theme="dark"]
       color $ui-dark-text-color
       background-color $ui-dark-button--active-backgroundColor
 
-  .tagList-item-active
+  .tagList-item-active, .tagList-itemNarrow-active
     background-color $ui-dark-button--active-backgroundColor
     color $ui-dark-text-color
     &:active

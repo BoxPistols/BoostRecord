@@ -91,7 +91,7 @@ class SideNav extends React.Component {
     let component
 
     // TagsMode is not selected
-    if (!location.pathname.match('/tags') && !location.pathname.match('/alltags')) {
+    if (!location.pathname.match('/tags') && !location.pathname.match('/alltags') && !location.pathname.match('/narrowToTag')) {
       component = (
         <div>
           <SideNavFilter
@@ -145,10 +145,12 @@ class SideNav extends React.Component {
 
   tagListComponent () {
     const { data, location, config } = this.props
-    let tagList = _.sortBy(data.tagNoteMap.map(
-      (tag, name) => ({name, size: tag.size})),
-      ['name']
-    )
+    const relatedTags = this.getRelatedTags(this.getActiveTags(location.pathname), data.noteMap)
+    let tagList = _.sortBy(data.tagNoteMap.map((tag, name) => {
+      return { name, size: tag.size }
+    }), ['name']).filter(tag => {
+      return (relatedTags.size === 0) ? true : relatedTags.has(tag.name)
+    })
     if (config.sortTagsBy === 'COUNTER') {
       tagList = _.sortBy(tagList, item => (0 - item.size))
     }
@@ -158,6 +160,7 @@ class SideNav extends React.Component {
           <TagListItem
             name={tag.name}
             handleClickTagListItem={this.handleClickTagListItem.bind(this)}
+            handleClickNarrowToTag={this.handleClickNarrowToTag.bind(this)}
             isActive={this.getTagActive(location.pathname, tag.name)}
             key={tag.name}
             count={tag.size}
@@ -167,10 +170,33 @@ class SideNav extends React.Component {
     )
   }
 
+  getRelatedTags (activeTags, noteMap) {
+    const relatedNotes = noteMap.map(note => {
+      return {key: note.key, tags: note.tags}
+    }).filter((note) => {
+      return activeTags.every((tag) => note.tags.includes(tag))
+    })
+    let relatedTags = new Set()
+    relatedNotes.forEach(note => {
+      note.tags.map(tag => {
+        relatedTags.add(tag)
+      })
+    })
+    return relatedTags
+  }
+
   getTagActive (path, tag) {
+    const pathTag = this.getActiveTags(path)
+    return pathTag.includes(tag)
+  }
+
+  getActiveTags (path) {
     const pathSegments = path.split('/')
-    const pathTag = pathSegments[pathSegments.length - 1]
-    return pathTag === tag
+    const tags = pathSegments[pathSegments.length - 1]
+    if (tags === 'alltags') {
+      return []
+    }
+    return tags.split('&')
   }
 
   handleClickTagListItem (name) {
@@ -190,6 +216,20 @@ class SideNav extends React.Component {
       type: 'SET_CONFIG',
       config
     })
+  }
+
+  handleClickNarrowToTag (name) {
+    const { router } = this.context
+    const { location } = this.props
+    let listOfTags = this.getActiveTags(location.pathname)
+    if (listOfTags.includes(name)) {
+      listOfTags = listOfTags.filter(function (currentTag) {
+        return name !== currentTag
+      })
+    } else {
+      listOfTags.push(name)
+    }
+    router.push(`/tags/${listOfTags.join('&')}`)
   }
 
   emptyTrash (entries) {

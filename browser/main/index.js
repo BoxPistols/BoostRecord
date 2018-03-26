@@ -112,6 +112,9 @@ ReactDOM.render((
           <IndexRedirect to='/alltags' />
           <Route path=':tagname' />
         </Route>
+        <Route path='narrowToTag'>
+          <Route path=':tag' />
+        </Route>
         <Route path='storages'>
           <IndexRedirect to='/home' />
           <Route path=':storageKey'>

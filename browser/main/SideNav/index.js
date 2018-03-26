@@ -115,25 +115,25 @@ class SideNav extends React.Component {
     } else {
       component = (
         <div styleName='tabBody'>
-          <div styleName='tag-title'>
-            <p>{i18n.__('Tags')}</p>
+          <div styleName='tag-control'>
+            <div styleName='tag-control-title'>
+              <p>{i18n.__('Tags')}</p>
+            </div>
+            <div styleName='tag-control-sortTagsBy'>
+              <i className='fa fa-angle-down' />
+              <select styleName='tag-control-sortTagsBy-select'
+                title={i18n.__('Select filter mode')}
+                value={config.sortTagsBy}
+                onChange={(e) => this.handleSortTagsByChange(e)}
+              >
+                <option title='Sort alphabetically'
+                  value='ALPHABETICAL'>{i18n.__('Alphabetically')}</option>
+                <option title='Sort by update time'
+                  value='COUNTER'>{i18n.__('Counter')}</option>
+              </select>
+            </div>
           </div>
           <div styleName='tagList'>
-            <div styleName='control'>
-              <div styleName='control-sortTagsBy'>
-                <i className='fa fa-angle-down' />
-                <select styleName='control-sortTagsBy-select'
-                  title={i18n.__('Select filter mode')}
-                  value={config.sortTagsBy}
-                  onChange={(e) => this.handleSortTagsByChange(e)}
-                >
-                  <option title='Sort alphabetically'
-                    value='ALPHABETICAL'>{i18n.__('Alphabetically')}</option>
-                  <option title='Sort by update time'
-                    value='COUNTER'>{i18n.__('Counter')}</option>
-                </select>
-              </div>
-            </div>
             {this.tagListComponent(data)}
           </div>
         </div>

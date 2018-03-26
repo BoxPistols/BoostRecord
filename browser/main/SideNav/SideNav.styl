@@ -8,29 +8,6 @@
   display: flex
   flex-direction column
 
-.control
-  user-select none
-  height $control-height
-  font-size 12px
-  line-height 25px
-  display flex
-  color $ui-inactive-text-color
-
-.control-sortTagsBy
-  flex 1
-  padding-left 15px
-
-.control-sortTagsBy-select
-  appearance: none;
-  margin-left 5px
-  color $ui-inactive-text-color
-  padding 0
-  border none
-  background-color transparent
-  outline none
-  cursor pointer
-  font-size 12px
-
 .top
   padding-bottom 15px
 
@@ -53,11 +30,33 @@
   display flex
   flex-direction column
 
-.tag-title
-  padding-left 15px
-  padding-bottom 13px
-  p
-    color $ui-button-default-color
+.tag-control
+  display flex
+  height 30px
+  line-height 25px
+  overflow hidden
+  .tag-control-title
+    padding-left 15px
+    padding-bottom 13px
+    flex 1
+    p
+      color $ui-button-default-color
+  .tag-control-sortTagsBy
+    user-select none
+    font-size 12px
+    color $ui-inactive-text-color
+    margin-left 12px
+    margin-right 12px
+    .tag-control-sortTagsBy-select
+      appearance: none;
+      margin-left 5px
+      color $ui-inactive-text-color
+      padding 0
+      border none
+      background-color transparent
+      outline none
+      cursor pointer
+      font-size 12px
 
 .tagList
   overflow-y auto
@@ -105,10 +104,6 @@ body[data-theme="white"]
     background-color #f9f9f9
     color $ui-text-color
 
-  .control
-    background-color $ui-white-backgroundColor
-    border-color $ui-white-borderColor
-
 body[data-theme="dark"]
   .root, .root--folded
     border-right 1px solid $ui-dark-borderColor
@@ -118,15 +113,7 @@ body[data-theme="dark"]
   .top
     border-color $ui-dark-borderColor
 
-  .control
-    background-color $ui-dark-backgroundColor
-    border-color $ui-dark-borderColor
-
 body[data-theme="solarized-dark"]
   .root, .root--folded
     background-color $ui-solarized-dark-backgroundColor
     border-right 1px solid $ui-solarized-dark-borderColor
-
-  .control
-    background-color $ui-solarized-dark-backgroundColor
-    border-color $ui-solarized-dark-borderColor

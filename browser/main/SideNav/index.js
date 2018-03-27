@@ -139,7 +139,7 @@ class SideNav extends React.Component {
           <TagListItem
             name={tag.name}
             handleClickTagListItem={this.handleClickTagListItem.bind(this)}
-            isActive={this.getTagActive(location.pathname, tag)}
+            isActive={this.getTagActive(location.pathname, tag.name)}
             key={tag.name}
             count={tag.size}
           />

@@ -8,7 +8,7 @@ const i18n = new (require('i18n-2'))({
   locales: ['en', 'sq', 'zh-CN', 'zh-TW', 'da', 'fr', 'de', 'hu', 'ja', 'ko', 'no', 'pl', 'pt', 'es-ES'],
   extension: '.json',
   directory: process.env.NODE_ENV === 'production'
-    ? path.join(app.getAppPath(),'./locales')
+    ? path.join(app.getAppPath(), './locales')
     : path.resolve('./locales'),
   devMode: false
 })

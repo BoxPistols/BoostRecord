@@ -164,8 +164,8 @@ function set (updates) {
     i18n.setLocale('pt')
   } else if (newConfig.ui.language === 'ru') {
     i18n.setLocale('ru')
-  } else if (newConfig.ui.language === 'es') {
-    i18n.setLocale('es')
+  } else if (newConfig.ui.language === 'es-ES') {
+    i18n.setLocale('es-ES')
   } else {
     i18n.setLocale('en')
   }

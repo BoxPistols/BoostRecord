@@ -650,7 +650,7 @@ class NoteList extends React.Component {
       .createNote(storage.key, {
         type: firstNote.type,
         folder: folder.key,
-        title: firstNote.title + ' copy',
+        title: firstNote.title + ' ' + i18n.__('copy'),
         content: firstNote.content
       })
       .then((note) => {

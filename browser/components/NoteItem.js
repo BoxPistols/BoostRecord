@@ -8,6 +8,7 @@ import CSSModules from 'browser/lib/CSSModules'
 import { getTodoStatus } from 'browser/lib/getTodoStatus'
 import styles from './NoteItem.styl'
 import TodoProcess from './TodoProcess'
+import i18n from 'browser/lib/i18n'
 
 /**
  * @description Tag element component.
@@ -76,7 +77,7 @@ const NoteItem = ({
       <div styleName='item-title'>
         {note.title.trim().length > 0
           ? note.title
-          : <span styleName='item-title-empty'>Empty</span>
+          : <span styleName='item-title-empty'>{i18n.__('Empty note')}</span>
         }
       </div>
       {['ALL', 'STORAGE'].includes(viewType) && <div styleName='item-middle'>
@@ -93,7 +94,7 @@ const NoteItem = ({
         <div styleName='item-bottom-tagList'>
           {note.tags.length > 0
             ? TagElementList(note.tags)
-            : <span style={{ fontStyle: 'italic', opacity: 0.5 }} styleName='item-bottom-tagList-empty'>No tags</span>
+            : <span style={{ fontStyle: 'italic', opacity: 0.5 }} styleName='item-bottom-tagList-empty'>{i18n.__('No tags')}</span>
           }
         </div>
         <div>

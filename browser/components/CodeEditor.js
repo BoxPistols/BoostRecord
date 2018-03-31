@@ -109,6 +109,8 @@ export default class CodeEditor extends React.Component {
       scrollPastEnd: this.props.scrollPastEnd,
       inputStyle: 'textarea',
       dragDrop: false,
+      foldGutter: true,
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
       autoCloseBrackets: true,
       extraKeys: {
         Tab: function (cm) {

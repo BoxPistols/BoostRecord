@@ -27,8 +27,11 @@ function resolveStorageNotes (storage) {
         data.storage = storage.key
         return data
       } catch (err) {
-        console.error(notePath)
+        console.error(`error on note path: ${notePath}, error: ${err}`)
       }
+    })
+    .filter(function filterOnlyNoteObject (noteObj) {
+      return typeof noteObj === 'object'
     })
 
   return Promise.resolve(notes)

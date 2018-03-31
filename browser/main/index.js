@@ -64,7 +64,9 @@ ReactDOM.render((
         <IndexRedirect to='/home' />
         <Route path='home' />
         <Route path='starred' />
-        <Route path='searched' />
+        <Route path='searched'>
+          <Route path=':searchword' />
+        </Route>
         <Route path='trashed' />
         <Route path='alltags' />
         <Route path='tags'>

@@ -108,7 +108,7 @@ class SideNav extends React.Component {
             handleFilterButtonContextMenu={this.handleFilterButtonContextMenu.bind(this)}
           />
 
-          <StorageList storageList={storageList} />
+          <StorageList storageList={storageList} isFolded={isFolded} />
           <NavToggleButton isFolded={isFolded} handleToggleButtonClick={this.handleToggleButtonClick.bind(this)} />
         </div>
       )

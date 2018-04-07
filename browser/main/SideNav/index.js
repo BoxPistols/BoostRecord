@@ -196,7 +196,7 @@ class SideNav extends React.Component {
     if (tags === 'alltags') {
       return []
     }
-    return tags.split('&')
+    return tags.split(' ')
   }
 
   handleClickTagListItem (name) {
@@ -229,7 +229,7 @@ class SideNav extends React.Component {
     } else {
       listOfTags.push(name)
     }
-    router.push(`/tags/${listOfTags.join('&')}`)
+    router.push(`/tags/${listOfTags.join(' ')}`)
   }
 
   emptyTrash (entries) {

@@ -343,7 +343,7 @@ class NoteList extends React.Component {
     }
 
     if (location.pathname.match(/\/tags/)) {
-      const listOfTags = params.tagname.split('&')
+      const listOfTags = params.tagname.split(' ')
       return data.noteMap.map(note => {
         return note
       }).filter(note => {

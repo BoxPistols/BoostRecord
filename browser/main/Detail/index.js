@@ -82,7 +82,6 @@ class Detail extends React.Component {
         <SnippetNoteDetail
           note={note}
           config={config}
-          confirmDeletion={(permanent) => this.confirmDeletion(permanent)}
           ref='root'
           {..._.pick(this.props, [
             'dispatch',
@@ -99,7 +98,6 @@ class Detail extends React.Component {
       <MarkdownNoteDetail
         note={note}
         config={config}
-        confirmDeletion={(permanent) => this.confirmDeletion(permanent)}
         ref='root'
         {..._.pick(this.props, [
           'dispatch',

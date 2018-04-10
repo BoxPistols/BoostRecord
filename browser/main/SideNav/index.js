@@ -145,13 +145,12 @@ class SideNav extends React.Component {
 
   tagListComponent () {
     const { data, location, config } = this.props
-    let tagList = _.sortBy(data.tagNoteMap.map((tag, name) => {
-      return { name, size: tag.size }
-    }), ['name'])
+    let tagList = _.sortBy(data.tagNoteMap.map(
+      (tag, name) => ({name, size: tag.size})),
+      ['name']
+    )
     if (config.sortTagsBy === 'COUNTER') {
-      tagList = _.sortBy(tagList, function (item) {
-        return 0 - item.size
-      })
+      tagList = _.sortBy(tagList, item => (0 - item.size))
     }
     return (
       tagList.map(tag => {

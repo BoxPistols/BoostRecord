@@ -346,9 +346,7 @@ class NoteList extends React.Component {
       const listOfTags = params.tagname.split(' ')
       return data.noteMap.map(note => {
         return note
-      }).filter(note => {
-        return listOfTags.every((tag) => note.tags.includes(tag))
-      })
+      }).filter(note => listOfTags.every(tag => note.tags.includes(tag)))
     }
 
     return this.getContextNotes()

@@ -146,9 +146,9 @@ class SideNav extends React.Component {
   tagListComponent () {
     const { data, location, config } = this.props
     const relatedTags = this.getRelatedTags(this.getActiveTags(location.pathname), data.noteMap)
-    let tagList = _.sortBy(data.tagNoteMap.map((tag, name) => {
-      return { name, size: tag.size, related: relatedTags.has(name) }
-    }), ['name'])
+    let tagList = _.sortBy(data.tagNoteMap.map(
+      (tag, name) => ({ name, size: tag.size, related: relatedTags.has(name) })
+    ), ['name'])
     if (config.sortTagsBy === 'COUNTER') {
       tagList = _.sortBy(tagList, item => (0 - item.size))
     }
@@ -170,35 +170,29 @@ class SideNav extends React.Component {
   }
 
   getRelatedTags (activeTags, noteMap) {
-    if (activeTags.length == 0) {
+    if (activeTags.length === 0) {
       return new Set()
     }
-    const relatedNotes = noteMap.map(note => {
-      return {key: note.key, tags: note.tags}
-    }).filter((note) => {
-      return activeTags.every((tag) => note.tags.includes(tag))
-    })
+    const relatedNotes = noteMap.map(
+      note => ({key: note.key, tags: note.tags})
+    ).filter(
+      note => activeTags.every(tag => note.tags.includes(tag))
+    )
     let relatedTags = new Set()
-    relatedNotes.forEach(note => {
-      note.tags.map(tag => {
-        relatedTags.add(tag)
-      })
-    })
+    relatedNotes.forEach(note => note.tags.map(tag => relatedTags.add(tag)))
     return relatedTags
   }
 
   getTagActive (path, tag) {
-    const pathTag = this.getActiveTags(path)
-    return pathTag.includes(tag)
+    return this.getActiveTags(path).includes(tag)
   }
 
   getActiveTags (path) {
     const pathSegments = path.split('/')
     const tags = pathSegments[pathSegments.length - 1]
-    if (tags === 'alltags') {
-      return []
-    }
-    return tags.split(' ')
+    return (tags === 'alltags')
+      ? []
+      : tags.split(' ')
   }
 
   handleClickTagListItem (name) {
@@ -220,16 +214,15 @@ class SideNav extends React.Component {
     })
   }
 
-  handleClickNarrowToTag (name) {
+  handleClickNarrowToTag (tag) {
     const { router } = this.context
     const { location } = this.props
     let listOfTags = this.getActiveTags(location.pathname)
-    if (listOfTags.includes(name)) {
-      listOfTags = listOfTags.filter(function (currentTag) {
-        return name !== currentTag
-      })
+    const indexOfTag = listOfTags.indexOf(tag)
+    if (indexOfTag > -1) {
+      listOfTags.splice(indexOfTag, 1)
     } else {
-      listOfTags.push(name)
+      listOfTags.push(tag)
     }
     router.push(`/tags/${listOfTags.join(' ')}`)
   }

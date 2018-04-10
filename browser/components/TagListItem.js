@@ -9,7 +9,9 @@ import CSSModules from 'browser/lib/CSSModules'
 /**
 * @param {string} name
 * @param {Function} handleClickTagListItem
+* @param {Function} handleClickNarrowToTag
 * @param {bool} isActive
+* @param {bool} isRelated
 */
 
 const TagListItem = ({name, handleClickTagListItem, handleClickNarrowToTag, isActive, isRelated, count}) => (

@@ -277,11 +277,16 @@ export default class CodeEditor extends React.Component {
 
   handleDropImage (e) {
     e.preventDefault()
-    const imagePath = e.dataTransfer.files[0].path
-    const filename = path.basename(imagePath)
+    const ValidImageTypes = ['image/gif', 'image/jpeg', 'image/png']
 
-    copyImage(imagePath, this.props.storageKey).then((imagePath) => {
-      const imageMd = `![${filename}](${path.join('/:storage', imagePath)})`
+    const file = e.dataTransfer.files[0]
+    const filePath = file.path
+    const filename = path.basename(filePath)
+    const fileType = file['type']
+
+    copyImage(filePath, this.props.storageKey).then((imagePath) => {
+      var showPreview = ValidImageTypes.indexOf(fileType) > 0
+      const imageMd = `${showPreview ? '!' : ''}[${filename}](${path.join('/:storage', imagePath)})`
       this.insertImageMd(imageMd)
     })
   }

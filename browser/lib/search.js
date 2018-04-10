@@ -19,9 +19,7 @@ function findByWordOrTag (notes, block) {
   const tagRegExp = new RegExp(_.escapeRegExp(tag), 'i')
   const wordRegExp = new RegExp(_.escapeRegExp(block), 'i')
   return notes.filter((note) => {
-    if (_.isArray(note.tags) && note.tags.some((_tag) => {
-      return _tag.match(tagRegExp)
-    })) {
+    if (_.isArray(note.tags) && note.tags.some((_tag) => _tag.match(tagRegExp))) {
       return true
     }
     if (note.type === 'SNIPPET_NOTE') {

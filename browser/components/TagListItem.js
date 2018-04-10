@@ -18,9 +18,9 @@ const TagListItem = ({name, handleClickTagListItem, handleClickNarrowToTag, isAc
   <div styleName='tagList-itemContainer'>
     {isRelated
       ? <button styleName={isActive ? 'tagList-itemNarrow-active' : 'tagList-itemNarrow'} onClick={() => handleClickNarrowToTag(name)}>
-          <i className={isActive ? 'fa fa-minus-circle' : 'fa fa-plus-circle'} />
-        </button>
-      : <div styleName={isActive ? 'tagList-itemNarrow-active' : 'tagList-itemNarrow'}></div>
+        <i className={isActive ? 'fa fa-minus-circle' : 'fa fa-plus-circle'} />
+      </button>
+      : <div styleName={isActive ? 'tagList-itemNarrow-active' : 'tagList-itemNarrow'} />
     }
     <button styleName={isActive ? 'tagList-item-active' : 'tagList-item'} onClick={() => handleClickTagListItem(name)}>
       <span styleName='tagList-item-name'>

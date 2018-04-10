@@ -11,6 +11,7 @@
     "webpack": "webpack-dev-server --hot --inline --config webpack.config.js",
     "compile": "grunt compile",
     "test": "PWD=$(pwd) NODE_ENV=test ava --serial",
+    "jest": "jest",
     "fix": "npm run lint --fix",
     "lint": "eslint .",
     "dev-start": "concurrently --kill-others \"npm run webpack\" \"npm run hot\""
@@ -96,11 +97,13 @@
   "devDependencies": {
     "ava": "^0.25.0",
     "babel-core": "^6.14.0",
+    "babel-jest": "^22.4.3",
     "babel-loader": "^6.2.0",
     "babel-plugin-react-transform": "^2.0.0",
     "babel-plugin-webpack-alias": "^2.1.1",
+    "babel-preset-env": "^1.6.1",
     "babel-preset-es2015": "^6.3.13",
-    "babel-preset-react": "^6.3.13",
+    "babel-preset-react": "^6.24.1",
     "babel-preset-react-hmre": "^1.0.1",
     "babel-register": "^6.11.6",
     "browser-env": "^3.2.5",
@@ -120,6 +123,9 @@
     "grunt": "^0.4.5",
     "grunt-electron-installer": "2.1.0",
     "history": "^1.17.0",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^22.4.3",
+    "jest-localstorage-mock": "^2.2.0",
     "jsdom": "^9.4.2",
     "json-loader": "^0.5.4",
     "merge-stream": "^1.0.0",
@@ -130,6 +136,7 @@
     "react-input-autosize": "^1.1.0",
     "react-router": "^2.4.0",
     "react-router-redux": "^4.0.4",
+    "react-test-renderer": "^15.6.2",
     "standard": "^8.4.0",
     "style-loader": "^0.12.4",
     "stylus": "^0.52.4",
@@ -152,5 +159,15 @@
       "./tests/helpers/setup-electron-mock.js"
     ],
     "babel": "inherit"
+  },
+  "jest": {
+    "moduleNameMapper": {
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
+      "\\.(css|less|styl)$": "identity-obj-proxy"
+    },
+    "setupFiles": [
+      "<rootDir>/tests/jest.js",
+      "jest-localstorage-mock"
+    ]
   }
 }

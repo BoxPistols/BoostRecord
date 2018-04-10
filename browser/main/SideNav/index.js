@@ -147,10 +147,8 @@ class SideNav extends React.Component {
     const { data, location, config } = this.props
     const relatedTags = this.getRelatedTags(this.getActiveTags(location.pathname), data.noteMap)
     let tagList = _.sortBy(data.tagNoteMap.map((tag, name) => {
-      return { name, size: tag.size }
-    }), ['name']).filter(tag => {
-      return (relatedTags.size === 0) ? true : relatedTags.has(tag.name)
-    })
+      return { name, size: tag.size, related: relatedTags.has(name) }
+    }), ['name'])
     if (config.sortTagsBy === 'COUNTER') {
       tagList = _.sortBy(tagList, item => (0 - item.size))
     }
@@ -162,6 +160,7 @@ class SideNav extends React.Component {
             handleClickTagListItem={this.handleClickTagListItem.bind(this)}
             handleClickNarrowToTag={this.handleClickNarrowToTag.bind(this)}
             isActive={this.getTagActive(location.pathname, tag.name)}
+            isRelated={tag.related}
             key={tag.name}
             count={tag.size}
           />
@@ -171,6 +170,9 @@ class SideNav extends React.Component {
   }
 
   getRelatedTags (activeTags, noteMap) {
+    if (activeTags.length == 0) {
+      return new Set()
+    }
     const relatedNotes = noteMap.map(note => {
       return {key: note.key, tags: note.tags}
     }).filter((note) => {

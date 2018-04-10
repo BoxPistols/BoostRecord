@@ -12,11 +12,14 @@ import CSSModules from 'browser/lib/CSSModules'
 * @param {bool} isActive
 */
 
-const TagListItem = ({name, handleClickTagListItem, handleClickNarrowToTag, isActive, count}) => (
+const TagListItem = ({name, handleClickTagListItem, handleClickNarrowToTag, isActive, isRelated, count}) => (
   <div styleName='tagList-itemContainer'>
-    <button styleName={isActive ? 'tagList-itemNarrow-active' : 'tagList-itemNarrow'} onClick={() => handleClickNarrowToTag(name)}>
-      <i className={isActive ? 'fa fa-minus-circle' : 'fa fa-plus-circle'} />
-    </button>
+    {isRelated
+      ? <button styleName={isActive ? 'tagList-itemNarrow-active' : 'tagList-itemNarrow'} onClick={() => handleClickNarrowToTag(name)}>
+          <i className={isActive ? 'fa fa-minus-circle' : 'fa fa-plus-circle'} />
+        </button>
+      : <div styleName={isActive ? 'tagList-itemNarrow-active' : 'tagList-itemNarrow'}></div>
+    }
     <button styleName={isActive ? 'tagList-item-active' : 'tagList-item'} onClick={() => handleClickTagListItem(name)}>
       <span styleName='tagList-item-name'>
         {`# ${name}`}

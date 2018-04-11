@@ -152,6 +152,11 @@ class SideNav extends React.Component {
     if (config.sortTagsBy === 'COUNTER') {
       tagList = _.sortBy(tagList, item => (0 - item.size))
     }
+    if (config.ui.showOnlyRelatedTags && (relatedTags.size > 0)) {
+      tagList = tagList.filter(
+        tag => tag.related
+      )
+    }
     return (
       tagList.map(tag => {
         return (

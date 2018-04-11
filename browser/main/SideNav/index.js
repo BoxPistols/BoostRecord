@@ -91,7 +91,7 @@ class SideNav extends React.Component {
     let component
 
     // TagsMode is not selected
-    if (!location.pathname.match('/tags') && !location.pathname.match('/alltags') && !location.pathname.match('/narrowToTag')) {
+    if (!location.pathname.match('/tags') && !location.pathname.match('/alltags')) {
       component = (
         <div>
           <SideNavFilter

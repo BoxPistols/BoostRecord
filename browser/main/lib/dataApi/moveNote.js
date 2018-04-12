@@ -68,7 +68,7 @@ function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
           return noteData
         })
         .then(function moveImages (noteData) {
-          if(oldStorage.path === newStorage.path) {
+          if (oldStorage.path === newStorage.path) {
             return noteData
           } else {
             const searchImagesRegex = /!\[.*?]\(\s*?\/:storage\/(.*\.\S*?)\)/gi
@@ -90,8 +90,8 @@ function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
             }
 
             return Promise.all(moveTasks).then(() => noteData)
-        }
-      })
+          }
+        })
         .then(function writeAndReturn (noteData) {
           CSON.writeFileSync(path.join(newStorage.path, 'notes', noteData.key + '.cson'), _.omit(noteData, ['key', 'storage']))
           return noteData

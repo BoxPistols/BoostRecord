@@ -68,26 +68,30 @@ function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
           return noteData
         })
         .then(function moveImages (noteData) {
-          const searchImagesRegex = /!\[.*?]\(\s*?\/:storage\/(.*\.\S*?)\)/gi
-          let match = searchImagesRegex.exec(noteData.content)
+          if(oldStorage.path === newStorage.path) {
+            return noteData
+          } else {
+            const searchImagesRegex = /!\[.*?]\(\s*?\/:storage\/(.*\.\S*?)\)/gi
+            let match = searchImagesRegex.exec(noteData.content)
 
-          const moveTasks = []
-          while (match != null) {
-            const [, filename] = match
-            const oldPath = path.join(oldStorage.path, 'images', filename)
-            moveTasks.push(
-                copyImage(oldPath, noteData.storage, false)
-                .then(() => {
-                  fs.unlinkSync(oldPath)
-                })
-            )
+            const moveTasks = []
+            while (match != null) {
+              const [, filename] = match
+              const oldPath = path.join(oldStorage.path, 'images', filename)
+              moveTasks.push(
+                  copyImage(oldPath, noteData.storage, false)
+                  .then(() => {
+                    fs.unlinkSync(oldPath)
+                  })
+              )
 
-            // find next occurence
-            match = searchImagesRegex.exec(noteData.content)
-          }
+              // find next occurence
+              match = searchImagesRegex.exec(noteData.content)
+            }
 
-          return Promise.all(moveTasks).then(() => noteData)
-        })
+            return Promise.all(moveTasks).then(() => noteData)
+        }
+      })
         .then(function writeAndReturn (noteData) {
           CSON.writeFileSync(path.join(newStorage.path, 'notes', noteData.key + '.cson'), _.omit(noteData, ['key', 'storage']))
           return noteData

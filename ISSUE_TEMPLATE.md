@@ -1,10 +1,3 @@
-I want to report a :
-
-<!-- Please check the box with an x like this : [x]-->
-
-- [ ] bug
-- [ ] feature
-
 # Current behavior
 
 <!--

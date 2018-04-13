@@ -140,45 +140,41 @@ class Main extends React.Component {
   componentDidMount () {
     const { dispatch, config } = this.props
 
-    if (config.ui.theme === 'dark') {
-      document.body.setAttribute('data-theme', 'dark')
-    } else if (config.ui.theme === 'white') {
-      document.body.setAttribute('data-theme', 'white')
-    } else if (config.ui.theme === 'solarized-dark') {
-      document.body.setAttribute('data-theme', 'solarized-dark')
-    } else {
+    const supportedTheme = [
+      'dark',
+      'white',
+      'solarized-dark'
+    ]
+
+    if (supportedTheme.indexOf(config.ui.theme) !== -1) {
+      document.body.setAttribute('data-theme', config.ui.theme)
+    }
+    else {
       document.body.setAttribute('data-theme', 'default')
     }
-    if (config.ui.language === 'sq') {
-      i18n.setLocale('sq')
-    } else if (config.ui.language === 'zh-CN') {
-      i18n.setLocale('zh-CN')
-    } else if (config.ui.language === 'zh-TW') {
-      i18n.setLocale('zh-TW')
-    } else if (config.ui.language === 'da') {
-      i18n.setLocale('da')
-    } else if (config.ui.language === 'fr') {
-      i18n.setLocale('fr')
-    } else if (config.ui.language === 'de') {
-      i18n.setLocale('de')
-    } else if (config.ui.language === 'hu') {
-      i18n.setLocale('hu')
-    } else if (config.ui.language === 'ja') {
-      i18n.setLocale('ja')
-    } else if (config.ui.language === 'ko') {
-      i18n.setLocale('ko')
-    } else if (config.ui.language === 'no') {
-      i18n.setLocale('no')
-    } else if (config.ui.language === 'pl') {
-      i18n.setLocale('pl')
-    } else if (config.ui.language === 'pt') {
-      i18n.setLocale('pt')
-    } else if (config.ui.language === 'ru') {
-      i18n.setLocale('ru')
-    } else if (config.ui.language === 'es-ES') {
-      i18n.setLocale('es-ES')
-    } else {
-      i18n.setLocale('en')
+
+    const supportedLanguages = [
+      'sq',
+      'zh-CN',
+      'zh-TW',
+      'da',
+      'fr',
+      'de',
+      'hu',
+      'ja',
+      'ko',
+      'no',
+      'pl',
+      'pt',
+      'ru',
+      'es-ES'
+    ]
+
+    if (supportedLanguages.indexOf(config.ui.language) !== -1) {
+      i18n.setLocale(config.ui.language)
+    }
+    else {
+      i18n.setLocale('en');
     }
 
     // Reload all data

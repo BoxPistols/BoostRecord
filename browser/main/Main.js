@@ -140,13 +140,13 @@ class Main extends React.Component {
   componentDidMount () {
     const { dispatch, config } = this.props
 
-    const supportedTheme = [
+    const supportedThemes = [
       'dark',
       'white',
       'solarized-dark'
     ]
 
-    if (supportedTheme.indexOf(config.ui.theme) !== -1) {
+    if (supportedThemes.indexOf(config.ui.theme) !== -1) {
       document.body.setAttribute('data-theme', config.ui.theme)
     }
     else {

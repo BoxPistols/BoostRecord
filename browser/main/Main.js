@@ -148,8 +148,7 @@ class Main extends React.Component {
 
     if (supportedThemes.indexOf(config.ui.theme) !== -1) {
       document.body.setAttribute('data-theme', config.ui.theme)
-    }
-    else {
+    } else {
       document.body.setAttribute('data-theme', 'default')
     }
 
@@ -172,9 +171,8 @@ class Main extends React.Component {
 
     if (supportedLanguages.indexOf(config.ui.language) !== -1) {
       i18n.setLocale(config.ui.language)
-    }
-    else {
-      i18n.setLocale('en');
+    } else {
+      i18n.setLocale('en')
     }
 
     // Reload all data

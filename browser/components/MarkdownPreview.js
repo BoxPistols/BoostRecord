@@ -13,6 +13,7 @@ import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
+import {escapeHtmlCharacters} from 'browser/lib/utils'
 
 const { remote } = require('electron')
 const { app } = remote
@@ -208,7 +209,7 @@ export default class MarkdownPreview extends React.Component {
       const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme} = this.getStyleParams()
 
       const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, lineNumber)
-      const body = this.markdown.render(noteContent)
+      const body = this.markdown.render(escapeHtmlCharacters(noteContent))
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
 
       files.forEach((file) => {
@@ -394,6 +395,9 @@ export default class MarkdownPreview extends React.Component {
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
       this.fixDecodedURI(el)
+      el.href = this.markdown.normalizeLinkText(el.href)
+      if (!/\/:storage/.test(el.href)) return
+      el.href = `file:///${this.markdown.normalizeLinkText(path.join(storagePath, 'images', path.basename(el.href)))}`
       el.addEventListener('click', this.anchorClickHandler)
     })
 

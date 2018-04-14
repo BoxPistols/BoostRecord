@@ -108,6 +108,21 @@ body[data-theme="dark"]
   background #B1D7FE
 ::selection
   background #B1D7FE
+.CodeMirror-foldmarker
+  font-family: arial
+
+.CodeMirror-foldgutter
+  width: .7em
+
+.CodeMirror-foldgutter-open,
+.CodeMirror-foldgutter-folded
+  cursor: pointer
+
+.CodeMirror-foldgutter-open:after
+  content: "\25BE"
+
+.CodeMirror-foldgutter-folded:after
+  content: "\25B8"
 
 .sortableItemHelper
   z-index modalZIndex + 5

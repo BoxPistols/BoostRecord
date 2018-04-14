@@ -24,6 +24,46 @@ document.addEventListener('dragover', function (e) {
   e.stopPropagation()
 })
 
+// prevent menu from popup when alt pressed
+// but still able to toggle menu when only alt is pressed
+let isAltPressing = false
+let isAltWithMouse = false
+let isAltWithOtherKey = false
+let isOtherKey = false
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Alt') {
+    isAltPressing = true
+    if (isOtherKey) {
+      isAltWithOtherKey = true
+    }
+  } else {
+    if (isAltPressing) {
+      isAltWithOtherKey = true
+    }
+    isOtherKey = true
+  }
+})
+
+document.addEventListener('mousedown', function (e) {
+  if (isAltPressing) {
+    isAltWithMouse = true
+  }
+})
+
+document.addEventListener('keyup', function (e) {
+  if (e.key === 'Alt') {
+    if (isAltWithMouse || isAltWithOtherKey) {
+      console.log(isAltWithMouse, isAltWithOtherKey)
+      e.preventDefault()
+    }
+    isAltWithMouse = false
+    isAltWithOtherKey = false
+    isAltPressing = false
+    isOtherKey = false
+  }
+})
+
 document.addEventListener('click', function (e) {
   const className = e.target.className
   if (!className && typeof (className) !== 'string') return

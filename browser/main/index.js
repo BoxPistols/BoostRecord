@@ -54,7 +54,6 @@ document.addEventListener('mousedown', function (e) {
 document.addEventListener('keyup', function (e) {
   if (e.key === 'Alt') {
     if (isAltWithMouse || isAltWithOtherKey) {
-      console.log(isAltWithMouse, isAltWithOtherKey)
       e.preventDefault()
     }
     isAltWithMouse = false

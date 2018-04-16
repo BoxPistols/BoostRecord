@@ -18,6 +18,7 @@ import copy from 'copy-to-clipboard'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import Markdown from '../../lib/markdown'
 import i18n from 'browser/lib/i18n'
+import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
@@ -585,16 +586,11 @@ class NoteList extends React.Component {
     const notes = this.notes.map((note) => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const firstNote = selectedNotes[0]
+    const { confirmDeletion } = this.props.config.ui
 
     if (firstNote.isTrashed) {
-      const noteExp = selectedNotes.length > 1 ? 'notes' : 'note'
-      const dialogueButtonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
-        type: 'warning',
-        message: i18n.__('Confirm note deletion'),
-        detail: `This will permanently remove ${selectedNotes.length} ${noteExp}.`,
-        buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
-      })
-      if (dialogueButtonIndex === 1) return
+      if (!confirmDeleteNote(confirmDeletion, true)) return
+
       Promise.all(
         selectedNotes.map((note) => {
           return dataApi
@@ -615,6 +611,8 @@ class NoteList extends React.Component {
       })
       console.log('Notes were all deleted')
     } else {
+      if (!confirmDeleteNote(confirmDeletion, false)) return
+
       Promise.all(
         selectedNotes.map((note) => {
           note.isTrashed = true

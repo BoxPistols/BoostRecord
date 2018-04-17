@@ -281,8 +281,8 @@ class NoteList extends React.Component {
       ee.emit('detail:focus')
     }
 
-    // F or S key
-    if (e.keyCode === 70 || e.keyCode === 83) {
+    // L or S key
+    if (e.keyCode === 76 || e.keyCode === 83) {
       e.preventDefault()
       ee.emit('top:focus-search')
     }

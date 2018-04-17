@@ -27,6 +27,7 @@ import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
 import i18n from 'browser/lib/i18n'
+import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 
 function pass (name) {
   switch (name) {
@@ -197,10 +198,10 @@ class SnippetNoteDetail extends React.Component {
   handleTrashButtonClick (e) {
     const { note } = this.state
     const { isTrashed } = note
-    const { confirmDeletion } = this.props
+    const { confirmDeletion } = this.props.config.ui
 
     if (isTrashed) {
-      if (confirmDeletion(true)) {
+      if (confirmDeleteNote(confirmDeletion, true)) {
         const {note, dispatch} = this.props
         dataApi
           .deleteNote(note.storage, note.key)
@@ -217,7 +218,7 @@ class SnippetNoteDetail extends React.Component {
           .then(() => ee.emit('list:next'))
       }
     } else {
-      if (confirmDeletion()) {
+      if (confirmDeleteNote(confirmDeletion, false)) {
         note.isTrashed = true
 
         this.setState({
@@ -883,8 +884,7 @@ SnippetNoteDetail.propTypes = {
   style: PropTypes.shape({
     left: PropTypes.number
   }),
-  ignorePreviewPointerEvents: PropTypes.bool,
-  confirmDeletion: PropTypes.bool.isRequired
+  ignorePreviewPointerEvents: PropTypes.bool
 }
 
 export default CSSModules(SnippetNoteDetail, styles)

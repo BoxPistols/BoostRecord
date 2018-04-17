@@ -82,7 +82,7 @@ class SideNav extends React.Component {
   }
 
   SideNavComponent (isFolded, storageList) {
-    const { location, data } = this.props
+    const { location, data, config } = this.props
 
     const isHomeActive = !!location.pathname.match(/^\/home$/)
     const isStarredActive = !!location.pathname.match(/^\/starred$/)
@@ -108,15 +108,30 @@ class SideNav extends React.Component {
             handleFilterButtonContextMenu={this.handleFilterButtonContextMenu.bind(this)}
           />
 
-          <StorageList storageList={storageList} />
+          <StorageList storageList={storageList} isFolded={isFolded} />
           <NavToggleButton isFolded={isFolded} handleToggleButtonClick={this.handleToggleButtonClick.bind(this)} />
         </div>
       )
     } else {
       component = (
         <div styleName='tabBody'>
-          <div styleName='tag-title'>
-            <p>{i18n.__('Tags')}</p>
+          <div styleName='tag-control'>
+            <div styleName='tag-control-title'>
+              <p>{i18n.__('Tags')}</p>
+            </div>
+            <div styleName='tag-control-sortTagsBy'>
+              <i className='fa fa-angle-down' />
+              <select styleName='tag-control-sortTagsBy-select'
+                title={i18n.__('Select filter mode')}
+                value={config.sortTagsBy}
+                onChange={(e) => this.handleSortTagsByChange(e)}
+              >
+                <option title='Sort alphabetically'
+                  value='ALPHABETICAL'>{i18n.__('Alphabetically')}</option>
+                <option title='Sort by update time'
+                  value='COUNTER'>{i18n.__('Counter')}</option>
+              </select>
+            </div>
           </div>
           <div styleName='tagList'>
             {this.tagListComponent(data)}
@@ -129,17 +144,21 @@ class SideNav extends React.Component {
   }
 
   tagListComponent () {
-    const { data, location } = this.props
-    const tagList = _.sortBy(data.tagNoteMap.map((tag, name) => {
-      return { name, size: tag.size }
-    }), ['name'])
+    const { data, location, config } = this.props
+    let tagList = _.sortBy(data.tagNoteMap.map(
+      (tag, name) => ({name, size: tag.size})),
+      ['name']
+    )
+    if (config.sortTagsBy === 'COUNTER') {
+      tagList = _.sortBy(tagList, item => (0 - item.size))
+    }
     return (
       tagList.map(tag => {
         return (
           <TagListItem
             name={tag.name}
             handleClickTagListItem={this.handleClickTagListItem.bind(this)}
-            isActive={this.getTagActive(location.pathname, tag)}
+            isActive={this.getTagActive(location.pathname, tag.name)}
             key={tag.name}
             count={tag.size}
           />
@@ -157,6 +176,20 @@ class SideNav extends React.Component {
   handleClickTagListItem (name) {
     const { router } = this.context
     router.push(`/tags/${name}`)
+  }
+
+  handleSortTagsByChange (e) {
+    const { dispatch } = this.props
+
+    const config = {
+      sortTagsBy: e.target.value
+    }
+
+    ConfigManager.set(config)
+    dispatch({
+      type: 'SET_CONFIG',
+      config
+    })
   }
 
   emptyTrash (entries) {

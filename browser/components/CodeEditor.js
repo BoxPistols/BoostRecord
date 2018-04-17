@@ -331,9 +331,14 @@ export default class CodeEditor extends React.Component {
         const imageDir = path.join(storagePath, 'images')
         if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir)
         const imagePath = path.join(imageDir, `${imageName}.png`)
-        fs.writeFile(imagePath, binaryData, 'binary')
-        const imageMd = `![${imageName}](${path.join('/:storage', `${imageName}.png`)})`
-        this.insertImageMd(imageMd)
+        fs.writeFile(imagePath, binaryData, 'binary', (error) => {
+          if (error) {
+            throw error
+          } else {
+            const imageMd = `![${imageName}](${path.join('/:storage', `${imageName}.png`)})`
+            this.insertImageMd(imageMd)
+          }
+        })
       }
     } else if (this.props.fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
       this.handlePasteUrl(e, editor, pastedTxt)

@@ -94,6 +94,18 @@ export default class CodeEditor extends React.Component {
 
   componentDidMount () {
     const { rulers, enableRulers } = this.props
+    const storagePath = findStorage(this.props.storageKey).path
+    const expandDataFile = path.join(storagePath, 'expandData.json')
+    if (!fs.existsSync(expandDataFile)) {
+      const defaultExpandData = [
+        {
+          matches: ['expandme'],
+          content: 'Here I am'
+        }
+      ];
+      fs.writeFileSync(expandDataFile, JSON.stringify(defaultExpandData), 'utf8')
+    }
+    const expandData = JSON.parse(fs.readFileSync(expandDataFile, 'utf8'))
     this.value = this.props.value
 
     this.editor = CodeMirror(this.refs.root, {
@@ -116,6 +128,8 @@ export default class CodeEditor extends React.Component {
         Tab: function (cm) {
           const cursor = cm.getCursor()
           const line = cm.getLine(cursor.line)
+          const cursorPosition = cursor.ch
+          const charBeforeCursor = line.substr(cursorPosition - 1, 1)
           if (cm.somethingSelected()) cm.indentSelection('add')
           else {
             const tabs = cm.getOption('indentWithTabs')
@@ -127,6 +141,66 @@ export default class CodeEditor extends React.Component {
                 cm.execCommand('insertSoftTab')
               }
               cm.execCommand('goLineEnd')
+            } else if (charBeforeCursor !== ' ') {
+              // text expansion on tab key
+              let tempCursorPosition = cursorPosition;
+              let wordBeforeCursor = '';
+              const emptyChars = /\t|\s|\r|\n/
+
+              // to prevent the word to expand is long that will crash the whole app
+              // the safeStop is there to stop user to expand words that longer than 20 chars
+              const safeStop = 20;
+
+              while (tempCursorPosition > 0) {
+                let currentChar = line.substr(tempCursorPosition - 1, 1);
+                // if char is not an empty char
+                if (!emptyChars.test(currentChar)) {
+                  wordBeforeCursor = currentChar + wordBeforeCursor
+                } else if (wordBeforeCursor.length >= safeStop) {
+                  throw new Error("Your text expansion word is too long !")
+                } else {
+                  break
+                }
+                tempCursorPosition--;
+              }
+              
+              for (let i = 0; i < expandData.length; i++) {
+                if (Array.isArray(expandData[i].matches)) {
+                  if (expandData[i].matches.indexOf(wordBeforeCursor) !== -1) {
+                    let range = {
+                      from: {line: cursor.line, ch: cursor.ch},
+                      to: {line: cursor.line, ch: tempCursorPosition}
+                    }
+                    cm.replaceRange(
+                      expandData[i].content, 
+                      range.from,
+                      range.to
+                    )
+                    return // stop if text is expanded
+                  }
+                }
+                else if (typeof(expandData[i].matches) === 'string') {
+                  if (expandData[i].matches === wordBeforeCursor) {
+                    let range = {
+                      from: {line: cursor.line, ch: cursor.ch},
+                      to: {line: cursor.line, ch: tempCursorPosition}
+                    }
+                    cm.replaceRange(
+                      expandData[i].content, 
+                      range.from,
+                      range.to
+                    )
+                    return // stop if text is expanded
+                  }
+                }
+              }
+
+              if (tabs) {
+                cm.execCommand('insertTab')
+              } else {
+                cm.execCommand('insertSoftTab')
+              }
+
             } else {
               if (tabs) {
                 cm.execCommand('insertTab')

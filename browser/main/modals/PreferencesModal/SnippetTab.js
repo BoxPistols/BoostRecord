@@ -13,16 +13,24 @@ class SnippetTab extends React.Component {
 
     this.state = {
       snippets: [
-        { id: 'abcsajisdjiasd', name: 'Hello' }
-      ]
+        { id: 'abcsajisdjiasd', name: 'Hello', content: 'asdddddddsaddddddd' },
+        { id: 'btbjieejbiebfe', name: 'Hello 2', content: 'asdddddddsaddddddd' }
+      ],
+      currentSnippet: null
     }
+  }
+
+  handleSnippetClick(id) {
+    this.setState({'currentSnippet': id})
   }
 
   renderSnippetList () {
     let { snippets } = this.state
     return (
       snippets.map((snippet) => (
-        <div styleName='snippet-item' key={snippet.id}>
+        <div styleName='snippet-item' 
+              key={snippet.id} 
+              onClick={() => this.handleSnippetClick(snippet.id)}>
           {snippet.name}
         </div>
       ))
@@ -42,6 +50,7 @@ class SnippetTab extends React.Component {
         <div styleName='snippet-list'>
           {this.renderSnippetList()}
         </div>
+        {this.state.currentSnippet ? 
         <div styleName='snippet-detail'>
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Snippet name')}</div>
@@ -50,7 +59,8 @@ class SnippetTab extends React.Component {
             </div>
           </div>
           <div styleName='snippet-editor-section'>
-            <SnippetEditor 
+            <SnippetEditor
+              storageKey={this.props.storageKey}
               theme={config.editor.theme}
               keyMap={config.editor.keyMap}
               fontFamily={config.editor.fontFamily}
@@ -60,9 +70,11 @@ class SnippetTab extends React.Component {
               enableRulers={config.editor.enableRulers}
               rulers={config.editor.rulers}
               displayLineNumbers={config.editor.displayLineNumbers}
-              scrollPastEnd={config.editor.scrollPastEnd} />
+              scrollPastEnd={config.editor.scrollPastEnd}
+              snippetId={this.state.currentSnippet} />
           </div>
         </div>
+        : ''}
       </div>
     )
   }

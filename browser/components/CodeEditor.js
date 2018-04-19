@@ -148,7 +148,7 @@ export default class CodeEditor extends React.Component {
                 cm.execCommand('insertSoftTab')
               }
               cm.execCommand('goLineEnd')
-            } else if (!emptyChars.test(charBeforeCursor) || cursor.ch !== 0) {
+            } else if (!emptyChars.test(charBeforeCursor) || cursor.ch > 1) {
               // text expansion on tab key if the char before is alphabet
               if (expandSnippet(line, cursor, cm, expandData) === false) {
                 if (tabs) {

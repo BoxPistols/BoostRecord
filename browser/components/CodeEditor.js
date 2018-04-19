@@ -96,18 +96,25 @@ export default class CodeEditor extends React.Component {
     const { rulers, enableRulers } = this.props
     const storagePath = findStorage(this.props.storageKey).path
     const expandDataFile = path.join(storagePath, 'expandData.json')
+    const emptyChars = /\t|\s|\r|\n/
     if (!fs.existsSync(expandDataFile)) {
       const defaultExpandData = [
         {
-          matches: ['expandme'],
-          content: 'Here I am'
-        }
+          matches: ['lorem', 'ipsum'],
+          content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+        },
+        { match: 'h1', content: '# '},
+        { match: 'h2', content: '## '},
+        { match: 'h3', content: '### '},
+        { match: 'h4', content: '#### '},
+        { match: 'h5', content: '##### '},
+        { match: 'h6', content: '###### '}
       ];
       fs.writeFileSync(expandDataFile, JSON.stringify(defaultExpandData), 'utf8')
     }
     const expandData = JSON.parse(fs.readFileSync(expandDataFile, 'utf8'))
+    const expandSnippet = this.expandSnippet.bind(this)
     this.value = this.props.value
-
     this.editor = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
       value: this.props.value,
@@ -141,64 +148,14 @@ export default class CodeEditor extends React.Component {
                 cm.execCommand('insertSoftTab')
               }
               cm.execCommand('goLineEnd')
-            } else if (charBeforeCursor !== ' ') {
-              // text expansion on tab key
-              let tempCursorPosition = cursorPosition;
-              let wordBeforeCursor = '';
-              const emptyChars = /\t|\s|\r|\n/
-
-              // to prevent the word to expand is long that will crash the whole app
-              // the safeStop is there to stop user to expand words that longer than 20 chars
-              const safeStop = 20;
-
-              while (tempCursorPosition > 0) {
-                let currentChar = line.substr(tempCursorPosition - 1, 1);
-                // if char is not an empty char
-                if (!emptyChars.test(currentChar)) {
-                  wordBeforeCursor = currentChar + wordBeforeCursor
-                } else if (wordBeforeCursor.length >= safeStop) {
-                  throw new Error("Your text expansion word is too long !")
+            } else if (!emptyChars.test(charBeforeCursor) || cursor.ch !== 0) {
+              // text expansion on tab key if the char before is alphabet
+              if (expandSnippet(line, cursor, cm, expandData) === false) {
+                if (tabs) {
+                  cm.execCommand('insertTab')
                 } else {
-                  break
+                  cm.execCommand('insertSoftTab')
                 }
-                tempCursorPosition--;
-              }
-              
-              for (let i = 0; i < expandData.length; i++) {
-                if (Array.isArray(expandData[i].matches)) {
-                  if (expandData[i].matches.indexOf(wordBeforeCursor) !== -1) {
-                    let range = {
-                      from: {line: cursor.line, ch: cursor.ch},
-                      to: {line: cursor.line, ch: tempCursorPosition}
-                    }
-                    cm.replaceRange(
-                      expandData[i].content, 
-                      range.from,
-                      range.to
-                    )
-                    return // stop if text is expanded
-                  }
-                }
-                else if (typeof(expandData[i].matches) === 'string') {
-                  if (expandData[i].matches === wordBeforeCursor) {
-                    let range = {
-                      from: {line: cursor.line, ch: cursor.ch},
-                      to: {line: cursor.line, ch: tempCursorPosition}
-                    }
-                    cm.replaceRange(
-                      expandData[i].content, 
-                      range.from,
-                      range.to
-                    )
-                    return // stop if text is expanded
-                  }
-                }
-              }
-
-              if (tabs) {
-                cm.execCommand('insertTab')
-              } else {
-                cm.execCommand('insertSoftTab')
               }
 
             } else {
@@ -242,6 +199,65 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
+  }
+
+  expandSnippet(line, cursor, cm, expandData) {
+    let wordBeforeCursor = this.getWordBeforeCursor(line, cursor.line, cursor.ch)
+    for (let i = 0; i < expandData.length; i++) {
+      if (Array.isArray(expandData[i].matches)) {
+        if (expandData[i].matches.indexOf(wordBeforeCursor.text) !== -1) {
+          cm.replaceRange(
+            expandData[i].content, 
+            wordBeforeCursor.range.from,
+            wordBeforeCursor.range.to
+          )
+          return true
+        }
+      }
+      else if (typeof(expandData[i].matches) === 'string') {
+        if (expandData[i].match === wordBeforeCursor.text) {
+          cm.replaceRange(
+            expandData[i].content, 
+            wordBeforeCursor.range.from,
+            wordBeforeCursor.range.to
+          )
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
+  getWordBeforeCursor(line, lineNumber, cursorPosition) {
+    let wordBeforeCursor = ''
+    let originCursorPosition = cursorPosition
+    const emptyChars = /\t|\s|\r|\n/
+
+    // to prevent the word to expand is long that will crash the whole app
+    // the safeStop is there to stop user to expand words that longer than 20 chars
+    const safeStop = 20
+
+    while (cursorPosition > 0) {
+      let currentChar = line.substr(cursorPosition - 1, 1)
+      // if char is not an empty char
+      if (!emptyChars.test(currentChar)) {
+        wordBeforeCursor = currentChar + wordBeforeCursor
+      } else if (wordBeforeCursor.length >= safeStop) {
+        throw new Error("Your text expansion word is too long !")
+      } else {
+        break
+      }
+      cursorPosition--;
+    }
+
+    return {
+      text: wordBeforeCursor,
+      range: {
+        from: {line: lineNumber, ch: originCursorPosition},
+        to: {line: lineNumber, ch: cursorPosition}
+      }
+    }
   }
 
   quitEditor () {

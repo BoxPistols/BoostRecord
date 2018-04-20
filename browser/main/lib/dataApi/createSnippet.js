@@ -1,13 +1,11 @@
-const { remote } = require('electron')
 import fs from 'fs'
-import path from 'path'
 import crypto from 'crypto'
 import consts from 'browser/lib/consts'
 
-function createSnippet(snippets) {
+function createSnippet (snippets) {
   return new Promise((resolve, reject) => {
-    const newSnippet = { 
-      id: crypto.randomBytes(16).toString('hex'), 
+    const newSnippet = {
+      id: crypto.randomBytes(16).toString('hex'),
       name: 'Unnamed snippet',
       prefix: [],
       content: ''

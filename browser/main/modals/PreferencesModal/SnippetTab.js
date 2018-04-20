@@ -4,7 +4,6 @@ import styles from './SnippetTab.styl'
 import fs from 'fs'
 import SnippetEditor from './SnippetEditor'
 import i18n from 'browser/lib/i18n'
-import path from 'path'
 import dataApi from 'browser/main/lib/dataApi'
 import consts from 'browser/lib/consts'
 
@@ -29,13 +28,13 @@ class SnippetTab extends React.Component {
   }
 
   handleSnippetClick (snippet) {
-    let currentSnippet = Object.assign({}, snippet)
+    const currentSnippet = Object.assign({}, snippet)
     currentSnippet.prefix = currentSnippet.prefix.join(', ')
     this.setState({currentSnippet})
   }
 
-  handleSnippetContextMenu(snippet) {
-    let menu = new Menu()
+  handleSnippetContextMenu (snippet) {
+    const menu = new Menu()
     menu.append(new MenuItem({
       label: 'Delete',
       click: () => {
@@ -45,21 +44,21 @@ class SnippetTab extends React.Component {
     menu.popup()
   }
 
-  deleteSnippet(id) {
+  deleteSnippet (id) {
     dataApi.deleteSnippet(this.snippets, id).then((snippets) => {
       this.snippets = snippets
       this.setState(this.snippets)
-    }).catch(err => {throw err})
+    }).catch(err => { throw err })
   }
 
-  createSnippet() {
+  createSnippet () {
     dataApi.createSnippet(this.snippets).then((snippets) => {
       this.snippets = snippets
       this.setState(this.snippets)
       // scroll to end of list when added new snippet
-      let snippetList = document.getElementById("snippets")
+      const snippetList = document.getElementById('snippets')
       snippetList.scrollTop = snippetList.scrollHeight
-    }).catch(err => {throw err})
+    }).catch(err => { throw err })
   }
 
   renderSnippetList () {
@@ -72,8 +71,7 @@ class SnippetTab extends React.Component {
               styleName='snippet-item'
               key={snippet.id}
               onContextMenu={() => this.handleSnippetContextMenu(snippet)}
-              onClick={() => {
-                this.handleSnippetClick(snippet)}}>
+              onClick={() => this.handleSnippetClick(snippet)}>
               {snippet.name}
             </li>
           ))

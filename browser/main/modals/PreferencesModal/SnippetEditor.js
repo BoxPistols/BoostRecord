@@ -2,11 +2,8 @@ import CodeMirror from 'codemirror'
 import React from 'react'
 import _ from 'lodash'
 import fs from 'fs'
-import path from 'path'
 import consts from 'browser/lib/consts'
 import dataApi from 'browser/main/lib/dataApi'
-
-const { remote } = require('electron')
 
 const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
 const buildCMRulers = (rulers, enableRulers) =>
@@ -48,7 +45,7 @@ export default class SnippetEditor extends React.Component {
   }
 
   saveSnippet () {
-    dataApi.updateSnippet(this.snippet).catch((err) => {throw err})
+    dataApi.updateSnippet(this.snippet).catch((err) => { throw err })
   }
 
   loadSnippet (snippetId) {

@@ -89,10 +89,10 @@ class Preferences extends React.Component {
         )
       case 'SNIPPET':
         return (
-          <SnippetTab 
+          <SnippetTab
             dispatch={dispatch}
             config={config}
-            data={data} 
+            data={data}
           />
         )
       case 'STORAGES':

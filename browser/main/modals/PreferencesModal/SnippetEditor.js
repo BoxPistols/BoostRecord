@@ -1,18 +1,18 @@
 import CodeMirror from 'codemirror'
-import PropTypes from 'prop-types'
 import React from 'react'
 import _ from 'lodash'
 import fs from 'fs'
-import { findStorage } from 'browser/lib/findStorage'
+import path from 'path'
+import consts from 'browser/lib/consts'
+import dataApi from 'browser/main/lib/dataApi'
+
+const { remote } = require('electron')
 
 const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
 const buildCMRulers = (rulers, enableRulers) =>
   enableRulers ? rulers.map(ruler => ({ column: ruler })) : []
 
 export default class SnippetEditor extends React.Component {
-  constructor (props) {
-    super(props)
-  }
 
   componentDidMount () {
     const { rulers, enableRulers } = this.props
@@ -29,33 +29,48 @@ export default class SnippetEditor extends React.Component {
       dragDrop: false,
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      autoCloseBrackets: true,
+      autoCloseBrackets: true
     })
-    this.cm.setSize("100%", "100%")
-    let snippetId = this.props.snippetId
+    this.cm.setSize('100%', '100%')
+    this.snippet = this.props.snippet
+    const snippetId = this.snippet.id
+    this.loadSnippet(snippetId)
+    let changeDelay = null
 
-    const storagePath = findStorage(this.props.storageKey).path
-    const expandDataFile = path.join(storagePath, 'expandData.json')
-    if (!fs.existsSync(expandDataFile)) {
-      const defaultExpandData = [
-        {
-          matches: ['lorem', 'ipsum'],
-          content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-        },
-        { match: 'h1', content: '# '},
-        { match: 'h2', content: '## '},
-        { match: 'h3', content: '### '},
-        { match: 'h4', content: '#### '},
-        { match: 'h5', content: '##### '},
-        { match: 'h6', content: '###### '}
-      ];
-      fs.writeFileSync(expandDataFile, JSON.stringify(defaultExpandData), 'utf8')
-    }
-    const expandData = JSON.parse(fs.readFileSync(expandDataFile, 'utf8'))
+    this.cm.on('change', () => {
+      this.snippet.content = this.cm.getValue()
+
+      clearTimeout(changeDelay)
+      changeDelay = setTimeout(() => {
+        this.saveSnippet()
+      }, 500)
+    })
   }
 
-  componentWillReceiveProps(newProps) {
-    this.cm.setValue(newProps.value)
+  saveSnippet () {
+    dataApi.updateSnippet(this.snippet).catch((err) => {throw err})
+  }
+
+  loadSnippet (snippetId) {
+    const snippets = JSON.parse(fs.readFileSync(consts.SNIPPET_FILE, 'utf8'))
+
+    for (let i = 0; i < snippets.length; i++) {
+      if (snippets[i].id === snippetId) {
+        this.cm.setValue(snippets[i].content)
+      }
+    }
+  }
+
+  componentWillReceiveProps (newProps) {
+    if (this.snippet.id !== newProps.snippet.id) {
+      // when user changed to a new snippet on the snippetList.js
+      this.loadSnippet(newProps.snippet.id)
+    } else {
+      // when snippet name or prefix being changed from snippetTab.js
+      this.snippet.name = newProps.snippet.name
+      this.snippet.prefix = newProps.snippet.prefix.replace(/\s/g, '').split(/\,/).filter(val => val)
+      this.saveSnippet()
+    }
   }
 
   render () {
@@ -65,17 +80,13 @@ export default class SnippetEditor extends React.Component {
       ? [fontFamily].concat(defaultEditorFontFamily)
       : defaultEditorFontFamily
     return (
-      <div 
-      styleName="SnippetEditor"
-      ref='root'
-      tabIndex='-1'
-      style={{
-        fontFamily: defaultEditorFontFamily.join(', '),
+      <div styleName='SnippetEditor' ref='root' tabIndex='-1' style={{
+        fontFamily: fontFamily.join(', '),
         fontSize: fontSize,
-        position: 'relative',
-        height: 'calc(100vh - 310px)'
-      }}>
-      </div>
+        position: 'absolute',
+        width: '100%',
+        height: '90%'
+      }} />
     )
   }
 }

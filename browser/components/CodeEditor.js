@@ -9,7 +9,9 @@ import { findStorage } from 'browser/lib/findStorage'
 import fs from 'fs'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
-const { ipcRenderer } = require('electron')
+import crypto from 'crypto'
+import consts from 'browser/lib/consts'
+const { ipcRenderer, remote } = require('electron')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -94,25 +96,24 @@ export default class CodeEditor extends React.Component {
 
   componentDidMount () {
     const { rulers, enableRulers } = this.props
-    const storagePath = findStorage(this.props.storageKey).path
-    const expandDataFile = path.join(storagePath, 'expandData.json')
     const emptyChars = /\t|\s|\r|\n/
-    if (!fs.existsSync(expandDataFile)) {
-      const defaultExpandData = [
+    if (!fs.existsSync(consts.SNIPPET_FILE)) {
+      const defaultSnippets = [
         {
-          matches: ['lorem', 'ipsum'],
+          id: crypto.randomBytes(16).toString('hex'),
+          name: 'Dummy text',
+          prefix: ['lorem', 'ipsum'],
           content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
         },
-        { match: 'h1', content: '# '},
-        { match: 'h2', content: '## '},
-        { match: 'h3', content: '### '},
-        { match: 'h4', content: '#### '},
-        { match: 'h5', content: '##### '},
-        { match: 'h6', content: '###### '}
-      ];
-      fs.writeFileSync(expandDataFile, JSON.stringify(defaultExpandData), 'utf8')
+        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 1', prefix: ['h1'], content: '# ' },
+        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 2', prefix: ['h2'], content: '## ' },
+        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 3', prefix: ['h3'], content: '### ' },
+        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 4', prefix: ['h4'], content: '#### ' },
+        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 5', prefix: ['h5'], content: '##### ' },
+        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 6', prefix: ['h6'], content: '###### ' }
+      ]
+      fs.writeFileSync(consts.SNIPPET_FILE, JSON.stringify(defaultSnippets, null, 4), 'utf8')
     }
-    const expandData = JSON.parse(fs.readFileSync(expandDataFile, 'utf8'))
     const expandSnippet = this.expandSnippet.bind(this)
     this.value = this.props.value
     this.editor = CodeMirror(this.refs.root, {
@@ -150,14 +151,14 @@ export default class CodeEditor extends React.Component {
               cm.execCommand('goLineEnd')
             } else if (!emptyChars.test(charBeforeCursor) || cursor.ch > 1) {
               // text expansion on tab key if the char before is alphabet
-              if (expandSnippet(line, cursor, cm, expandData) === false) {
+              const snippets = JSON.parse(fs.readFileSync(consts.SNIPPET_FILE, 'utf8'))
+              if (expandSnippet(line, cursor, cm, snippets) === false) {
                 if (tabs) {
                   cm.execCommand('insertTab')
                 } else {
                   cm.execCommand('insertSoftTab')
                 }
               }
-
             } else {
               if (tabs) {
                 cm.execCommand('insertTab')
@@ -201,37 +202,25 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
   }
 
-  expandSnippet(line, cursor, cm, expandData) {
-    let wordBeforeCursor = this.getWordBeforeCursor(line, cursor.line, cursor.ch)
-    for (let i = 0; i < expandData.length; i++) {
-      if (Array.isArray(expandData[i].matches)) {
-        if (expandData[i].matches.indexOf(wordBeforeCursor.text) !== -1) {
-          cm.replaceRange(
-            expandData[i].content, 
-            wordBeforeCursor.range.from,
-            wordBeforeCursor.range.to
-          )
-          return true
-        }
-      }
-      else if (typeof(expandData[i].matches) === 'string') {
-        if (expandData[i].match === wordBeforeCursor.text) {
-          cm.replaceRange(
-            expandData[i].content, 
-            wordBeforeCursor.range.from,
-            wordBeforeCursor.range.to
-          )
-          return true
-        }
+  expandSnippet (line, cursor, cm, snippets) {
+    const wordBeforeCursor = this.getWordBeforeCursor(line, cursor.line, cursor.ch)
+    for (let i = 0; i < snippets.length; i++) {
+      if (snippets[i].prefix.indexOf(wordBeforeCursor.text) !== -1) {
+        cm.replaceRange(
+          snippets[i].content,
+          wordBeforeCursor.range.from,
+          wordBeforeCursor.range.to
+        )
+        return true
       }
     }
 
     return false
   }
 
-  getWordBeforeCursor(line, lineNumber, cursorPosition) {
+  getWordBeforeCursor (line, lineNumber, cursorPosition) {
     let wordBeforeCursor = ''
-    let originCursorPosition = cursorPosition
+    const originCursorPosition = cursorPosition
     const emptyChars = /\t|\s|\r|\n/
 
     // to prevent the word to expand is long that will crash the whole app
@@ -239,16 +228,16 @@ export default class CodeEditor extends React.Component {
     const safeStop = 20
 
     while (cursorPosition > 0) {
-      let currentChar = line.substr(cursorPosition - 1, 1)
+      const currentChar = line.substr(cursorPosition - 1, 1)
       // if char is not an empty char
       if (!emptyChars.test(currentChar)) {
         wordBeforeCursor = currentChar + wordBeforeCursor
       } else if (wordBeforeCursor.length >= safeStop) {
-        throw new Error("Your text expansion word is too long !")
+        throw new Error('Your snippet trigger is too long !')
       } else {
         break
       }
-      cursorPosition--;
+      cursorPosition--
     }
 
     return {

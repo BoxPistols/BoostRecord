@@ -12,6 +12,8 @@ const themes = fs.readdirSync(themePath)
   })
 themes.splice(themes.indexOf('solarized'), 1, 'solarized dark', 'solarized light')
 
+const snippetFile = path.join(remote.app.getPath('appData'), 'Boostnote', 'snippets.json')
+
 const consts = {
   FOLDER_COLORS: [
     '#E10051',
@@ -31,7 +33,8 @@ const consts = {
     'Dodger Blue',
     'Violet Eggplant'
   ],
-  THEMES: ['default'].concat(themes)
+  THEMES: ['default'].concat(themes),
+  SNIPPET_FILE: snippetFile
 }
 
 module.exports = consts

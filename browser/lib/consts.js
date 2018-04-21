@@ -12,7 +12,15 @@ const themes = fs.readdirSync(themePath)
   })
 themes.splice(themes.indexOf('solarized'), 1, 'solarized dark', 'solarized light')
 
-const snippetFile = path.join(remote.app.getPath('appData'), 'Boostnote', 'snippets.json')
+const snippetFile = process.env.NODE_ENV === 'production' 
+  ? path.join(app.getPath('appData'), 'Boostnote', 'snippets.json')
+  : require('path').resolve(path.join(getAppData(), 'Boostnote', 'snippets.json'))
+
+function getAppData () {
+  return process.env.APPDATA || (process.platform == 'darwin' 
+  ? process.env.HOME + 'Library/Preferences' 
+  : '/.config')
+}
 
 const consts = {
   FOLDER_COLORS: [

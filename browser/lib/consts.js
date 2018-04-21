@@ -14,12 +14,12 @@ themes.splice(themes.indexOf('solarized'), 1, 'solarized dark', 'solarized light
 
 const snippetFile = process.env.NODE_ENV === 'production'
   ? path.join(app.getPath('appData'), 'Boostnote', 'snippets.json')
-  : require('path').resolve(path.join(getAppData(), 'Boostnote', 'snippets.json'))
+  : path.join(getAppData(), 'Boostnote', 'snippets.json')
 
 function getAppData () {
   return process.env.APPDATA || (process.platform === 'darwin'
   ? process.env.HOME + 'Library/Preferences'
-  : '/.config')
+  : require('os').homedir() + '/.config')
 }
 
 const consts = {

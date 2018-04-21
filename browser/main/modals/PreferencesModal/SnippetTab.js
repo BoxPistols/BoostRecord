@@ -36,7 +36,7 @@ class SnippetTab extends React.Component {
   handleSnippetContextMenu (snippet) {
     const menu = new Menu()
     menu.append(new MenuItem({
-      label: 'Delete',
+      label: i18n.__('Delete snippet'),
       click: () => {
         this.deleteSnippet(snippet.id)
       }

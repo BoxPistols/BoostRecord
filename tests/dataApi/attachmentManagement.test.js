@@ -48,11 +48,13 @@ it('should test that copyAttachment works correctly assuming correct working of 
   const noteKey = 'noteKey'
   const dummyUniquePath = 'dummyPath'
   const dummyStorage = {path: 'dummyStoragePath'}
+  const dummyReadStream = {}
 
+  dummyReadStream.pipe = jest.fn()
+  dummyReadStream.on = jest.fn((event, callback) => { callback() })
   fs.existsSync = jest.fn()
   fs.existsSync.mockReturnValue(true)
-  fs.createReadStream = jest.fn()
-  fs.createReadStream.mockReturnValue({pipe: jest.fn()})
+  fs.createReadStream = jest.fn(() => dummyReadStream)
   fs.createWriteStream = jest.fn()
 
   findStorage.findStorage = jest.fn()
@@ -75,7 +77,11 @@ it('should test that copyAttachment creates a new folder if the attachment folde
   const noteKey = 'noteKey'
   const attachmentFolderPath = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER)
   const attachmentFolderNoteKyPath = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, noteKey)
+  const dummyReadStream = {}
 
+  dummyReadStream.pipe = jest.fn()
+  dummyReadStream.on = jest.fn()
+  fs.createReadStream = jest.fn(() => dummyReadStream)
   fs.existsSync = jest.fn()
   fs.existsSync.mockReturnValueOnce(true)
   fs.existsSync.mockReturnValueOnce(false)
@@ -97,7 +103,11 @@ it('should test that copyAttachment creates a new folder if the attachment folde
 
 it('should test that copyAttachment don\'t uses a random file name if not intended ', function () {
   const dummyStorage = {path: 'dummyStoragePath'}
+  const dummyReadStream = {}
 
+  dummyReadStream.pipe = jest.fn()
+  dummyReadStream.on = jest.fn()
+  fs.createReadStream = jest.fn(() => dummyReadStream)
   fs.existsSync = jest.fn()
   fs.existsSync.mockReturnValueOnce(true)
   fs.existsSync.mockReturnValueOnce(false)

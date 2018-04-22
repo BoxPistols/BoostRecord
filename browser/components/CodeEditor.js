@@ -96,25 +96,20 @@ export default class CodeEditor extends React.Component {
 
   componentDidMount () {
     const { rulers, enableRulers } = this.props
-    const emptyChars = /\t|\s|\r|\n/
-    if (!fs.existsSync(consts.SNIPPET_FILE)) {
-      const defaultSnippets = [
-        {
-          id: crypto.randomBytes(16).toString('hex'),
-          name: 'Dummy text',
-          prefix: ['lorem', 'ipsum'],
-          content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-        },
-        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 1', prefix: ['h1'], content: '# ' },
-        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 2', prefix: ['h2'], content: '## ' },
-        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 3', prefix: ['h3'], content: '### ' },
-        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 4', prefix: ['h4'], content: '#### ' },
-        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 5', prefix: ['h5'], content: '##### ' },
-        { id: crypto.randomBytes(16).toString('hex'), name: 'Heading 6', prefix: ['h6'], content: '###### ' }
-      ]
-      fs.writeFileSync(consts.SNIPPET_FILE, JSON.stringify(defaultSnippets, null, 4), 'utf8')
-    }
     const expandSnippet = this.expandSnippet.bind(this)
+
+    const defaultSnippet = [
+      {
+        id: crypto.randomBytes(16).toString('hex'),
+        name: 'Dummy text',
+        prefix: ['lorem', 'ipsum'],
+        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+      }
+    ]
+    if (!fs.existsSync(consts.SNIPPET_FILE)) {
+      fs.writeFileSync(consts.SNIPPET_FILE, JSON.stringify(defaultSnippet, null, 4), 'utf8')
+    }
+
     this.value = this.props.value
     this.editor = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
@@ -149,7 +144,7 @@ export default class CodeEditor extends React.Component {
                 cm.execCommand('insertSoftTab')
               }
               cm.execCommand('goLineEnd')
-            } else if (!emptyChars.test(charBeforeCursor) || cursor.ch > 1) {
+            } else if (!charBeforeCursor.match(/\t|\s|\r|\n/) && cursor.ch > 1) {
               // text expansion on tab key if the char before is alphabet
               const snippets = JSON.parse(fs.readFileSync(consts.SNIPPET_FILE, 'utf8'))
               if (expandSnippet(line, cursor, cm, snippets) === false) {

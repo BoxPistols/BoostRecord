@@ -18,8 +18,8 @@ const snippetFile = process.env.NODE_ENV === 'production'
 
 function getAppData () {
   return process.env.APPDATA || (process.platform === 'darwin'
-  ? process.env.HOME + 'Library/Preferences'
-  : require('os').homedir() + '/.config')
+  ? process.env.HOME + 'Library' + path.sep + 'Preferences'
+  : require('os').homedir() + path.sep + '.config')
 }
 
 const consts = {

@@ -523,6 +523,15 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handlelinkClick (e) {
+    e.preventDefault()
+    e.stopPropagation()
+
+    const href = e.target.href
+    if (href.match(/^http/i)) {
+      shell.openExternal(href)
+      return
+    }
+
     const noteHash = e.target.href.split('/').pop()
     // this will match the new uuid v4 hash and the old hash
     // e.g.

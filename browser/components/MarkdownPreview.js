@@ -532,21 +532,36 @@ export default class MarkdownPreview extends React.Component {
       return
     }
 
-    const noteHash = e.target.href.split('/').pop()
+    const linkHash = href.split('/').pop()
+
+    const regexNoteInternalLink = /main.html#(.+)/
+    if (regexNoteInternalLink.test(linkHash)) {
+      const targetId = mdurl.encode(linkHash.match(regexNoteInternalLink)[1])
+      const targetElement = this.refs.root.contentWindow.document.getElementById(targetId)
+
+      if (targetElement != null) {
+        this.getWindow().scrollTo(0, targetElement.offsetTop)
+      }
+      return
+    }
+
     // this will match the new uuid v4 hash and the old hash
     // e.g.
     // :note:1c211eb7dcb463de6490 and
     // :note:7dd23275-f2b4-49cb-9e93-3454daf1af9c
     const regexIsNoteLink = /^:note:([a-zA-Z0-9-]{20,36})$/
-    if (regexIsNoteLink.test(noteHash)) {
-      eventEmitter.emit('list:jump', noteHash.replace(':note:', ''))
+    if (regexIsNoteLink.test(linkHash)) {
+      eventEmitter.emit('list:jump', linkHash.replace(':note:', ''))
+      return
     }
+
     // this will match the old link format storage.key-note.key
     // e.g.
     // 877f99c3268608328037-1c211eb7dcb463de6490
     const regexIsLegacyNoteLink = /^(.{20})-(.{20})$/
-    if (regexIsLegacyNoteLink.test(noteHash)) {
-      eventEmitter.emit('list:jump', noteHash.split('-')[1])
+    if (regexIsLegacyNoteLink.test(linkHash)) {
+      eventEmitter.emit('list:jump', linkHash.split('-')[1])
+      return
     }
   }
 

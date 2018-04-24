@@ -15,7 +15,7 @@ import eventEmitter from 'browser/main/lib/eventEmitter'
 import { hashHistory } from 'react-router'
 import store from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
-import { languages } from 'browser/lib/Languages'
+import { getLocales } from 'browser/lib/Languages'
 const path = require('path')
 const electron = require('electron')
 const { remote } = electron
@@ -153,12 +153,7 @@ class Main extends React.Component {
       document.body.setAttribute('data-theme', 'default')
     }
 
-    let locales = languages.reduce(function (localeList, locale) {
-      localeList.push(locale.locale)
-      return localeList
-    }, [])
-
-    if (locales.indexOf(config.ui.language) !== -1) {
+    if (getLocales().indexOf(config.ui.language) !== -1) {
       i18n.setLocale(config.ui.language)
     } else {
       i18n.setLocale('en')

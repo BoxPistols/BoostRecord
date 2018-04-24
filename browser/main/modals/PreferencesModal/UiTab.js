@@ -10,7 +10,7 @@ import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
-import { languages } from 'browser/lib/Languages'
+import { getLanguages } from 'browser/lib/Languages'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -184,9 +184,7 @@ class UiTab extends React.Component {
                 ref='uiLanguage'
               >
                 {
-                  languages.map((language) => {
-                    return (<option value={language.locale} key={language.locale}>{i18n.__(language.name)}</option>)
-                  })
+                  getLanguages().map((language) => <option value={language.locale} key={language.locale}>{i18n.__(language.name)}</option>)
                 }
               </select>
             </div>

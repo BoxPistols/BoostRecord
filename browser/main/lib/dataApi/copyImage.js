@@ -2,7 +2,7 @@ const fs = require('fs')
 const path = require('path')
 const { findStorage } = require('browser/lib/findStorage')
 
-//TODO: ehhc: delete this
+// TODO: ehhc: delete this
 
 /**
  * @description Copy an image and return the path.

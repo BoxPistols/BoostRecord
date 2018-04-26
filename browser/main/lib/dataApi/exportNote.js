@@ -6,7 +6,7 @@ const fs = require('fs')
 const path = require('path')
 
 const LOCAL_STORED_REGEX = /!\[(.*?)]\(\s*?\/:storage\/(.*\.\S*?)\)/gi
-//TODO: ehhc: check this -> attachmentManagement
+// TODO: ehhc: check this -> attachmentManagement
 const IMAGES_FOLDER_NAME = 'images'
 
 /**

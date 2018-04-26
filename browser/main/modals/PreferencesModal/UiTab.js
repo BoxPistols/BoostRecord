@@ -66,6 +66,7 @@ class UiTab extends React.Component {
         language: this.refs.uiLanguage.value,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
+        showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
           : false
@@ -208,6 +209,16 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Show a confirmation dialog when deleting notes')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showOnlyRelatedTags}
+                ref='showOnlyRelatedTags'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Show only related tags')}
             </label>
           </div>
           {

@@ -68,6 +68,8 @@ function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
           return noteData
         })
         .then(function moveImages (noteData) {
+          if (oldStorage.path === newStorage.path) return noteData
+
           const searchImagesRegex = /!\[.*?]\(\s*?\/:storage\/(.*\.\S*?)\)/gi
           let match = searchImagesRegex.exec(noteData.content)
 

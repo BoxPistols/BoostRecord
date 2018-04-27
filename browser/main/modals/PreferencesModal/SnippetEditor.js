@@ -12,6 +12,7 @@ const buildCMRulers = (rulers, enableRulers) =>
 export default class SnippetEditor extends React.Component {
 
   componentDidMount () {
+    this.props.onRef(this)
     const { rulers, enableRulers } = this.props
     this.cm = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
@@ -29,9 +30,6 @@ export default class SnippetEditor extends React.Component {
       autoCloseBrackets: true
     })
     this.cm.setSize('100%', '100%')
-    this.snippet = this.props.snippet
-    const snippetId = this.snippet.id
-    this.loadSnippet(snippetId)
     let changeDelay = null
 
     this.cm.on('change', () => {
@@ -44,30 +42,23 @@ export default class SnippetEditor extends React.Component {
     })
   }
 
+  componentWillUnmount () {
+    this.props.onRef(undefined)
+  }
+
+  onSnippetChanged (newSnippet) {
+    this.snippet = newSnippet
+    this.cm.setValue(this.snippet.content)
+  }
+
+  onSnippetNameOrPrefixChanged (newSnippet) {
+    this.snippet.name = newSnippet.name
+    this.snippet.prefix = newSnippet.prefix.toString().replace(/\s/g, '').split(',')
+    this.saveSnippet()
+  }
+
   saveSnippet () {
     dataApi.updateSnippet(this.snippet).catch((err) => { throw err })
-  }
-
-  loadSnippet (snippetId) {
-    const snippets = JSON.parse(fs.readFileSync(consts.SNIPPET_FILE, 'utf8'))
-
-    for (let i = 0; i < snippets.length; i++) {
-      if (snippets[i].id === snippetId) {
-        this.cm.setValue(snippets[i].content)
-      }
-    }
-  }
-
-  componentWillReceiveProps (newProps) {
-    if (this.snippet.id !== newProps.snippet.id) {
-      // when user changed to a new snippet on the snippetList.js
-      this.loadSnippet(newProps.snippet.id)
-    } else {
-      // when snippet name or prefix being changed from snippetTab.js
-      this.snippet.name = newProps.snippet.name
-      this.snippet.prefix = newProps.snippet.prefix.replace(/\s/g, '').split(/\,/).filter(val => val)
-      this.saveSnippet()
-    }
   }
 
   render () {

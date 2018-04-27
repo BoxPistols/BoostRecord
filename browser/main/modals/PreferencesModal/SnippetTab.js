@@ -19,18 +19,30 @@ class SnippetTab extends React.Component {
       snippets: [],
       currentSnippet: null
     }
+    this.changeDelay = null
   }
 
   componentDidMount () {
-    this.snippets = JSON.parse(fs.readFileSync(consts.SNIPPET_FILE, 'utf8'))
-
-    this.setState({snippets: this.snippets})
+    this.reloadSnippetList()
   }
 
   handleSnippetClick (snippet) {
-    const currentSnippet = Object.assign({}, snippet)
-    currentSnippet.prefix = currentSnippet.prefix.join(', ')
-    this.setState({currentSnippet})
+    if (this.state.currentSnippet === null || this.state.currentSnippet.id !== snippet.id) {
+      dataApi.fetchSnippet(snippet.id).then(changedSnippet => {
+        // notify the snippet editor to load the content of the new snippet
+        this.snippetEditor.onSnippetChanged(changedSnippet)
+        this.setState({currentSnippet: changedSnippet})
+      })
+    }
+  }
+
+  handleSnippetNameOrPrefixChange () {
+    clearTimeout(this.changeDelay)
+    this.changeDelay = setTimeout(() => {
+      // notify the snippet editor that the name or prefix of snippet has been changed
+      this.snippetEditor.onSnippetNameOrPrefixChanged(this.state.currentSnippet)
+      this.reloadSnippetList()
+    }, 500)
   }
 
   handleSnippetContextMenu (snippet) {
@@ -38,23 +50,25 @@ class SnippetTab extends React.Component {
     menu.append(new MenuItem({
       label: i18n.__('Delete snippet'),
       click: () => {
-        this.deleteSnippet(snippet.id)
+        this.deleteSnippet(snippet)
       }
     }))
     menu.popup()
   }
 
-  deleteSnippet (id) {
-    dataApi.deleteSnippet(this.snippets, id).then((snippets) => {
-      this.snippets = snippets
-      this.setState(this.snippets)
+  reloadSnippetList () {
+    dataApi.fetchSnippet().then(snippets => this.setState({snippets}))
+  }
+
+  deleteSnippet (snippet) {
+    dataApi.deleteSnippet(snippet).then(() => {
+      this.reloadSnippetList()
     }).catch(err => { throw err })
   }
 
   createSnippet () {
-    dataApi.createSnippet(this.snippets).then((snippets) => {
-      this.snippets = snippets
-      this.setState(this.snippets)
+    dataApi.createSnippet().then(() => {
+      this.reloadSnippetList()
       // scroll to end of list when added new snippet
       const snippetList = document.getElementById('snippets')
       snippetList.scrollTop = snippetList.scrollHeight
@@ -100,17 +114,18 @@ class SnippetTab extends React.Component {
           </div>
           {this.renderSnippetList()}
         </div>
-        {this.state.currentSnippet ? <div styleName='snippet-detail'>
+        <div styleName='snippet-detail' style={{visibility: this.state.currentSnippet ? 'visible' : 'hidden'}}>
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Snippet name')}</div>
             <div styleName='group-section-control'>
               <input
                 styleName='group-section-control-input'
-                value={this.state.currentSnippet.name}
+                value={this.state.currentSnippet ? this.state.currentSnippet.name : ''}
                 onChange={e => {
                   const newSnippet = Object.assign({}, this.state.currentSnippet)
                   newSnippet.name = e.target.value
                   this.setState({ currentSnippet: newSnippet })
+                  this.handleSnippetNameOrPrefixChange()
                 }}
                 type='text' />
             </div>
@@ -120,11 +135,12 @@ class SnippetTab extends React.Component {
             <div styleName='group-section-control'>
               <input
                 styleName='group-section-control-input'
-                value={this.state.currentSnippet.prefix}
+                value={this.state.currentSnippet ? this.state.currentSnippet.prefix : ''}
                 onChange={e => {
                   const newSnippet = Object.assign({}, this.state.currentSnippet)
                   newSnippet.prefix = e.target.value
                   this.setState({ currentSnippet: newSnippet })
+                  this.handleSnippetNameOrPrefixChange()
                 }}
                 type='text' />
             </div>
@@ -142,10 +158,9 @@ class SnippetTab extends React.Component {
               rulers={config.editor.rulers}
               displayLineNumbers={config.editor.displayLineNumbers}
               scrollPastEnd={config.editor.scrollPastEnd}
-              snippet={this.state.currentSnippet} />
+              onRef={ref => this.snippetEditor = ref} />
           </div>
         </div>
-        : ''}
       </div>
     )
   }

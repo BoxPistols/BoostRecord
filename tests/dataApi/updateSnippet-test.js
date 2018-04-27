@@ -21,7 +21,6 @@ const newSnippet = {
   content: 'new content'
 }
 
-
 test.beforeEach((t) => {
   sander.writeFileSync(snippetFile, JSON.stringify([oldSnippet]))
 })

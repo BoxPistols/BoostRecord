@@ -10,6 +10,7 @@ import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
+import { getLanguages } from 'browser/lib/Languages'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -65,6 +66,7 @@ class UiTab extends React.Component {
         language: this.refs.uiLanguage.value,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
+        showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
           : false
@@ -183,22 +185,9 @@ class UiTab extends React.Component {
                 onChange={(e) => this.handleUIChange(e)}
                 ref='uiLanguage'
               >
-                <option value='sq'>{i18n.__('Albanian')}</option>
-                <option value='zh-CN'>{i18n.__('Chinese (zh-CN)')}</option>
-                <option value='zh-TW'>{i18n.__('Chinese (zh-TW)')}</option>
-                <option value='da'>{i18n.__('Danish')}</option>
-                <option value='en'>{i18n.__('English')}</option>
-                <option value='fr'>{i18n.__('French')}</option>
-                <option value='de'>{i18n.__('German')}</option>
-                <option value='hu'>{i18n.__('Hungarian')}</option>
-                <option value='ja'>{i18n.__('Japanese')}</option>
-                <option value='ko'>{i18n.__('Korean')}</option>
-                <option value='no'>{i18n.__('Norwegian')}</option>
-                <option value='pl'>{i18n.__('Polish')}</option>
-                <option value='pt-BR'>{i18n.__('Portuguese (Brazil)')}</option>
-                <option value='pt-PT'>{i18n.__('Portuguese (Portugal)')}</option>
-                <option value='ru'>{i18n.__('Russian')}</option>
-                <option value='es-ES'>{i18n.__('Spanish')}</option>
+                {
+                  getLanguages().map((language) => <option value={language.locale} key={language.locale}>{i18n.__(language.name)}</option>)
+                }
               </select>
             </div>
           </div>
@@ -221,6 +210,16 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Show a confirmation dialog when deleting notes')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showOnlyRelatedTags}
+                ref='showOnlyRelatedTags'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Show only related tags')}
             </label>
           </div>
           {

@@ -8,6 +8,7 @@ import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
 import crypto from 'crypto'
 import consts from 'browser/lib/consts'
+import fs from 'fs'
 const { ipcRenderer, remote } = require('electron')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'

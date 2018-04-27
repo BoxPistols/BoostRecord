@@ -168,7 +168,7 @@ it('should test that generateAttachmentMarkdown works correct both with previews
 })
 
 it('should test that getAttachmentsInContent finds all attachments', function () {
-  let testInput =
+  const testInput =
     '<html>\n' +
     '    <head>\n' +
     '        //header\n' +
@@ -186,14 +186,14 @@ it('should test that getAttachmentsInContent finds all attachments', function ()
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
-  let actual = systemUnderTest.getAttachmentsInContent(testInput)
-  let expected = [':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.6r4zdgc22xp', ':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.q2i4iw0fyx', ':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + 'd6c5ee92.jpg']
+  const actual = systemUnderTest.getAttachmentsInContent(testInput)
+  const expected = [':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.6r4zdgc22xp', ':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.q2i4iw0fyx', ':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + 'd6c5ee92.jpg']
   expect(actual).toEqual(expect.arrayContaining(expected))
 })
 
 it('should test that getAbsolutePathsOfAttachmentsInContent returns all absolute paths', function () {
-  let dummyStoragePath = 'dummyStoragePath'
-  let testInput =
+  const dummyStoragePath = 'dummyStoragePath'
+  const testInput =
     '<html>\n' +
     '    <head>\n' +
     '        //header\n' +
@@ -211,17 +211,17 @@ it('should test that getAbsolutePathsOfAttachmentsInContent returns all absolute
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
-  let actual = systemUnderTest.getAbsolutePathsOfAttachmentsInContent(testInput, dummyStoragePath)
-  let expected = [dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.6r4zdgc22xp',
+  const actual = systemUnderTest.getAbsolutePathsOfAttachmentsInContent(testInput, dummyStoragePath)
+  const expected = [dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.6r4zdgc22xp',
     dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.q2i4iw0fyx',
     dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + 'd6c5ee92.jpg']
   expect(actual).toEqual(expect.arrayContaining(expected))
 })
 
 it('should remove the all ":storage" and noteKey references', function () {
-  let storageFolder = systemUnderTest.DESTINATION_FOLDER
-  let noteKey = 'noteKey'
-  let testInput =
+  const storageFolder = systemUnderTest.DESTINATION_FOLDER
+  const noteKey = 'noteKey'
+  const testInput =
     '<html>\n' +
     '    <head>\n' +
     '        //header\n' +
@@ -239,8 +239,7 @@ it('should remove the all ":storage" and noteKey references', function () {
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
-  let storagePath = '<<dummyStoragePath>>'
-  let expectedOutput =
+  const expectedOutput =
     '<html>\n' +
     '    <head>\n' +
     '        //header\n' +
@@ -258,6 +257,6 @@ it('should remove the all ":storage" and noteKey references', function () {
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
-  let actual = systemUnderTest.removeStorageAndNoteReferences(testInput, noteKey)
+  const actual = systemUnderTest.removeStorageAndNoteReferences(testInput, noteKey)
   expect(actual).toEqual(expectedOutput)
 })

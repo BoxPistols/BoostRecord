@@ -4,10 +4,6 @@ import { findStorage } from 'browser/lib/findStorage'
 const fs = require('fs')
 const path = require('path')
 
-const LOCAL_STORED_REGEX = /!\[(.*?)]\(\s*?\/:storage\/(.*\.\S*?)\)/gi
-// TODO: ehhc: check this -> attachmentManagement
-const IMAGES_FOLDER_NAME = 'images'
-
 /**
  * Export note together with images
  *

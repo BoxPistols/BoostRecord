@@ -2,6 +2,8 @@ const fs = require('fs')
 const path = require('path')
 const { findStorage } = require('browser/lib/findStorage')
 
+// TODO: ehhc: delete this
+
 /**
  * @description Copy an image and return the path.
  * @param {String} filePath
@@ -21,8 +23,12 @@ function copyImage (filePath, storageKey, rename = true) {
       const imageDir = path.join(targetStorage.path, 'images')
       if (!fs.existsSync(imageDir)) fs.mkdirSync(imageDir)
       const outputImage = fs.createWriteStream(path.join(imageDir, basename))
+      outputImage.on('error', reject)
+      inputImage.on('error', reject)
+      inputImage.on('end', () => {
+        resolve(basename)
+      })
       inputImage.pipe(outputImage)
-      resolve(basename)
     } catch (e) {
       return reject(e)
     }

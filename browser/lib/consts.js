@@ -2,6 +2,7 @@ const path = require('path')
 const fs = require('sander')
 const { remote } = require('electron')
 const { app } = remote
+const os = require('os')
 
 const themePath = process.env.NODE_ENV === 'production'
   ? path.join(app.getAppPath(), './node_modules/codemirror/theme')
@@ -18,8 +19,8 @@ const snippetFile = process.env.NODE_ENV === 'production'
 
 function getAppData () {
   return process.env.APPDATA || (process.platform === 'darwin'
-  ? process.env.HOME + 'Library' + path.sep + 'Preferences'
-  : require('os').homedir() + path.sep + '.config')
+  ? path.join(process.env.HOME, 'Library', 'Preferences')
+  : path.join(os.homedir(), '.config'))
 }
 
 const consts = {

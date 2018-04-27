@@ -4,7 +4,7 @@ const sander = require('sander')
 const os = require('os')
 const path = require('path')
 
-const snippetFilePath = path.join(os.tmpdir(), `test${path.sep}create-snippet`)
+const snippetFilePath = path.join(os.tmpdir(), 'test', 'create-snippet')
 const snippetFile = path.join(snippetFilePath, 'snippets.json')
 
 test.beforeEach((t) => {

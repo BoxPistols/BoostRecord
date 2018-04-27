@@ -5,7 +5,7 @@ const os = require('os')
 const path = require('path')
 const crypto = require('crypto')
 
-const snippetFilePath = path.join(os.tmpdir(), `test${path.sep}update-snippet`)
+const snippetFilePath = path.join(os.tmpdir(), 'test', 'update-snippet')
 const snippetFile = path.join(snippetFilePath, 'snippets.json')
 const oldSnippet = {
   id: crypto.randomBytes(16).toString('hex'),

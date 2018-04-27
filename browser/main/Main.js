@@ -143,7 +143,8 @@ class Main extends React.Component {
     const supportedThemes = [
       'dark',
       'white',
-      'solarized-dark'
+      'solarized-dark',
+      'monokai'
     ]
 
     if (supportedThemes.indexOf(config.ui.theme) !== -1) {

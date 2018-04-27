@@ -138,3 +138,22 @@ body[data-theme="solarized-dark"]
     &:hover
       color $ui-solarized-dark-text-color
       background-color $ui-solarized-dark-button-backgroundColor
+
+body[data-theme="monokai"]
+  .folderList-item
+    &:hover
+      background-color $ui-monokai-button-backgroundColor
+      color $ui-monokai-text-color
+    &:active
+      color $ui-monokai-text-color
+      background-color $ui-monokai-button-backgroundColor
+
+  .folderList-item--active
+    @extend .folderList-item
+    color $ui-monokai-text-color
+    background-color $ui-monokai-button-backgroundColor
+    &:active
+      background-color $ui-monokai-button-backgroundColor
+    &:hover
+      color $ui-monokai-text-color
+      background-color $ui-monokai-button-backgroundColor

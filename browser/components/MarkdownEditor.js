@@ -294,6 +294,7 @@ class MarkdownEditor extends React.Component {
           onCheckboxClick={(e) => this.handleCheckboxClick(e)}
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
+          noteKey={noteKey}
         />
       </div>
     )

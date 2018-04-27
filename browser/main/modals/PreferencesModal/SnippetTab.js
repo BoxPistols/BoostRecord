@@ -63,6 +63,10 @@ class SnippetTab extends React.Component {
   deleteSnippet (snippet) {
     dataApi.deleteSnippet(snippet).then(() => {
       this.reloadSnippetList()
+      // prevent old snippet still display when deleted
+      if (snippet.id === this.state.currentSnippet.id) {
+        this.setState({currentSnippet: null})
+      }
     }).catch(err => { throw err })
   }
 

@@ -1,9 +1,9 @@
 import fs from 'fs'
 import consts from 'browser/lib/consts'
 
-function updateSnippet (snippet) {
+function updateSnippet (snippet, snippetFile) {
   return new Promise((resolve, reject) => {
-    const snippets = JSON.parse(fs.readFileSync(consts.SNIPPET_FILE, 'utf-8'))
+    const snippets = JSON.parse(fs.readFileSync(snippetFile || consts.SNIPPET_FILE, 'utf-8'))
 
     for (let i = 0; i < snippets.length; i++) {
       const currentSnippet = snippets[i]
@@ -20,7 +20,7 @@ function updateSnippet (snippet) {
           currentSnippet.name = snippet.name
           currentSnippet.prefix = snippet.prefix
           currentSnippet.content = snippet.content
-          fs.writeFile(consts.SNIPPET_FILE, JSON.stringify(snippets, null, 4), (err) => {
+          fs.writeFile(snippetFile || consts.SNIPPET_FILE, JSON.stringify(snippets, null, 4), (err) => {
             if (err) reject(err)
             resolve(snippets)
           })

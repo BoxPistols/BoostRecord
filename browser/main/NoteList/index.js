@@ -460,7 +460,7 @@ class NoteList extends React.Component {
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const noteData = JSON.stringify(selectedNotes)
     e.dataTransfer.setData('note', noteData)
-    this.setState({ selectedNoteKeys: [] })
+    this.selectNextNote()
   }
 
   handleNoteContextMenu (e, uniqueKey) {

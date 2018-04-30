@@ -455,7 +455,14 @@ class NoteList extends React.Component {
   }
 
   handleDragStart (e, note) {
-    const { selectedNoteKeys } = this.state
+    let { selectedNoteKeys } = this.state
+    const noteKey = getNoteKey(note)
+
+    if (!selectedNoteKeys.includes(noteKey)) {
+      selectedNoteKeys = []
+      selectedNoteKeys.push(noteKey)
+    }
+
     const notes = this.notes.map((note) => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const noteData = JSON.stringify(selectedNotes)

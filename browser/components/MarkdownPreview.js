@@ -31,7 +31,7 @@ const CSS_FILES = [
   `${appPath}/node_modules/codemirror/lib/codemirror.css`
 ]
 
-function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd) {
+function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme) {
   return `
 @font-face {
   font-family: 'Lato';
@@ -102,6 +102,13 @@ h2 {
 
 body p {
   white-space: normal;
+}
+
+@media print {
+  body[data-theme="${theme}"] {
+    color: #000;
+    background-color: #fff;
+  }
 }
 `
 }
@@ -208,10 +215,11 @@ export default class MarkdownPreview extends React.Component {
 
   handleSaveAsHtml () {
     this.exportAsDocument('html', (noteContent, exportTasks) => {
-      const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme} = this.getStyleParams()
+      const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme} = this.getStyleParams()
 
-      const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, lineNumber)
+      const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme)
       let body = this.markdown.render(escapeHtmlCharacters(noteContent))
+
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
       const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(noteContent, this.props.storagePath)
 
@@ -350,7 +358,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   getStyleParams () {
-    const { fontSize, lineNumber, codeBlockTheme, scrollPastEnd } = this.props
+    const { fontSize, lineNumber, codeBlockTheme, scrollPastEnd, theme } = this.props
     let { fontFamily, codeBlockFontFamily } = this.props
     fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
         ? fontFamily.split(',').map(fontName => fontName.trim()).concat(defaultFontFamily)
@@ -359,14 +367,14 @@ export default class MarkdownPreview extends React.Component {
         ? codeBlockFontFamily.split(',').map(fontName => fontName.trim()).concat(defaultCodeBlockFontFamily)
         : defaultCodeBlockFontFamily
 
-    return {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd}
+    return {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme}
   }
 
   applyStyle () {
-    const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd} = this.getStyleParams()
+    const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme} = this.getStyleParams()
 
     this.getWindow().document.getElementById('codeTheme').href = this.GetCodeThemeLink(codeBlockTheme)
-    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd)
+    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme)
   }
 
   GetCodeThemeLink (theme) {

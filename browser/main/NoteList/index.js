@@ -343,11 +343,10 @@ class NoteList extends React.Component {
     }
 
     if (location.pathname.match(/\/tags/)) {
+      const listOfTags = params.tagname.split(' ')
       return data.noteMap.map(note => {
         return note
-      }).filter(note => {
-        return note.tags.includes(params.tagname)
-      })
+      }).filter(note => listOfTags.every(tag => note.tags.includes(tag)))
     }
 
     return this.getContextNotes()
@@ -456,12 +455,19 @@ class NoteList extends React.Component {
   }
 
   handleDragStart (e, note) {
-    const { selectedNoteKeys } = this.state
+    let { selectedNoteKeys } = this.state
+    const noteKey = getNoteKey(note)
+
+    if (!selectedNoteKeys.includes(noteKey)) {
+      selectedNoteKeys = []
+      selectedNoteKeys.push(noteKey)
+    }
+
     const notes = this.notes.map((note) => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const noteData = JSON.stringify(selectedNotes)
     e.dataTransfer.setData('note', noteData)
-    this.setState({ selectedNoteKeys: [] })
+    this.selectNextNote()
   }
 
   handleNoteContextMenu (e, uniqueKey) {
@@ -916,7 +922,7 @@ class NoteList extends React.Component {
       if (note.isTrashed !== true || location.pathname === '/trashed') return true
     })
 
-    moment.locale('en', {
+    moment.updateLocale('en', {
       relativeTime: {
         future: 'in %s',
         past: '%s ago',

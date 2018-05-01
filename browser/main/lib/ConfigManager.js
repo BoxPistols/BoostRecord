@@ -135,6 +135,8 @@ function set (updates) {
     document.body.setAttribute('data-theme', 'white')
   } else if (newConfig.ui.theme === 'solarized-dark') {
     document.body.setAttribute('data-theme', 'solarized-dark')
+  } else if (newConfig.ui.theme === 'monokai') {
+    document.body.setAttribute('data-theme', 'monokai')
   } else {
     document.body.setAttribute('data-theme', 'default')
   }

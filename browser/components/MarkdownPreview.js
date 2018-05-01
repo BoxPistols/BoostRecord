@@ -13,9 +13,11 @@ import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
-import {escapeHtmlCharacters} from 'browser/lib/utils'
+import { escapeHtmlCharacters } from 'browser/lib/utils'
 
 const { remote } = require('electron')
+const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
+
 const { app } = remote
 const path = require('path')
 const dialog = remote.dialog
@@ -216,8 +218,10 @@ export default class MarkdownPreview extends React.Component {
       const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme} = this.getStyleParams()
 
       const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme)
-      const body = this.markdown.render(escapeHtmlCharacters(noteContent))
+      let body = this.markdown.render(escapeHtmlCharacters(noteContent))
+
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
+      const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(noteContent, this.props.storagePath)
 
       files.forEach((file) => {
         file = file.replace('file://', '')
@@ -226,6 +230,13 @@ export default class MarkdownPreview extends React.Component {
           dst: 'css'
         })
       })
+      attachmentsAbsolutePaths.forEach((attachment) => {
+        exportTasks.push({
+          src: attachment,
+          dst: attachmentManagement.DESTINATION_FOLDER
+        })
+      })
+      body = attachmentManagement.removeStorageAndNoteReferences(body, this.props.noteKey)
 
       let styles = ''
       files.forEach((file) => {
@@ -398,13 +409,11 @@ export default class MarkdownPreview extends React.Component {
         value = value.replace(codeBlock, htmlTextHelper.encodeEntities(codeBlock))
       })
     }
-    this.refs.root.contentWindow.document.body.innerHTML = this.markdown.render(value)
+    let renderedHTML = this.markdown.render(value)
+    this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(renderedHTML, storagePath)
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
       this.fixDecodedURI(el)
-      el.href = this.markdown.normalizeLinkText(el.href)
-      if (!/\/:storage/.test(el.href)) return
-      el.href = `file:///${this.markdown.normalizeLinkText(path.join(storagePath, 'images', path.basename(el.href)))}`
       el.addEventListener('click', this.anchorClickHandler)
     })
 
@@ -414,12 +423,6 @@ export default class MarkdownPreview extends React.Component {
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
       el.addEventListener('click', this.linkClickHandler)
-    })
-
-    _.forEach(this.refs.root.contentWindow.document.querySelectorAll('img'), (el) => {
-      el.src = this.markdown.normalizeLinkText(el.src)
-      if (!/\/:storage/.test(el.src)) return
-      el.src = `file:///${this.markdown.normalizeLinkText(path.join(storagePath, 'images', path.basename(el.src)))}`
     })
 
     codeBlockTheme = consts.THEMES.some((_theme) => _theme === codeBlockTheme)

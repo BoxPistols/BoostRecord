@@ -68,6 +68,8 @@ function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
           return noteData
         })
         .then(function moveImages (noteData) {
+          if (oldStorage.path === newStorage.path) return noteData
+
           const searchImagesRegex = /!\[.*?]\(\s*?\/:storage\/(.*\.\S*?)\)/gi
           let match = searchImagesRegex.exec(noteData.content)
 
@@ -75,6 +77,7 @@ function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
           while (match != null) {
             const [, filename] = match
             const oldPath = path.join(oldStorage.path, 'images', filename)
+            // TODO: ehhc: attachmentManagement
             moveTasks.push(
                 copyImage(oldPath, noteData.storage, false)
                 .then(() => {

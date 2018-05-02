@@ -13,15 +13,9 @@ const themes = fs.readdirSync(themePath)
   })
 themes.splice(themes.indexOf('solarized'), 1, 'solarized dark', 'solarized light')
 
-const snippetFile = process.env.NODE_ENV === 'production'
+const snippetFile = process.env.NODE_ENV !== 'test'
   ? path.join(app.getPath('appData'), 'Boostnote', 'snippets.json')
-  : path.join(getAppData(), 'Boostnote', 'snippets.json')
-
-function getAppData () {
-  return process.env.APPDATA || (process.platform === 'darwin'
-  ? path.join(process.env.HOME, 'Library', 'Preferences')
-  : path.join(os.homedir(), '.config'))
-}
+  : '' // return nothing as we specified different path to snippets.json in test
 
 const consts = {
   FOLDER_COLORS: [

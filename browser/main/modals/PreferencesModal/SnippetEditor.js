@@ -27,7 +27,8 @@ export default class SnippetEditor extends React.Component {
       dragDrop: false,
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      autoCloseBrackets: true
+      autoCloseBrackets: true,
+      mode: 'null'
     })
     this.cm.setSize('100%', '100%')
     let changeDelay = null

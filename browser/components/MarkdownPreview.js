@@ -145,10 +145,11 @@ export default class MarkdownPreview extends React.Component {
   }
 
   initMarkdown () {
-    const { smartQuotes, sanitize } = this.props
+    const { smartQuotes, sanitize, breaks } = this.props
     this.markdown = new Markdown({
       typographer: smartQuotes,
-      sanitize
+      sanitize,
+      breaks
     })
   }
 
@@ -340,7 +341,9 @@ export default class MarkdownPreview extends React.Component {
 
   componentDidUpdate (prevProps) {
     if (prevProps.value !== this.props.value) this.rewriteIframe()
-    if (prevProps.smartQuotes !== this.props.smartQuotes || prevProps.sanitize !== this.props.sanitize) {
+    if (prevProps.smartQuotes !== this.props.smartQuotes ||
+        prevProps.sanitize !== this.props.sanitize ||
+        prevProps.breaks !== this.props.breaks) {
       this.initMarkdown()
       this.rewriteIframe()
     }
@@ -599,5 +602,6 @@ MarkdownPreview.propTypes = {
   value: PropTypes.string,
   showCopyNotification: PropTypes.bool,
   storagePath: PropTypes.string,
-  smartQuotes: PropTypes.bool
+  smartQuotes: PropTypes.bool,
+  breaks: PropTypes.bool
 }

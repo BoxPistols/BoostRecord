@@ -25,7 +25,7 @@ class Markdown {
       linkify: true,
       html: true,
       xhtmlOut: true,
-      breaks: true,
+      breaks: config.preview.breaks,
       highlight: function (str, lang) {
         const delimiter = ':'
         const langInfo = lang.split(delimiter)

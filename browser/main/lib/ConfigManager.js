@@ -55,6 +55,7 @@ export const DEFAULT_CONFIG = {
     latexBlockClose: '$$',
     scrollPastEnd: false,
     smartQuotes: true,
+    breaks: true,
     sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
   },
   blog: {

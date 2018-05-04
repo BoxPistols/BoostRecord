@@ -96,6 +96,7 @@ class UiTab extends React.Component {
         latexBlockClose: this.refs.previewLatexBlockClose.value,
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
+        breaks: this.refs.previewBreaks.checked,
         sanitize: this.refs.previewSanitize.value
       }
     }
@@ -473,6 +474,16 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               Enable smart quotes
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.breaks}
+                ref='previewBreaks'
+                type='checkbox'
+              />&nbsp;
+              Render newlines in Markdown paragraphs as &lt;br&gt;
             </label>
           </div>
 

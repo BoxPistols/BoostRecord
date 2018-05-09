@@ -1,4 +1,4 @@
-:mega: We've launched a blogging platform with markdown called **[Boostlog](https://boostlog.io/)**.
+:mega: We've launched [Boostnote Bounty Program](http://bit.ly/2I5Tpik).
 
 ![Boostnote app screenshot](./resources/repository/top.png)
 

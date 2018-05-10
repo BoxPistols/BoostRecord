@@ -50,6 +50,9 @@ export default class CodeEditor extends React.Component {
         el = el.parentNode
       }
       this.props.onBlur != null && this.props.onBlur(e)
+
+      const {storageKey, noteKey} = this.props
+      attachmentManagement.deleteAttachmentsNotPresentInNote(this.editor.getValue(), storageKey, noteKey)
     }
     this.pasteHandler = (editor, e) => this.handlePaste(editor, e)
     this.loadStyleHandler = (e) => {

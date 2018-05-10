@@ -267,10 +267,10 @@ it('should delete the correct attachment folder if a note is deleted', function 
   const storageKey = 'storageKey'
   const noteKey = 'noteKey'
   findStorage.findStorage = jest.fn(() => dummyStorage)
-  sander.rimraf = jest.fn()
+  sander.rimrafSync = jest.fn()
 
   const expectedPathToBeDeleted = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, noteKey)
   systemUnderTest.deleteAttachmentFolder(storageKey, noteKey)
   expect(findStorage.findStorage).toHaveBeenCalledWith(storageKey)
-  expect(sander.rimraf).toHaveBeenCalledWith(expectedPathToBeDeleted)
+  expect(sander.rimrafSync).toHaveBeenCalledWith(expectedPathToBeDeleted)
 })

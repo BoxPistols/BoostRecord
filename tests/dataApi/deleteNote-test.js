@@ -45,7 +45,7 @@ test.serial('Delete a note', (t) => {
     .then(function doTest () {
       return createNote(storageKey, input1)
         .then(function createAttachmentFolder (data) {
-          fs.mkdirSync(path.join(storagePath, attachmentManagement.DESTINATION_FOLDER, data.noteKey))
+          fs.mkdirSync(path.join(storagePath.path, attachmentManagement.DESTINATION_FOLDER, data.noteKey))
           return data
         })
         .then(function (data) {
@@ -54,14 +54,14 @@ test.serial('Delete a note', (t) => {
     })
     .then(function assert (data) {
       try {
-        CSON.readFileSync(path.join(storagePath, 'notes', data.noteKey + '.cson'))
+        CSON.readFileSync(path.join(storagePath.path, 'notes', data.noteKey + '.cson'))
         t.fail('note cson must be deleted.')
       } catch (err) {
         t.is(err.code, 'ENOENT')
       }
     })
     .then(function assertAttachmentFolderDeleted (data) {
-      const attachmentFolderPath = path.join(storagePath, attachmentManagement.DESTINATION_FOLDER, data.noteKey)
+      const attachmentFolderPath = path.join(storagePath.path, attachmentManagement.DESTINATION_FOLDER, data.noteKey)
       t.assert(fs.existsSync(attachmentFolderPath) === false, 'Attachment folder was not deleted')
     })
 })

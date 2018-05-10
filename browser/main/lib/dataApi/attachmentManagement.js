@@ -4,6 +4,7 @@ const path = require('path')
 const findStorage = require('browser/lib/findStorage')
 const mdurl = require('mdurl')
 const escapeStringRegexp = require('escape-string-regexp')
+const sander = require('sander')
 
 const STORAGE_FOLDER_PLACEHOLDER = ':storage'
 const DESTINATION_FOLDER = 'attachments'
@@ -190,6 +191,17 @@ function removeStorageAndNoteReferences (input, noteKey) {
   return input.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep).replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + noteKey, 'g'), DESTINATION_FOLDER)
 }
 
+/**
+ * @description Deletes the attachment folder specified by the given storageKey and noteKey
+ * @param storageKey Key of the storage of the note to be deleted
+ * @param noteKey Key of the note to be deleted
+ */
+function deleteAttachmentFolder (storageKey, noteKey) {
+  const storagePath = findStorage.findStorage(storageKey)
+  const noteAttachmentPath = path.join(storagePath.path, DESTINATION_FOLDER, noteKey)
+  sander.rimraf(noteAttachmentPath)
+}
+
 module.exports = {
   copyAttachment,
   fixLocalURLS,
@@ -199,6 +211,7 @@ module.exports = {
   getAttachmentsInContent,
   getAbsolutePathsOfAttachmentsInContent,
   removeStorageAndNoteReferences,
+  deleteAttachmentFolder,
   STORAGE_FOLDER_PLACEHOLDER,
   DESTINATION_FOLDER
 }

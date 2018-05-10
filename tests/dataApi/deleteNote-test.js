@@ -14,6 +14,8 @@ const sander = require('sander')
 const os = require('os')
 const CSON = require('@rokt33r/season')
 const faker = require('faker')
+const fs = require('fs')
+const attachmentManagement = require('browser/main/lib/dataApi/attachmentManagement')
 
 const storagePath = path.join(os.tmpdir(), 'test/delete-note')
 
@@ -42,6 +44,10 @@ test.serial('Delete a note', (t) => {
   return Promise.resolve()
     .then(function doTest () {
       return createNote(storageKey, input1)
+        .then(function createAttachmentFolder (data) {
+          fs.mkdirSync(path.join(storagePath, attachmentManagement.DESTINATION_FOLDER, data.noteKey))
+          return data
+        })
         .then(function (data) {
           return deleteNote(storageKey, data.key)
         })
@@ -53,6 +59,10 @@ test.serial('Delete a note', (t) => {
       } catch (err) {
         t.is(err.code, 'ENOENT')
       }
+    })
+    .then(function assertAttachmentFolderDeleted (data) {
+      const attachmentFolderPath = path.join(storagePath, attachmentManagement.DESTINATION_FOLDER, data.noteKey)
+      t.assert(fs.existsSync(attachmentFolderPath) === false, 'Attachment folder was not deleted')
     })
 })
 

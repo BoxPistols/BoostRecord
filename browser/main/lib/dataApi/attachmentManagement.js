@@ -199,7 +199,7 @@ function removeStorageAndNoteReferences (input, noteKey) {
 function deleteAttachmentFolder (storageKey, noteKey) {
   const storagePath = findStorage.findStorage(storageKey)
   const noteAttachmentPath = path.join(storagePath.path, DESTINATION_FOLDER, noteKey)
-  sander.rimraf(noteAttachmentPath)
+  sander.rimrafSync(noteAttachmentPath)
 }
 
 module.exports = {

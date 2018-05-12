@@ -18,6 +18,7 @@ import context from 'browser/lib/context'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import _ from 'lodash'
 import {findNoteTitle} from 'browser/lib/findNoteTitle'
+import convertModeName from 'browser/lib/convertModeName'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import TrashButton from './TrashButton'
 import RestoreButton from './RestoreButton'
@@ -28,21 +29,6 @@ import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
 import i18n from 'browser/lib/i18n'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
-
-function pass (name) {
-  switch (name) {
-    case 'ejs':
-      return 'Embedded Javascript'
-    case 'html_ruby':
-      return 'Embedded Ruby'
-    case 'objectivec':
-      return 'Objective C'
-    case 'text':
-      return 'Plain Text'
-    default:
-      return name
-  }
-}
 
 const electron = require('electron')
 const { remote } = electron
@@ -677,7 +663,7 @@ class SnippetNoteDetail extends React.Component {
     const viewList = note.snippets.map((snippet, index) => {
       const isActive = this.state.snippetIndex === index
 
-      let syntax = CodeMirror.findModeByName(pass(snippet.mode))
+      let syntax = CodeMirror.findModeByName(convertModeName(snippet.mode))
       if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
 
       return <div styleName='tabView'

@@ -123,6 +123,20 @@ if (!OSX) {
 }
 const defaultCodeBlockFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
 
+function pass (name) {
+  switch (name) {
+    case 'ejs':
+      return 'Embedded Javascript'
+    case 'html_ruby':
+      return 'Embedded Ruby'
+    case 'objectivec':
+      return 'Objective C'
+    case 'text':
+      return 'Plain Text'
+    default:
+      return name
+  }
+}
 export default class MarkdownPreview extends React.Component {
   constructor (props) {
     super(props)
@@ -430,7 +444,7 @@ export default class MarkdownPreview extends React.Component {
       : 'default'
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('.code code'), (el) => {
-      let syntax = CodeMirror.findModeByName(el.className)
+      let syntax = CodeMirror.findModeByName(pass(el.className))
       if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
       CodeMirror.requireMode(syntax.mode, () => {
         const content = htmlTextHelper.decodeEntities(el.innerHTML)

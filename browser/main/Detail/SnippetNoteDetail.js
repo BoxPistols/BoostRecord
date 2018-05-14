@@ -68,7 +68,7 @@ class SnippetNoteDetail extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.note.key !== this.props.note.key && !this.isMovingNote) {
+    if (nextProps.note.key !== this.props.note.key && !this.state.isMovingNote) {
       if (this.saveQueue != null) this.saveNow()
       const nextNote = Object.assign({
         description: ''

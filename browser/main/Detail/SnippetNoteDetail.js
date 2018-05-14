@@ -368,11 +368,11 @@ class SnippetNoteDetail extends React.Component {
         name: mode
       })
     }
-    this.setState({note: Object.assign(this.state.note, {snippets: snippets})})
+    this.setState(state => ({note: Object.assign(state.note, {snippets: snippets})}))
 
-    this.setState({
-      note: this.state.note
-    }, () => {
+    this.setState(state => ({
+      note: state.note
+    }), () => {
       this.save()
     })
   }
@@ -381,11 +381,11 @@ class SnippetNoteDetail extends React.Component {
     return (e) => {
       const snippets = this.state.note.snippets.slice()
       snippets[index].mode = name
-      this.setState({note: Object.assign(this.state.note, {snippets: snippets})})
+      this.setState(state => ({note: Object.assign(state.note, {snippets: snippets})}))
 
-      this.setState({
-        note: this.state.note
-      }, () => {
+      this.setState(state => ({
+        note: state.note
+      }), () => {
         this.save()
       })
 
@@ -399,10 +399,10 @@ class SnippetNoteDetail extends React.Component {
     return (e) => {
       const snippets = this.state.note.snippets.slice()
       snippets[index].content = this.refs['code-' + index].value
-      this.setState({note: Object.assign(this.state.note, {snippets: snippets})})
-      this.setState({
-        note: this.state.note
-      }, () => {
+      this.setState(state => ({note: Object.assign(state.note, {snippets: snippets})}))
+      this.setState(state => ({
+        note: state.note
+      }), () => {
         this.save()
       })
     }
@@ -597,17 +597,17 @@ class SnippetNoteDetail extends React.Component {
   }
 
   jumpNextTab () {
-    this.setState({
-      snippetIndex: (this.state.snippetIndex + 1) % this.state.note.snippets.length
-    }, () => {
+    this.setState(state => ({
+      snippetIndex: (state.snippetIndex + 1) % state.note.snippets.length
+    }), () => {
       this.focusEditor()
     })
   }
 
   jumpPrevTab () {
-    this.setState({
-      snippetIndex: (this.state.snippetIndex - 1 + this.state.note.snippets.length) % this.state.note.snippets.length
-    }, () => {
+    this.setState(state => ({
+      snippetIndex: (state.snippetIndex - 1 + state.note.snippets.length) % state.note.snippets.length
+    }), () => {
       this.focusEditor()
     })
   }

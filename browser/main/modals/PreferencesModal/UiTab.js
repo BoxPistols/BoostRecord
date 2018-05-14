@@ -94,6 +94,7 @@ class UiTab extends React.Component {
         latexInlineClose: this.refs.previewLatexInlineClose.value,
         latexBlockOpen: this.refs.previewLatexBlockOpen.value,
         latexBlockClose: this.refs.previewLatexBlockClose.value,
+        plantUMLServerAddress: this.refs.previewPlantUMLServerAddress.value,
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
         sanitize: this.refs.previewSanitize.value
@@ -539,6 +540,19 @@ class UiTab extends React.Component {
               <input styleName='group-section-control-input'
                 ref='previewLatexBlockClose'
                 value={config.preview.latexBlockClose}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('PlantUML Server')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='previewPlantUMLServerAddress'
+                value={config.preview.plantUMLServerAddress}
                 onChange={(e) => this.handleUIChange(e)}
                 type='text'
               />

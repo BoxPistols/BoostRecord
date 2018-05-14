@@ -4,6 +4,7 @@ import _ from 'lodash'
 import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
 import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
+import convertModeName from 'browser/lib/convertModeName'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
 
@@ -14,21 +15,6 @@ CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
 const buildCMRulers = (rulers, enableRulers) =>
   enableRulers ? rulers.map(ruler => ({ column: ruler })) : []
-
-function pass (name) {
-  switch (name) {
-    case 'ejs':
-      return 'Embedded Javascript'
-    case 'html_ruby':
-      return 'Embedded Ruby'
-    case 'objectivec':
-      return 'Objective C'
-    case 'text':
-      return 'Plain Text'
-    default:
-      return name
-  }
-}
 
 export default class CodeEditor extends React.Component {
   constructor (props) {
@@ -229,7 +215,7 @@ export default class CodeEditor extends React.Component {
   }
 
   setMode (mode) {
-    let syntax = CodeMirror.findModeByName(pass(mode))
+    let syntax = CodeMirror.findModeByName(convertModeName(mode))
     if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
 
     this.editor.setOption('mode', syntax.mime)

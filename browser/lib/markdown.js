@@ -145,11 +145,13 @@ class Markdown {
     const deflate = require('markdown-it-plantuml/lib/deflate')
     this.md.use(require('markdown-it-plantuml'), '', {
       generateSource: function (umlCode) {
+        const stripTrailingSlash = (url) => url.endsWith('/') ? url.slice(0, -1) : url
+        const serverAddress = stripTrailingSlash(config.preview.plantUMLServerAddress) + '/svg'
         const s = unescape(encodeURIComponent(umlCode))
         const zippedCode = deflate.encode64(
           deflate.zip_deflate(`@startuml\n${s}\n@enduml`, 9)
         )
-        return `http://www.plantuml.com/plantuml/svg/${zippedCode}`
+        return `${serverAddress}/${zippedCode}`
       }
     })
 

@@ -6,7 +6,6 @@ const CSON = require('@rokt33r/season')
 const keygen = require('browser/lib/keygen')
 const sander = require('sander')
 const { findStorage } = require('browser/lib/findStorage')
-const copyImage = require('./copyImage')
 
 function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
   let oldStorage, newStorage
@@ -70,16 +69,17 @@ function moveNote (storageKey, noteKey, newStorageKey, newFolderKey) {
         .then(function moveImages (noteData) {
           if (oldStorage.path === newStorage.path) return noteData
 
-          const searchImagesRegex = /!\[.*?]\(\s*?\/:storage\/(.*\.\S*?)\)/gi
+          const searchImagesRegex = /!\[.*\]\(:storage\/(.+)\)/gi
           let match = searchImagesRegex.exec(noteData.content)
 
           const moveTasks = []
           while (match != null) {
             const [, filename] = match
-            const oldPath = path.join(oldStorage.path, 'images', filename)
+            const oldPath = path.join(oldStorage.path, 'attachments', filename)
+            const newPath = path.join(newStorage.path, 'attachments', filename)
             // TODO: ehhc: attachmentManagement
             moveTasks.push(
-                copyImage(oldPath, noteData.storage, false)
+              sander.copyFile(oldPath).to(newPath)
                 .then(() => {
                   fs.unlinkSync(oldPath)
                 })

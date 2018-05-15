@@ -274,7 +274,7 @@ it('should delete the correct attachment folder if a note is deleted', function 
   expect(findStorage.findStorage).toHaveBeenCalledWith(storageKey)
   expect(sander.rimrafSync).toHaveBeenCalledWith(expectedPathToBeDeleted)
 })
-  
+
 it('should test that deleteAttachmentsNotPresentInNote deletes all unreferenced attachments ', function () {
   const dummyStorage = {path: 'dummyStoragePath'}
   const noteKey = 'noteKey'

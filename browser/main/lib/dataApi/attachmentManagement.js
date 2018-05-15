@@ -3,6 +3,7 @@ const fs = require('fs')
 const path = require('path')
 const findStorage = require('browser/lib/findStorage')
 const mdurl = require('mdurl')
+const fse = require('fs-extra')
 const escapeStringRegexp = require('escape-string-regexp')
 
 const STORAGE_FOLDER_PLACEHOLDER = ':storage'
@@ -181,6 +182,28 @@ function getAbsolutePathsOfAttachmentsInContent (markdownContent, storagePath) {
 }
 
 /**
+ * @description Moves the attachments of the current note to the new location.
+ * Returns a modified version of the given content so that the links to the attachments point to the new note key.
+ * @param {String} oldPath Source of the note to be moved
+ * @param {String} newPath Destination of the note to be moved
+ * @param {String} noteKey Old note key
+ * @param {String} newNoteKey New note key
+ * @param {String} noteContent Content of the note to be moved
+ * @returns {String} Modified version of noteContent in which the paths of the attachments are fixed
+ */
+function moveAttachments (oldPath, newPath, noteKey, newNoteKey, noteContent) {
+  const src = path.join(oldPath, DESTINATION_FOLDER, noteKey)
+  const dest = path.join(newPath, DESTINATION_FOLDER, newNoteKey)
+  if (fse.existsSync(src)) {
+    fse.moveSync(src, dest)
+  }
+  if (noteContent) {
+    return noteContent.replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + noteKey, 'g'), path.join(STORAGE_FOLDER_PLACEHOLDER, newNoteKey))
+  }
+  return noteContent
+}
+
+/**
  * @description Deletes all :storage and noteKey references from the given input.
  * @param input Input in which the references should be deleted
  * @param noteKey Key of the current note
@@ -243,6 +266,7 @@ module.exports = {
   getAbsolutePathsOfAttachmentsInContent,
   removeStorageAndNoteReferences,
   deleteAttachmentsNotPresentInNote,
+  moveAttachments,
   STORAGE_FOLDER_PLACEHOLDER,
   DESTINATION_FOLDER
 }

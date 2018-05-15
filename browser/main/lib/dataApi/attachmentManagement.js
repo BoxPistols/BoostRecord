@@ -158,7 +158,7 @@ function handlePastImageEvent (codeEditor, storageKey, noteKey, dataTransferItem
 /**
  * @description Returns all attachment paths of the given markdown
  * @param {String} markdownContent content in which the attachment paths should be found
- * @returns {String[]} Array of the relativ paths (starting with :storage) of the attachments of the given markdown
+ * @returns {String[]} Array of the relative paths (starting with :storage) of the attachments of the given markdown
  */
 function getAttachmentsInContent (markdownContent) {
   const preparedInput = markdownContent.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep)
@@ -202,6 +202,49 @@ function deleteAttachmentFolder (storageKey, noteKey) {
   sander.rimrafSync(noteAttachmentPath)
 }
 
+/**
+ * @description Deletes all attachments stored in the attachment folder of the give not that are not referenced in the markdownContent
+ * @param markdownContent Content of the note. All unreferenced notes will be deleted
+ * @param storageKey StorageKey of the current note. Is used to determine the belonging attachment folder.
+ * @param noteKey NoteKey of the current note. Is used to determine the belonging attachment folder.
+ */
+function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey) {
+  const targetStorage = findStorage.findStorage(storageKey)
+  const attachmentFolder = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey)
+  const attachmentsInNote = getAttachmentsInContent(markdownContent)
+  const attachmentsInNoteOnlyFileNames = []
+  if (attachmentsInNote) {
+    for (let i = 0; i < attachmentsInNote.length; i++) {
+      attachmentsInNoteOnlyFileNames.push(attachmentsInNote[i].replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + noteKey + escapeStringRegexp(path.sep), 'g'), ''))
+    }
+  }
+
+  if (fs.existsSync(attachmentFolder)) {
+    fs.readdir(attachmentFolder, (err, files) => {
+      if (err) {
+        console.error("Error reading directory '" + attachmentFolder + "'. Error:")
+        console.error(err)
+        return
+      }
+      files.forEach(file => {
+        if (!attachmentsInNoteOnlyFileNames.includes(file)) {
+          const absolutePathOfFile = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey, file)
+          fs.unlink(absolutePathOfFile, (err) => {
+            if (err) {
+              console.error("Could not delete '%s'", absolutePathOfFile)
+              console.error(err)
+              return
+            }
+            console.info("File '" + absolutePathOfFile + "' deleted because it was not included in the content of the note")
+          })
+        }
+      })
+    })
+  } else {
+    console.info("Attachment folder ('" + attachmentFolder + "') did not exist..")
+  }
+}
+
 module.exports = {
   copyAttachment,
   fixLocalURLS,
@@ -212,6 +255,7 @@ module.exports = {
   getAbsolutePathsOfAttachmentsInContent,
   removeStorageAndNoteReferences,
   deleteAttachmentFolder,
+  deleteAttachmentsNotPresentInNote,
   STORAGE_FOLDER_PLACEHOLDER,
   DESTINATION_FOLDER
 }

@@ -10,6 +10,7 @@ import flowchart from 'flowchart'
 import SequenceDiagram from 'js-sequence-diagrams'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
+import convertModeName from 'browser/lib/convertModeName'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
@@ -122,7 +123,6 @@ if (!OSX) {
   defaultFontFamily.unshift('meiryo')
 }
 const defaultCodeBlockFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
-
 export default class MarkdownPreview extends React.Component {
   constructor (props) {
     super(props)
@@ -430,7 +430,7 @@ export default class MarkdownPreview extends React.Component {
       : 'default'
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('.code code'), (el) => {
-      let syntax = CodeMirror.findModeByName(el.className)
+      let syntax = CodeMirror.findModeByName(convertModeName(el.className))
       if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
       CodeMirror.requireMode(syntax.mode, () => {
         const content = htmlTextHelper.decodeEntities(el.innerHTML)

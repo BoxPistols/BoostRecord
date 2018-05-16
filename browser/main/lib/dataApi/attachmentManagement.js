@@ -5,6 +5,7 @@ const findStorage = require('browser/lib/findStorage')
 const mdurl = require('mdurl')
 const fse = require('fs-extra')
 const escapeStringRegexp = require('escape-string-regexp')
+const sander = require('sander')
 
 const STORAGE_FOLDER_PLACEHOLDER = ':storage'
 const DESTINATION_FOLDER = 'attachments'
@@ -214,6 +215,17 @@ function removeStorageAndNoteReferences (input, noteKey) {
 }
 
 /**
+ * @description Deletes the attachment folder specified by the given storageKey and noteKey
+ * @param storageKey Key of the storage of the note to be deleted
+ * @param noteKey Key of the note to be deleted
+ */
+function deleteAttachmentFolder (storageKey, noteKey) {
+  const storagePath = findStorage.findStorage(storageKey)
+  const noteAttachmentPath = path.join(storagePath.path, DESTINATION_FOLDER, noteKey)
+  sander.rimrafSync(noteAttachmentPath)
+}
+
+/**
  * @description Deletes all attachments stored in the attachment folder of the give not that are not referenced in the markdownContent
  * @param markdownContent Content of the note. All unreferenced notes will be deleted
  * @param storageKey StorageKey of the current note. Is used to determine the belonging attachment folder.
@@ -265,6 +277,7 @@ module.exports = {
   getAttachmentsInContent,
   getAbsolutePathsOfAttachmentsInContent,
   removeStorageAndNoteReferences,
+  deleteAttachmentFolder,
   deleteAttachmentsNotPresentInNote,
   moveAttachments,
   STORAGE_FOLDER_PLACEHOLDER,

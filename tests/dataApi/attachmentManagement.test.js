@@ -7,6 +7,7 @@ const findStorage = require('browser/lib/findStorage')
 jest.mock('unique-slug')
 const uniqueSlug = require('unique-slug')
 const mdurl = require('mdurl')
+const fse = require('fs-extra')
 const sander = require('sander')
 
 const systemUnderTest = require('browser/main/lib/dataApi/attachmentManagement')
@@ -325,4 +326,60 @@ it('should test that deleteAttachmentsNotPresentInNote does not delete reference
     fsUnlinkCallArguments.push(fs.unlink.mock.calls[i][0])
   }
   expect(fsUnlinkCallArguments.includes(path.join(attachmentFolderPath, dummyFilesInFolder[0]))).toBe(false)
+})
+
+it('should test that moveAttachments moves attachments only if the source folder existed', function () {
+  fse.existsSync = jest.fn(() => false)
+  fse.moveSync = jest.fn()
+
+  const oldPath = 'oldPath'
+  const newPath = 'newPath'
+  const oldNoteKey = 'oldNoteKey'
+  const newNoteKey = 'newNoteKey'
+  const content = ''
+
+  const expectedSource = path.join(oldPath, systemUnderTest.DESTINATION_FOLDER, oldNoteKey)
+
+  systemUnderTest.moveAttachments(oldPath, newPath, oldNoteKey, newNoteKey, content)
+  expect(fse.existsSync).toHaveBeenCalledWith(expectedSource)
+  expect(fse.moveSync).not.toHaveBeenCalled()
+})
+
+it('should test that moveAttachments moves attachments to the right destination', function () {
+  fse.existsSync = jest.fn(() => true)
+  fse.moveSync = jest.fn()
+
+  const oldPath = 'oldPath'
+  const newPath = 'newPath'
+  const oldNoteKey = 'oldNoteKey'
+  const newNoteKey = 'newNoteKey'
+  const content = ''
+
+  const expectedSource = path.join(oldPath, systemUnderTest.DESTINATION_FOLDER, oldNoteKey)
+  const expectedDestination = path.join(newPath, systemUnderTest.DESTINATION_FOLDER, newNoteKey)
+
+  systemUnderTest.moveAttachments(oldPath, newPath, oldNoteKey, newNoteKey, content)
+  expect(fse.existsSync).toHaveBeenCalledWith(expectedSource)
+  expect(fse.moveSync).toHaveBeenCalledWith(expectedSource, expectedDestination)
+})
+
+it('should test that moveAttachments returns a correct modified content version', function () {
+  fse.existsSync = jest.fn()
+  fse.moveSync = jest.fn()
+
+  const oldPath = 'oldPath'
+  const newPath = 'newPath'
+  const oldNoteKey = 'oldNoteKey'
+  const newNoteKey = 'newNoteKey'
+  const testInput =
+    'Test input' +
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNoteKey + path.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNoteKey + path.sep + 'pdf.pdf](pdf})'
+  const expectedOutput =
+    'Test input' +
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNoteKey + path.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNoteKey + path.sep + 'pdf.pdf](pdf})'
+
+  const actualContent = systemUnderTest.moveAttachments(oldPath, newPath, oldNoteKey, newNoteKey, testInput)
+  expect(actualContent).toBe(expectedOutput)
 })

@@ -7,6 +7,7 @@ const findStorage = require('browser/lib/findStorage')
 jest.mock('unique-slug')
 const uniqueSlug = require('unique-slug')
 const mdurl = require('mdurl')
+const sander = require('sander')
 
 const systemUnderTest = require('browser/main/lib/dataApi/attachmentManagement')
 
@@ -259,6 +260,19 @@ it('should remove the all ":storage" and noteKey references', function () {
     '</html>'
   const actual = systemUnderTest.removeStorageAndNoteReferences(testInput, noteKey)
   expect(actual).toEqual(expectedOutput)
+})
+
+it('should delete the correct attachment folder if a note is deleted', function () {
+  const dummyStorage = {path: 'dummyStoragePath'}
+  const storageKey = 'storageKey'
+  const noteKey = 'noteKey'
+  findStorage.findStorage = jest.fn(() => dummyStorage)
+  sander.rimrafSync = jest.fn()
+
+  const expectedPathToBeDeleted = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, noteKey)
+  systemUnderTest.deleteAttachmentFolder(storageKey, noteKey)
+  expect(findStorage.findStorage).toHaveBeenCalledWith(storageKey)
+  expect(sander.rimrafSync).toHaveBeenCalledWith(expectedPathToBeDeleted)
 })
 
 it('should test that deleteAttachmentsNotPresentInNote deletes all unreferenced attachments ', function () {

@@ -197,13 +197,33 @@ export default class CodeEditor extends React.Component {
 
   expandSnippet (line, cursor, cm, snippets) {
     const wordBeforeCursor = this.getWordBeforeCursor(line, cursor.line, cursor.ch)
+    const templateCursorString = ':{}'
     for (let i = 0; i < snippets.length; i++) {
       if (snippets[i].prefix.indexOf(wordBeforeCursor.text) !== -1) {
-        cm.replaceRange(
-          snippets[i].content,
-          wordBeforeCursor.range.from,
-          wordBeforeCursor.range.to
-        )
+        if (snippets[i].content.indexOf(templateCursorString) !== -1) {
+          let snippetLines = snippets[i].content.split('\n')
+          let cursorLineNumber = 0
+          let cursorLinePosition = 0
+          for (let j = 0; j < snippetLines.length; j++) {
+            let cursorIndex = snippetLines[j].indexOf(templateCursorString)
+            if (cursorIndex !== -1) {
+              cursorLineNumber = j
+              cursorLinePosition = cursorIndex
+              cm.replaceRange(
+                snippets[i].content.replace(templateCursorString, ''),
+                wordBeforeCursor.range.from,
+                wordBeforeCursor.range.to
+              )
+              cm.setCursor({ line: cursor.line + cursorLineNumber, ch: cursorLinePosition })
+            }
+          }
+        } else {
+          cm.replaceRange(
+            snippets[i].content,
+            wordBeforeCursor.range.from,
+            wordBeforeCursor.range.to
+          )
+        }
         return true
       }
     }

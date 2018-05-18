@@ -44,16 +44,9 @@ class TagSelect extends React.Component {
   }
 
   removeLastTag () {
-    let { value } = this.props
-
-    value = _.isArray(value)
-      ? value.slice()
-      : []
-    value.pop()
-    value = _.uniq(value)
-
-    this.value = value
-    this.props.onChange()
+    this.removeTagByCallback((value) => {
+      value.pop()
+    })
   }
 
   reset () {
@@ -96,12 +89,18 @@ class TagSelect extends React.Component {
   }
 
   handleTagRemoveButtonClick (tag) {
+    this.removeTagByCallback((value, tag) => {
+      value.splice(value.indexOf(tag), 1)
+    }, tag)
+  }
+
+  removeTagByCallback (callback, tag = null) {
     let { value } = this.props
 
     value = _.isArray(value)
       ? value.slice()
       : []
-    value.splice(value.indexOf(tag), 1)
+    callback(value, tag)
     value = _.uniq(value)
 
     this.value = value

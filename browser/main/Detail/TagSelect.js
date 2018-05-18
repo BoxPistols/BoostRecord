@@ -96,15 +96,16 @@ class TagSelect extends React.Component {
   }
 
   handleTagRemoveButtonClick (tag) {
-    return (e) => {
-      let { value } = this.props
+    let { value } = this.props
 
-      value.splice(value.indexOf(tag), 1)
-      value = _.uniq(value)
+    value = _.isArray(value)
+      ? value.slice()
+      : []
+    value.splice(value.indexOf(tag), 1)
+    value = _.uniq(value)
 
-      this.value = value
-      this.props.onChange()
-    }
+    this.value = value
+    this.props.onChange()
   }
 
   render () {
@@ -118,7 +119,7 @@ class TagSelect extends React.Component {
           >
             <span styleName='tag-label'>#{tag}</span>
             <button styleName='tag-removeButton'
-              onClick={(e) => this.handleTagRemoveButtonClick(tag)(e)}
+              onClick={(e) => this.handleTagRemoveButtonClick(tag)}
             >
               <img className='tag-removeButton-icon' src='../resources/icon/icon-x.svg' width='8px' />
             </button>

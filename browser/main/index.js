@@ -9,6 +9,7 @@ import { syncHistoryWithStore } from 'react-router-redux'
 require('./lib/ipcClient')
 require('../lib/customMeta')
 import i18n from 'browser/lib/i18n'
+import ee from 'browser/main/lib/eventEmitter'
 
 const electron = require('electron')
 
@@ -62,6 +63,12 @@ document.addEventListener('keyup', function (e) {
     isOtherKey = false
   }
 })
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'm' && e.ctrlKey) {
+    ee.emit('topbar:togglemodebutton')
+  }
+});
 
 document.addEventListener('click', function (e) {
   const className = e.target.className

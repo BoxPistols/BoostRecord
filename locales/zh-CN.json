@@ -147,7 +147,7 @@
 	"Enable": "开启",
 	"Disable": "关闭",
 	"Sanitization": "代码处理",
-	"Only allow secure html tags (recommended)": "只允许安全的html标签(推荐)",
+	"Only allow secure html tags (recommended)": "只允许安全的 html 标签(推荐)",
 	"Allow styles": "允许样式",
 	"Allow dangerous html tags": "允许危险的 html 标签",
 	"Fullscreen": "全屏",
@@ -155,6 +155,8 @@
 	"PlantUML Server": "PlantUML 服务器",
 	"Render newlines in Markdown paragraphs as <br>":"在 Markdown 段落中使用 <br> 换行",
 	"No tags":"无标签",
-	"Star":"星标收藏"
+	"Star":"星标",
+	"Add tag...": "添加标签...",
+	"Counter":"标签下文章数量排序"
 
 }

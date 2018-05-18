@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
 import i18n from 'browser/lib/i18n'
+import ee from 'browser/main/lib/eventEmitter'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -20,7 +21,8 @@ export const DEFAULT_CONFIG = {
   listStyle: 'DEFAULT', // 'DEFAULT', 'SMALL'
   amaEnabled: true,
   hotkey: {
-    toggleMain: OSX ? 'Cmd + Alt + L' : 'Super + Alt + E'
+    toggleMain: OSX ? 'Cmd + Alt + L' : 'Super + Alt + E',
+    toggleMode: OSX ? 'Cmd + M' : 'Ctrl + M'
   },
   ui: {
     language: 'en',
@@ -166,6 +168,7 @@ function set (updates) {
   ipcRenderer.send('config-renew', {
     config: get()
   })
+  ee.emit('config-renew')
 }
 
 function assignConfigValues (originalConfig, rcConfig) {

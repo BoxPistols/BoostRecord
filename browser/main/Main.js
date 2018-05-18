@@ -16,6 +16,7 @@ import { hashHistory } from 'react-router'
 import store from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
 import { getLocales } from 'browser/lib/Languages'
+import applyShortcuts from 'browser/main/lib/shortcutManager'
 const path = require('path')
 const electron = require('electron')
 const { remote } = electron
@@ -159,7 +160,7 @@ class Main extends React.Component {
     } else {
       i18n.setLocale('en')
     }
-
+    applyShortcuts()
     // Reload all data
     dataApi.init()
       .then((data) => {

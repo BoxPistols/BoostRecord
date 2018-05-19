@@ -172,7 +172,7 @@ function getAttachmentsInContent (markdownContent) {
  * @returns {String[]} Absolute paths of the referenced attachments
  */
 function getAbsolutePathsOfAttachmentsInContent (markdownContent, storagePath) {
-  const temp = getAttachmentsInContent(markdownContent)
+  const temp = getAttachmentsInContent(markdownContent) || []
   const result = []
   for (const relativePath of temp) {
     result.push(relativePath.replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER, 'g'), path.join(storagePath, DESTINATION_FOLDER)))

@@ -9,7 +9,7 @@ const electron = require('electron')
 const ipc = electron.ipcRenderer
 
 class Export extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
     this.state = {
       config: props.config

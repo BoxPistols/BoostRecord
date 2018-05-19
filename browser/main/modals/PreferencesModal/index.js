@@ -89,7 +89,7 @@ class Preferences extends React.Component {
         )
       case 'EXPORT':
         return (
-          <Export 
+          <Export
             config={config}
             haveToSave={alert => this.setState({ExportAlert: alert})}
           />

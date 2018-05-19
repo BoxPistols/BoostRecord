@@ -15,6 +15,7 @@ import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
 import { escapeHtmlCharacters } from 'browser/lib/utils'
+import ConfigManager from 'browser/main/lib/ConfigManager'
 
 const { remote } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
@@ -218,7 +219,7 @@ export default class MarkdownPreview extends React.Component {
       const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme} = this.getStyleParams()
 
       const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme)
-      let body = this.markdown.render(escapeHtmlCharacters(noteContent))
+      let body = this.markdown.render(ConfigManager.get().exports.escapeHtml ? escapeHtmlCharacters(noteContent) : noteContent)
 
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
       const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(noteContent, this.props.storagePath)

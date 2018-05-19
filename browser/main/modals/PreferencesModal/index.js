@@ -7,6 +7,7 @@ import InfoTab from './InfoTab'
 import Crowdfunding from './Crowdfunding'
 import StoragesTab from './StoragesTab'
 import Blog from './Blog'
+import Export from './Export'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './PreferencesModal.styl'
@@ -86,6 +87,13 @@ class Preferences extends React.Component {
             haveToSave={alert => this.setState({BlogAlert: alert})}
           />
         )
+      case 'EXPORT':
+        return (
+          <Export 
+            config={config}
+            haveToSave={alert => this.setState({ExportAlert: alert})}
+          />
+        )
       case 'STORAGES':
       default:
         return (
@@ -123,7 +131,8 @@ class Preferences extends React.Component {
       {target: 'UI', label: i18n.__('Interface'), UI: this.state.UIAlert},
       {target: 'INFO', label: i18n.__('About')},
       {target: 'CROWDFUNDING', label: i18n.__('Crowdfunding')},
-      {target: 'BLOG', label: i18n.__('Blog'), Blog: this.state.BlogAlert}
+      {target: 'BLOG', label: i18n.__('Blog'), Blog: this.state.BlogAlert},
+      {target: 'EXPORT', label: i18n.__('Export')}
     ]
 
     const navButtons = tabs.map((tab) => {

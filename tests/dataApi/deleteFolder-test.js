@@ -28,7 +28,7 @@ test.beforeEach((t) => {
 test.serial('Delete a folder', (t) => {
   const storageKey = t.context.storage.cache.key
   const folderKey = t.context.storage.json.folders[0].key
-  let noteKey = undefined
+  let noteKey
 
   const input1 = {
     type: 'SNIPPET_NOTE',

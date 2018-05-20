@@ -42,7 +42,7 @@ function copyAttachment (sourceFilePath, storageKey, noteKey, useRandomName = tr
 
       const targetStorage = findStorage.findStorage(storageKey)
 
-      const inputFile = fs.createReadStream(sourceFilePath)
+      const inputFileStream = fs.createReadStream(sourceFilePath)
       let destinationName
       if (useRandomName) {
         destinationName = `${uniqueSlug()}${path.extname(sourceFilePath)}`
@@ -52,8 +52,10 @@ function copyAttachment (sourceFilePath, storageKey, noteKey, useRandomName = tr
       const destinationDir = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey)
       createAttachmentDestinationFolder(targetStorage.path, noteKey)
       const outputFile = fs.createWriteStream(path.join(destinationDir, destinationName))
-      inputFile.pipe(outputFile)
-      resolve(destinationName)
+      inputFileStream.pipe(outputFile)
+      inputFileStream.on('end', () => {
+        resolve(destinationName)
+      })
     } catch (e) {
       return reject(e)
     }
@@ -149,7 +151,7 @@ function handlePastImageEvent (codeEditor, storageKey, noteKey, dataTransferItem
     base64data = reader.result.replace(/^data:image\/png;base64,/, '')
     base64data += base64data.replace('+', ' ')
     const binaryData = new Buffer(base64data, 'base64').toString('binary')
-    fs.writeFile(imagePath, binaryData, 'binary')
+    fs.writeFileSync(imagePath, binaryData, 'binary')
     const imageMd = generateAttachmentMarkdown(imageName, imagePath, true)
     codeEditor.insertAttachmentMd(imageMd)
   }
@@ -174,7 +176,7 @@ function getAttachmentsInContent (markdownContent) {
  * @returns {String[]} Absolute paths of the referenced attachments
  */
 function getAbsolutePathsOfAttachmentsInContent (markdownContent, storagePath) {
-  const temp = getAttachmentsInContent(markdownContent)
+  const temp = getAttachmentsInContent(markdownContent) || []
   const result = []
   for (const relativePath of temp) {
     result.push(relativePath.replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER, 'g'), path.join(storagePath, DESTINATION_FOLDER)))

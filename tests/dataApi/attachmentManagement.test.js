@@ -8,6 +8,7 @@ jest.mock('unique-slug')
 const uniqueSlug = require('unique-slug')
 const mdurl = require('mdurl')
 const fse = require('fs-extra')
+jest.mock('sander')
 const sander = require('sander')
 
 const systemUnderTest = require('browser/main/lib/dataApi/attachmentManagement')
@@ -392,4 +393,58 @@ it('should test that moveAttachments returns a correct modified content version'
 
   const actualContent = systemUnderTest.moveAttachments(oldPath, newPath, oldNoteKey, newNoteKey, testInput)
   expect(actualContent).toBe(expectedOutput)
+})
+
+it('should test that cloneAttachments modifies the content of the new note correctly', function () {
+  const storageKey = 'storageKey'
+  const oldNote = {key: 'oldNoteKey', content: 'oldNoteContent'}
+  const newNote = {key: 'newNoteKey', content: 'oldNoteContent'}
+  const testInput =
+    'Test input' +
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'pdf.pdf](pdf})'
+  newNote.content = testInput
+
+  const expectedOutput =
+    'Test input' +
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNote.key + path.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNote.key + path.sep + 'pdf.pdf](pdf})'
+  systemUnderTest.cloneAttachments(storageKey, oldNote, newNote)
+
+  expect(newNote.content).toBe(expectedOutput)
+})
+
+it('should test that cloneAttachments finds all attachments and copies them to the new location', function () {
+  const storageKey = 'storageKey'
+  const storagePath = 'storagePath'
+  const dummyStorage = {path: storagePath}
+  const oldNote = {key: 'oldNoteKey', content: 'oldNoteContent'}
+  const newNote = {key: 'newNoteKey', content: 'oldNoteContent'}
+  const testInput =
+    'Test input' +
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'pdf.pdf](pdf})'
+  oldNote.content = testInput
+  newNote.content = testInput
+
+  const copyFileSyncResp = {to: jest.fn()}
+  sander.copyFileSync = jest.fn()
+  sander.copyFileSync.mockReturnValue(copyFileSyncResp)
+  findStorage.findStorage = jest.fn(() => dummyStorage)
+
+  const pathAttachmentOneFrom = path.join(storagePath, systemUnderTest.DESTINATION_FOLDER, oldNote.key, 'image.jpg')
+  const pathAttachmentOneTo = path.join(storagePath, systemUnderTest.DESTINATION_FOLDER, newNote.key, 'image.jpg')
+
+  const pathAttachmentTwoFrom = path.join(storagePath, systemUnderTest.DESTINATION_FOLDER, oldNote.key, 'pdf.pdf')
+  const pathAttachmentTwoTo = path.join(storagePath, systemUnderTest.DESTINATION_FOLDER, newNote.key, 'pdf.pdf')
+
+  systemUnderTest.cloneAttachments(storageKey, oldNote, newNote)
+
+  expect(findStorage.findStorage).toHaveBeenCalledWith(storageKey)
+  expect(sander.copyFileSync).toHaveBeenCalledTimes(2)
+  expect(copyFileSyncResp.to).toHaveBeenCalledTimes(2)
+  expect(sander.copyFileSync.mock.calls[0][0]).toBe(pathAttachmentOneFrom)
+  expect(copyFileSyncResp.to.mock.calls[0][0]).toBe(pathAttachmentOneTo)
+  expect(sander.copyFileSync.mock.calls[1][0]).toBe(pathAttachmentTwoFrom)
+  expect(copyFileSyncResp.to.mock.calls[1][0]).toBe(pathAttachmentTwoTo)
 })

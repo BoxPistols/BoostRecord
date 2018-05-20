@@ -200,8 +200,19 @@ function moveAttachments (oldPath, newPath, noteKey, newNoteKey, noteContent) {
   if (fse.existsSync(src)) {
     fse.moveSync(src, dest)
   }
+  return replaceNoteKeyWithNewNoteKey(noteContent, noteKey, newNoteKey)
+}
+
+/**
+ * Modifies the given content so that in all attachment references the oldNoteKey is replaced by the new one
+ * @param noteContent content that should be modified
+ * @param oldNoteKey note key to be replaced
+ * @param newNoteKey note key serving as a replacement
+ * @returns {String} modified note content
+ */
+function replaceNoteKeyWithNewNoteKey (noteContent, oldNoteKey, newNoteKey) {
   if (noteContent) {
-    return noteContent.replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + noteKey, 'g'), path.join(STORAGE_FOLDER_PLACEHOLDER, newNoteKey))
+    return noteContent.replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + oldNoteKey, 'g'), path.join(STORAGE_FOLDER_PLACEHOLDER, newNoteKey))
   }
   return noteContent
 }
@@ -270,6 +281,29 @@ function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey
   }
 }
 
+/**
+ * Clones the attachments of a given note.
+ * Copies the attachments to their new destination and updates the content of the new note so that the attachment-links again point to the correct destination.
+ * @param storageKey Key of the current storage
+ * @param oldNote Note that is being cloned
+ * @param newNote Clone of the note
+ */
+function cloneAttachments (storageKey, oldNote, newNote) {
+  const storage = findStorage.findStorage(storageKey)
+  const attachmentsPaths = getAbsolutePathsOfAttachmentsInContent(oldNote.content, storage.path) || []
+
+  const destinationFolder = path.join(storage.path, DESTINATION_FOLDER, newNote.key)
+  if (!sander.existsSync(destinationFolder)) {
+    sander.mkdirSync(destinationFolder)
+  }
+
+  for (const attachment of attachmentsPaths) {
+    const destination = path.join(storage.path, DESTINATION_FOLDER, newNote.key, path.basename(attachment))
+    sander.copyFileSync(attachment).to(destination)
+  }
+  newNote.content = replaceNoteKeyWithNewNoteKey(newNote.content, oldNote.key, newNote.key)
+}
+
 module.exports = {
   copyAttachment,
   fixLocalURLS,
@@ -282,6 +316,7 @@ module.exports = {
   deleteAttachmentFolder,
   deleteAttachmentsNotPresentInNote,
   moveAttachments,
+  cloneAttachments,
   STORAGE_FOLDER_PLACEHOLDER,
   DESTINATION_FOLDER
 }

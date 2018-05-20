@@ -664,7 +664,7 @@ class NoteList extends React.Component {
         content: firstNote.content
       })
       .then((note) => {
-        attachmentManagement.cloneAttachments(storage.key, firstNote, note)
+        attachmentManagement.cloneAttachments(firstNote, note)
         return note
       })
       .then((note) => {

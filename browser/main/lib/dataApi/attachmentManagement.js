@@ -284,21 +284,21 @@ function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey
 /**
  * Clones the attachments of a given note.
  * Copies the attachments to their new destination and updates the content of the new note so that the attachment-links again point to the correct destination.
- * @param storageKey Key of the current storage
  * @param oldNote Note that is being cloned
  * @param newNote Clone of the note
  */
-function cloneAttachments (storageKey, oldNote, newNote) {
-  const storage = findStorage.findStorage(storageKey)
-  const attachmentsPaths = getAbsolutePathsOfAttachmentsInContent(oldNote.content, storage.path) || []
+function cloneAttachments (oldNote, newNote) {
+  const oldStorage = findStorage.findStorage(oldNote.storage)
+  const newStorage = findStorage.findStorage(newNote.storage)
+  const attachmentsPaths = getAbsolutePathsOfAttachmentsInContent(oldNote.content, oldStorage.path) || []
 
-  const destinationFolder = path.join(storage.path, DESTINATION_FOLDER, newNote.key)
+  const destinationFolder = path.join(newStorage.path, DESTINATION_FOLDER, newNote.key)
   if (!sander.existsSync(destinationFolder)) {
     sander.mkdirSync(destinationFolder)
   }
 
   for (const attachment of attachmentsPaths) {
-    const destination = path.join(storage.path, DESTINATION_FOLDER, newNote.key, path.basename(attachment))
+    const destination = path.join(newStorage.path, DESTINATION_FOLDER, newNote.key, path.basename(attachment))
     sander.copyFileSync(attachment).to(destination)
   }
   newNote.content = replaceNoteKeyWithNewNoteKey(newNote.content, oldNote.key, newNote.key)

@@ -1,13 +1,15 @@
 import CodeMirror from 'codemirror'
 import React from 'react'
 import _ from 'lodash'
+import styles from './SnippetTab.styl'
+import CSSModules from 'react-css-modules'
 import dataApi from 'browser/main/lib/dataApi'
 
 const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
 const buildCMRulers = (rulers, enableRulers) =>
   enableRulers ? rulers.map(ruler => ({ column: ruler })) : []
 
-export default class SnippetEditor extends React.Component {
+class SnippetEditor extends React.Component {
 
   componentDidMount () {
     this.props.onRef(this)
@@ -84,3 +86,5 @@ SnippetEditor.defaultProps = {
   indentSize: 4,
   indentType: 'space'
 }
+
+export default CSSModules(SnippetEditor, styles)

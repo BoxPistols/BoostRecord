@@ -1,5 +1,4 @@
 import fs from 'fs'
-import crypto from 'crypto'
 import consts from 'browser/lib/consts'
 
 function fetchSnippet (id, snippetFile) {

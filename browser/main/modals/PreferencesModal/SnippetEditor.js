@@ -1,8 +1,6 @@
 import CodeMirror from 'codemirror'
 import React from 'react'
 import _ from 'lodash'
-import fs from 'fs'
-import consts from 'browser/lib/consts'
 import dataApi from 'browser/main/lib/dataApi'
 
 const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
@@ -71,10 +69,7 @@ export default class SnippetEditor extends React.Component {
     return (
       <div styleName='SnippetEditor' ref='root' tabIndex='-1' style={{
         fontFamily: fontFamily.join(', '),
-        fontSize: fontSize,
-        position: 'absolute',
-        width: '100%',
-        height: '90%'
+        fontSize: fontSize
       }} />
     )
   }

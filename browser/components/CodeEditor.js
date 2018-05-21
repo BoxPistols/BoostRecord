@@ -9,7 +9,7 @@ import iconv from 'iconv-lite'
 import crypto from 'crypto'
 import consts from 'browser/lib/consts'
 import fs from 'fs'
-const { ipcRenderer, remote } = require('electron')
+const { ipcRenderer } = require('electron')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -201,11 +201,11 @@ export default class CodeEditor extends React.Component {
     for (let i = 0; i < snippets.length; i++) {
       if (snippets[i].prefix.indexOf(wordBeforeCursor.text) !== -1) {
         if (snippets[i].content.indexOf(templateCursorString) !== -1) {
-          let snippetLines = snippets[i].content.split('\n')
+          const snippetLines = snippets[i].content.split('\n')
           let cursorLineNumber = 0
           let cursorLinePosition = 0
           for (let j = 0; j < snippetLines.length; j++) {
-            let cursorIndex = snippetLines[j].indexOf(templateCursorString)
+            const cursorIndex = snippetLines[j].indexOf(templateCursorString)
             if (cursorIndex !== -1) {
               cursorLineNumber = j
               cursorLinePosition = cursorIndex

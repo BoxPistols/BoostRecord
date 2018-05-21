@@ -12,7 +12,7 @@
     "compile": "grunt compile",
     "test": "PWD=$(pwd) NODE_ENV=test ava --serial",
     "jest": "jest",
-    "fix": "npm run lint --fix",
+    "fix": "eslint . --fix",
     "lint": "eslint .",
     "dev-start": "concurrently --kill-others \"npm run webpack\" \"npm run hot\""
   },
@@ -118,7 +118,7 @@
     "eslint": "^3.13.1",
     "eslint-config-standard": "^6.2.1",
     "eslint-config-standard-jsx": "^3.2.0",
-    "eslint-plugin-react": "^7.2.0",
+    "eslint-plugin-react": "^7.8.2",
     "eslint-plugin-standard": "^3.0.1",
     "faker": "^3.1.0",
     "grunt": "^0.4.5",

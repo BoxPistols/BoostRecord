@@ -28,7 +28,6 @@ test.serial('Delete a snippet', (t) => {
     .then(function assert (data) {
       data = data[0]
       const snippets = JSON.parse(sander.readFileSync(snippetFile))
-      const snippet = snippets.find(currentSnippet => currentSnippet.id === data.id)
       t.is(snippets.length, 0)
     })
 })

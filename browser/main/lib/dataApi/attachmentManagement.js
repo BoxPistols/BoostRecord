@@ -74,6 +74,31 @@ function createAttachmentDestinationFolder (destinationStoragePath, noteKey) {
 }
 
 /**
+ * @description Moves attachments from the old location ('/images') to the new one ('/attachments/noteKey)
+ * @param renderedHTML HTML of the current note
+ * @param storagePath Storage path of the current note
+ * @param noteKey Key of the current note
+ */
+function migrateAttachments (renderedHTML, storagePath, noteKey) {
+  if (sander.existsSync(path.join(storagePath, 'images'))) {
+    const attachments = getAttachmentsInContent(renderedHTML) || []
+    if (attachments !== []) {
+      createAttachmentDestinationFolder(storagePath, noteKey)
+    }
+    for (const attachment of attachments) {
+      let attachmentBaseName = path.basename(attachment)
+      const possibleLegacyPath = path.join(storagePath, 'images', attachmentBaseName)
+      if (sander.existsSync(possibleLegacyPath)) {
+        const destinationPath = path.join(storagePath, DESTINATION_FOLDER, attachmentBaseName)
+        if (!sander.existsSync(destinationPath)) {
+          sander.copyFileSync(possibleLegacyPath).to(destinationPath)
+        }
+      }
+    }
+  }
+}
+
+/**
  * @description Fixes the URLs embedded in the generated HTML so that they again refer actual local files.
  * @param {String} renderedHTML HTML in that the links should be fixed
  * @param {String} storagePath Path of the current storage
@@ -165,7 +190,7 @@ function handlePastImageEvent (codeEditor, storageKey, noteKey, dataTransferItem
  */
 function getAttachmentsInContent (markdownContent) {
   const preparedInput = markdownContent.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep)
-  const regexp = new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + '([a-zA-Z0-9]|-)+' + escapeStringRegexp(path.sep) + '[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)?', 'g')
+  const regexp = new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + '?([a-zA-Z0-9]|-)*' + escapeStringRegexp(path.sep) + '[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)?', 'g')
   return preparedInput.match(regexp)
 }
 
@@ -224,7 +249,7 @@ function replaceNoteKeyWithNewNoteKey (noteContent, oldNoteKey, newNoteKey) {
  * @returns {String} Input without the references
  */
 function removeStorageAndNoteReferences (input, noteKey) {
-  return input.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep).replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + noteKey, 'g'), DESTINATION_FOLDER)
+  return input.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep).replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + noteKey + ')?', 'g'), DESTINATION_FOLDER)
 }
 
 /**
@@ -321,6 +346,7 @@ module.exports = {
   deleteAttachmentsNotPresentInNote,
   moveAttachments,
   cloneAttachments,
+  migrateAttachments,
   STORAGE_FOLDER_PLACEHOLDER,
   DESTINATION_FOLDER
 }

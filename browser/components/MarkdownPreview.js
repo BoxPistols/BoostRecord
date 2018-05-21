@@ -391,7 +391,7 @@ export default class MarkdownPreview extends React.Component {
       el.removeEventListener('click', this.linkClickHandler)
     })
 
-    const { theme, indentSize, showCopyNotification, storagePath } = this.props
+    const { theme, indentSize, showCopyNotification, storagePath, noteKey } = this.props
     let { value, codeBlockTheme } = this.props
 
     this.refs.root.contentWindow.document.body.setAttribute('data-theme', theme)
@@ -402,7 +402,8 @@ export default class MarkdownPreview extends React.Component {
         value = value.replace(codeBlock, htmlTextHelper.encodeEntities(codeBlock))
       })
     }
-    const renderedHTML = this.markdown.render(value)
+    let renderedHTML = this.markdown.render(value)
+    attachmentManagement.migrateAttachments(renderedHTML, storagePath, noteKey)
     this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(renderedHTML, storagePath)
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('input[type="checkbox"]'), (el) => {

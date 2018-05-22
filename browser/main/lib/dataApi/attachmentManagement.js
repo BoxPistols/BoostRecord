@@ -177,7 +177,8 @@ function handlePastImageEvent (codeEditor, storageKey, noteKey, dataTransferItem
     base64data += base64data.replace('+', ' ')
     const binaryData = new Buffer(base64data, 'base64').toString('binary')
     fs.writeFileSync(imagePath, binaryData, 'binary')
-    const imageMd = generateAttachmentMarkdown(imageName, imagePath, true)
+    const imageReferencePath = path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, imageName)
+    const imageMd = generateAttachmentMarkdown(imageName, imageReferencePath, true)
     codeEditor.insertAttachmentMd(imageMd)
   }
   reader.readAsDataURL(blob)

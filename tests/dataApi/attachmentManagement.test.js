@@ -396,8 +396,8 @@ it('should test that moveAttachments returns a correct modified content version'
 })
 
 it('should test that cloneAttachments modifies the content of the new note correctly', function () {
-  const oldNote = {key: 'oldNoteKey', content: 'oldNoteContent', storage: 'storageKey'}
-  const newNote = {key: 'newNoteKey', content: 'oldNoteContent', storage: 'storageKey'}
+  const oldNote = {key: 'oldNoteKey', content: 'oldNoteContent', storage: 'storageKey', type: 'MARKDOWN_NOTE'}
+  const newNote = {key: 'newNoteKey', content: 'oldNoteContent', storage: 'storageKey', type: 'MARKDOWN_NOTE'}
   const testInput =
     'Test input' +
     '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'image.jpg](imageName}) \n' +
@@ -418,8 +418,8 @@ it('should test that cloneAttachments finds all attachments and copies them to t
   const storagePathNew = 'storagePathNew'
   const dummyStorageOld = {path: storagePathOld}
   const dummyStorageNew = {path: storagePathNew}
-  const oldNote = {key: 'oldNoteKey', content: 'oldNoteContent', storage: 'storageKeyOldNote'}
-  const newNote = {key: 'newNoteKey', content: 'oldNoteContent', storage: 'storageKeyNewNote'}
+  const oldNote = {key: 'oldNoteKey', content: 'oldNoteContent', storage: 'storageKeyOldNote', type: 'MARKDOWN_NOTE'}
+  const newNote = {key: 'newNoteKey', content: 'oldNoteContent', storage: 'storageKeyNewNote', type: 'MARKDOWN_NOTE'}
   const testInput =
     'Test input' +
     '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'image.jpg](imageName}) \n' +
@@ -450,4 +450,20 @@ it('should test that cloneAttachments finds all attachments and copies them to t
   expect(copyFileSyncResp.to.mock.calls[0][0]).toBe(pathAttachmentOneTo)
   expect(sander.copyFileSync.mock.calls[1][0]).toBe(pathAttachmentTwoFrom)
   expect(copyFileSyncResp.to.mock.calls[1][0]).toBe(pathAttachmentTwoTo)
+})
+
+it('should test that cloneAttachments finds all attachments and copies them to the new location', function () {
+  const oldNote = {key: 'oldNoteKey', content: 'oldNoteContent', storage: 'storageKeyOldNote', type: 'SOMETHING_ELSE'}
+  const newNote = {key: 'newNoteKey', content: 'oldNoteContent', storage: 'storageKeyNewNote', type: 'SOMETHING_ELSE'}
+  const testInput = 'Test input'
+  oldNote.content = testInput
+  newNote.content = testInput
+
+  sander.copyFileSync = jest.fn()
+  findStorage.findStorage = jest.fn()
+
+  systemUnderTest.cloneAttachments(oldNote, newNote)
+
+  expect(findStorage.findStorage).not.toHaveBeenCalled()
+  expect(sander.copyFileSync).not.toHaveBeenCalled()
 })

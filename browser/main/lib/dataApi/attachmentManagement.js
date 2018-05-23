@@ -288,20 +288,24 @@ function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey
  * @param newNote Clone of the note
  */
 function cloneAttachments (oldNote, newNote) {
-  const oldStorage = findStorage.findStorage(oldNote.storage)
-  const newStorage = findStorage.findStorage(newNote.storage)
-  const attachmentsPaths = getAbsolutePathsOfAttachmentsInContent(oldNote.content, oldStorage.path) || []
+  if (newNote.type === 'MARKDOWN_NOTE') {
+    const oldStorage = findStorage.findStorage(oldNote.storage)
+    const newStorage = findStorage.findStorage(newNote.storage)
+    const attachmentsPaths = getAbsolutePathsOfAttachmentsInContent(oldNote.content, oldStorage.path) || []
 
-  const destinationFolder = path.join(newStorage.path, DESTINATION_FOLDER, newNote.key)
-  if (!sander.existsSync(destinationFolder)) {
-    sander.mkdirSync(destinationFolder)
-  }
+    const destinationFolder = path.join(newStorage.path, DESTINATION_FOLDER, newNote.key)
+    if (!sander.existsSync(destinationFolder)) {
+      sander.mkdirSync(destinationFolder)
+    }
 
-  for (const attachment of attachmentsPaths) {
-    const destination = path.join(newStorage.path, DESTINATION_FOLDER, newNote.key, path.basename(attachment))
-    sander.copyFileSync(attachment).to(destination)
+    for (const attachment of attachmentsPaths) {
+      const destination = path.join(newStorage.path, DESTINATION_FOLDER, newNote.key, path.basename(attachment))
+      sander.copyFileSync(attachment).to(destination)
+    }
+    newNote.content = replaceNoteKeyWithNewNoteKey(newNote.content, oldNote.key, newNote.key)
+  } else {
+    console.debug('Cloning of the attachment was skipped since it only works for MARKDOWN_NOTEs')
   }
-  newNote.content = replaceNoteKeyWithNewNoteKey(newNote.content, oldNote.key, newNote.key)
 }
 
 module.exports = {

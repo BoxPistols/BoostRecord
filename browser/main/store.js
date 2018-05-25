@@ -72,15 +72,7 @@ function data (state = defaultDataMap(), action) {
           if (note.isTrashed) {
             state.trashedSet.add(uniqueKey)
             state.starredSet.delete(uniqueKey)
-
-            note.tags.forEach(tag => {
-              let tagNoteList = state.tagNoteMap.get(tag)
-              if (tagNoteList != null) {
-                tagNoteList = new Set(tagNoteList)
-                tagNoteList.delete(uniqueKey)
-                state.tagNoteMap.set(tag, tagNoteList)
-              }
-            })
+            removeFromTags(note.tags, state, uniqueKey)
           } else {
             state.trashedSet.delete(uniqueKey)
 
@@ -169,16 +161,7 @@ function data (state = defaultDataMap(), action) {
           originFolderList.delete(originKey)
           state.folderNoteMap.set(originFolderKey, originFolderList)
 
-          // From tagMap
-          if (originNote.tags.length > 0) {
-            state.tagNoteMap = new Map(state.tagNoteMap)
-            originNote.tags.forEach((tag) => {
-              let noteSet = state.tagNoteMap.get(tag)
-              noteSet = new Set(noteSet)
-              noteSet.delete(originKey)
-              state.tagNoteMap.set(tag, noteSet)
-            })
-          }
+          removeFromTags(originNote.tags, state, originKey)
         }
 
         if (oldNote == null || oldNote.isStarred !== note.isStarred) {
@@ -268,16 +251,7 @@ function data (state = defaultDataMap(), action) {
           folderSet.delete(uniqueKey)
           state.folderNoteMap.set(folderKey, folderSet)
 
-          // From tagMap
-          if (targetNote.tags.length > 0) {
-            state.tagNoteMap = new Map(state.tagNoteMap)
-            targetNote.tags.forEach((tag) => {
-              let noteSet = state.tagNoteMap.get(tag)
-              noteSet = new Set(noteSet)
-              noteSet.delete(uniqueKey)
-              state.tagNoteMap.set(tag, noteSet)
-            })
-          }
+          removeFromTags(targetNote.tags, state, uniqueKey)
         }
         state.noteMap = new Map(state.noteMap)
         state.noteMap.delete(uniqueKey)
@@ -474,16 +448,7 @@ function updateTagChanges (oldNote, note, state, uniqueKey) {
   const discardedTags = _.difference(oldNote.tags, note.tags)
   const addedTags = _.difference(note.tags, oldNote.tags)
   if (discardedTags.length + addedTags.length > 0) {
-    state.tagNoteMap = new Map(state.tagNoteMap)
-
-    discardedTags.forEach((tag) => {
-      let tagNoteList = state.tagNoteMap.get(tag)
-      if (tagNoteList != null) {
-        tagNoteList = new Set(tagNoteList)
-        tagNoteList.delete(uniqueKey)
-        state.tagNoteMap.set(tag, tagNoteList)
-      }
-    })
+    removeFromTags(discardedTags, state, uniqueKey)
     assignToTags(addedTags, state, uniqueKey)
   }
 }
@@ -493,6 +458,18 @@ function assignToTags (tags, state, uniqueKey) {
   tags.forEach((tag) => {
     const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
     tagNoteList.add(uniqueKey)
+  })
+}
+
+function removeFromTags (tags, state, uniqueKey) {
+  state.tagNoteMap = new Map(state.tagNoteMap)
+  tags.forEach(tag => {
+    let tagNoteList = state.tagNoteMap.get(tag)
+    if (tagNoteList != null) {
+      tagNoteList = new Set(tagNoteList)
+      tagNoteList.delete(uniqueKey)
+      state.tagNoteMap.set(tag, tagNoteList)
+    }
   })
 }
 

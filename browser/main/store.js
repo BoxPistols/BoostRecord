@@ -38,27 +38,14 @@ function data (state = defaultDataMap(), action) {
         if (note.isTrashed) {
           state.trashedSet.add(uniqueKey)
         }
-
-        let storageNoteList = state.storageNoteMap.get(note.storage)
-        if (storageNoteList == null) {
-          storageNoteList = new Set(storageNoteList)
-          state.storageNoteMap.set(note.storage, storageNoteList)
-        }
+        const storageNoteList = getOrInitItem(state.storageNoteMap, note.storage)
         storageNoteList.add(uniqueKey)
 
-        let folderNoteSet = state.folderNoteMap.get(folderKey)
-        if (folderNoteSet == null) {
-          folderNoteSet = new Set(folderNoteSet)
-          state.folderNoteMap.set(folderKey, folderNoteSet)
-        }
+        const folderNoteSet = getOrInitItem(state.folderNoteMap, folderKey)
         folderNoteSet.add(uniqueKey)
 
         note.tags.forEach((tag) => {
-          let tagNoteList = state.tagNoteMap.get(tag)
-          if (tagNoteList == null) {
-            tagNoteList = new Set(tagNoteList)
-            state.tagNoteMap.set(tag, tagNoteList)
-          }
+          const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
           tagNoteList.add(uniqueKey)
         })
       })
@@ -146,11 +133,7 @@ function data (state = defaultDataMap(), action) {
         } else {
           state.tagNoteMap = new Map(state.tagNoteMap)
           note.tags.forEach((tag) => {
-            let tagNoteList = state.tagNoteMap.get(tag)
-            if (tagNoteList == null) {
-              tagNoteList = new Set(tagNoteList)
-              state.tagNoteMap.set(tag, tagNoteList)
-            }
+            const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
             tagNoteList.add(uniqueKey)
           })
         }
@@ -262,11 +245,7 @@ function data (state = defaultDataMap(), action) {
         } else {
           state.tagNoteMap = new Map(state.tagNoteMap)
           note.tags.forEach((tag) => {
-            let tagNoteList = state.tagNoteMap.get(tag)
-            if (tagNoteList == null) {
-              tagNoteList = new Set(tagNoteList)
-              state.tagNoteMap.set(tag, tagNoteList)
-            }
+            const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
             tagNoteList.add(uniqueKey)
           })
         }
@@ -380,9 +359,7 @@ function data (state = defaultDataMap(), action) {
               // Delete key from tag map
               state.tagNoteMap = new Map(state.tagNoteMap)
               note.tags.forEach((tag) => {
-                let tagNoteSet = state.tagNoteMap.get(tag)
-                tagNoteSet = new Set(tagNoteSet)
-                state.tagNoteMap.set(tag, tagNoteSet)
+                const tagNoteSet = getOrInitItem(state.tagNoteMap, tag)
                 tagNoteSet.delete(noteKey)
               })
             }
@@ -409,11 +386,7 @@ function data (state = defaultDataMap(), action) {
           state.starredSet.add(uniqueKey)
         }
 
-        let storageNoteList = state.storageNoteMap.get(note.storage)
-        if (storageNoteList == null) {
-          storageNoteList = new Set(storageNoteList)
-          state.storageNoteMap.set(note.storage, storageNoteList)
-        }
+        const storageNoteList = getOrInitItem(state.tagNoteMap, note.storage)
         storageNoteList.add(uniqueKey)
 
         let folderNoteSet = state.folderNoteMap.get(folderKey)
@@ -424,11 +397,7 @@ function data (state = defaultDataMap(), action) {
         folderNoteSet.add(uniqueKey)
 
         note.tags.forEach((tag) => {
-          let tagNoteSet = state.tagNoteMap.get(tag)
-          if (tagNoteSet == null) {
-            tagNoteSet = new Set(tagNoteSet)
-            state.tagNoteMap.set(tag, tagNoteSet)
-          }
+          const tagNoteSet = getOrInitItem(state.tagNoteMap, tag)
           tagNoteSet.add(uniqueKey)
         })
       })
@@ -534,13 +503,19 @@ function updateTagChanges (oldNote, note, state, uniqueKey) {
       }
     })
     addedTags.forEach((tag) => {
-      let tagNoteList = state.tagNoteMap.get(tag)
-      tagNoteList = new Set(tagNoteList)
+      const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
       tagNoteList.add(uniqueKey)
-
-      state.tagNoteMap.set(tag, tagNoteList)
     })
   }
+}
+
+function getOrInitItem (target, key) {
+  let results = target.get(key)
+  if (results == null) {
+    results = new Set()
+    target.set(key, results)
+  }
+  return results
 }
 
 const reducer = combineReducers({

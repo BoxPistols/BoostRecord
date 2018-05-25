@@ -142,27 +142,7 @@ function data (state = defaultDataMap(), action) {
         }
 
         if (oldNote != null) {
-          const discardedTags = _.difference(oldNote.tags, note.tags)
-          const addedTags = _.difference(note.tags, oldNote.tags)
-          if (discardedTags.length + addedTags.length > 0) {
-            state.tagNoteMap = new Map(state.tagNoteMap)
-
-            discardedTags.forEach((tag) => {
-              let tagNoteList = state.tagNoteMap.get(tag)
-              if (tagNoteList != null) {
-                tagNoteList = new Set(tagNoteList)
-                tagNoteList.delete(uniqueKey)
-                state.tagNoteMap.set(tag, tagNoteList)
-              }
-            })
-            addedTags.forEach((tag) => {
-              let tagNoteList = state.tagNoteMap.get(tag)
-              tagNoteList = new Set(tagNoteList)
-              tagNoteList.add(uniqueKey)
-
-              state.tagNoteMap.set(tag, tagNoteList)
-            })
-          }
+          updateTagChanges(oldNote, note, state, uniqueKey)
         } else {
           state.tagNoteMap = new Map(state.tagNoteMap)
           note.tags.forEach((tag) => {
@@ -278,27 +258,7 @@ function data (state = defaultDataMap(), action) {
 
         // Remove from old folder map
         if (oldNote != null) {
-          const discardedTags = _.difference(oldNote.tags, note.tags)
-          const addedTags = _.difference(note.tags, oldNote.tags)
-          if (discardedTags.length + addedTags.length > 0) {
-            state.tagNoteMap = new Map(state.tagNoteMap)
-
-            discardedTags.forEach((tag) => {
-              let tagNoteList = state.tagNoteMap.get(tag)
-              if (tagNoteList != null) {
-                tagNoteList = new Set(tagNoteList)
-                tagNoteList.delete(uniqueKey)
-                state.tagNoteMap.set(tag, tagNoteList)
-              }
-            })
-            addedTags.forEach((tag) => {
-              let tagNoteList = state.tagNoteMap.get(tag)
-              tagNoteList = new Set(tagNoteList)
-              tagNoteList.add(uniqueKey)
-
-              state.tagNoteMap.set(tag, tagNoteList)
-            })
-          }
+          updateTagChanges(oldNote, note, state, uniqueKey)
         } else {
           state.tagNoteMap = new Map(state.tagNoteMap)
           note.tags.forEach((tag) => {
@@ -557,6 +517,30 @@ function status (state = defaultStatus, action) {
       })
   }
   return state
+}
+
+function updateTagChanges (oldNote, note, state, uniqueKey) {
+  const discardedTags = _.difference(oldNote.tags, note.tags)
+  const addedTags = _.difference(note.tags, oldNote.tags)
+  if (discardedTags.length + addedTags.length > 0) {
+    state.tagNoteMap = new Map(state.tagNoteMap)
+
+    discardedTags.forEach((tag) => {
+      let tagNoteList = state.tagNoteMap.get(tag)
+      if (tagNoteList != null) {
+        tagNoteList = new Set(tagNoteList)
+        tagNoteList.delete(uniqueKey)
+        state.tagNoteMap.set(tag, tagNoteList)
+      }
+    })
+    addedTags.forEach((tag) => {
+      let tagNoteList = state.tagNoteMap.get(tag)
+      tagNoteList = new Set(tagNoteList)
+      tagNoteList.add(uniqueKey)
+
+      state.tagNoteMap.set(tag, tagNoteList)
+    })
+  }
 }
 
 const reducer = combineReducers({

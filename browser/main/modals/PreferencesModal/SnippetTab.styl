@@ -1,6 +1,6 @@
 @import('./Tab')
 @import('./ConfigTab')
-  
+
 .root
   padding 15px
   white-space pre
@@ -142,5 +142,17 @@ body[data-theme="dark"]
         background rgba(255, 255, 255 0.1)
       &:hover
         background darken(#2E3235, 5)
+  .snippet-detail
+    color white
+
+body[data-theme="solarized-dark"]
+  .snippets
+    background: #083e4c
+    .snippet-item
+      color white
+      &::after
+        background rgba(255, 255, 255 0.1)
+      &:hover
+        background #0a4d5e
   .snippet-detail
     color white

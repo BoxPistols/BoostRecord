@@ -44,16 +44,9 @@ class TagSelect extends React.Component {
   }
 
   removeLastTag () {
-    let { value } = this.props
-
-    value = _.isArray(value)
-      ? value.slice()
-      : []
-    value.pop()
-    value = _.uniq(value)
-
-    this.value = value
-    this.props.onChange()
+    this.removeTagByCallback((value) => {
+      value.pop()
+    })
   }
 
   reset () {
@@ -96,15 +89,22 @@ class TagSelect extends React.Component {
   }
 
   handleTagRemoveButtonClick (tag) {
-    return (e) => {
-      let { value } = this.props
-
+    this.removeTagByCallback((value, tag) => {
       value.splice(value.indexOf(tag), 1)
-      value = _.uniq(value)
+    }, tag)
+  }
 
-      this.value = value
-      this.props.onChange()
-    }
+  removeTagByCallback (callback, tag = null) {
+    let { value } = this.props
+
+    value = _.isArray(value)
+      ? value.slice()
+      : []
+    callback(value, tag)
+    value = _.uniq(value)
+
+    this.value = value
+    this.props.onChange()
   }
 
   render () {
@@ -118,7 +118,7 @@ class TagSelect extends React.Component {
           >
             <span styleName='tag-label'>#{tag}</span>
             <button styleName='tag-removeButton'
-              onClick={(e) => this.handleTagRemoveButtonClick(tag)(e)}
+              onClick={(e) => this.handleTagRemoveButtonClick(tag)}
             >
               <img className='tag-removeButton-icon' src='../resources/icon/icon-x.svg' width='8px' />
             </button>

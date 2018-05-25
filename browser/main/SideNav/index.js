@@ -148,7 +148,9 @@ class SideNav extends React.Component {
     const relatedTags = this.getRelatedTags(this.getActiveTags(location.pathname), data.noteMap)
     let tagList = _.sortBy(data.tagNoteMap.map(
       (tag, name) => ({ name, size: tag.size, related: relatedTags.has(name) })
-    ), ['name'])
+    ), ['name']).filter(
+      tag => tag.size > 0
+    )
     if (config.sortTagsBy === 'COUNTER') {
       tagList = _.sortBy(tagList, item => (0 - item.size))
     }

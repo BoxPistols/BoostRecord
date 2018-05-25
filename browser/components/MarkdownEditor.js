@@ -283,6 +283,7 @@ class MarkdownEditor extends React.Component {
           indentSize={editorIndentSize}
           scrollPastEnd={config.preview.scrollPastEnd}
           smartQuotes={config.preview.smartQuotes}
+          breaks={config.preview.breaks}
           sanitize={config.preview.sanitize}
           ref='preview'
           onContextMenu={(e) => this.handleContextMenu(e)}
@@ -294,6 +295,7 @@ class MarkdownEditor extends React.Component {
           onCheckboxClick={(e) => this.handleCheckboxClick(e)}
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
+          noteKey={noteKey}
         />
       </div>
     )

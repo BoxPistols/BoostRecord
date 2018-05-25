@@ -88,8 +88,26 @@ function data (state = defaultDataMap(), action) {
           if (note.isTrashed) {
             state.trashedSet.add(uniqueKey)
             state.starredSet.delete(uniqueKey)
+
+            note.tags.forEach(tag => {
+              let tagNoteList = state.tagNoteMap.get(tag)
+              if (tagNoteList != null) {
+                tagNoteList = new Set(tagNoteList)
+                tagNoteList.delete(uniqueKey)
+                state.tagNoteMap.set(tag, tagNoteList)
+              }
+            })
           } else {
             state.trashedSet.delete(uniqueKey)
+
+            note.tags.forEach(tag => {
+              let tagNoteList = state.tagNoteMap.get(tag)
+              if (tagNoteList != null) {
+                tagNoteList = new Set(tagNoteList)
+                tagNoteList.add(uniqueKey)
+                state.tagNoteMap.set(tag, tagNoteList)
+              }
+            })
 
             if (note.isStarred) {
               state.starredSet.add(uniqueKey)
@@ -238,7 +256,7 @@ function data (state = defaultDataMap(), action) {
           let noteSet = state.storageNoteMap.get(note.storage)
           noteSet = new Set(noteSet)
           noteSet.add(uniqueKey)
-          state.folderNoteMap.set(folderKey, noteSet)
+          state.storageNoteMap.set(folderKey, noteSet)
         }
 
         // Update foldermap if folder changed or post created

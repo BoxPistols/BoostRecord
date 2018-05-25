@@ -131,6 +131,7 @@ class MarkdownSplitEditor extends React.Component {
           lineNumber={config.preview.lineNumber}
           scrollPastEnd={config.preview.scrollPastEnd}
           smartQuotes={config.preview.smartQuotes}
+          breaks={config.preview.breaks}
           sanitize={config.preview.sanitize}
           ref='preview'
           tabInde='0'
@@ -139,6 +140,7 @@ class MarkdownSplitEditor extends React.Component {
           onScroll={this.handleScroll.bind(this)}
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
+          noteKey={noteKey}
        />
       </div>
     )

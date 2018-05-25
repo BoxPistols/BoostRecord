@@ -55,10 +55,14 @@ class MarkdownNoteDetail extends React.Component {
 
   componentDidMount () {
     ee.on('topbar:togglelockbutton', this.toggleLockButton)
+    ee.on('topbar:togglemodebutton', () => {
+      const reversedType = this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
+      this.handleSwitchMode(reversedType)
+    })
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.note.key !== this.props.note.key && !this.isMovingNote) {
+    if (nextProps.note.key !== this.props.note.key && !this.state.isMovingNote) {
       if (this.saveQueue != null) this.saveNow()
       this.setState({
         note: Object.assign({}, nextProps.note)

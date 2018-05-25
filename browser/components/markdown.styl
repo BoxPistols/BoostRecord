@@ -199,7 +199,6 @@ ol
   &>li>ul, &>li>ol
     margin 0
 code
-  color #CC305F
   padding 0.2em 0.4em
   background-color #f7f7f7
   border-radius 3px
@@ -371,3 +370,30 @@ body[data-theme="solarized-dark"]
         border-color themeSolarizedDarkTableBorder
         &:last-child
           border-right solid 1px themeSolarizedDarkTableBorder
+
+themeMonokaiTableOdd = $ui-monokai-noteDetail-backgroundColor
+themeMonokaiTableEven = darken($ui-monokai-noteDetail-backgroundColor, 10%)
+themeMonokaiTableHead = themeMonokaiTableEven
+themeMonokaiTableBorder = themeDarkBorder
+
+body[data-theme="monokai"]
+  color $ui-monokai-text-color
+  border-color themeDarkBorder
+  background-color $ui-monokai-noteDetail-backgroundColor
+  table
+    thead
+      tr
+        background-color themeMonokaiTableHead
+      th
+        border-color themeMonokaiTableBorder
+        &:last-child
+          border-right solid 1px themeMonokaiTableBorder
+    tbody
+      tr:nth-child(2n + 1)
+        background-color themeMonokaiTableOdd
+      tr:nth-child(2n)
+        background-color themeMonokaiTableEven
+      td
+        border-color themeMonokaiTableBorder
+        &:last-child
+          border-right solid 1px themeMonokaiTableBorder

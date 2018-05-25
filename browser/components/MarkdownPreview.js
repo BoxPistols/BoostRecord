@@ -10,6 +10,7 @@ import flowchart from 'flowchart'
 import SequenceDiagram from 'js-sequence-diagrams'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
+import convertModeName from 'browser/lib/convertModeName'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
@@ -31,7 +32,7 @@ const CSS_FILES = [
   `${appPath}/node_modules/codemirror/lib/codemirror.css`
 ]
 
-function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd) {
+function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme) {
   return `
 @font-face {
   font-family: 'Lato';
@@ -103,6 +104,13 @@ h2 {
 body p {
   white-space: normal;
 }
+
+@media print {
+  body[data-theme="${theme}"] {
+    color: #000;
+    background-color: #fff;
+  }
+}
 `
 }
 
@@ -115,7 +123,6 @@ if (!OSX) {
   defaultFontFamily.unshift('meiryo')
 }
 const defaultCodeBlockFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
-
 export default class MarkdownPreview extends React.Component {
   constructor (props) {
     super(props)
@@ -138,10 +145,11 @@ export default class MarkdownPreview extends React.Component {
   }
 
   initMarkdown () {
-    const { smartQuotes, sanitize } = this.props
+    const { smartQuotes, sanitize, breaks } = this.props
     this.markdown = new Markdown({
       typographer: smartQuotes,
-      sanitize
+      sanitize,
+      breaks
     })
   }
 
@@ -208,11 +216,13 @@ export default class MarkdownPreview extends React.Component {
 
   handleSaveAsHtml () {
     this.exportAsDocument('html', (noteContent, exportTasks) => {
-      const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme} = this.getStyleParams()
+      const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme} = this.getStyleParams()
 
-      const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, lineNumber)
-      const body = this.markdown.render(escapeHtmlCharacters(noteContent))
+      const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme)
+      let body = this.markdown.render(escapeHtmlCharacters(noteContent))
+
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
+      const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(noteContent, this.props.storagePath)
 
       files.forEach((file) => {
         file = file.replace('file://', '')
@@ -221,6 +231,13 @@ export default class MarkdownPreview extends React.Component {
           dst: 'css'
         })
       })
+      attachmentsAbsolutePaths.forEach((attachment) => {
+        exportTasks.push({
+          src: attachment,
+          dst: attachmentManagement.DESTINATION_FOLDER
+        })
+      })
+      body = attachmentManagement.removeStorageAndNoteReferences(body, this.props.noteKey)
 
       let styles = ''
       files.forEach((file) => {
@@ -324,7 +341,9 @@ export default class MarkdownPreview extends React.Component {
 
   componentDidUpdate (prevProps) {
     if (prevProps.value !== this.props.value) this.rewriteIframe()
-    if (prevProps.smartQuotes !== this.props.smartQuotes || prevProps.sanitize !== this.props.sanitize) {
+    if (prevProps.smartQuotes !== this.props.smartQuotes ||
+        prevProps.sanitize !== this.props.sanitize ||
+        prevProps.breaks !== this.props.breaks) {
       this.initMarkdown()
       this.rewriteIframe()
     }
@@ -342,7 +361,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   getStyleParams () {
-    const { fontSize, lineNumber, codeBlockTheme, scrollPastEnd } = this.props
+    const { fontSize, lineNumber, codeBlockTheme, scrollPastEnd, theme } = this.props
     let { fontFamily, codeBlockFontFamily } = this.props
     fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
         ? fontFamily.split(',').map(fontName => fontName.trim()).concat(defaultFontFamily)
@@ -351,14 +370,14 @@ export default class MarkdownPreview extends React.Component {
         ? codeBlockFontFamily.split(',').map(fontName => fontName.trim()).concat(defaultCodeBlockFontFamily)
         : defaultCodeBlockFontFamily
 
-    return {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd}
+    return {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme}
   }
 
   applyStyle () {
-    const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd} = this.getStyleParams()
+    const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme} = this.getStyleParams()
 
     this.getWindow().document.getElementById('codeTheme').href = this.GetCodeThemeLink(codeBlockTheme)
-    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd)
+    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme)
   }
 
   GetCodeThemeLink (theme) {
@@ -414,7 +433,7 @@ export default class MarkdownPreview extends React.Component {
       : 'default'
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('.code code'), (el) => {
-      let syntax = CodeMirror.findModeByName(el.className)
+      let syntax = CodeMirror.findModeByName(convertModeName(el.className))
       if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
       CodeMirror.requireMode(syntax.mode, () => {
         const content = htmlTextHelper.decodeEntities(el.innerHTML)
@@ -526,21 +545,36 @@ export default class MarkdownPreview extends React.Component {
       return
     }
 
-    const noteHash = e.target.href.split('/').pop()
+    const linkHash = href.split('/').pop()
+
+    const regexNoteInternalLink = /main.html#(.+)/
+    if (regexNoteInternalLink.test(linkHash)) {
+      const targetId = mdurl.encode(linkHash.match(regexNoteInternalLink)[1])
+      const targetElement = this.refs.root.contentWindow.document.getElementById(targetId)
+
+      if (targetElement != null) {
+        this.getWindow().scrollTo(0, targetElement.offsetTop)
+      }
+      return
+    }
+
     // this will match the new uuid v4 hash and the old hash
     // e.g.
     // :note:1c211eb7dcb463de6490 and
     // :note:7dd23275-f2b4-49cb-9e93-3454daf1af9c
     const regexIsNoteLink = /^:note:([a-zA-Z0-9-]{20,36})$/
-    if (regexIsNoteLink.test(noteHash)) {
-      eventEmitter.emit('list:jump', noteHash.replace(':note:', ''))
+    if (regexIsNoteLink.test(linkHash)) {
+      eventEmitter.emit('list:jump', linkHash.replace(':note:', ''))
+      return
     }
+
     // this will match the old link format storage.key-note.key
     // e.g.
     // 877f99c3268608328037-1c211eb7dcb463de6490
     const regexIsLegacyNoteLink = /^(.{20})-(.{20})$/
-    if (regexIsLegacyNoteLink.test(noteHash)) {
-      eventEmitter.emit('list:jump', noteHash.split('-')[1])
+    if (regexIsLegacyNoteLink.test(linkHash)) {
+      eventEmitter.emit('list:jump', linkHash.split('-')[1])
+      return
     }
   }
 
@@ -568,5 +602,6 @@ MarkdownPreview.propTypes = {
   value: PropTypes.string,
   showCopyNotification: PropTypes.bool,
   storagePath: PropTypes.string,
-  smartQuotes: PropTypes.bool
+  smartQuotes: PropTypes.bool,
+  breaks: PropTypes.bool
 }

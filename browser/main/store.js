@@ -87,21 +87,7 @@ function data (state = defaultDataMap(), action) {
         }
 
         // Update foldermap if folder changed or post created
-        if (oldNote == null || oldNote.folder !== note.folder) {
-          state.folderNoteMap = new Map(state.folderNoteMap)
-          let folderNoteSet = state.folderNoteMap.get(folderKey)
-          folderNoteSet = new Set(folderNoteSet)
-          folderNoteSet.add(uniqueKey)
-          state.folderNoteMap.set(folderKey, folderNoteSet)
-
-          if (oldNote != null) {
-            const oldFolderKey = oldNote.storage + '-' + oldNote.folder
-            let oldFolderNoteList = state.folderNoteMap.get(oldFolderKey)
-            oldFolderNoteList = new Set(oldFolderNoteList)
-            oldFolderNoteList.delete(uniqueKey)
-            state.folderNoteMap.set(oldFolderKey, oldFolderNoteList)
-          }
-        }
+        updateFolderChange(oldNote, note, state, folderKey, uniqueKey)
 
         if (oldNote != null) {
           updateTagChanges(oldNote, note, state, uniqueKey)
@@ -178,21 +164,7 @@ function data (state = defaultDataMap(), action) {
         }
 
         // Update foldermap if folder changed or post created
-        if (oldNote == null || oldNote.folder !== note.folder) {
-          state.folderNoteMap = new Map(state.folderNoteMap)
-          let folderNoteList = state.folderNoteMap.get(folderKey)
-          folderNoteList = new Set(folderNoteList)
-          folderNoteList.add(uniqueKey)
-          state.folderNoteMap.set(folderKey, folderNoteList)
-
-          if (oldNote != null) {
-            const oldFolderKey = oldNote.storage + '-' + oldNote.folder
-            let oldFolderNoteList = state.folderNoteMap.get(oldFolderKey)
-            oldFolderNoteList = new Set(oldFolderNoteList)
-            oldFolderNoteList.delete(uniqueKey)
-            state.folderNoteMap.set(oldFolderKey, oldFolderNoteList)
-          }
-        }
+        updateFolderChange(oldNote, note, state, folderKey, uniqueKey)
 
         // Remove from old folder map
         if (oldNote != null) {
@@ -437,6 +409,24 @@ function updateStarredChange (oldNote, note, state, uniqueKey) {
       state.starredSet.add(uniqueKey)
     } else {
       state.starredSet.delete(uniqueKey)
+    }
+  }
+}
+
+function updateFolderChange (oldNote, note, state, folderKey, uniqueKey) {
+  if (oldNote == null || oldNote.folder !== note.folder) {
+    state.folderNoteMap = new Map(state.folderNoteMap)
+    let folderNoteList = state.folderNoteMap.get(folderKey)
+    folderNoteList = new Set(folderNoteList)
+    folderNoteList.add(uniqueKey)
+    state.folderNoteMap.set(folderKey, folderNoteList)
+
+    if (oldNote != null) {
+      const oldFolderKey = oldNote.storage + '-' + oldNote.folder
+      let oldFolderNoteList = state.folderNoteMap.get(oldFolderKey)
+      oldFolderNoteList = new Set(oldFolderNoteList)
+      oldFolderNoteList.delete(uniqueKey)
+      state.folderNoteMap.set(oldFolderKey, oldFolderNoteList)
     }
   }
 }

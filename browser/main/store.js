@@ -44,10 +44,7 @@ function data (state = defaultDataMap(), action) {
         const folderNoteSet = getOrInitItem(state.folderNoteMap, folderKey)
         folderNoteSet.add(uniqueKey)
 
-        note.tags.forEach((tag) => {
-          const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
-          tagNoteList.add(uniqueKey)
-        })
+        assignToTags(note.tags, state, uniqueKey)
       })
       return state
     case 'UPDATE_NOTE':
@@ -87,14 +84,7 @@ function data (state = defaultDataMap(), action) {
           } else {
             state.trashedSet.delete(uniqueKey)
 
-            note.tags.forEach(tag => {
-              let tagNoteList = state.tagNoteMap.get(tag)
-              if (tagNoteList != null) {
-                tagNoteList = new Set(tagNoteList)
-                tagNoteList.add(uniqueKey)
-                state.tagNoteMap.set(tag, tagNoteList)
-              }
-            })
+            assignToTags(note.tags, state, uniqueKey)
 
             if (note.isStarred) {
               state.starredSet.add(uniqueKey)
@@ -131,11 +121,7 @@ function data (state = defaultDataMap(), action) {
         if (oldNote != null) {
           updateTagChanges(oldNote, note, state, uniqueKey)
         } else {
-          state.tagNoteMap = new Map(state.tagNoteMap)
-          note.tags.forEach((tag) => {
-            const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
-            tagNoteList.add(uniqueKey)
-          })
+          assignToTags(note.tags, state, uniqueKey)
         }
 
         return state
@@ -243,11 +229,7 @@ function data (state = defaultDataMap(), action) {
         if (oldNote != null) {
           updateTagChanges(oldNote, note, state, uniqueKey)
         } else {
-          state.tagNoteMap = new Map(state.tagNoteMap)
-          note.tags.forEach((tag) => {
-            const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
-            tagNoteList.add(uniqueKey)
-          })
+          assignToTags(note.tags, state, uniqueKey)
         }
 
         return state
@@ -502,11 +484,16 @@ function updateTagChanges (oldNote, note, state, uniqueKey) {
         state.tagNoteMap.set(tag, tagNoteList)
       }
     })
-    addedTags.forEach((tag) => {
-      const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
-      tagNoteList.add(uniqueKey)
-    })
+    assignToTags(addedTags, state, uniqueKey)
   }
+}
+
+function assignToTags (tags, state, uniqueKey) {
+  state.tagNoteMap = new Map(state.tagNoteMap)
+  tags.forEach((tag) => {
+    const tagNoteList = getOrInitItem(state.tagNoteMap, tag)
+    tagNoteList.add(uniqueKey)
+  })
 }
 
 function getOrInitItem (target, key) {

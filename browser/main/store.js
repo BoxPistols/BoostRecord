@@ -58,14 +58,7 @@ function data (state = defaultDataMap(), action) {
         state.noteMap = new Map(state.noteMap)
         state.noteMap.set(uniqueKey, note)
 
-        if (oldNote == null || oldNote.isStarred !== note.isStarred) {
-          state.starredSet = new Set(state.starredSet)
-          if (note.isStarred) {
-            state.starredSet.add(uniqueKey)
-          } else {
-            state.starredSet.delete(uniqueKey)
-          }
-        }
+        updateStarredChange(oldNote, note, state, uniqueKey)
 
         if (oldNote == null || oldNote.isTrashed !== note.isTrashed) {
           state.trashedSet = new Set(state.trashedSet)
@@ -164,14 +157,7 @@ function data (state = defaultDataMap(), action) {
           removeFromTags(originNote.tags, state, originKey)
         }
 
-        if (oldNote == null || oldNote.isStarred !== note.isStarred) {
-          state.starredSet = new Set(state.starredSet)
-          if (note.isStarred) {
-            state.starredSet.add(uniqueKey)
-          } else {
-            state.starredSet.delete(uniqueKey)
-          }
-        }
+        updateStarredChange(oldNote, note, state, uniqueKey)
 
         if (oldNote == null || oldNote.isTrashed !== note.isTrashed) {
           state.trashedSet = new Set(state.trashedSet)
@@ -442,6 +428,17 @@ function status (state = defaultStatus, action) {
       })
   }
   return state
+}
+
+function updateStarredChange (oldNote, note, state, uniqueKey) {
+  if (oldNote == null || oldNote.isStarred !== note.isStarred) {
+    state.starredSet = new Set(state.starredSet)
+    if (note.isStarred) {
+      state.starredSet.add(uniqueKey)
+    } else {
+      state.starredSet.delete(uniqueKey)
+    }
+  }
 }
 
 function updateTagChanges (oldNote, note, state, uniqueKey) {

@@ -23,6 +23,7 @@
 	"Storages": "Storages",
 	"Add Storage Location": "Add Storage Location",
 	"Add Folder": "Add Folder",
+	"Select Folder": "Select Folder",
 	"Open Storage folder": "Open Storage folder",
 	"Unlink": "Unlink",
 	"Edit": "Edit",
@@ -34,6 +35,7 @@
 	"Solarized Dark": "Solarized Dark",
 	"Dark": "Dark",
 	"Show a confirmation dialog when deleting notes": "Show a confirmation dialog when deleting notes",
+	"Disable Direct Write (It will be applied after restarting)": "Disable Direct Write (It will be applied after restarting)",
 	"Editor Theme": "Editor Theme",
 	"Editor Font Size": "Editor Font Size",
 	"Editor Font Family": "Editor Font Family",
@@ -50,6 +52,7 @@
 	"emacs": "emacs",
 	"⚠️ Please restart boostnote after you change the keymap": "⚠️ Please restart boostnote after you change the keymap",
 	"Show line numbers in the editor": "Show line numbers in the editor",
+	"Enable smart quotes": "Enable smart quotes",
 	"Allow editor to scroll past the last line": "Allow editor to scroll past the last line",
 	"Bring in web page title when pasting URL on editor": "Bring in web page title when pasting URL on editor",
 	"Preview": "Preview",
@@ -152,6 +155,7 @@
 	"Disable": "Disable",
 	"Sanitization": "Sanitization",
 	"Only allow secure html tags (recommended)": "Only allow secure html tags (recommended)",
+	"Render newlines in Markdown paragraphs as <br>": "Render newlines in Markdown paragraphs as <br>",
 	"Allow styles": "Allow styles",
 	"Allow dangerous html tags": "Allow dangerous html tags"
 }

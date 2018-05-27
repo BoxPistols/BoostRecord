@@ -52,6 +52,16 @@ function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scro
   font-weight: 700;
   text-rendering: optimizeLegibility;
 }
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Material Icons'),
+       local('MaterialIcons-Regular'),
+       url('${appPath}/resources/fonts/MaterialIcons-Regular.woff2') format('woff2'),
+       url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
+       url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
+}
 ${markdownStyle}
 body {
   font-family: '${fontFamily.join("','")}';

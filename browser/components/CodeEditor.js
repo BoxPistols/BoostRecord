@@ -312,24 +312,57 @@ export default class CodeEditor extends React.Component {
     const taggedUrl = `<${pastedTxt}>`
     editor.replaceSelection(taggedUrl)
 
+    const isImageReponse = (response) => {
+      return response.headers.has('content-type')
+        && response.headers.get('content-type').match(/^image\/.+$/)
+    }
+    const replaceTaggedUrl = (replacement) => {
+      const value = editor.getValue()
+      const cursor = editor.getCursor()
+      const newValue = value.replace(taggedUrl, replacement)
+      editor.setValue(newValue)
+      editor.setCursor(cursor)
+    }
+
     fetch(pastedTxt, {
       method: 'get'
     }).then((response) => {
-      return this.decodeResponse(response)
-    }).then((response) => {
-      const parsedResponse = (new window.DOMParser()).parseFromString(response, 'text/html')
-      const value = editor.getValue()
-      const cursor = editor.getCursor()
-      const LinkWithTitle = `[${parsedResponse.title}](${pastedTxt})`
-      const newValue = value.replace(taggedUrl, LinkWithTitle)
-      editor.setValue(newValue)
-      editor.setCursor(cursor)
+      if (isImageReponse(response)) {
+        return this.mapImageResponse(response, pastedTxt)
+      } else {
+        return this.mapNormalResponse(response, pastedTxt)
+      }
+    }).then((replacement) => {
+      replaceTaggedUrl(replacement)
     }).catch((e) => {
-      const value = editor.getValue()
-      const newValue = value.replace(taggedUrl, pastedTxt)
-      const cursor = editor.getCursor()
-      editor.setValue(newValue)
-      editor.setCursor(cursor)
+      replaceTaggedUrl(pastedTxt)
+    })
+  }
+
+  mapNormalResponse (response, pastedTxt) {
+    return this.decodeResponse(response).then((body) => {
+      return new Promise((resolve, reject) => {
+        try {
+          const parsedBody = (new window.DOMParser()).parseFromString(body, 'text/html')
+          const linkWithTitle = `[${parsedBody.title}](${pastedTxt})`
+          resolve(linkWithTitle)
+        } catch (e) {
+          reject(e)
+        }
+      })
+    })
+  }
+
+  mapImageResponse (response, pastedTxt) {
+    return new Promise((resolve, reject) => {
+      try {
+        const url = response.url
+        const name = url.substring(url.lastIndexOf('/') + 1)
+        const imageLinkWithName = `![${name}](${pastedTxt})`
+        resolve(imageLinkWithName)
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 

@@ -313,8 +313,8 @@ export default class CodeEditor extends React.Component {
     editor.replaceSelection(taggedUrl)
 
     const isImageReponse = (response) => {
-      return response.headers.has('content-type')
-        && response.headers.get('content-type').match(/^image\/.+$/)
+      return response.headers.has('content-type') &&
+        response.headers.get('content-type').match(/^image\/.+$/)
     }
     const replaceTaggedUrl = (replacement) => {
       const value = editor.getValue()

@@ -133,26 +133,48 @@
   width 100%
   height 90%
 
+body[data-theme="default"], body[data-theme="white"]
+  .snippets
+    background $ui-backgroundColor
+    .snippet-item
+      color black
+      &::after
+        background $ui-borderColor
+      &:hover
+        background darken($ui-backgroundColor, 5)
+
 body[data-theme="dark"]
   .snippets
-    background: #2E3235
+    background $ui-dark-backgroundColor
     .snippet-item
       color white
       &::after
-        background rgba(255, 255, 255 0.1)
+        background $ui-dark-borderColor
       &:hover
-        background darken(#2E3235, 5)
+        background darken($ui-dark-backgroundColor, 5)
   .snippet-detail
     color white
 
 body[data-theme="solarized-dark"]
   .snippets
-    background: #083e4c
+    background $ui-solarized-dark-backgroundColor
     .snippet-item
       color white
       &::after
-        background rgba(255, 255, 255 0.1)
+        background $ui-solarized-dark-borderColor
       &:hover
-        background #0a4d5e
+        background darken($ui-solarized-dark-backgroundColor, 5)
+  .snippet-detail
+    color white
+
+body[data-theme="monokai"]
+  .snippets
+    background $ui-monokai-backgroundColor
+    .snippet-item
+      color White
+      &::after
+        background $ui-monokai-borderColor
+      &:hover
+        background darken($ui-monokai-backgroundColor, 5)
   .snippet-detail
     color white

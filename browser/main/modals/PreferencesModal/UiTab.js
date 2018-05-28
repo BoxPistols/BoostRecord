@@ -234,7 +234,7 @@ class UiTab extends React.Component {
                   disabled={OSX}
                   type='checkbox'
                 />&nbsp;
-                Disable Direct Write(It will be applied after restarting)
+                {i18n.__('Disable Direct Write (It will be applied after restarting)')}
               </label>
             </div>
             : null
@@ -474,7 +474,7 @@ class UiTab extends React.Component {
                 ref='previewSmartQuotes'
                 type='checkbox'
               />&nbsp;
-              Enable smart quotes
+              {i18n.__('Enable smart quotes')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>
@@ -484,7 +484,7 @@ class UiTab extends React.Component {
                 ref='previewBreaks'
                 type='checkbox'
               />&nbsp;
-              Render newlines in Markdown paragraphs as &lt;br&gt;
+              {i18n.__('Render newlines in Markdown paragraphs as <br>')}
             </label>
           </div>
 

@@ -40,6 +40,7 @@ var config = {
     'markdown-it-checkbox',
     'markdown-it-kbd',
     'markdown-it-plantuml',
+    'markdown-it-admonition',
     'devtron',
     '@rokt33r/season',
     {

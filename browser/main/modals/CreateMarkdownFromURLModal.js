@@ -8,22 +8,15 @@ import consts from 'browser/lib/consts'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import i18n from 'browser/lib/i18n'
-const http = require('http')
-const https = require('https')
-const TurndownService = require('turndown')
-import { hashHistory } from 'react-router'
-import ee from 'browser/main/lib/eventEmitter'
 
 class CreateMarkdownFromURLModal extends React.Component {
   constructor (props) {
     super(props)
-    let td = new TurndownService();
 
     this.state = {
       name: '',
       showerror: false,
-      errormessage: '',
-      turndownService: td
+      errormessage: ''
     }
 
   }
@@ -60,87 +53,29 @@ class CreateMarkdownFromURLModal extends React.Component {
     this.confirm()
   }
 
-  showError(message) {
+  showError (message) {
     this.setState({
       showerror: true,
       errormessage: message
     });
   }
 
-  hideError() {
+  hideError () {
     this.setState({
       showerror: false,
       errormessage: ''
     })
   }
 
-  validateUrl(str) {
-    if(/^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(str)) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-
   confirm () {
-    if(this.validateUrl(this.state.name)) {
       this.hideError()
-      let url = this.state.name;
-      let request = http;
-      if(url.includes('https'))
-        request = https;
-      let req = request.request(url, (res) => {
-        let data = '';
-        res.on('data', (chunk) => {
-          data += chunk
-        })
-        res.on('end', () => {
-          console.log("receiving data", data);
+      const { storage, folder, dispatch, location } = this.props
 
-          let html = document.createElement('html');
-          html.innerHTML = data;
-
-          let scripts = html.getElementsByTagName('script');
-          for(let i = scripts.length - 1; i >= 0; i--) {
-            scripts[i].parentNode.removeChild(scripts[i]);
-          }
-
-          let body = html.getElementsByTagName('body')[0].innerHTML;
-          let markdownHTML = this.state.turndownService.turndown(body);
-          console.log('markdown', markdownHTML);
-          html.innerHTML = '';
-          const { storage, folder, dispatch, location } = this.props
-
-          dataApi
-            .createNote(storage, {
-              type: 'MARKDOWN_NOTE',
-              folder: folder,
-              title: '',
-              content: markdownHTML
-            })
-            .then((note) => {
-              const noteHash = note.key
-              dispatch({
-                type: 'UPDATE_NOTE',
-                note: note
-              })
-              hashHistory.push({
-                pathname: location.pathname,
-                query: {key: noteHash}
-              })
-              ee.emit('list:jump', noteHash)
-              ee.emit('detail:focus')
-              this.props.close()
-            })
-        })
+      let note = dataApi.createNoteFromUrl(this.state.name, storage, folder, dispatch, location).then((result) => {
+        this.props.close()
+      }).catch((result) => {
+        this.showError(result.error);
       });
-      req.on('error', (e) => {
-        console.log("Error in request", e.message);
-      });
-      req.end();
-    } else {
-      this.showError("Please check your URL is in correct format. (Example, 'https://google.com')")
-    }
   }
 
   render () {

@@ -416,8 +416,9 @@ export default class CodeEditor extends React.Component {
       const cursor = editor.getCursor()
       const LinkWithTitle = `[${parsedResponse.title}](${pastedTxt})`
       const newValue = value.replace(taggedUrl, LinkWithTitle)
+      const newCursor = Object.assign({}, cursor, { ch: cursor.ch + newValue.length - value.length })
       editor.setValue(newValue)
-      editor.setCursor(cursor)
+      editor.setCursor(newCursor)
     }).catch((e) => {
       const value = editor.getValue()
       const newValue = value.replace(taggedUrl, pastedTxt)

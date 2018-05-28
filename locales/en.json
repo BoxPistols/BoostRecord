@@ -174,5 +174,6 @@
 	"Only allow secure html tags (recommended)": "Only allow secure html tags (recommended)",
 	"Render newlines in Markdown paragraphs as <br>": "Render newlines in Markdown paragraphs as <br>",
 	"Allow styles": "Allow styles",
-	"Allow dangerous html tags": "Allow dangerous html tags"
+	"Allow dangerous html tags": "Allow dangerous html tags",
+	"Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.": "Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown."
 }

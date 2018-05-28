@@ -59,6 +59,7 @@ export const DEFAULT_CONFIG = {
     scrollPastEnd: false,
     smartQuotes: true,
     breaks: true,
+    smartArrows: false,
     sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
   },
   blog: {

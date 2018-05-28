@@ -174,5 +174,6 @@
 	"Only allow secure html tags (recommended)": "Csak a biztonságos html tag-ek engedélyezése (ajánlott)",
 	"Render newlines in Markdown paragraphs as <br>": "Az újsor karaktert <br> soremelésként jelenítse meg a Markdown jegyzetekben",
 	"Allow styles": "Stílusok engedélyezése",
-	"Allow dangerous html tags": "Veszélyes html tag-ek engedélyezése"
+	"Allow dangerous html tags": "Veszélyes html tag-ek engedélyezése",
+	"Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.": "Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown."
 }

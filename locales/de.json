@@ -205,5 +205,6 @@
 	"Unnamed": "Unbenannt",
 	"Rename": "Umbenennen",
 	"Folder Name": "Ordnername",
-	"No tags": "Keine Tags"
+	"No tags": "Keine Tags",
+	"Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.": "Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown."
 }

@@ -98,6 +98,7 @@ class UiTab extends React.Component {
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
         breaks: this.refs.previewBreaks.checked,
+        smartArrows: this.refs.previewSmartArrows.checked,
         sanitize: this.refs.previewSanitize.value
       }
     }
@@ -485,6 +486,16 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Render newlines in Markdown paragraphs as <br>')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.smartArrows}
+                ref='previewSmartArrows'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.')}
             </label>
           </div>
 

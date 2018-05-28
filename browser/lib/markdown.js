@@ -2,6 +2,7 @@ import markdownit from 'markdown-it'
 import sanitize from './markdown-it-sanitize-html'
 import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
+import smartArrows from 'markdown-it-smartarrows'
 import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
@@ -213,6 +214,10 @@ class Markdown {
 
       return true
     })
+
+    if (config.preview.smartArrows) {
+      this.md.use(smartArrows)
+    }
 
     // Add line number attribute for scrolling
     const originalRender = this.md.renderer.render

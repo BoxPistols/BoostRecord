@@ -79,6 +79,7 @@
     "markdown-it-multimd-table": "^2.0.1",
     "markdown-it-named-headers": "^0.0.4",
     "markdown-it-plantuml": "^0.3.0",
+    "markdown-it-smartarrows": "^1.0.1",
     "md5": "^2.0.0",
     "mdurl": "^1.0.1",
     "moment": "^2.10.3",

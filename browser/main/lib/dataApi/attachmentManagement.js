@@ -86,7 +86,7 @@ function migrateAttachments (renderedHTML, storagePath, noteKey) {
       createAttachmentDestinationFolder(storagePath, noteKey)
     }
     for (const attachment of attachments) {
-      let attachmentBaseName = path.basename(attachment)
+      const attachmentBaseName = path.basename(attachment)
       const possibleLegacyPath = path.join(storagePath, 'images', attachmentBaseName)
       if (sander.existsSync(possibleLegacyPath)) {
         const destinationPath = path.join(storagePath, DESTINATION_FOLDER, attachmentBaseName)

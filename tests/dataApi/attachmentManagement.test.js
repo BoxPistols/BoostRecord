@@ -339,6 +339,38 @@ it('should test that deleteAttachmentsNotPresentInNote does not delete reference
   expect(fsUnlinkCallArguments.includes(path.join(attachmentFolderPath, dummyFilesInFolder[0]))).toBe(false)
 })
 
+it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, storageKey or noteContent was null', function () {
+  const noteKey = null
+  const storageKey = null
+  const markdownContent = ''
+
+  findStorage.findStorage = jest.fn()
+  fs.existsSync = jest.fn()
+  fs.readdir = jest.fn()
+  fs.unlink = jest.fn()
+
+  systemUnderTest.deleteAttachmentsNotPresentInNote(markdownContent, storageKey, noteKey)
+  expect(fs.existsSync).not.toHaveBeenCalled()
+  expect(fs.readdir).not.toHaveBeenCalled()
+  expect(fs.unlink).not.toHaveBeenCalled()
+})
+
+it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, storageKey or noteContent was undefined', function () {
+  const noteKey = undefined
+  const storageKey = undefined
+  const markdownContent = ''
+
+  findStorage.findStorage = jest.fn()
+  fs.existsSync = jest.fn()
+  fs.readdir = jest.fn()
+  fs.unlink = jest.fn()
+
+  systemUnderTest.deleteAttachmentsNotPresentInNote(markdownContent, storageKey, noteKey)
+  expect(fs.existsSync).not.toHaveBeenCalled()
+  expect(fs.readdir).not.toHaveBeenCalled()
+  expect(fs.unlink).not.toHaveBeenCalled()
+})
+
 it('should test that moveAttachments moves attachments only if the source folder existed', function () {
   fse.existsSync = jest.fn(() => false)
   fse.moveSync = jest.fn()
@@ -395,38 +427,6 @@ it('should test that moveAttachments returns a correct modified content version'
   expect(actualContent).toBe(expectedOutput)
 })
 
-
-it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, storageKey or noteContent was null', function () {
-  const noteKey = null
-  const storageKey = null
-  const markdownContent = ''
-
-  findStorage.findStorage = jest.fn()
-  fs.existsSync = jest.fn()
-  fs.readdir = jest.fn()
-  fs.unlink = jest.fn()
-
-  systemUnderTest.deleteAttachmentsNotPresentInNote(markdownContent, storageKey, noteKey)
-  expect(fs.existsSync).not.toHaveBeenCalled()
-  expect(fs.readdir).not.toHaveBeenCalled()
-  expect(fs.unlink).not.toHaveBeenCalled()
-})
-
-it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, storageKey or noteContent was undefined', function () {
-  const noteKey = undefined
-  const storageKey = undefined
-  const markdownContent = ''
-
-  findStorage.findStorage = jest.fn()
-  fs.existsSync = jest.fn()
-  fs.readdir = jest.fn()
-  fs.unlink = jest.fn()
-
-  systemUnderTest.deleteAttachmentsNotPresentInNote(markdownContent, storageKey, noteKey)
-  expect(fs.existsSync).not.toHaveBeenCalled()
-  expect(fs.readdir).not.toHaveBeenCalled()
-  expect(fs.unlink).not.toHaveBeenCalled()
-
 it('should test that cloneAttachments modifies the content of the new note correctly', function () {
   const oldNote = {key: 'oldNoteKey', content: 'oldNoteContent', storage: 'storageKey', type: 'MARKDOWN_NOTE'}
   const newNote = {key: 'newNoteKey', content: 'oldNoteContent', storage: 'storageKey', type: 'MARKDOWN_NOTE'}
@@ -435,6 +435,8 @@ it('should test that cloneAttachments modifies the content of the new note corre
     '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'image.jpg](imageName}) \n' +
     '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'pdf.pdf](pdf})'
   newNote.content = testInput
+  findStorage.findStorage = jest.fn()
+  findStorage.findStorage.mockReturnValue({path: 'dummyStoragePath'})
 
   const expectedOutput =
     'Test input' +

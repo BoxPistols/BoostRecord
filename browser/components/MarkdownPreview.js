@@ -132,7 +132,6 @@ export default class MarkdownPreview extends React.Component {
     this.mouseUpHandler = (e) => this.handleMouseUp(e)
     this.DoubleClickHandler = (e) => this.handleDoubleClick(e)
     this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {leading: false, trailing: true})
-    this.anchorClickHandler = (e) => this.handlePreviewAnchorClick(e)
     this.checkboxClickHandler = (e) => this.handleCheckboxClick(e)
     this.saveAsTextHandler = () => this.handleSaveAsText()
     this.saveAsMdHandler = () => this.handleSaveAsMd()
@@ -151,22 +150,6 @@ export default class MarkdownPreview extends React.Component {
       sanitize,
       breaks
     })
-  }
-
-  handlePreviewAnchorClick (e) {
-    e.preventDefault()
-    e.stopPropagation()
-
-    const anchor = e.target.closest('a')
-    const href = anchor.getAttribute('href')
-    if (_.isString(href) && href.match(/^#/)) {
-      const targetElement = this.refs.root.contentWindow.document.getElementById(href.substring(1, href.length))
-      if (targetElement != null) {
-        this.getWindow().scrollTo(0, targetElement.offsetTop)
-      }
-    } else {
-      shell.openExternal(href)
-    }
   }
 
   handleCheckboxClick (e) {
@@ -390,9 +373,6 @@ export default class MarkdownPreview extends React.Component {
   }
 
   rewriteIframe () {
-    _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
-      el.removeEventListener('click', this.anchorClickHandler)
-    })
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('input[type="checkbox"]'), (el) => {
       el.removeEventListener('click', this.checkboxClickHandler)
     })
@@ -415,16 +395,12 @@ export default class MarkdownPreview extends React.Component {
     let renderedHTML = this.markdown.render(value)
     this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(renderedHTML, storagePath)
 
-    _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
-      this.fixDecodedURI(el)
-      el.addEventListener('click', this.anchorClickHandler)
-    })
-
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('input[type="checkbox"]'), (el) => {
       el.addEventListener('click', this.checkboxClickHandler)
     })
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('a'), (el) => {
+      this.fixDecodedURI(el)
       el.addEventListener('click', this.linkClickHandler)
     })
 
@@ -475,7 +451,7 @@ export default class MarkdownPreview extends React.Component {
         el.innerHTML = ''
         diagram.drawSVG(el, opts)
         _.forEach(el.querySelectorAll('a'), (el) => {
-          el.addEventListener('click', this.anchorClickHandler)
+          el.addEventListener('click', this.linkClickHandler)
         })
       } catch (e) {
         console.error(e)
@@ -491,7 +467,7 @@ export default class MarkdownPreview extends React.Component {
         el.innerHTML = ''
         diagram.drawSVG(el, {theme: 'simple'})
         _.forEach(el.querySelectorAll('a'), (el) => {
-          el.addEventListener('click', this.anchorClickHandler)
+          el.addEventListener('click', this.linkClickHandler)
         })
       } catch (e) {
         console.error(e)
@@ -598,6 +574,7 @@ MarkdownPreview.propTypes = {
   onDoubleClick: PropTypes.func,
   onMouseUp: PropTypes.func,
   onMouseDown: PropTypes.func,
+  onContextMenu: PropTypes.func,
   className: PropTypes.string,
   value: PropTypes.string,
   showCopyNotification: PropTypes.bool,

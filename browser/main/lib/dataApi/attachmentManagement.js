@@ -232,7 +232,7 @@ function deleteAttachmentFolder (storageKey, noteKey) {
  * @param noteKey NoteKey of the current note. Is used to determine the belonging attachment folder.
  */
 function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey) {
-  if (storageKey && noteKey && markdownContent !== null && typeof markdownContent !== 'undefined') {
+  if (storageKey != null && noteKey != null && markdownContent != null) {
     const targetStorage = findStorage.findStorage(storageKey)
     const attachmentFolder = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey)
     const attachmentsInNote = getAttachmentsInContent(markdownContent)

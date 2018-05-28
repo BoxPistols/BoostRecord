@@ -383,3 +383,35 @@ it('should test that moveAttachments returns a correct modified content version'
   const actualContent = systemUnderTest.moveAttachments(oldPath, newPath, oldNoteKey, newNoteKey, testInput)
   expect(actualContent).toBe(expectedOutput)
 })
+
+it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, storageKey or noteContent was null', function () {
+  const noteKey = null
+  const storageKey = null
+  const markdownContent = ''
+
+  findStorage.findStorage = jest.fn()
+  fs.existsSync = jest.fn()
+  fs.readdir = jest.fn()
+  fs.unlink = jest.fn()
+
+  systemUnderTest.deleteAttachmentsNotPresentInNote(markdownContent, storageKey, noteKey)
+  expect(fs.existsSync).not.toHaveBeenCalled()
+  expect(fs.readdir).not.toHaveBeenCalled()
+  expect(fs.unlink).not.toHaveBeenCalled()
+})
+
+it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, storageKey or noteContent was undefined', function () {
+  const noteKey = undefined
+  const storageKey = undefined
+  const markdownContent = ''
+
+  findStorage.findStorage = jest.fn()
+  fs.existsSync = jest.fn()
+  fs.readdir = jest.fn()
+  fs.unlink = jest.fn()
+
+  systemUnderTest.deleteAttachmentsNotPresentInNote(markdownContent, storageKey, noteKey)
+  expect(fs.existsSync).not.toHaveBeenCalled()
+  expect(fs.readdir).not.toHaveBeenCalled()
+  expect(fs.unlink).not.toHaveBeenCalled()
+})

@@ -8,13 +8,13 @@ import convertModeName from 'browser/lib/convertModeName'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
 
-const { ipcRenderer } = require('electron')
+const {ipcRenderer} = require('electron')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
 const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
 const buildCMRulers = (rulers, enableRulers) =>
-  enableRulers ? rulers.map(ruler => ({ column: ruler })) : []
+  enableRulers ? rulers.map(ruler => ({column: ruler})) : []
 
 export default class CodeEditor extends React.Component {
   constructor (props) {
@@ -80,7 +80,7 @@ export default class CodeEditor extends React.Component {
   }
 
   componentDidMount () {
-    const { rulers, enableRulers } = this.props
+    const {rulers, enableRulers} = this.props
     this.value = this.props.value
 
     this.editor = CodeMirror(this.refs.root, {
@@ -174,7 +174,7 @@ export default class CodeEditor extends React.Component {
 
   componentDidUpdate (prevProps, prevState) {
     let needRefresh = false
-    const { rulers, enableRulers } = this.props
+    const {rulers, enableRulers} = this.props
     if (prevProps.mode !== this.props.mode) {
       this.setMode(this.props.mode)
     }
@@ -274,6 +274,7 @@ export default class CodeEditor extends React.Component {
 
   handlePaste (editor, e) {
     const clipboardData = e.clipboardData
+    const {storageKey, noteKey} = this.props
     const dataTransferItem = clipboardData.items[0]
     const pastedTxt = clipboardData.getData('text')
     const isURL = (str) => {
@@ -283,21 +284,27 @@ export default class CodeEditor extends React.Component {
     const isInLinkTag = (editor) => {
       const startCursor = editor.getCursor('start')
       const prevChar = editor.getRange(
-        { line: startCursor.line, ch: startCursor.ch - 2 },
-        { line: startCursor.line, ch: startCursor.ch }
+        {line: startCursor.line, ch: startCursor.ch - 2},
+        {line: startCursor.line, ch: startCursor.ch}
       )
       const endCursor = editor.getCursor('end')
       const nextChar = editor.getRange(
-        { line: endCursor.line, ch: endCursor.ch },
-        { line: endCursor.line, ch: endCursor.ch + 1 }
+        {line: endCursor.line, ch: endCursor.ch},
+        {line: endCursor.line, ch: endCursor.ch + 1}
       )
       return prevChar === '](' && nextChar === ')'
     }
     if (dataTransferItem.type.match('image')) {
-      const {storageKey, noteKey} = this.props
       attachmentManagement.handlePastImageEvent(this, storageKey, noteKey, dataTransferItem)
     } else if (this.props.fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
       this.handlePasteUrl(e, editor, pastedTxt)
+    }
+    if (attachmentManagement.isAttachmentLink(pastedTxt)) {
+      attachmentManagement.handleAttachmentLinkPaste(storageKey, noteKey, pastedTxt)
+        .then((modifiedText) => {
+          this.editor.replaceSelection(modifiedText)
+        })
+      e.preventDefault()
     }
   }
 
@@ -322,7 +329,7 @@ export default class CodeEditor extends React.Component {
       const cursor = editor.getCursor()
       const LinkWithTitle = `[${parsedResponse.title}](${pastedTxt})`
       const newValue = value.replace(taggedUrl, LinkWithTitle)
-      const newCursor = Object.assign({}, cursor, { ch: cursor.ch + newValue.length - value.length })
+      const newCursor = Object.assign({}, cursor, {ch: cursor.ch + newValue.length - value.length})
       editor.setValue(newValue)
       editor.setCursor(newCursor)
     }).catch((e) => {
@@ -360,7 +367,7 @@ export default class CodeEditor extends React.Component {
   }
 
   render () {
-    const { className, fontSize } = this.props
+    const {className, fontSize} = this.props
     let fontFamily = this.props.fontFamily
     fontFamily = _.isString(fontFamily) && fontFamily.length > 0
       ? [fontFamily].concat(defaultEditorFontFamily)

@@ -174,5 +174,6 @@
 	"Only allow secure html tags (recommended)": "Csak a biztonságos html tag-ek engedélyezése (ajánlott)",
 	"Render newlines in Markdown paragraphs as <br>": "Az újsor karaktert <br> soremelésként jelenítse meg a Markdown jegyzetekben",
 	"Allow styles": "Stílusok engedélyezése",
-	"Allow dangerous html tags": "Veszélyes html tag-ek engedélyezése"
+	"Allow dangerous html tags": "Veszélyes html tag-ek engedélyezése",
+	"⚠ You have pasted a link referring an attachment that could not be found in the storage location of this note. Pasting links referring attachments is only supported if the source and destination location is the same storage. Please Drag&Drop the attachment instead! ⚠": "⚠ You have pasted a link referring an attachment that could not be found in the storage location of this note. Pasting links referring attachments is only supported if the source and destination location is the same storage. Please Drag&Drop the attachment instead! ⚠"
 }

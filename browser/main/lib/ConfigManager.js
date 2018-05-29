@@ -59,8 +59,8 @@ export const DEFAULT_CONFIG = {
     scrollPastEnd: false,
     smartQuotes: true,
     breaks: true,
-    allowCustomCSS: true,
-    customCSS: 'h1 { color: red }',
+    allowCustomCSS: false,
+    customCSS: '',
     sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
   },
   blog: {

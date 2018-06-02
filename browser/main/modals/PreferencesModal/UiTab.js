@@ -29,7 +29,7 @@ class UiTab extends React.Component {
   componentDidMount () {
     CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
-    this.customCSSCM.getCodeMirror().setSize(null, '300px')
+    this.customCSSCM.getCodeMirror().setSize(null, '250px')
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
@@ -589,7 +589,9 @@ class UiTab extends React.Component {
               {i18n.__('Custom CSS')}
             </div>
             <div styleName='group-section-control'>
-              <ReactCodeMirror onChange={e => this.handleUIChange(e)} ref={e => (this.customCSSCM = e)} value={config.preview.customCSS} options={{ lineNumbers: true, mode: 'css', theme: codemirrorTheme }} />
+              <div styleName='code-mirror'>
+                <ReactCodeMirror onChange={e => this.handleUIChange(e)} ref={e => (this.customCSSCM = e)} value={config.preview.customCSS} options={{ lineNumbers: true, mode: 'css', theme: codemirrorTheme }} />
+              </div>
             </div>
           </div>
 

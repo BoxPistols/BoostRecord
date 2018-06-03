@@ -29,7 +29,7 @@ class UiTab extends React.Component {
   componentDidMount () {
     CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
-    this.customCSSCM.getCodeMirror().setSize(null, '250px')
+    this.customCSSCM.getCodeMirror().setSize('400px', '400px')
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
@@ -574,24 +574,18 @@ class UiTab extends React.Component {
               />
             </div>
           </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Custom CSS')}
+            </div>
+            <div styleName='group-section-control'>
               <input onChange={(e) => this.handleUIChange(e)}
                 checked={config.preview.allowCustomCSS}
                 ref='previewAllowCustomCSS'
                 type='checkbox'
               />&nbsp;
               {i18n.__('Allow custom CSS for preview')}
-            </label>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Custom CSS')}
-            </div>
-            <div styleName='group-section-control'>
-              <div styleName='code-mirror'>
-                <ReactCodeMirror onChange={e => this.handleUIChange(e)} ref={e => (this.customCSSCM = e)} value={config.preview.customCSS} options={{ lineNumbers: true, mode: 'css', theme: codemirrorTheme }} />
-              </div>
+              <ReactCodeMirror onChange={e => this.handleUIChange(e)} ref={e => (this.customCSSCM = e)} value={config.preview.customCSS} options={{ lineNumbers: true, mode: 'css', theme: codemirrorTheme }} />
             </div>
           </div>
 

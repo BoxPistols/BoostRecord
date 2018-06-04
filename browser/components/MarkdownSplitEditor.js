@@ -141,6 +141,8 @@ class MarkdownSplitEditor extends React.Component {
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
           noteKey={noteKey}
+          customCSS={config.preview.customCSS}
+          allowCustomCSS={config.preview.allowCustomCSS}
        />
       </div>
     )

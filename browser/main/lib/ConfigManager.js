@@ -59,6 +59,8 @@ export const DEFAULT_CONFIG = {
     scrollPastEnd: false,
     smartQuotes: true,
     breaks: true,
+    allowCustomCSS: false,
+    customCSS: '',
     sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
   },
   blog: {

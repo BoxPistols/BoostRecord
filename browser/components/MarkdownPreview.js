@@ -32,7 +32,7 @@ const CSS_FILES = [
   `${appPath}/node_modules/codemirror/lib/codemirror.css`
 ]
 
-function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme) {
+function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme, allowCustomCSS, customCSS) {
   return `
 @font-face {
   font-family: 'Lato';
@@ -62,7 +62,9 @@ function buildStyle (fontFamily, fontSize, codeBlockFontFamily, lineNumber, scro
        url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
        url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
 }
+${allowCustomCSS ? customCSS : ''}
 ${markdownStyle}
+
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
@@ -209,9 +211,9 @@ export default class MarkdownPreview extends React.Component {
 
   handleSaveAsHtml () {
     this.exportAsDocument('html', (noteContent, exportTasks) => {
-      const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme} = this.getStyleParams()
+      const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme, allowCustomCSS, customCSS} = this.getStyleParams()
 
-      const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme)
+      const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme, allowCustomCSS, customCSS)
       let body = this.markdown.render(escapeHtmlCharacters(noteContent))
 
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
@@ -347,14 +349,16 @@ export default class MarkdownPreview extends React.Component {
       prevProps.lineNumber !== this.props.lineNumber ||
       prevProps.showCopyNotification !== this.props.showCopyNotification ||
       prevProps.theme !== this.props.theme ||
-      prevProps.scrollPastEnd !== this.props.scrollPastEnd) {
+      prevProps.scrollPastEnd !== this.props.scrollPastEnd ||
+      prevProps.allowCustomCSS !== this.props.allowCustomCSS ||
+      prevProps.customCSS !== this.props.customCSS) {
       this.applyStyle()
       this.rewriteIframe()
     }
   }
 
   getStyleParams () {
-    const { fontSize, lineNumber, codeBlockTheme, scrollPastEnd, theme } = this.props
+    const { fontSize, lineNumber, codeBlockTheme, scrollPastEnd, theme, allowCustomCSS, customCSS } = this.props
     let { fontFamily, codeBlockFontFamily } = this.props
     fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
         ? fontFamily.split(',').map(fontName => fontName.trim()).concat(defaultFontFamily)
@@ -363,14 +367,14 @@ export default class MarkdownPreview extends React.Component {
         ? codeBlockFontFamily.split(',').map(fontName => fontName.trim()).concat(defaultCodeBlockFontFamily)
         : defaultCodeBlockFontFamily
 
-    return {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme}
+    return {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme, allowCustomCSS, customCSS}
   }
 
   applyStyle () {
-    const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme} = this.getStyleParams()
+    const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme, allowCustomCSS, customCSS} = this.getStyleParams()
 
     this.getWindow().document.getElementById('codeTheme').href = this.GetCodeThemeLink(codeBlockTheme)
-    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme)
+    this.getWindow().document.getElementById('style').innerHTML = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme, allowCustomCSS, customCSS)
   }
 
   GetCodeThemeLink (theme) {

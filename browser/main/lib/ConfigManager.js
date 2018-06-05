@@ -60,6 +60,8 @@ export const DEFAULT_CONFIG = {
     smartQuotes: true,
     breaks: true,
     smartArrows: false,
+    allowCustomCSS: false,
+    customCSS: '',
     sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
   },
   blog: {

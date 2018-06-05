@@ -7,7 +7,9 @@ import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import convertModeName from 'browser/lib/convertModeName'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
-
+import crypto from 'crypto'
+import consts from 'browser/lib/consts'
+import fs from 'fs'
 const { ipcRenderer } = require('electron')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
@@ -81,8 +83,21 @@ export default class CodeEditor extends React.Component {
 
   componentDidMount () {
     const { rulers, enableRulers } = this.props
-    this.value = this.props.value
+    const expandSnippet = this.expandSnippet.bind(this)
 
+    const defaultSnippet = [
+      {
+        id: crypto.randomBytes(16).toString('hex'),
+        name: 'Dummy text',
+        prefix: ['lorem', 'ipsum'],
+        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+      }
+    ]
+    if (!fs.existsSync(consts.SNIPPET_FILE)) {
+      fs.writeFileSync(consts.SNIPPET_FILE, JSON.stringify(defaultSnippet, null, 4), 'utf8')
+    }
+
+    this.value = this.props.value
     this.editor = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
       value: this.props.value,
@@ -103,6 +118,8 @@ export default class CodeEditor extends React.Component {
         Tab: function (cm) {
           const cursor = cm.getCursor()
           const line = cm.getLine(cursor.line)
+          const cursorPosition = cursor.ch
+          const charBeforeCursor = line.substr(cursorPosition - 1, 1)
           if (cm.somethingSelected()) cm.indentSelection('add')
           else {
             const tabs = cm.getOption('indentWithTabs')
@@ -114,6 +131,16 @@ export default class CodeEditor extends React.Component {
                 cm.execCommand('insertSoftTab')
               }
               cm.execCommand('goLineEnd')
+            } else if (!charBeforeCursor.match(/\t|\s|\r|\n/) && cursor.ch > 1) {
+              // text expansion on tab key if the char before is alphabet
+              const snippets = JSON.parse(fs.readFileSync(consts.SNIPPET_FILE, 'utf8'))
+              if (expandSnippet(line, cursor, cm, snippets) === false) {
+                if (tabs) {
+                  cm.execCommand('insertTab')
+                } else {
+                  cm.execCommand('insertSoftTab')
+                }
+              }
             } else {
               if (tabs) {
                 cm.execCommand('insertTab')
@@ -155,6 +182,73 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
+  }
+
+  expandSnippet (line, cursor, cm, snippets) {
+    const wordBeforeCursor = this.getWordBeforeCursor(line, cursor.line, cursor.ch)
+    const templateCursorString = ':{}'
+    for (let i = 0; i < snippets.length; i++) {
+      if (snippets[i].prefix.indexOf(wordBeforeCursor.text) !== -1) {
+        if (snippets[i].content.indexOf(templateCursorString) !== -1) {
+          const snippetLines = snippets[i].content.split('\n')
+          let cursorLineNumber = 0
+          let cursorLinePosition = 0
+          for (let j = 0; j < snippetLines.length; j++) {
+            const cursorIndex = snippetLines[j].indexOf(templateCursorString)
+            if (cursorIndex !== -1) {
+              cursorLineNumber = j
+              cursorLinePosition = cursorIndex
+              cm.replaceRange(
+                snippets[i].content.replace(templateCursorString, ''),
+                wordBeforeCursor.range.from,
+                wordBeforeCursor.range.to
+              )
+              cm.setCursor({ line: cursor.line + cursorLineNumber, ch: cursorLinePosition })
+            }
+          }
+        } else {
+          cm.replaceRange(
+            snippets[i].content,
+            wordBeforeCursor.range.from,
+            wordBeforeCursor.range.to
+          )
+        }
+        return true
+      }
+    }
+
+    return false
+  }
+
+  getWordBeforeCursor (line, lineNumber, cursorPosition) {
+    let wordBeforeCursor = ''
+    const originCursorPosition = cursorPosition
+    const emptyChars = /\t|\s|\r|\n/
+
+    // to prevent the word to expand is long that will crash the whole app
+    // the safeStop is there to stop user to expand words that longer than 20 chars
+    const safeStop = 20
+
+    while (cursorPosition > 0) {
+      const currentChar = line.substr(cursorPosition - 1, 1)
+      // if char is not an empty char
+      if (!emptyChars.test(currentChar)) {
+        wordBeforeCursor = currentChar + wordBeforeCursor
+      } else if (wordBeforeCursor.length >= safeStop) {
+        throw new Error('Your snippet trigger is too long !')
+      } else {
+        break
+      }
+      cursorPosition--
+    }
+
+    return {
+      text: wordBeforeCursor,
+      range: {
+        from: {line: lineNumber, ch: originCursorPosition},
+        to: {line: lineNumber, ch: cursorPosition}
+      }
+    }
   }
 
   quitEditor () {

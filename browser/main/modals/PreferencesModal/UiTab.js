@@ -28,6 +28,8 @@ class UiTab extends React.Component {
 
   componentDidMount () {
     CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
+    CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
+    this.customCSSCM.getCodeMirror().setSize('400px', '400px')
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
@@ -98,7 +100,9 @@ class UiTab extends React.Component {
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
         breaks: this.refs.previewBreaks.checked,
-        sanitize: this.refs.previewSanitize.value
+        sanitize: this.refs.previewSanitize.value,
+        allowCustomCSS: this.refs.previewAllowCustomCSS.checked,
+        customCSS: this.customCSSCM.getCodeMirror().getValue()
       }
     }
 
@@ -159,6 +163,7 @@ class UiTab extends React.Component {
     const { config, codemirrorTheme } = this.state
     const codemirrorSampleCode = 'function iamHappy (happy) {\n\tif (happy) {\n\t  console.log("I am Happy!")\n\t} else {\n\t  console.log("I am not Happy!")\n\t}\n};'
     const enableEditRulersStyle = config.editor.enableRulers ? 'block' : 'none'
+    const customCSS = config.preview.customCSS
     return (
       <div styleName='root'>
         <div styleName='group'>
@@ -567,6 +572,20 @@ class UiTab extends React.Component {
                 onChange={(e) => this.handleUIChange(e)}
                 type='text'
               />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Custom CSS')}
+            </div>
+            <div styleName='group-section-control'>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={config.preview.allowCustomCSS}
+                ref='previewAllowCustomCSS'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Allow custom CSS for preview')}
+              <ReactCodeMirror onChange={e => this.handleUIChange(e)} ref={e => (this.customCSSCM = e)} value={config.preview.customCSS} options={{ lineNumbers: true, mode: 'css', theme: codemirrorTheme }} />
             </div>
           </div>
 

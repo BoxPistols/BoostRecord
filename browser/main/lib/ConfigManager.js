@@ -65,9 +65,6 @@ export const DEFAULT_CONFIG = {
     token: '',
     username: '',
     password: ''
-  },
-  exports: {
-    escapeHtml: true
   }
 }
 

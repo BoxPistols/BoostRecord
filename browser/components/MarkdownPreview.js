@@ -219,7 +219,7 @@ export default class MarkdownPreview extends React.Component {
       const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme} = this.getStyleParams()
 
       const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme)
-      let body = this.markdown.render(ConfigManager.get().exports.escapeHtml ? escapeHtmlCharacters(noteContent) : noteContent)
+      let body = this.markdown.render(escapeHtmlCharacters(noteContent))
 
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
       const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(noteContent, this.props.storagePath)

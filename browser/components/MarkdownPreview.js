@@ -126,6 +126,21 @@ body p {
 `
 }
 
+const scrollBarStyle = `
+::-webkit-scrollbar-track {
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.3);
+}
+`
+
 const { shell } = require('electron')
 const OSX = global.process.platform === 'darwin'
 
@@ -298,6 +313,9 @@ export default class MarkdownPreview extends React.Component {
       <style id='style'></style>
       <link rel="stylesheet" id="codeTheme">
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <style>
+        ${scrollBarStyle}
+      </style>
     `
 
     CSS_FILES.forEach((file) => {

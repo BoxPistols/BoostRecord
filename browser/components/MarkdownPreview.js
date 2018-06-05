@@ -127,10 +127,6 @@ body p {
 }
 
 const scrollBarStyle = `
-::-webkit-scrollbar-track {
-  border-radius: 10px;
-}
-
 ::-webkit-scrollbar {
   width: 12px;
 }

@@ -59,6 +59,7 @@ export const DEFAULT_CONFIG = {
     scrollPastEnd: false,
     smartQuotes: true,
     breaks: true,
+    smartArrows: false,
     allowCustomCSS: false,
     customCSS: '',
     sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'

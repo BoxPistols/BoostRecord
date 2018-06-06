@@ -150,5 +150,6 @@
 	"Sanitization": "Sanitization",
 	"Only allow secure html tags (recommended)": "Only allow secure html tags (recommended)",
 	"Allow styles": "Allow styles",
-	"Allow dangerous html tags": "Allow dangerous html tags"
+	"Allow dangerous html tags": "Allow dangerous html tags",
+	"Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.": "Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown."
 }

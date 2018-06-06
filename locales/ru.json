@@ -146,5 +146,6 @@
 	"Russian": "Русский",
 	"Editor Rulers": "Editor Rulers",
 	"Enable": "Enable",
-	"Disable": "Disable"
+	"Disable": "Disable",
+	"Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.": "Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown."
 }

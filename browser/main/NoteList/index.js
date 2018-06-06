@@ -7,6 +7,7 @@ import moment from 'moment'
 import _ from 'lodash'
 import ee from 'browser/main/lib/eventEmitter'
 import dataApi from 'browser/main/lib/dataApi'
+import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import NoteItem from 'browser/components/NoteItem'
 import NoteItemSimple from 'browser/components/NoteItemSimple'
@@ -661,6 +662,10 @@ class NoteList extends React.Component {
         folder: folder.key,
         title: firstNote.title + ' ' + i18n.__('copy'),
         content: firstNote.content
+      })
+      .then((note) => {
+        attachmentManagement.cloneAttachments(firstNote, note)
+        return note
       })
       .then((note) => {
         dispatch({

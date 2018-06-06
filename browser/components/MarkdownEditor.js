@@ -283,6 +283,7 @@ class MarkdownEditor extends React.Component {
           indentSize={editorIndentSize}
           scrollPastEnd={config.preview.scrollPastEnd}
           smartQuotes={config.preview.smartQuotes}
+          smartArrows={config.previw.smartArrows}
           breaks={config.preview.breaks}
           sanitize={config.preview.sanitize}
           ref='preview'
@@ -296,6 +297,8 @@ class MarkdownEditor extends React.Component {
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
           noteKey={noteKey}
+          customCSS={config.preview.customCSS}
+          allowCustomCSS={config.preview.allowCustomCSS}
         />
       </div>
     )

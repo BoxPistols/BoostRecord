@@ -206,4 +206,5 @@
 	"Folder Name": "文件夹名称",
 	"No tags":"无标签",
 	"Render newlines in Markdown paragraphs as <br>":"在 Markdown 段落中使用 <br> 换行"
+	"Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.": "Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown."
 }

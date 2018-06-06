@@ -13,6 +13,10 @@ const dataApi = {
   deleteNote: require('./deleteNote'),
   moveNote: require('./moveNote'),
   migrateFromV5Storage: require('./migrateFromV5Storage'),
+  createSnippet: require('./createSnippet'),
+  deleteSnippet: require('./deleteSnippet'),
+  updateSnippet: require('./updateSnippet'),
+  fetchSnippet: require('./fetchSnippet'),
 
   _migrateFromV6Storage: require('./migrateFromV6Storage'),
   _resolveStorageData: require('./resolveStorageData'),

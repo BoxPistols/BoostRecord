@@ -153,5 +153,6 @@
 	"Sanitization": "Bonifica",
 	"Only allow secure html tags (recommended)": "Consenti solo tag HTML sicuri (raccomandato)",
 	"Allow styles": "Consenti stili",
-	"Allow dangerous html tags": "Consenti tag HTML pericolosi"
+	"Allow dangerous html tags": "Consenti tag HTML pericolosi",
+	"Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.": "Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown."
 }"

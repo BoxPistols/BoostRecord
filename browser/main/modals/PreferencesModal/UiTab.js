@@ -28,6 +28,8 @@ class UiTab extends React.Component {
 
   componentDidMount () {
     CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
+    CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
+    this.customCSSCM.getCodeMirror().setSize('400px', '400px')
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
@@ -98,7 +100,10 @@ class UiTab extends React.Component {
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
         breaks: this.refs.previewBreaks.checked,
-        sanitize: this.refs.previewSanitize.value
+        smartArrows: this.refs.previewSmartArrows.checked,
+        sanitize: this.refs.previewSanitize.value,
+        allowCustomCSS: this.refs.previewAllowCustomCSS.checked,
+        customCSS: this.customCSSCM.getCodeMirror().getValue()
       }
     }
 
@@ -159,6 +164,7 @@ class UiTab extends React.Component {
     const { config, codemirrorTheme } = this.state
     const codemirrorSampleCode = 'function iamHappy (happy) {\n\tif (happy) {\n\t  console.log("I am Happy!")\n\t} else {\n\t  console.log("I am not Happy!")\n\t}\n};'
     const enableEditRulersStyle = config.editor.enableRulers ? 'block' : 'none'
+    const customCSS = config.preview.customCSS
     return (
       <div styleName='root'>
         <div styleName='group'>
@@ -234,7 +240,7 @@ class UiTab extends React.Component {
                   disabled={OSX}
                   type='checkbox'
                 />&nbsp;
-                Disable Direct Write(It will be applied after restarting)
+                {i18n.__('Disable Direct Write (It will be applied after restarting)')}
               </label>
             </div>
             : null
@@ -474,7 +480,7 @@ class UiTab extends React.Component {
                 ref='previewSmartQuotes'
                 type='checkbox'
               />&nbsp;
-              Enable smart quotes
+              {i18n.__('Enable smart quotes')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>
@@ -484,7 +490,17 @@ class UiTab extends React.Component {
                 ref='previewBreaks'
                 type='checkbox'
               />&nbsp;
-              Render newlines in Markdown paragraphs as &lt;br&gt;
+              {i18n.__('Render newlines in Markdown paragraphs as <br>')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.smartArrows}
+                ref='previewSmartArrows'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.')}
             </label>
           </div>
 
@@ -567,6 +583,20 @@ class UiTab extends React.Component {
                 onChange={(e) => this.handleUIChange(e)}
                 type='text'
               />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Custom CSS')}
+            </div>
+            <div styleName='group-section-control'>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={config.preview.allowCustomCSS}
+                ref='previewAllowCustomCSS'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Allow custom CSS for preview')}
+              <ReactCodeMirror onChange={e => this.handleUIChange(e)} ref={e => (this.customCSSCM = e)} value={config.preview.customCSS} options={{ lineNumbers: true, mode: 'css', theme: codemirrorTheme }} />
             </div>
           </div>
 

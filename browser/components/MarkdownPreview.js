@@ -338,6 +338,7 @@ export default class MarkdownPreview extends React.Component {
     if (prevProps.value !== this.props.value) this.rewriteIframe()
     if (prevProps.smartQuotes !== this.props.smartQuotes ||
         prevProps.sanitize !== this.props.sanitize ||
+        prevProps.smartArrows !== this.props.smartArrows ||
         prevProps.breaks !== this.props.breaks) {
       this.initMarkdown()
       this.rewriteIframe()
@@ -595,5 +596,6 @@ MarkdownPreview.propTypes = {
   showCopyNotification: PropTypes.bool,
   storagePath: PropTypes.string,
   smartQuotes: PropTypes.bool,
+  smartArrows: PropTypes.bool,
   breaks: PropTypes.bool
 }

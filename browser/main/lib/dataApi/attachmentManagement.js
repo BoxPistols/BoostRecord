@@ -272,6 +272,9 @@ function deleteAttachmentFolder (storageKey, noteKey) {
  * @param noteKey NoteKey of the current note. Is used to determine the belonging attachment folder.
  */
 function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey) {
+  if (storageKey == null || noteKey == null || markdownContent == null) {
+    return
+  }
   const targetStorage = findStorage.findStorage(storageKey)
   const attachmentFolder = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey)
   const attachmentsInNote = getAttachmentsInContent(markdownContent)
@@ -281,7 +284,6 @@ function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey
       attachmentsInNoteOnlyFileNames.push(attachmentsInNote[i].replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + noteKey + escapeStringRegexp(path.sep), 'g'), ''))
     }
   }
-
   if (fs.existsSync(attachmentFolder)) {
     fs.readdir(attachmentFolder, (err, files) => {
       if (err) {

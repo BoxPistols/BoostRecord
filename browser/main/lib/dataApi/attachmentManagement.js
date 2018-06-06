@@ -271,6 +271,9 @@ function deleteAttachmentFolder (storageKey, noteKey) {
  * @param noteKey NoteKey of the current note. Is used to determine the belonging attachment folder.
  */
 function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey) {
+  if (storageKey == null || noteKey == null || markdownContent == null) {
+    return
+  }
   const targetStorage = findStorage.findStorage(storageKey)
   const attachmentFolder = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey)
   const attachmentsInNote = getAttachmentsInContent(markdownContent)
@@ -280,11 +283,10 @@ function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey
       attachmentsInNoteOnlyFileNames.push(attachmentsInNote[i].replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + noteKey + escapeStringRegexp(path.sep), 'g'), ''))
     }
   }
-
   if (fs.existsSync(attachmentFolder)) {
     fs.readdir(attachmentFolder, (err, files) => {
       if (err) {
-        console.error("Error reading directory '" + attachmentFolder + "'. Error:")
+        console.error('Error reading directory \'' + attachmentFolder + '\'. Error:')
         console.error(err)
         return
       }
@@ -293,17 +295,17 @@ function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey
           const absolutePathOfFile = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey, file)
           fs.unlink(absolutePathOfFile, (err) => {
             if (err) {
-              console.error("Could not delete '%s'", absolutePathOfFile)
+              console.error('Could not delete \'%s\'', absolutePathOfFile)
               console.error(err)
               return
             }
-            console.info("File '" + absolutePathOfFile + "' deleted because it was not included in the content of the note")
+            console.info('File \'' + absolutePathOfFile + '\' deleted because it was not included in the content of the note')
           })
         }
       })
     })
   } else {
-    console.info("Attachment folder ('" + attachmentFolder + "') did not exist..")
+    console.debug('Attachment folder (\'' + attachmentFolder + '\') did not exist..')
   }
 }
 

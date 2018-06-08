@@ -58,6 +58,9 @@ const languages = [
   {
     name: 'Spanish',
     locale: 'es-ES'
+  }, {
+    name: 'Turkish',
+    locale: 'tr'
   }
 ]
 

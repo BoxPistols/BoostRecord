@@ -532,11 +532,6 @@ export default class MarkdownPreview extends React.Component {
     e.stopPropagation()
 
     const href = e.target.href
-    if (href.match(/^http/i)) {
-      shell.openExternal(href)
-      return
-    }
-
     const linkHash = href.split('/').pop()
 
     const regexNoteInternalLink = /main.html#(.+)/
@@ -568,6 +563,9 @@ export default class MarkdownPreview extends React.Component {
       eventEmitter.emit('list:jump', linkHash.split('-')[1])
       return
     }
+
+    // other case
+    shell.openExternal(href)
   }
 
   render () {

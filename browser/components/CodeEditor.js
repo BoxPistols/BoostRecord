@@ -499,6 +499,7 @@ export default class CodeEditor extends React.Component {
     fontFamily = _.isString(fontFamily) && fontFamily.length > 0
       ? [fontFamily].concat(defaultEditorFontFamily)
       : defaultEditorFontFamily
+    let width = this.props.width
     return (
       <div
         className={className == null
@@ -509,7 +510,8 @@ export default class CodeEditor extends React.Component {
         tabIndex='-1'
         style={{
           fontFamily: fontFamily.join(', '),
-          fontSize: fontSize
+          fontSize: fontSize,
+          width: width
         }}
         onDrop={(e) => this.handleDropImage(e)}
       />

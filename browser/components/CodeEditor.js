@@ -499,7 +499,7 @@ export default class CodeEditor extends React.Component {
     fontFamily = _.isString(fontFamily) && fontFamily.length > 0
       ? [fontFamily].concat(defaultEditorFontFamily)
       : defaultEditorFontFamily
-    let width = this.props.width
+    const width = this.props.width
     return (
       <div
         className={className == null

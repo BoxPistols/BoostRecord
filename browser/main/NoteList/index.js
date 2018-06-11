@@ -2,6 +2,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
+import debounceRender from 'react-debounce-render'
 import styles from './NoteList.styl'
 import moment from 'moment'
 import _ from 'lodash'
@@ -947,16 +948,24 @@ class NoteList extends React.Component {
     })
 
     const viewType = this.getViewType()
+    
+    const autoSelectFirst = notes.length === 1 
+      || selectedNoteKeys.length === 0
+      || notes.every( note => !selectedNoteKeys.includes(note.key))
 
     const noteList = notes
-      .map(note => {
+      .map( (note, index) => {
         if (note == null) {
           return null
         }
 
         const isDefault = config.listStyle === 'DEFAULT'
         const uniqueKey = getNoteKey(note)
-        const isActive = selectedNoteKeys.includes(uniqueKey)
+
+        const isActive = 
+          selectedNoteKeys.includes(uniqueKey) 
+          || notes.length === 1
+          || (autoSelectFirst && index === 0)
         const dateDisplay = moment(
           config.sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt
@@ -1058,4 +1067,4 @@ NoteList.propTypes = {
   })
 }
 
-export default CSSModules(NoteList, styles)
+export default debounceRender(CSSModules(NoteList, styles))

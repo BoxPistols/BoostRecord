@@ -948,13 +948,14 @@ class NoteList extends React.Component {
     })
 
     const viewType = this.getViewType()
-    
-    const autoSelectFirst = notes.length === 1 
-      || selectedNoteKeys.length === 0
-      || notes.every( note => !selectedNoteKeys.includes(note.key))
+
+    const autoSelectFirst =
+      notes.length === 1 ||
+      selectedNoteKeys.length === 0 ||
+      notes.every(note => !selectedNoteKeys.includes(note.key))
 
     const noteList = notes
-      .map( (note, index) => {
+      .map((note, index) => {
         if (note == null) {
           return null
         }
@@ -962,10 +963,10 @@ class NoteList extends React.Component {
         const isDefault = config.listStyle === 'DEFAULT'
         const uniqueKey = getNoteKey(note)
 
-        const isActive = 
-          selectedNoteKeys.includes(uniqueKey) 
-          || notes.length === 1
-          || (autoSelectFirst && index === 0)
+        const isActive =
+          selectedNoteKeys.includes(uniqueKey) ||
+          notes.length === 1 ||
+          (autoSelectFirst && index === 0)
         const dateDisplay = moment(
           config.sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt

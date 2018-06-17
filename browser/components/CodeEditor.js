@@ -10,7 +10,8 @@ import iconv from 'iconv-lite'
 import crypto from 'crypto'
 import consts from 'browser/lib/consts'
 import fs from 'fs'
-const { ipcRenderer } = require('electron')
+const {ipcRenderer} = require('electron')
+const spellcheck = require('browser/lib/spellcheck')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -23,7 +24,7 @@ export default class CodeEditor extends React.Component {
     super(props)
 
     this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {leading: false, trailing: true})
-    this.changeHandler = (e) => this.handleChange(e)
+    this.changeHandler = (editor, changeObject) => this.handleChange(editor, changeObject)
     this.focusHandler = () => {
       ipcRenderer.send('editor:focused', true)
     }
@@ -82,7 +83,7 @@ export default class CodeEditor extends React.Component {
   }
 
   componentDidMount () {
-    const { rulers, enableRulers } = this.props
+    const {rulers, enableRulers} = this.props
     const expandSnippet = this.expandSnippet.bind(this)
 
     const defaultSnippet = [
@@ -162,7 +163,8 @@ export default class CodeEditor extends React.Component {
         }
       }
     })
-
+    //TODO: Nur bei MarkdownNotes
+    this.editor.addPanel(this.createSpellCheckPanel(), {position: 'bottom'})
     this.setMode(this.props.mode)
 
     this.editor.on('focus', this.focusHandler)
@@ -203,7 +205,7 @@ export default class CodeEditor extends React.Component {
                 wordBeforeCursor.range.from,
                 wordBeforeCursor.range.to
               )
-              cm.setCursor({ line: cursor.line + cursorLineNumber, ch: cursorLinePosition })
+              cm.setCursor({line: cursor.line + cursorLineNumber, ch: cursorLinePosition})
             }
           }
         } else {
@@ -319,10 +321,11 @@ export default class CodeEditor extends React.Component {
     CodeMirror.autoLoadMode(this.editor, syntax.mode)
   }
 
-  handleChange (e) {
-    this.value = this.editor.getValue()
+  handleChange (editor, changeObject) {
+    spellcheck.handleChange(editor, changeObject)
+    this.value = editor.getValue()
     if (this.props.onChange) {
-      this.props.onChange(e)
+      this.props.onChange(editor)
     }
   }
 
@@ -421,7 +424,7 @@ export default class CodeEditor extends React.Component {
       const value = editor.getValue()
       const cursor = editor.getCursor()
       const newValue = value.replace(taggedUrl, replacement)
-      const newCursor = Object.assign({}, cursor, { ch: cursor.ch + newValue.length - value.length })
+      const newCursor = Object.assign({}, cursor, {ch: cursor.ch + newValue.length - value.length})
       editor.setValue(newValue)
       editor.setCursor(newCursor)
     }
@@ -516,6 +519,26 @@ export default class CodeEditor extends React.Component {
         onDrop={(e) => this.handleDropImage(e)}
       />
     )
+  }
+
+  createSpellCheckPanel () {
+    //TODO: von spellcheck abfragen
+    //TODO: l18n
+    //Todo: styling
+    const panel = document.createElement('div')
+    panel.className = 'panel bottom'
+    const dropdown = document.createElement('select')
+    dropdown.title = 'spellcheck'
+    dropdown.addEventListener('change', (e) => spellcheck.initialize(this.editor, dropdown.value))
+    const options = [{label: 'Disabeld', value: 'NONE'}, {label: 'Deutsch', value: 'de_DE'}]
+    for (const op of options) {
+      const option = document.createElement('option')
+      option.value = op.value
+      option.innerHTML = op.label
+      dropdown.appendChild(option)
+    }
+    panel.appendChild(dropdown)
+    return panel
   }
 }
 

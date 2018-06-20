@@ -277,7 +277,7 @@ class MarkdownNoteDetail extends React.Component {
 
   handleSwitchMode (type) {
     this.setState({ editorType: type }, () => {
-      this.focus();
+      this.focus()
       const newConfig = Object.assign({}, this.props.config)
       newConfig.editor.type = type
       ConfigManager.set(newConfig)

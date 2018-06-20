@@ -21,8 +21,8 @@ export const DEFAULT_CONFIG = {
   listStyle: 'DEFAULT', // 'DEFAULT', 'SMALL'
   amaEnabled: true,
   hotkey: {
-    toggleMain: OSX ? 'Cmd + Alt + L' : 'Super + Alt + E',
-    toggleMode: OSX ? 'Cmd + M' : 'Ctrl + M'
+    toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
+    toggleMode: OSX ? 'Command + M' : 'Ctrl + M'
   },
   ui: {
     language: 'en',

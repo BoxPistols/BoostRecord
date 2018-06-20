@@ -182,6 +182,17 @@ function assignConfigValues (originalConfig, rcConfig) {
   config.ui = Object.assign({}, DEFAULT_CONFIG.ui, originalConfig.ui, rcConfig.ui)
   config.editor = Object.assign({}, DEFAULT_CONFIG.editor, originalConfig.editor, rcConfig.editor)
   config.preview = Object.assign({}, DEFAULT_CONFIG.preview, originalConfig.preview, rcConfig.preview)
+
+  rewriteHotkey(config)
+
+  return config
+}
+
+function rewriteHotkey (config) {
+  const keys = [...Object.keys(config.hotkey)]
+  keys.forEach(key => {
+    config.hotkey[key] = config.hotkey[key].replace(/Cmd/g, 'Command')
+  })
   return config
 }
 

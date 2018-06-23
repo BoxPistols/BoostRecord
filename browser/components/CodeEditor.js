@@ -9,6 +9,7 @@ import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
 import crypto from 'crypto'
 import consts from 'browser/lib/consts'
+import styles from '../components/CodeEditor.styl'
 import fs from 'fs'
 const {ipcRenderer} = require('electron')
 const spellcheck = require('browser/lib/spellcheck')
@@ -163,8 +164,6 @@ export default class CodeEditor extends React.Component {
         }
       }
     })
-    //TODO: Nur bei MarkdownNotes
-    this.editor.addPanel(this.createSpellCheckPanel(), {position: 'bottom'})
     this.setMode(this.props.mode)
 
     this.editor.on('focus', this.focusHandler)
@@ -184,6 +183,10 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
+
+    if (this.props.spellCheck) {
+      this.editor.addPanel(this.createSpellCheckPanel(), {position: 'bottom'})
+    }
   }
 
   expandSnippet (line, cursor, cm, snippets) {
@@ -522,15 +525,13 @@ export default class CodeEditor extends React.Component {
   }
 
   createSpellCheckPanel () {
-    //TODO: von spellcheck abfragen
-    //TODO: l18n
-    //Todo: styling
     const panel = document.createElement('div')
     panel.className = 'panel bottom'
     const dropdown = document.createElement('select')
-    dropdown.title = 'spellcheck'
+    dropdown.title = 'Spellcheck'
+    dropdown.className = styles['spellcheck-select']
     dropdown.addEventListener('change', (e) => spellcheck.initialize(this.editor, dropdown.value))
-    const options = [{label: 'Disabeld', value: 'NONE'}, {label: 'Deutsch', value: 'de_DE'}]
+    const options = spellcheck.getAvailableDictionaries()
     for (const op of options) {
       const option = document.createElement('option')
       option.value = op.value
@@ -550,7 +551,8 @@ CodeEditor.propTypes = {
   className: PropTypes.string,
   onBlur: PropTypes.func,
   onChange: PropTypes.func,
-  readOnly: PropTypes.bool
+  readOnly: PropTypes.bool,
+  spellCheck: PropTypes.bool
 }
 
 CodeEditor.defaultProps = {
@@ -560,5 +562,6 @@ CodeEditor.defaultProps = {
   fontSize: 14,
   fontFamily: 'Monaco, Consolas',
   indentSize: 4,
-  indentType: 'space'
+  indentType: 'space',
+  spellCheck: false
 }

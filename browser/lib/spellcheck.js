@@ -1,4 +1,5 @@
 import styles from '../components/CodeEditor.styl'
+import i18n from 'browser/lib/i18n'
 
 const Typo = require('typo-js')
 
@@ -8,8 +9,12 @@ const DICTIONARY_PATH = '../dictionaries'
 let dictionary = null
 
 function getAvailableDictionaries () {
-  // TODO: l18n
-  return [{label: 'Disabeld', value: SPELLCHECK_DISABLED}, {label: 'Deutsch', value: 'de_DE'}]
+  return [
+    {label: i18n.__('Disabled'), value: SPELLCHECK_DISABLED},
+    {label: i18n.__('English'), value: 'en_GB'},
+    {label: i18n.__('German'), value: 'de_DE'},
+    {label: i18n.__('French'), value: 'fr_FR'}
+  ]
 }
 
 /**
@@ -33,7 +38,9 @@ function initialize (editor, lang) {
   }
   if (lang !== SPELLCHECK_DISABLED) {
     dictionary = new Typo(lang, false, false, {
-      dictionaryPath: DICTIONARY_PATH, asyncLoad: true, loadedCallback: () =>
+      dictionaryPath: DICTIONARY_PATH,
+      asyncLoad: true,
+      loadedCallback: () =>
         checkWholeDocument(this, editor)
     })
   }
@@ -120,7 +127,7 @@ function liveSpellcheck (editor, changeObject) {
   }
 
   function calcTo (from) {
-    let to = {line: from.line, ch: from.ch}
+    const to = {line: from.line, ch: from.ch}
     const changeArray = changeObject.text || ['']
     to.line += changeArray.length - 1
     const charactersInLastLineOfChange = changeArray[changeArray.length - 1].length

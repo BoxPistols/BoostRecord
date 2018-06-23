@@ -5426,9 +5426,9 @@ markdown-it-named-headers@^0.0.4:
   dependencies:
     string "^3.0.1"
 
-markdown-it-plantuml@^0.3.0:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/markdown-it-plantuml/-/markdown-it-plantuml-0.3.2.tgz#f93a49bdfc8417b0df3c88700445f53487e57356"
+markdown-it-plantuml@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/markdown-it-plantuml/-/markdown-it-plantuml-1.1.0.tgz#9ab8bfa09a02d80845e16e60f87a488edb50fdde"
 
 markdown-it-smartarrows@^1.0.1:
   version "1.0.1"

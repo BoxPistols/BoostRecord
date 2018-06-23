@@ -322,7 +322,7 @@ export default class CodeEditor extends React.Component {
   }
 
   handleChange (editor, changeObject) {
-    spellcheck.handleChange(editor, changeObject)
+    spellcheck.liveSpellcheck(editor, changeObject)
     this.value = editor.getValue()
     if (this.props.onChange) {
       this.props.onChange(editor)

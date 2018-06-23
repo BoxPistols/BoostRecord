@@ -75,7 +75,7 @@ function checkMultiLineRange (thisReference, editor, from, to) {
     }
     while (w < wEnd) {
       const wordRange = editor.findWordAt({line: l, ch: w})
-      thisReference.checkRange(editor, wordRange)
+      thisReference.checkWord(editor, wordRange)
       w += (wordRange.head.ch - wordRange.anchor.ch) + 1
     }
   }
@@ -89,7 +89,7 @@ function checkMultiLineRange (thisReference, editor, from, to) {
  * @param wordRange Object specifying the range that should be checked.
  * Having the following structure: <code>{anchor: {line: integer, ch: integer}, head: {line: integer, ch: integer}}</code>
  */
-function checkRange (editor, wordRange) {
+function checkWord (editor, wordRange) {
   const word = editor.getRange(wordRange.anchor, wordRange.head)
   if (word == null || word.length <= 3) {
     return
@@ -99,16 +99,21 @@ function checkRange (editor, wordRange) {
   }
 }
 
-function handleChange (editor, changeObject) {
+/**
+ * Checks the changes recently made (aka live check)
+ * @param {Codemirror} editor CodeMirror-Editor
+ * @param changeObject codeMirror changeObject
+ */
+function liveSpellcheck (editor, changeObject) {
   /**
    * Returns the range that is smaller (i.e. that is before the other in the editor)
    */
   function getLesserRange (from, to) {
     if (from.line > to.line) {
-      from = to
+      return to
     } else {
       if (from.ch > to.ch) {
-        from = to
+        return to
       }
     }
     return from
@@ -118,11 +123,7 @@ function handleChange (editor, changeObject) {
     let to = {line: from.line, ch: from.ch}
     const changeArray = changeObject.text || ['']
     to.line += changeArray.length - 1
-    let charactersInLastLineOfChange = changeArray[changeArray.length - 1].length
-    // If the new text is not empty we need to subtract one from the length due to the counting starting at 0
-    if (changeArray[changeArray.length - 1] !== '') {
-      charactersInLastLineOfChange -= 1
-    }
+    const charactersInLastLineOfChange = changeArray[changeArray.length - 1].length
     if (from.line === to.line) {
       to.ch += charactersInLastLineOfChange
     } else {
@@ -131,20 +132,34 @@ function handleChange (editor, changeObject) {
     return to
   }
 
-  if (dictionary !== null) {
+  if (dictionary === null || editor == null) { return }
+  try {
+    let rangeCheck = true
     let from = getLesserRange(changeObject.from, changeObject.to)
     let to = calcTo(from)
 
-    if (from.line === to.line && from.ch === to.ch) {
-      if (changeObject.text[changeObject.text.length - 1] !== '') {
-        from.ch -= 1
+    const newTextLastLine = changeObject.text[changeObject.text.length - 1]
+    if (from.line === to.line && newTextLastLine.length <= 1) {
+      if (newTextLastLine === '' || newTextLastLine === ' ') {
+        from.ch = Math.max(0, from.ch - 1)
       }
+      const wordRange = editor.findWordAt({line: from.line, ch: from.ch})
+      from = wordRange.anchor
+      to = wordRange.head
+      rangeCheck = false
     }
     const existingMarks = editor.findMarks(from, to) || []
     for (const mark of existingMarks) {
       mark.clear()
     }
-    checkMultiLineRange(this, editor, from, to)
+
+    if (rangeCheck) {
+      this.checkMultiLineRange(this, editor, from, to)
+    } else {
+      this.checkWord(editor, {anchor: from, head: to})
+    }
+  } catch (e) {
+    console.info('Error during the spell check. It might be due to problems figuring out the range of the new text..', e)
   }
 }
 
@@ -154,8 +169,8 @@ module.exports = {
   SPELLCHECK_DISABLED,
   getAvailableDictionaries,
   initialize,
-  handleChange,
-  checkRange,
+  liveSpellcheck,
+  checkWord,
   checkMultiLineRange,
   checkWholeDocument,
   setDictionaryForTestsOnly

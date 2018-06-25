@@ -106,7 +106,7 @@ function migrateAttachments (renderedHTML, storagePath, noteKey) {
  * @returns {String} postprocessed HTML in which all :storage references are mapped to the actual paths.
  */
 function fixLocalURLS (renderedHTML, storagePath) {
-  return renderedHTML.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep).replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER, 'g'), 'file:///' + path.join(storagePath, DESTINATION_FOLDER))
+  return renderedHTML.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep).replace(new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER, 'g'), 'file:///' + path.join(storagePath, DESTINATION_FOLDER))
 }
 
 /**
@@ -192,7 +192,7 @@ function handlePastImageEvent (codeEditor, storageKey, noteKey, dataTransferItem
  */
 function getAttachmentsInContent (markdownContent) {
   const preparedInput = markdownContent.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep)
-  const regexp = new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + '?([a-zA-Z0-9]|-)*' + escapeStringRegexp(path.sep) + '[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)?', 'g')
+  const regexp = new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + '|/)' + '?([a-zA-Z0-9]|-)*' + '(' + escapeStringRegexp(path.sep) + '|/)' + '([a-zA-Z0-9]|\\.)+(\\.[a-zA-Z0-9]+)?', 'g')
   return preparedInput.match(regexp)
 }
 

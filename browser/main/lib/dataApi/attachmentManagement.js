@@ -192,7 +192,7 @@ function handlePastImageEvent (codeEditor, storageKey, noteKey, dataTransferItem
  */
 function getAttachmentsInContent (markdownContent) {
   const preparedInput = markdownContent.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep)
-  const regexp = new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + '|/)' + '?([a-zA-Z0-9]|-)*' + '(' + escapeStringRegexp(path.sep) + '|/)' + '[a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)?', 'g')
+  const regexp = new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + '|/)' + '?([a-zA-Z0-9]|-)*' + '(' + escapeStringRegexp(path.sep) + '|/)' + '([a-zA-Z0-9]|\\.)+(\\.[a-zA-Z0-9]+)?', 'g')
   return preparedInput.match(regexp)
 }
 

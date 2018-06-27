@@ -14,16 +14,27 @@ const { ipcRenderer } = require('electron')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
-const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
+const defaultEditorFontFamily = [
+  'Monaco',
+  'Menlo',
+  'Ubuntu Mono',
+  'Consolas',
+  'source-code-pro',
+  'monospace'
+]
 const buildCMRulers = (rulers, enableRulers) =>
-  enableRulers ? rulers.map(ruler => ({column: ruler})) : []
+  (enableRulers ? rulers.map(ruler => ({ column: ruler })) : [])
 
 export default class CodeEditor extends React.Component {
   constructor (props) {
     super(props)
 
-    this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {leading: false, trailing: true})
-    this.changeHandler = (e) => this.handleChange(e)
+    this.state = { isReady: false }
+    this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {
+      leading: false,
+      trailing: true
+    })
+    this.changeHandler = e => this.handleChange(e)
     this.focusHandler = () => {
       ipcRenderer.send('editor:focused', true)
     }
@@ -39,11 +50,15 @@ export default class CodeEditor extends React.Component {
       }
       this.props.onBlur != null && this.props.onBlur(e)
 
-      const {storageKey, noteKey} = this.props
-      attachmentManagement.deleteAttachmentsNotPresentInNote(this.editor.getValue(), storageKey, noteKey)
+      const { storageKey, noteKey } = this.props
+      attachmentManagement.deleteAttachmentsNotPresentInNote(
+        this.editor.getValue(),
+        storageKey,
+        noteKey
+      )
     }
     this.pasteHandler = (editor, e) => this.handlePaste(editor, e)
-    this.loadStyleHandler = (e) => {
+    this.loadStyleHandler = e => {
       this.editor.refresh()
     }
     this.searchHandler = (e, msg) => this.handleSearch(msg)
@@ -62,7 +77,10 @@ export default class CodeEditor extends React.Component {
       cm.addOverlay(component.searchState)
 
       function makeOverlay (query, style) {
-        query = new RegExp(query.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'), 'gi')
+        query = new RegExp(
+          query.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'),
+          'gi'
+        )
         return {
           token: function (stream) {
             query.lastIndex = stream.pos
@@ -94,7 +112,11 @@ export default class CodeEditor extends React.Component {
       }
     ]
     if (!fs.existsSync(consts.SNIPPET_FILE)) {
-      fs.writeFileSync(consts.SNIPPET_FILE, JSON.stringify(defaultSnippet, null, 4), 'utf8')
+      fs.writeFileSync(
+        consts.SNIPPET_FILE,
+        JSON.stringify(defaultSnippet, null, 4),
+        'utf8'
+      )
     }
 
     this.value = this.props.value
@@ -131,9 +153,14 @@ export default class CodeEditor extends React.Component {
                 cm.execCommand('insertSoftTab')
               }
               cm.execCommand('goLineEnd')
-            } else if (!charBeforeCursor.match(/\t|\s|\r|\n/) && cursor.ch > 1) {
+            } else if (
+              !charBeforeCursor.match(/\t|\s|\r|\n/) &&
+              cursor.ch > 1
+            ) {
               // text expansion on tab key if the char before is alphabet
-              const snippets = JSON.parse(fs.readFileSync(consts.SNIPPET_FILE, 'utf8'))
+              const snippets = JSON.parse(
+                fs.readFileSync(consts.SNIPPET_FILE, 'utf8')
+              )
               if (expandSnippet(line, cursor, cm, snippets) === false) {
                 if (tabs) {
                   cm.execCommand('insertTab')
@@ -154,7 +181,7 @@ export default class CodeEditor extends React.Component {
           // Do nothing
         },
         Enter: 'boostNewLineAndIndentContinueMarkdownList',
-        'Ctrl-C': (cm) => {
+        'Ctrl-C': cm => {
           if (cm.getOption('keyMap').substr(0, 3) === 'vim') {
             document.execCommand('copy')
           }
@@ -182,10 +209,15 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
+    this.setState({ isReady: true })
   }
 
   expandSnippet (line, cursor, cm, snippets) {
-    const wordBeforeCursor = this.getWordBeforeCursor(line, cursor.line, cursor.ch)
+    const wordBeforeCursor = this.getWordBeforeCursor(
+      line,
+      cursor.line,
+      cursor.ch
+    )
     const templateCursorString = ':{}'
     for (let i = 0; i < snippets.length; i++) {
       if (snippets[i].prefix.indexOf(wordBeforeCursor.text) !== -1) {
@@ -203,7 +235,10 @@ export default class CodeEditor extends React.Component {
                 wordBeforeCursor.range.from,
                 wordBeforeCursor.range.to
               )
-              cm.setCursor({ line: cursor.line + cursorLineNumber, ch: cursorLinePosition })
+              cm.setCursor({
+                line: cursor.line + cursorLineNumber,
+                ch: cursorLinePosition
+              })
             }
           }
         } else {
@@ -245,8 +280,8 @@ export default class CodeEditor extends React.Component {
     return {
       text: wordBeforeCursor,
       range: {
-        from: {line: lineNumber, ch: originCursorPosition},
-        to: {line: lineNumber, ch: cursorPosition}
+        from: { line: lineNumber, ch: originCursorPosition },
+        to: { line: lineNumber, ch: cursorPosition }
       }
     }
   }
@@ -268,7 +303,7 @@ export default class CodeEditor extends React.Component {
 
   componentDidUpdate (prevProps, prevState) {
     let needRefresh = false
-    const {rulers, enableRulers} = this.props
+    const { rulers, enableRulers } = this.props
     if (prevProps.mode !== this.props.mode) {
       this.setMode(this.props.mode)
     }
@@ -286,7 +321,10 @@ export default class CodeEditor extends React.Component {
       needRefresh = true
     }
 
-    if (prevProps.enableRulers !== enableRulers || prevProps.rulers !== rulers) {
+    if (
+      prevProps.enableRulers !== enableRulers ||
+      prevProps.rulers !== rulers
+    ) {
       this.editor.setOption('rulers', buildCMRulers(rulers, enableRulers))
     }
 
@@ -326,11 +364,9 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  moveCursorTo (row, col) {
-  }
+  moveCursorTo (row, col) {}
 
-  scrollToLine (num) {
-  }
+  scrollToLine (num) {}
 
   focus () {
     this.editor.focus()
@@ -358,8 +394,13 @@ export default class CodeEditor extends React.Component {
 
   handleDropImage (dropEvent) {
     dropEvent.preventDefault()
-    const {storageKey, noteKey} = this.props
-    attachmentManagement.handleAttachmentDrop(this, storageKey, noteKey, dropEvent)
+    const { storageKey, noteKey } = this.props
+    attachmentManagement.handleAttachmentDrop(
+      this,
+      storageKey,
+      noteKey,
+      dropEvent
+    )
   }
 
   insertAttachmentMd (imageMd) {
@@ -368,34 +409,44 @@ export default class CodeEditor extends React.Component {
 
   handlePaste (editor, e) {
     const clipboardData = e.clipboardData
-    const {storageKey, noteKey} = this.props
+    const { storageKey, noteKey } = this.props
     const dataTransferItem = clipboardData.items[0]
     const pastedTxt = clipboardData.getData('text')
-    const isURL = (str) => {
+    const isURL = str => {
       const matcher = /^(?:\w+:)?\/\/([^\s\.]+\.\S{2}|localhost[\:?\d]*)\S*$/
       return matcher.test(str)
     }
-    const isInLinkTag = (editor) => {
+    const isInLinkTag = editor => {
       const startCursor = editor.getCursor('start')
       const prevChar = editor.getRange(
-        {line: startCursor.line, ch: startCursor.ch - 2},
-        {line: startCursor.line, ch: startCursor.ch}
+        { line: startCursor.line, ch: startCursor.ch - 2 },
+        { line: startCursor.line, ch: startCursor.ch }
       )
       const endCursor = editor.getCursor('end')
       const nextChar = editor.getRange(
-        {line: endCursor.line, ch: endCursor.ch},
-        {line: endCursor.line, ch: endCursor.ch + 1}
+        { line: endCursor.line, ch: endCursor.ch },
+        { line: endCursor.line, ch: endCursor.ch + 1 }
       )
       return prevChar === '](' && nextChar === ')'
     }
     if (dataTransferItem.type.match('image')) {
-      attachmentManagement.handlePastImageEvent(this, storageKey, noteKey, dataTransferItem)
-    } else if (this.props.fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
+      attachmentManagement.handlePastImageEvent(
+        this,
+        storageKey,
+        noteKey,
+        dataTransferItem
+      )
+    } else if (
+      this.props.fetchUrlTitle &&
+      isURL(pastedTxt) &&
+      !isInLinkTag(editor)
+    ) {
       this.handlePasteUrl(e, editor, pastedTxt)
     }
     if (attachmentManagement.isAttachmentLink(pastedTxt)) {
-      attachmentManagement.handleAttachmentLinkPaste(storageKey, noteKey, pastedTxt)
-        .then((modifiedText) => {
+      attachmentManagement
+        .handleAttachmentLinkPaste(storageKey, noteKey, pastedTxt)
+        .then(modifiedText => {
           this.editor.replaceSelection(modifiedText)
         })
       e.preventDefault()
@@ -413,39 +464,49 @@ export default class CodeEditor extends React.Component {
     const taggedUrl = `<${pastedTxt}>`
     editor.replaceSelection(taggedUrl)
 
-    const isImageReponse = (response) => {
-      return response.headers.has('content-type') &&
+    const isImageReponse = response => {
+      return (
+        response.headers.has('content-type') &&
         response.headers.get('content-type').match(/^image\/.+$/)
+      )
     }
-    const replaceTaggedUrl = (replacement) => {
+    const replaceTaggedUrl = replacement => {
       const value = editor.getValue()
       const cursor = editor.getCursor()
       const newValue = value.replace(taggedUrl, replacement)
-      const newCursor = Object.assign({}, cursor, { ch: cursor.ch + newValue.length - value.length })
+      const newCursor = Object.assign({}, cursor, {
+        ch: cursor.ch + newValue.length - value.length
+      })
       editor.setValue(newValue)
       editor.setCursor(newCursor)
     }
 
     fetch(pastedTxt, {
       method: 'get'
-    }).then((response) => {
-      if (isImageReponse(response)) {
-        return this.mapImageResponse(response, pastedTxt)
-      } else {
-        return this.mapNormalResponse(response, pastedTxt)
-      }
-    }).then((replacement) => {
-      replaceTaggedUrl(replacement)
-    }).catch((e) => {
-      replaceTaggedUrl(pastedTxt)
     })
+      .then(response => {
+        if (isImageReponse(response)) {
+          return this.mapImageResponse(response, pastedTxt)
+        } else {
+          return this.mapNormalResponse(response, pastedTxt)
+        }
+      })
+      .then(replacement => {
+        replaceTaggedUrl(replacement)
+      })
+      .catch(e => {
+        replaceTaggedUrl(pastedTxt)
+      })
   }
 
   mapNormalResponse (response, pastedTxt) {
-    return this.decodeResponse(response).then((body) => {
+    return this.decodeResponse(response).then(body => {
       return new Promise((resolve, reject) => {
         try {
-          const parsedBody = (new window.DOMParser()).parseFromString(body, 'text/html')
+          const parsedBody = new window.DOMParser().parseFromString(
+            body,
+            'text/html'
+          )
           const linkWithTitle = `[${parsedBody.title}](${pastedTxt})`
           resolve(linkWithTitle)
         } catch (e) {
@@ -473,10 +534,13 @@ export default class CodeEditor extends React.Component {
     const _charset = headers.has('content-type')
       ? this.extractContentTypeCharset(headers.get('content-type'))
       : undefined
-    return response.arrayBuffer().then((buff) => {
+    return response.arrayBuffer().then(buff => {
       return new Promise((resolve, reject) => {
         try {
-          const charset = _charset !== undefined && iconv.encodingExists(_charset) ? _charset : 'utf-8'
+          const charset = _charset !== undefined &&
+            iconv.encodingExists(_charset)
+            ? _charset
+            : 'utf-8'
           resolve(iconv.decode(new Buffer(buff), charset).toString())
         } catch (e) {
           reject(e)
@@ -486,15 +550,18 @@ export default class CodeEditor extends React.Component {
   }
 
   extractContentTypeCharset (contentType) {
-    return contentType.split(';').filter((str) => {
-      return str.trim().toLowerCase().startsWith('charset')
-    }).map((str) => {
-      return str.replace(/['"]/g, '').split('=')[1]
-    })[0]
+    return contentType
+      .split(';')
+      .filter(str => {
+        return str.trim().toLowerCase().startsWith('charset')
+      })
+      .map(str => {
+        return str.replace(/['"]/g, '').split('=')[1]
+      })[0]
   }
 
   render () {
-    const {className, fontSize} = this.props
+    const { className, fontSize } = this.props
     let fontFamily = this.props.fontFamily
     fontFamily = _.isString(fontFamily) && fontFamily.length > 0
       ? [fontFamily].concat(defaultEditorFontFamily)
@@ -502,18 +569,16 @@ export default class CodeEditor extends React.Component {
     const width = this.props.width
     return (
       <div
-        className={className == null
-          ? 'CodeEditor'
-          : `CodeEditor ${className}`
-        }
+        className={className == null ? 'CodeEditor' : `CodeEditor ${className}`}
         ref='root'
         tabIndex='-1'
         style={{
           fontFamily: fontFamily.join(', '),
           fontSize: fontSize,
-          width: width
+          width: width,
+          opacity: this.state.isReady ? '1' : '0'
         }}
-        onDrop={(e) => this.handleDropImage(e)}
+        onDrop={e => this.handleDropImage(e)}
       />
     )
   }

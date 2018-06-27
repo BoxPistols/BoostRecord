@@ -22,7 +22,6 @@ const electron = require('electron')
 const { remote } = electron
 
 class Main extends React.Component {
-
   constructor (props) {
     super(props)
 
@@ -60,10 +59,10 @@ class Main extends React.Component {
         name: 'My Storage',
         path: path.join(remote.app.getPath('home'), 'Boostnote')
       })
-      .then((data) => {
+      .then(data => {
         return data
       })
-      .then((data) => {
+      .then(data => {
         if (data.storage.folders[0] != null) {
           return data
         } else {
@@ -72,7 +71,7 @@ class Main extends React.Component {
               color: '#1278BD',
               name: 'Default'
             })
-            .then((_data) => {
+            .then(_data => {
               return {
                 storage: _data.storage,
                 notes: data.notes
@@ -80,7 +79,7 @@ class Main extends React.Component {
             })
         }
       })
-      .then((data) => {
+      .then(data => {
         console.log(data)
         store.dispatch({
           type: 'ADD_STORAGE',
@@ -98,16 +97,16 @@ class Main extends React.Component {
               {
                 name: 'example.html',
                 mode: 'html',
-                content: '<html>\n<body>\n<h1 id=\'hello\'>Enjoy Boostnote!</h1>\n</body>\n</html>'
+                content: "<html>\n<body>\n<h1 id='hello'>Enjoy Boostnote!</h1>\n</body>\n</html>"
               },
               {
                 name: 'example.js',
                 mode: 'javascript',
-                content: 'var boostnote = document.getElementById(\'enjoy\').innerHTML\n\nconsole.log(boostnote)'
+                content: "var boostnote = document.getElementById('enjoy').innerHTML\n\nconsole.log(boostnote)"
               }
             ]
           })
-          .then((note) => {
+          .then(note => {
             store.dispatch({
               type: 'UPDATE_NOTE',
               note: note
@@ -120,7 +119,7 @@ class Main extends React.Component {
             title: 'Welcome to Boostnote!',
             content: '# Welcome to Boostnote!\n## Click here to edit markdown :wave:\n\n<iframe width="560" height="315" src="https://www.youtube.com/embed/L0qNPLsvmyM" frameborder="0" allowfullscreen></iframe>\n\n## Docs :memo:\n- [Boostnote | Boost your happiness, productivity and creativity.](https://hackernoon.com/boostnote-boost-your-happiness-productivity-and-creativity-315034efeebe)\n- [Cloud Syncing & Backups](https://github.com/BoostIO/Boostnote/wiki/Cloud-Syncing-and-Backup)\n- [How to sync your data across Desktop and Mobile apps](https://github.com/BoostIO/Boostnote/wiki/Sync-Data-Across-Desktop-and-Mobile-apps)\n- [Convert data from **Evernote** to Boostnote.](https://github.com/BoostIO/Boostnote/wiki/Evernote)\n- [Keyboard Shortcuts](https://github.com/BoostIO/Boostnote/wiki/Keyboard-Shortcuts)\n- [Keymaps in Editor mode](https://github.com/BoostIO/Boostnote/wiki/Keymaps-in-Editor-mode)\n- [How to set syntax highlight in Snippet note](https://github.com/BoostIO/Boostnote/wiki/Syntax-Highlighting)\n\n---\n\n## Article Archive :books:\n- [Reddit English](http://bit.ly/2mOJPu7)\n- [Reddit Spanish](https://www.reddit.com/r/boostnote_es/)\n- [Reddit Chinese](https://www.reddit.com/r/boostnote_cn/)\n- [Reddit Japanese](https://www.reddit.com/r/boostnote_jp/)\n\n---\n\n## Community :beers:\n- [GitHub](http://bit.ly/2AWWzkD)\n- [Twitter](http://bit.ly/2z8BUJZ)\n- [Facebook Group](http://bit.ly/2jcca8t)'
           })
-          .then((note) => {
+          .then(note => {
             store.dispatch({
               type: 'UPDATE_NOTE',
               note: note
@@ -131,10 +130,10 @@ class Main extends React.Component {
           .then(defaultMarkdownNote)
           .then(() => data.storage)
       })
-      .then((storage) => {
+      .then(storage => {
         hashHistory.push('/storages/' + storage.key)
       })
-      .catch((err) => {
+      .catch(err => {
         throw err
       })
   }
@@ -142,12 +141,7 @@ class Main extends React.Component {
   componentDidMount () {
     const { dispatch, config } = this.props
 
-    const supportedThemes = [
-      'dark',
-      'white',
-      'solarized-dark',
-      'monokai'
-    ]
+    const supportedThemes = ['dark', 'white', 'solarized-dark', 'monokai']
 
     if (supportedThemes.indexOf(config.ui.theme) !== -1) {
       document.body.setAttribute('data-theme', config.ui.theme)
@@ -162,18 +156,17 @@ class Main extends React.Component {
     }
     applyShortcuts()
     // Reload all data
-    dataApi.init()
-      .then((data) => {
-        dispatch({
-          type: 'INIT_ALL',
-          storages: data.storages,
-          notes: data.notes
-        })
-
-        if (data.storages.length < 1) {
-          this.init()
-        }
+    dataApi.init().then(data => {
+      dispatch({
+        type: 'INIT_ALL',
+        storages: data.storages,
+        notes: data.notes
       })
+
+      if (data.storages.length < 1) {
+        this.init()
+      }
+    })
 
     eventEmitter.on('editor:fullscreen', this.toggleFullScreen)
   }
@@ -199,34 +192,40 @@ class Main extends React.Component {
   handleMouseUp (e) {
     // Change width of NoteList component.
     if (this.state.isRightSliderFocused) {
-      this.setState({
-        isRightSliderFocused: false
-      }, () => {
-        const { dispatch } = this.props
-        const newListWidth = this.state.listWidth
-        // TODO: ConfigManager should dispatch itself.
-        ConfigManager.set({listWidth: newListWidth})
-        dispatch({
-          type: 'SET_LIST_WIDTH',
-          listWidth: newListWidth
-        })
-      })
+      this.setState(
+        {
+          isRightSliderFocused: false
+        },
+        () => {
+          const { dispatch } = this.props
+          const newListWidth = this.state.listWidth
+          // TODO: ConfigManager should dispatch itself.
+          ConfigManager.set({ listWidth: newListWidth })
+          dispatch({
+            type: 'SET_LIST_WIDTH',
+            listWidth: newListWidth
+          })
+        }
+      )
     }
 
     // Change width of SideNav component.
     if (this.state.isLeftSliderFocused) {
-      this.setState({
-        isLeftSliderFocused: false
-      }, () => {
-        const { dispatch } = this.props
-        const navWidth = this.state.navWidth
-        // TODO: ConfigManager should dispatch itself.
-        ConfigManager.set({ navWidth })
-        dispatch({
-          type: 'SET_NAV_WIDTH',
-          navWidth
-        })
-      })
+      this.setState(
+        {
+          isLeftSliderFocused: false
+        },
+        () => {
+          const { dispatch } = this.props
+          const navWidth = this.state.navWidth
+          // TODO: ConfigManager should dispatch itself.
+          ConfigManager.set({ navWidth })
+          dispatch({
+            type: 'SET_NAV_WIDTH',
+            navWidth
+          })
+        }
+      )
     }
   }
 
@@ -271,8 +270,8 @@ class Main extends React.Component {
   }
 
   hideLeftLists (noteDetail, noteList, mainBody) {
-    this.setState({noteDetailWidth: noteDetail.style.left})
-    this.setState({mainBodyWidth: mainBody.style.left})
+    this.setState({ noteDetailWidth: noteDetail.style.left })
+    this.setState({ mainBodyWidth: mainBody.style.left })
     noteDetail.style.left = '0px'
     mainBody.style.left = '0px'
     noteList.style.display = 'none'
@@ -294,33 +293,36 @@ class Main extends React.Component {
       <div
         className='Main'
         styleName='root'
-        onMouseMove={(e) => this.handleMouseMove(e)}
-        onMouseUp={(e) => this.handleMouseUp(e)}
+        onMouseMove={e => this.handleMouseMove(e)}
+        onMouseUp={e => this.handleMouseUp(e)}
       >
         <SideNav
-          {..._.pick(this.props, [
-            'dispatch',
-            'data',
-            'config',
-            'location'
-          ])}
+          {..._.pick(this.props, ['dispatch', 'data', 'config', 'location'])}
           width={this.state.navWidth}
         />
         {!config.isSideNavFolded &&
-          <div styleName={this.state.isLeftSliderFocused ? 'slider--active' : 'slider'}
-            style={{left: this.state.navWidth}}
-            onMouseDown={(e) => this.handleLeftSlideMouseDown(e)}
+          <div
+            styleName={
+              this.state.isLeftSliderFocused ? 'slider--active' : 'slider'
+            }
+            style={{ left: this.state.navWidth }}
+            onMouseDown={e => this.handleLeftSlideMouseDown(e)}
             draggable='false'
           >
             <div styleName='slider-hitbox' />
-          </div>
-        }
-        <div styleName={config.isSideNavFolded ? 'body--expanded' : 'body'}
+          </div>}
+        <div
+          styleName={config.isSideNavFolded ? 'body--expanded' : 'body'}
           id='main-body'
           ref='body'
-          style={{left: config.isSideNavFolded ? foldedNavigationWidth : this.state.navWidth}}
+          style={{
+            left: config.isSideNavFolded
+              ? foldedNavigationWidth
+              : this.state.navWidth
+          }}
         >
-          <TopBar style={{width: this.state.listWidth}}
+          <TopBar
+            style={{ width: this.state.listWidth }}
             {..._.pick(this.props, [
               'dispatch',
               'config',
@@ -329,7 +331,8 @@ class Main extends React.Component {
               'location'
             ])}
           />
-          <NoteList style={{width: this.state.listWidth}}
+          <NoteList
+            style={{ width: this.state.listWidth }}
             {..._.pick(this.props, [
               'dispatch',
               'data',
@@ -338,15 +341,20 @@ class Main extends React.Component {
               'location'
             ])}
           />
-          <div styleName={this.state.isRightSliderFocused ? 'slider-right--active' : 'slider-right'}
-            style={{left: this.state.listWidth - 1}}
-            onMouseDown={(e) => this.handleRightSlideMouseDown(e)}
+          <div
+            styleName={
+              this.state.isRightSliderFocused
+                ? 'slider-right--active'
+                : 'slider-right'
+            }
+            style={{ left: this.state.listWidth - 1 }}
+            onMouseDown={e => this.handleRightSlideMouseDown(e)}
             draggable='false'
           >
             <div styleName='slider-hitbox' />
           </div>
           <Detail
-            style={{left: this.state.listWidth}}
+            style={{ left: this.state.listWidth }}
             {..._.pick(this.props, [
               'dispatch',
               'data',
@@ -374,4 +382,4 @@ Main.propTypes = {
   data: PropTypes.shape({}).isRequired
 }
 
-export default connect((x) => x)(CSSModules(Main, styles))
+export default connect(x => x)(CSSModules(Main, styles))

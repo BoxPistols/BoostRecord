@@ -21,7 +21,10 @@ class SnippetList extends React.Component {
   }
 
   reloadSnippetList () {
-    dataApi.fetchSnippet().then(snippets => this.setState({snippets}))
+    dataApi.fetchSnippet().then(snippets => {
+      this.setState({snippets})
+      this.props.onSnippetSelect(snippets[0])
+    })
   }
 
   handleSnippetContextMenu (snippet) {
@@ -43,7 +46,7 @@ class SnippetList extends React.Component {
   }
 
   handleSnippetClick (snippet) {
-    this.props.onSnippetClick(snippet)
+    this.props.onSnippetSelect(snippet)
   }
 
   createSnippet () {

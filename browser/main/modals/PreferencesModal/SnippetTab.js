@@ -25,7 +25,7 @@ class SnippetTab extends React.Component {
     }, 500)
   }
 
-  handleSnippetClick (snippet) {
+  handleSnippetSelect (snippet) {
     const { currentSnippet } = this.state
     if (currentSnippet === null || currentSnippet.id !== snippet.id) {
       dataApi.fetchSnippet(snippet.id).then(changedSnippet => {
@@ -66,7 +66,7 @@ class SnippetTab extends React.Component {
       <div styleName='root'>
         <div styleName='header'>{i18n.__('Snippets')}</div>
         <SnippetList
-          onSnippetClick={this.handleSnippetClick.bind(this)}
+          onSnippetSelect={this.handleSnippetSelect.bind(this)}
           onSnippetDeleted={this.handleDeleteSnippet.bind(this)} />
         <div styleName='snippet-detail' style={{visibility: currentSnippet ? 'visible' : 'hidden'}}>
           <div styleName='group-section'>

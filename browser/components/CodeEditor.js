@@ -506,7 +506,7 @@ export default class CodeEditor extends React.Component {
         ref='root'
         tabIndex='-1'
         style={{
-          fontFamily: fontFamily.join(', '),
+          fontFamily,
           fontSize: fontSize,
           width: width
         }}

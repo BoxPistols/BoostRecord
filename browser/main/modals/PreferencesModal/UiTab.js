@@ -165,7 +165,6 @@ class UiTab extends React.Component {
     const { config, codemirrorTheme } = this.state
     const codemirrorSampleCode = 'function iamHappy (happy) {\n\tif (happy) {\n\t  console.log("I am Happy!")\n\t} else {\n\t  console.log("I am not Happy!")\n\t}\n};'
     const enableEditRulersStyle = config.editor.enableRulers ? 'block' : 'none'
-    const customCSS = config.preview.customCSS
     const fontFamily = normalizeEditorFontFamily(config.editor.fontFamily)
     return (
       <div styleName='root'>

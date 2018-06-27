@@ -11,13 +11,12 @@ import 'codemirror-mode-elixir'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
 import { getLanguages } from 'browser/lib/Languages'
+import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 
 const OSX = global.process.platform === 'darwin'
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer
-
-const defaultEditorFontFamily = consts.DEFAULT_EDITOR_FONT_FAMILY
 
 class UiTab extends React.Component {
   constructor (props) {
@@ -167,10 +166,7 @@ class UiTab extends React.Component {
     const codemirrorSampleCode = 'function iamHappy (happy) {\n\tif (happy) {\n\t  console.log("I am Happy!")\n\t} else {\n\t  console.log("I am not Happy!")\n\t}\n};'
     const enableEditRulersStyle = config.editor.enableRulers ? 'block' : 'none'
     const customCSS = config.preview.customCSS
-    let { fontFamily } = config.editor
-    fontFamily = _.isString(fontFamily) && fontFamily.length > 0
-      ? [fontFamily].concat(defaultEditorFontFamily)
-      : defaultEditorFontFamily
+    const fontFamily = normalizeEditorFontFamily(config.editor.fontFamily)
     return (
       <div styleName='root'>
         <div styleName='group'>

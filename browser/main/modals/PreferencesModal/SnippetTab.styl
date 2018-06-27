@@ -122,6 +122,10 @@
     &:hover
       background darken(#f5f5f5, 5)
 
+  .snippet-item-selected
+    @extend .snippet-list .snippet-item
+    background darken(#f5f5f5, 5)
+
 .snippet-detail
   width 70%
   height calc(100% - 200px)
@@ -142,6 +146,8 @@ body[data-theme="default"], body[data-theme="white"]
         background $ui-borderColor
       &:hover
         background darken($ui-backgroundColor, 5)
+    .snippet-item-selected
+      background darken($ui-backgroundColor, 5)
 
 body[data-theme="dark"]
   .snippets
@@ -152,6 +158,8 @@ body[data-theme="dark"]
         background $ui-dark-borderColor
       &:hover
         background darken($ui-dark-backgroundColor, 5)
+    .snippet-item-selected
+      background darken($ui-dark-backgroundColor, 5)
   .snippet-detail
     color white
   .group-control-button
@@ -166,6 +174,8 @@ body[data-theme="solarized-dark"]
         background $ui-solarized-dark-borderColor
       &:hover
         background darken($ui-solarized-dark-backgroundColor, 5)
+    .snippet-item-selected
+      background darken($ui-solarized-dark-backgroundColor, 5)
   .snippet-detail
     color white
   .group-control-button
@@ -180,6 +190,8 @@ body[data-theme="monokai"]
         background $ui-monokai-borderColor
       &:hover
         background darken($ui-monokai-backgroundColor, 5)
+    .snippet-item-selected
+      background darken($ui-monokai-backgroundColor, 5)
   .snippet-detail
     color white
   .group-control-button

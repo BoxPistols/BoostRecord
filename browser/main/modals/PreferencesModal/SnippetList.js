@@ -58,6 +58,16 @@ class SnippetList extends React.Component {
     }).catch(err => { throw err })
   }
 
+  defineSnippetStyleName (snippet) {
+    const { currentSnippet } = this.props
+    if (currentSnippet == null) return
+    if (currentSnippet.id === snippet.id) {
+      return 'snippet-item-selected'
+    } else {
+      return 'snippet-item'
+    }
+  }
+
   render () {
     const { snippets } = this.state
     return (
@@ -73,7 +83,7 @@ class SnippetList extends React.Component {
           {
             snippets.map((snippet) => (
               <li
-                styleName='snippet-item'
+                styleName={this.defineSnippetStyleName(snippet)}
                 key={snippet.id}
                 onContextMenu={() => this.handleSnippetContextMenu(snippet)}
                 onClick={() => this.handleSnippetClick(snippet)}>

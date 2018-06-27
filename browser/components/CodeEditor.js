@@ -14,7 +14,7 @@ const { ipcRenderer } = require('electron')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
-const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
+const defaultEditorFontFamily = consts.DEFAULT_EDITOR_FONT_FAMILY
 const buildCMRulers = (rulers, enableRulers) =>
   enableRulers ? rulers.map(ruler => ({column: ruler})) : []
 

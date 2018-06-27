@@ -21,12 +21,14 @@ const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
 
 const { app } = remote
 const path = require('path')
+const fileUrl = require('file-url')
+
 const dialog = remote.dialog
 
 const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
-const appPath =
-  'file://' +
-  (process.env.NODE_ENV === 'production' ? app.getAppPath() : path.resolve())
+const appPath = fileUrl(process.env.NODE_ENV === 'production'
+  ? app.getAppPath()
+  : path.resolve())
 const CSS_FILES = [
   `${appPath}/node_modules/katex/dist/katex.min.css`,
   `${appPath}/node_modules/codemirror/lib/codemirror.css`

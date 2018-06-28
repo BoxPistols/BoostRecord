@@ -50,6 +50,8 @@ export default class CodeEditor extends React.Component {
     }
     this.searchHandler = (e, msg) => this.handleSearch(msg)
     this.searchState = null
+
+    this.formatTable = () => this.handleFormatTable()
   }
 
   handleSearch (msg) {
@@ -81,6 +83,10 @@ export default class CodeEditor extends React.Component {
         }
       }
     })
+  }
+
+  handleFormatTable () {
+    this.tableEditor.formatAll(options({textWidthOptions: {}}))
   }
 
   componentDidMount () {
@@ -186,6 +192,7 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
 
     this.tableEditor = new TableEditor(new TextEditorInterface(this.editor))
+    eventEmitter.on('code:format-table', this.formatTable)
   }
 
   expandSnippet (line, cursor, cm, snippets) {
@@ -268,6 +275,8 @@ export default class CodeEditor extends React.Component {
     this.editor.off('scroll', this.scrollHandler)
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
+
+    eventEmitter.off('code:format-table', this.formatTable)
   }
 
   componentDidUpdate (prevProps, prevState) {

@@ -184,6 +184,8 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
+
+    this.tableEditor = new TableEditor(new TextEditorInterface(this.editor))
   }
 
   expandSnippet (line, cursor, cm, snippets) {

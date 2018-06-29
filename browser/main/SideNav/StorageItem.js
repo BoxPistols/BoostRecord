@@ -76,8 +76,8 @@ class StorageItem extends React.Component {
       .then((storage) => {
         dispatch({
           type: 'EXPAND_STORAGE',
-          storage: storage,
-          isOpen: isOpen
+          storage,
+          isOpen
         })
       })
     this.setState({

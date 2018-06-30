@@ -24,7 +24,7 @@ import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import context from 'browser/lib/context'
 
 const { remote } = require('electron')
-const { Menu, MenuItem, dialog } = remote
+const { dialog } = remote
 const WP_POST_PATH = '/wp/v2/posts'
 
 function sortByCreatedAt (a, b) {

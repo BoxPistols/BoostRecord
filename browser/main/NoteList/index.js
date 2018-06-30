@@ -21,6 +21,7 @@ import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import Markdown from '../../lib/markdown'
 import i18n from 'browser/lib/i18n'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
+import context from 'browser/lib/context'
 
 const { remote } = require('electron')
 const { Menu, MenuItem, dialog } = remote
@@ -491,55 +492,51 @@ class NoteList extends React.Component {
     const updateLabel = i18n.__('Update Blog')
     const openBlogLabel = i18n.__('Open Blog')
 
-    const menu = new Menu()
+    const templates = []
 
     if (location.pathname.match(/\/trash/)) {
-      menu.append(new MenuItem({
+      templates.push({
         label: restoreNote,
         click: this.restoreNote
-      }))
-      menu.append(new MenuItem({
+      }, {
         label: deleteLabel,
         click: this.deleteNote
-      }))
+      })
     } else {
       if (!location.pathname.match(/\/starred/)) {
-        menu.append(new MenuItem({
+        templates.push({
           label: pinLabel,
           click: this.pinToTop
-        }))
+        })
       }
-      menu.append(new MenuItem({
+      templates.push({
         label: deleteLabel,
         click: this.deleteNote
-      }))
-      menu.append(new MenuItem({
+      }, {
         label: cloneNote,
         click: this.cloneNote.bind(this)
-      }))
-      menu.append(new MenuItem({
+      }, {
         label: copyNoteLink,
         click: this.copyNoteLink(note)
-      }))
+      })
       if (note.type === 'MARKDOWN_NOTE') {
         if (note.blog && note.blog.blogLink && note.blog.blogId) {
-          menu.append(new MenuItem({
+          templates.push({
             label: updateLabel,
             click: this.publishMarkdown.bind(this)
-          }))
-          menu.append(new MenuItem({
+          }, {
             label: openBlogLabel,
             click: () => this.openBlog.bind(this)(note)
-          }))
+          })
         } else {
-          menu.append(new MenuItem({
+          templates.push({
             label: publishLabel,
             click: this.publishMarkdown.bind(this)
-          }))
+          })
         }
       }
     }
-    menu.popup()
+    context.popup(templates)
   }
 
   updateSelectedNotes (updateFunc, cleanSelection = true) {

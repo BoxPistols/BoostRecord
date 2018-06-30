@@ -11,9 +11,10 @@ import StorageItemChild from 'browser/components/StorageItem'
 import _ from 'lodash'
 import { SortableElement } from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
+import context from 'browser/lib/context'
 
 const { remote } = require('electron')
-const { Menu, dialog } = remote
+const { dialog } = remote
 const escapeStringRegexp = require('escape-string-regexp')
 const path = require('path')
 
@@ -27,7 +28,7 @@ class StorageItem extends React.Component {
   }
 
   handleHeaderContextMenu (e) {
-    const menu = Menu.buildFromTemplate([
+    context.popup([
       {
         label: i18n.__('Add Folder'),
         click: (e) => this.handleAddFolderButtonClick(e)
@@ -40,8 +41,6 @@ class StorageItem extends React.Component {
         click: (e) => this.handleUnlinkStorageClick(e)
       }
     ])
-
-    menu.popup()
   }
 
   handleUnlinkStorageClick (e) {
@@ -94,7 +93,7 @@ class StorageItem extends React.Component {
   }
 
   handleFolderButtonContextMenu (e, folder) {
-    const menu = Menu.buildFromTemplate([
+    context.popup([
       {
         label: i18n.__('Rename Folder'),
         click: (e) => this.handleRenameFolderClick(e, folder)
@@ -123,8 +122,6 @@ class StorageItem extends React.Component {
         click: (e) => this.handleFolderDeleteClick(e, folder)
       }
     ])
-
-    menu.popup()
   }
 
   handleRenameFolderClick (e, folder) {

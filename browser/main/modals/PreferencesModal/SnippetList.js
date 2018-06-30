@@ -21,7 +21,10 @@ class SnippetList extends React.Component {
   }
 
   reloadSnippetList () {
-    dataApi.fetchSnippet().then(snippets => this.setState({snippets}))
+    dataApi.fetchSnippet().then(snippets => {
+      this.setState({snippets})
+      this.props.onSnippetSelect(snippets[0])
+    })
   }
 
   handleSnippetContextMenu (snippet) {
@@ -43,7 +46,7 @@ class SnippetList extends React.Component {
   }
 
   handleSnippetClick (snippet) {
-    this.props.onSnippetClick(snippet)
+    this.props.onSnippetSelect(snippet)
   }
 
   createSnippet () {
@@ -53,6 +56,16 @@ class SnippetList extends React.Component {
       const snippetList = document.getElementById('snippets')
       snippetList.scrollTop = snippetList.scrollHeight
     }).catch(err => { throw err })
+  }
+
+  defineSnippetStyleName (snippet) {
+    const { currentSnippet } = this.props
+    if (currentSnippet == null) return
+    if (currentSnippet.id === snippet.id) {
+      return 'snippet-item-selected'
+    } else {
+      return 'snippet-item'
+    }
   }
 
   render () {
@@ -70,7 +83,7 @@ class SnippetList extends React.Component {
           {
             snippets.map((snippet) => (
               <li
-                styleName='snippet-item'
+                styleName={this.defineSnippetStyleName(snippet)}
                 key={snippet.id}
                 onContextMenu={() => this.handleSnippetContextMenu(snippet)}
                 onClick={() => this.handleSnippetClick(snippet)}>

@@ -1,5 +1,6 @@
 const dataApi = {
   init: require('./init'),
+  toggleStorage: require('./toggleStorage'),
   addStorage: require('./addStorage'),
   renameStorage: require('./renameStorage'),
   removeStorage: require('./removeStorage'),

@@ -21,8 +21,10 @@ class StorageItem extends React.Component {
   constructor (props) {
     super(props)
 
+    const { storage } = this.props
+
     this.state = {
-      isOpen: true
+      isOpen: !!storage.isOpen
     }
   }
 
@@ -68,8 +70,18 @@ class StorageItem extends React.Component {
   }
 
   handleToggleButtonClick (e) {
+    const { storage, dispatch } = this.props
+    const isOpen = !this.state.isOpen
+    dataApi.toggleStorage(storage.key, isOpen)
+      .then((storage) => {
+        dispatch({
+          type: 'EXPAND_STORAGE',
+          storage,
+          isOpen
+        })
+      })
     this.setState({
-      isOpen: !this.state.isOpen
+      isOpen: isOpen
     })
   }
 

@@ -4,8 +4,7 @@ import CSSModules from 'browser/lib/CSSModules'
 import dataApi from 'browser/main/lib/dataApi'
 import i18n from 'browser/lib/i18n'
 import eventEmitter from 'browser/main/lib/eventEmitter'
-const { remote } = require('electron')
-const { Menu, MenuItem } = remote
+import context from 'browser/lib/context'
 
 class SnippetList extends React.Component {
   constructor (props) {
@@ -28,14 +27,10 @@ class SnippetList extends React.Component {
   }
 
   handleSnippetContextMenu (snippet) {
-    const menu = new Menu()
-    menu.append(new MenuItem({
+    context.popup([{
       label: i18n.__('Delete snippet'),
-      click: () => {
-        this.deleteSnippet(snippet)
-      }
-    }))
-    menu.popup()
+      click: () => this.deleteSnippet(snippet)
+    }])
   }
 
   deleteSnippet (snippet) {

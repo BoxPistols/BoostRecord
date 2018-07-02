@@ -42,7 +42,7 @@ it('should test that checkWord should marks words that contain a typo', function
   expect(editor.markText).toHaveBeenCalledWith(range.anchor, range.head, {'className': systemUnderTest.CSS_ERROR_CLASS})
 })
 
-it('should test that initialize clears all marks', function () {
+it('should test that setLanguage clears all marks', function () {
   const dummyMarks = [
     {clear: jest.fn()},
     {clear: jest.fn()},
@@ -51,7 +51,7 @@ it('should test that initialize clears all marks', function () {
   const editor = jest.fn()
   editor.getAllMarks = jest.fn(() => dummyMarks)
 
-  systemUnderTest.initialize(editor, systemUnderTest.SPELLCHECK_DISABLED)
+  systemUnderTest.setLanguage(editor, systemUnderTest.SPELLCHECK_DISABLED)
 
   expect(editor.getAllMarks).toHaveBeenCalled()
   for (const dummyMark of dummyMarks) {
@@ -59,26 +59,26 @@ it('should test that initialize clears all marks', function () {
   }
 })
 
-it('should test that initialize with DISABLED as a lang argument should not load any dictionary and not check the whole document', function () {
+it('should test that setLanguage with DISABLED as a lang argument should not load any dictionary and not check the whole document', function () {
   const editor = jest.fn()
   editor.getAllMarks = jest.fn(() => [])
   const checkWholeDocumentSpy = jest.spyOn(systemUnderTest, 'checkWholeDocument').mockImplementation()
 
-  systemUnderTest.initialize(editor, systemUnderTest.SPELLCHECK_DISABLED)
+  systemUnderTest.setLanguage(editor, systemUnderTest.SPELLCHECK_DISABLED)
 
   expect(Typo).not.toHaveBeenCalled()
   expect(checkWholeDocumentSpy).not.toHaveBeenCalled()
   checkWholeDocumentSpy.mockRestore()
 })
 
-it('should test that initialize loads the correct dictionary', function () {
+it('should test that setLanguage loads the correct dictionary', function () {
   const editor = jest.fn()
   editor.getAllMarks = jest.fn(() => [])
   const lang = 'de_DE'
   const checkWholeDocumentSpy = jest.spyOn(systemUnderTest, 'checkWholeDocument').mockImplementation()
 
   expect(Typo).not.toHaveBeenCalled()
-  systemUnderTest.initialize(editor, lang)
+  systemUnderTest.setLanguage(editor, lang)
 
   expect(Typo).toHaveBeenCalledWith(lang, false, false, expect.anything())
   expect(Typo.mock.calls[0][3].dictionaryPath).toEqual(systemUnderTest.DICTIONARY_PATH)

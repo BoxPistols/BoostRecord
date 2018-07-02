@@ -11,8 +11,9 @@ import crypto from 'crypto'
 import consts from 'browser/lib/consts'
 import styles from '../components/CodeEditor.styl'
 import fs from 'fs'
-const {ipcRenderer} = require('electron')
+const { ipcRenderer, remote } = require('electron')
 const spellcheck = require('browser/lib/spellcheck')
+const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -50,6 +51,13 @@ export default class CodeEditor extends React.Component {
     }
     this.searchHandler = (e, msg) => this.handleSearch(msg)
     this.searchState = null
+
+    this.contextMenuHandler = function (editor, event) {
+      const menu = buildEditorContextMenu(editor, event)
+      if (menu != null) {
+        setTimeout(() => menu.popup(remote.getCurrentWindow()), 30)
+      }
+    }
   }
 
   handleSearch (msg) {
@@ -170,6 +178,7 @@ export default class CodeEditor extends React.Component {
     this.editor.on('blur', this.blurHandler)
     this.editor.on('change', this.changeHandler)
     this.editor.on('paste', this.pasteHandler)
+    this.editor.on('contextmenu', this.contextMenuHandler)
     eventEmitter.on('top:search', this.searchHandler)
 
     eventEmitter.emit('code:init')
@@ -267,8 +276,10 @@ export default class CodeEditor extends React.Component {
     this.editor.off('paste', this.pasteHandler)
     eventEmitter.off('top:search', this.searchHandler)
     this.editor.off('scroll', this.scrollHandler)
+    this.editor.off('contextmenu', this.contextMenuHandler)
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
+    spellcheck.setLanguage(null, spellcheck.SPELLCHECK_DISABLED)
   }
 
   componentDidUpdate (prevProps, prevState) {
@@ -530,7 +541,7 @@ export default class CodeEditor extends React.Component {
     const dropdown = document.createElement('select')
     dropdown.title = 'Spellcheck'
     dropdown.className = styles['spellcheck-select']
-    dropdown.addEventListener('change', (e) => spellcheck.initialize(this.editor, dropdown.value))
+    dropdown.addEventListener('change', (e) => spellcheck.setLanguage(this.editor, dropdown.value))
     const options = spellcheck.getAvailableDictionaries()
     for (const op of options) {
       const option = document.createElement('option')

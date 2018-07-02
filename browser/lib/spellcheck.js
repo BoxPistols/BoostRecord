@@ -30,11 +30,13 @@ function setDictionaryForTestsOnly (newDictionary) {
  * @param {Codemirror} editor CodeMirror-Editor
  * @param {String} lang on of the values from getAvailableDictionaries()-Method
  */
-function initialize (editor, lang) {
+function setLanguage (editor, lang) {
   dictionary = null
-  const existingMarks = editor.getAllMarks() || []
-  for (const mark of existingMarks) {
-    mark.clear()
+  if (editor != null) {
+    const existingMarks = editor.getAllMarks() || []
+    for (const mark of existingMarks) {
+      mark.clear()
+    }
   }
   if (lang !== SPELLCHECK_DISABLED) {
     dictionary = new Typo(lang, false, false, {
@@ -170,15 +172,37 @@ function liveSpellcheck (editor, changeObject) {
   }
 }
 
+/**
+ * Returns an array of spelling suggestions for the given (wrong written) word.
+ * Returns an empty array if the dictionary is null (=> spellcheck is disabled) or the given word was null
+ * @param word word to be checked
+ * @returns {String[]} Array of suggestions
+ */
+function getSpellingSuggestion (word) {
+  if (dictionary == null || word == null) {
+    return []
+  }
+  return dictionary.suggest(word)
+}
+
+/**
+ * Returns the name of the CSS class used for errors
+ */
+function getCSSClassName () {
+  return styles[CSS_ERROR_CLASS]
+}
+
 module.exports = {
   DICTIONARY_PATH,
   CSS_ERROR_CLASS,
   SPELLCHECK_DISABLED,
   getAvailableDictionaries,
-  initialize,
+  setLanguage,
   liveSpellcheck,
+  getSpellingSuggestion,
   checkWord,
   checkMultiLineRange,
   checkWholeDocument,
-  setDictionaryForTestsOnly
+  setDictionaryForTestsOnly,
+  getCSSClassName
 }

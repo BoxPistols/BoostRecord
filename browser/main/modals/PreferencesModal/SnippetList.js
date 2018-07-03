@@ -4,8 +4,7 @@ import CSSModules from 'browser/lib/CSSModules'
 import dataApi from 'browser/main/lib/dataApi'
 import i18n from 'browser/lib/i18n'
 import eventEmitter from 'browser/main/lib/eventEmitter'
-const { remote } = require('electron')
-const { Menu, MenuItem } = remote
+import context from 'browser/lib/context'
 
 class SnippetList extends React.Component {
   constructor (props) {
@@ -21,18 +20,17 @@ class SnippetList extends React.Component {
   }
 
   reloadSnippetList () {
-    dataApi.fetchSnippet().then(snippets => this.setState({snippets}))
+    dataApi.fetchSnippet().then(snippets => {
+      this.setState({snippets})
+      this.props.onSnippetSelect(snippets[0])
+    })
   }
 
   handleSnippetContextMenu (snippet) {
-    const menu = new Menu()
-    menu.append(new MenuItem({
+    context.popup([{
       label: i18n.__('Delete snippet'),
-      click: () => {
-        this.deleteSnippet(snippet)
-      }
-    }))
-    menu.popup()
+      click: () => this.deleteSnippet(snippet)
+    }])
   }
 
   deleteSnippet (snippet) {
@@ -43,7 +41,7 @@ class SnippetList extends React.Component {
   }
 
   handleSnippetClick (snippet) {
-    this.props.onSnippetClick(snippet)
+    this.props.onSnippetSelect(snippet)
   }
 
   createSnippet () {
@@ -53,6 +51,16 @@ class SnippetList extends React.Component {
       const snippetList = document.getElementById('snippets')
       snippetList.scrollTop = snippetList.scrollHeight
     }).catch(err => { throw err })
+  }
+
+  defineSnippetStyleName (snippet) {
+    const { currentSnippet } = this.props
+    if (currentSnippet == null) return
+    if (currentSnippet.id === snippet.id) {
+      return 'snippet-item-selected'
+    } else {
+      return 'snippet-item'
+    }
   }
 
   render () {
@@ -70,7 +78,7 @@ class SnippetList extends React.Component {
           {
             snippets.map((snippet) => (
               <li
-                styleName='snippet-item'
+                styleName={this.defineSnippetStyleName(snippet)}
                 key={snippet.id}
                 onContextMenu={() => this.handleSnippetContextMenu(snippet)}
                 onClick={() => this.handleSnippetClick(snippet)}>

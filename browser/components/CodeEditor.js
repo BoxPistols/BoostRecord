@@ -12,12 +12,12 @@ import consts from 'browser/lib/consts'
 import styles from '../components/CodeEditor.styl'
 import fs from 'fs'
 const { ipcRenderer, remote } = require('electron')
+import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 const spellcheck = require('browser/lib/spellcheck')
 const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
-const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
 const buildCMRulers = (rulers, enableRulers) =>
   enableRulers ? rulers.map(ruler => ({column: ruler})) : []
 
@@ -92,7 +92,7 @@ export default class CodeEditor extends React.Component {
   }
 
   componentDidMount () {
-    const {rulers, enableRulers} = this.props
+    const { rulers, enableRulers } = this.props
     const expandSnippet = this.expandSnippet.bind(this)
 
     const defaultSnippet = [
@@ -172,6 +172,7 @@ export default class CodeEditor extends React.Component {
         }
       }
     })
+
     this.setMode(this.props.mode)
 
     this.editor.on('focus', this.focusHandler)
@@ -217,7 +218,7 @@ export default class CodeEditor extends React.Component {
                 wordBeforeCursor.range.from,
                 wordBeforeCursor.range.to
               )
-              cm.setCursor({line: cursor.line + cursorLineNumber, ch: cursorLinePosition})
+              cm.setCursor({ line: cursor.line + cursorLineNumber, ch: cursorLinePosition })
             }
           }
         } else {
@@ -512,10 +513,7 @@ export default class CodeEditor extends React.Component {
 
   render () {
     const {className, fontSize} = this.props
-    let fontFamily = this.props.fontFamily
-    fontFamily = _.isString(fontFamily) && fontFamily.length > 0
-      ? [fontFamily].concat(defaultEditorFontFamily)
-      : defaultEditorFontFamily
+    const fontFamily = normalizeEditorFontFamily(this.props.fontFamily)
     const width = this.props.width
     return (
       <div
@@ -526,7 +524,7 @@ export default class CodeEditor extends React.Component {
         ref='root'
         tabIndex='-1'
         style={{
-          fontFamily: fontFamily.join(', '),
+          fontFamily,
           fontSize: fontSize,
           width: width
         }}

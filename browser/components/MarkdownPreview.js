@@ -8,6 +8,7 @@ import consts from 'browser/lib/consts'
 import Raphael from 'raphael'
 import flowchart from 'flowchart'
 import SequenceDiagram from 'js-sequence-diagrams'
+import Chart from 'chart.js'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import convertModeName from 'browser/lib/convertModeName'
@@ -412,7 +413,7 @@ export default class MarkdownPreview extends React.Component {
         value = value.replace(codeBlock, htmlTextHelper.encodeEntities(codeBlock))
       })
     }
-    let renderedHTML = this.markdown.render(value)
+    const renderedHTML = this.markdown.render(value)
     attachmentManagement.migrateAttachments(renderedHTML, storagePath, noteKey)
     this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(renderedHTML, storagePath)
 
@@ -494,6 +495,21 @@ export default class MarkdownPreview extends React.Component {
         console.error(e)
         el.className = 'sequence-error'
         el.innerHTML = 'Sequence diagram parse error: ' + e.message
+      }
+    })
+
+    _.forEach(this.refs.root.contentWindow.document.querySelectorAll('.chart'), (el) => {
+      try {
+        const chartConfig = JSON.parse(el.innerHTML)
+        el.innerHTML = ''
+        var canvas = document.createElement('canvas')
+        el.appendChild(canvas)
+        /* eslint-disable no-new */
+        new Chart(canvas, chartConfig)
+      } catch (e) {
+        console.error(e)
+        el.className = 'chart-error'
+        el.innerHTML = 'chartjs diagram parse error: ' + e.message
       }
     })
   }

@@ -40,6 +40,9 @@ class Markdown {
         if (langType === 'sequence') {
           return `<pre class="sequence">${str}</pre>`
         }
+        if (langType === 'chart') {
+          return `<pre class="chart">${str}</pre>`
+        }
         return '<pre class="code CodeMirror">' +
           '<span class="filename">' + fileName + '</span>' +
           createGutter(str, firstLineNumber) +

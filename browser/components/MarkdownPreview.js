@@ -225,7 +225,7 @@ export default class MarkdownPreview extends React.Component {
       const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(noteContent, this.props.storagePath)
 
       files.forEach((file) => {
-        file = file.replace('file://', '')
+        file = file.replace('file:///', '')
         exportTasks.push({
           src: file,
           dst: 'css'

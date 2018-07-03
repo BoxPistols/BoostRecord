@@ -89,7 +89,7 @@ class NewNoteModal extends React.Component {
         })
         ee.emit('list:jump', noteHash)
         ee.emit('detail:focus')
-        this.props.close()
+        setTimeout(this.props.close, 200)
       })
   }
 

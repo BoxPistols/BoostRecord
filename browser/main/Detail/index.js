@@ -38,30 +38,43 @@ class Detail extends React.Component {
   render () {
     const { location, data, params, config } = this.props
     let note = null
+
+    function differenceWithTrashed (notes) {
+      const trashedNotes = data.trashedSet.toJS().map(uniqueKey => data.noteMap.get(uniqueKey))
+      return _.differenceWith(notes, trashedNotes, (note, trashed) => note.key === trashed.key)
+    }
+
     if (location.query.key != null) {
       const noteKey = location.query.key
       let displayedNotes = []
 
       if (location.pathname.match(/\/home/) || location.pathname.match(/alltags/)) {
-        displayedNotes = data.noteMap.map(note => note)
+        const allNotes = data.noteMap.map(note => note)
+        displayedNotes = differenceWithTrashed(allNotes)
       }
+
       if (location.pathname.match(/\/starred/)) {
         displayedNotes = data.starredSet.toJS().map(uniqueKey => data.noteMap.get(uniqueKey))
       }
+
       if (location.pathname.match(/\/searched/)) {
         const searchStr = params.searchword
         const allNotes = data.noteMap.map(note => note)
-        displayedNotes = searchStr === undefined || searchStr === '' ? allNotes
+        const searchedNotes = searchStr === undefined || searchStr === '' ? allNotes
           : searchFromNotes(allNotes, searchStr)
+        displayedNotes = differenceWithTrashed(searchedNotes)
       }
+
       if (location.pathname.match(/\/trashed/)) {
         displayedNotes = data.trashedSet.toJS().map(uniqueKey => data.noteMap.get(uniqueKey))
       }
+
       if (location.pathname.match(/\/tags/)) {
         const listOfTags = params.tagname.split(' ')
-        displayedNotes = data.noteMap.map(note => note).filter(note =>
+        const searchedNotes = data.noteMap.map(note => note).filter(note =>
           listOfTags.every(tag => note.tags.includes(tag))
         )
+        displayedNotes = differenceWithTrashed(searchedNotes)
       }
 
       const noteKeys = displayedNotes.map(note => note.key)

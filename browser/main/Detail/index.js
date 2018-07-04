@@ -8,6 +8,7 @@ import SnippetNoteDetail from './SnippetNoteDetail'
 import ee from 'browser/main/lib/eventEmitter'
 import StatusBar from '../StatusBar'
 import i18n from 'browser/lib/i18n'
+import debounceRender from 'react-debounce-render'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -99,4 +100,4 @@ Detail.propTypes = {
   ignorePreviewPointerEvents: PropTypes.bool
 }
 
-export default CSSModules(Detail, styles)
+export default debounceRender(CSSModules(Detail, styles))

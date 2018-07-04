@@ -7,14 +7,16 @@ import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import convertModeName from 'browser/lib/convertModeName'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
-
+import crypto from 'crypto'
+import consts from 'browser/lib/consts'
+import fs from 'fs'
 const { ipcRenderer } = require('electron')
+import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
-const defaultEditorFontFamily = ['Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', 'monospace']
 const buildCMRulers = (rulers, enableRulers) =>
-  enableRulers ? rulers.map(ruler => ({ column: ruler })) : []
+  enableRulers ? rulers.map(ruler => ({column: ruler})) : []
 
 export default class CodeEditor extends React.Component {
   constructor (props) {
@@ -81,8 +83,21 @@ export default class CodeEditor extends React.Component {
 
   componentDidMount () {
     const { rulers, enableRulers } = this.props
-    this.value = this.props.value
+    const expandSnippet = this.expandSnippet.bind(this)
 
+    const defaultSnippet = [
+      {
+        id: crypto.randomBytes(16).toString('hex'),
+        name: 'Dummy text',
+        prefix: ['lorem', 'ipsum'],
+        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+      }
+    ]
+    if (!fs.existsSync(consts.SNIPPET_FILE)) {
+      fs.writeFileSync(consts.SNIPPET_FILE, JSON.stringify(defaultSnippet, null, 4), 'utf8')
+    }
+
+    this.value = this.props.value
     this.editor = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
       value: this.props.value,
@@ -103,6 +118,8 @@ export default class CodeEditor extends React.Component {
         Tab: function (cm) {
           const cursor = cm.getCursor()
           const line = cm.getLine(cursor.line)
+          const cursorPosition = cursor.ch
+          const charBeforeCursor = line.substr(cursorPosition - 1, 1)
           if (cm.somethingSelected()) cm.indentSelection('add')
           else {
             const tabs = cm.getOption('indentWithTabs')
@@ -114,6 +131,16 @@ export default class CodeEditor extends React.Component {
                 cm.execCommand('insertSoftTab')
               }
               cm.execCommand('goLineEnd')
+            } else if (!charBeforeCursor.match(/\t|\s|\r|\n/) && cursor.ch > 1) {
+              // text expansion on tab key if the char before is alphabet
+              const snippets = JSON.parse(fs.readFileSync(consts.SNIPPET_FILE, 'utf8'))
+              if (expandSnippet(line, cursor, cm, snippets) === false) {
+                if (tabs) {
+                  cm.execCommand('insertTab')
+                } else {
+                  cm.execCommand('insertSoftTab')
+                }
+              }
             } else {
               if (tabs) {
                 cm.execCommand('insertTab')
@@ -157,6 +184,73 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
   }
 
+  expandSnippet (line, cursor, cm, snippets) {
+    const wordBeforeCursor = this.getWordBeforeCursor(line, cursor.line, cursor.ch)
+    const templateCursorString = ':{}'
+    for (let i = 0; i < snippets.length; i++) {
+      if (snippets[i].prefix.indexOf(wordBeforeCursor.text) !== -1) {
+        if (snippets[i].content.indexOf(templateCursorString) !== -1) {
+          const snippetLines = snippets[i].content.split('\n')
+          let cursorLineNumber = 0
+          let cursorLinePosition = 0
+          for (let j = 0; j < snippetLines.length; j++) {
+            const cursorIndex = snippetLines[j].indexOf(templateCursorString)
+            if (cursorIndex !== -1) {
+              cursorLineNumber = j
+              cursorLinePosition = cursorIndex
+              cm.replaceRange(
+                snippets[i].content.replace(templateCursorString, ''),
+                wordBeforeCursor.range.from,
+                wordBeforeCursor.range.to
+              )
+              cm.setCursor({ line: cursor.line + cursorLineNumber, ch: cursorLinePosition })
+            }
+          }
+        } else {
+          cm.replaceRange(
+            snippets[i].content,
+            wordBeforeCursor.range.from,
+            wordBeforeCursor.range.to
+          )
+        }
+        return true
+      }
+    }
+
+    return false
+  }
+
+  getWordBeforeCursor (line, lineNumber, cursorPosition) {
+    let wordBeforeCursor = ''
+    const originCursorPosition = cursorPosition
+    const emptyChars = /\t|\s|\r|\n/
+
+    // to prevent the word to expand is long that will crash the whole app
+    // the safeStop is there to stop user to expand words that longer than 20 chars
+    const safeStop = 20
+
+    while (cursorPosition > 0) {
+      const currentChar = line.substr(cursorPosition - 1, 1)
+      // if char is not an empty char
+      if (!emptyChars.test(currentChar)) {
+        wordBeforeCursor = currentChar + wordBeforeCursor
+      } else if (wordBeforeCursor.length >= safeStop) {
+        throw new Error('Your snippet trigger is too long !')
+      } else {
+        break
+      }
+      cursorPosition--
+    }
+
+    return {
+      text: wordBeforeCursor,
+      range: {
+        from: {line: lineNumber, ch: originCursorPosition},
+        to: {line: lineNumber, ch: cursorPosition}
+      }
+    }
+  }
+
   quitEditor () {
     document.querySelector('textarea').blur()
   }
@@ -174,7 +268,7 @@ export default class CodeEditor extends React.Component {
 
   componentDidUpdate (prevProps, prevState) {
     let needRefresh = false
-    const { rulers, enableRulers } = this.props
+    const {rulers, enableRulers} = this.props
     if (prevProps.mode !== this.props.mode) {
       this.setMode(this.props.mode)
     }
@@ -274,6 +368,7 @@ export default class CodeEditor extends React.Component {
 
   handlePaste (editor, e) {
     const clipboardData = e.clipboardData
+    const {storageKey, noteKey} = this.props
     const dataTransferItem = clipboardData.items[0]
     const pastedTxt = clipboardData.getData('text')
     const isURL = (str) => {
@@ -283,21 +378,27 @@ export default class CodeEditor extends React.Component {
     const isInLinkTag = (editor) => {
       const startCursor = editor.getCursor('start')
       const prevChar = editor.getRange(
-        { line: startCursor.line, ch: startCursor.ch - 2 },
-        { line: startCursor.line, ch: startCursor.ch }
+        {line: startCursor.line, ch: startCursor.ch - 2},
+        {line: startCursor.line, ch: startCursor.ch}
       )
       const endCursor = editor.getCursor('end')
       const nextChar = editor.getRange(
-        { line: endCursor.line, ch: endCursor.ch },
-        { line: endCursor.line, ch: endCursor.ch + 1 }
+        {line: endCursor.line, ch: endCursor.ch},
+        {line: endCursor.line, ch: endCursor.ch + 1}
       )
       return prevChar === '](' && nextChar === ')'
     }
     if (dataTransferItem.type.match('image')) {
-      const {storageKey, noteKey} = this.props
       attachmentManagement.handlePastImageEvent(this, storageKey, noteKey, dataTransferItem)
     } else if (this.props.fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
       this.handlePasteUrl(e, editor, pastedTxt)
+    }
+    if (attachmentManagement.isAttachmentLink(pastedTxt)) {
+      attachmentManagement.handleAttachmentLinkPaste(storageKey, noteKey, pastedTxt)
+        .then((modifiedText) => {
+          this.editor.replaceSelection(modifiedText)
+        })
+      e.preventDefault()
     }
   }
 
@@ -312,24 +413,58 @@ export default class CodeEditor extends React.Component {
     const taggedUrl = `<${pastedTxt}>`
     editor.replaceSelection(taggedUrl)
 
+    const isImageReponse = (response) => {
+      return response.headers.has('content-type') &&
+        response.headers.get('content-type').match(/^image\/.+$/)
+    }
+    const replaceTaggedUrl = (replacement) => {
+      const value = editor.getValue()
+      const cursor = editor.getCursor()
+      const newValue = value.replace(taggedUrl, replacement)
+      const newCursor = Object.assign({}, cursor, { ch: cursor.ch + newValue.length - value.length })
+      editor.setValue(newValue)
+      editor.setCursor(newCursor)
+    }
+
     fetch(pastedTxt, {
       method: 'get'
     }).then((response) => {
-      return this.decodeResponse(response)
-    }).then((response) => {
-      const parsedResponse = (new window.DOMParser()).parseFromString(response, 'text/html')
-      const value = editor.getValue()
-      const cursor = editor.getCursor()
-      const LinkWithTitle = `[${parsedResponse.title}](${pastedTxt})`
-      const newValue = value.replace(taggedUrl, LinkWithTitle)
-      editor.setValue(newValue)
-      editor.setCursor(cursor)
+      if (isImageReponse(response)) {
+        return this.mapImageResponse(response, pastedTxt)
+      } else {
+        return this.mapNormalResponse(response, pastedTxt)
+      }
+    }).then((replacement) => {
+      replaceTaggedUrl(replacement)
     }).catch((e) => {
-      const value = editor.getValue()
-      const newValue = value.replace(taggedUrl, pastedTxt)
-      const cursor = editor.getCursor()
-      editor.setValue(newValue)
-      editor.setCursor(cursor)
+      replaceTaggedUrl(pastedTxt)
+    })
+  }
+
+  mapNormalResponse (response, pastedTxt) {
+    return this.decodeResponse(response).then((body) => {
+      return new Promise((resolve, reject) => {
+        try {
+          const parsedBody = (new window.DOMParser()).parseFromString(body, 'text/html')
+          const linkWithTitle = `[${parsedBody.title}](${pastedTxt})`
+          resolve(linkWithTitle)
+        } catch (e) {
+          reject(e)
+        }
+      })
+    })
+  }
+
+  mapImageResponse (response, pastedTxt) {
+    return new Promise((resolve, reject) => {
+      try {
+        const url = response.url
+        const name = url.substring(url.lastIndexOf('/') + 1)
+        const imageLinkWithName = `![${name}](${pastedTxt})`
+        resolve(imageLinkWithName)
+      } catch (e) {
+        reject(e)
+      }
     })
   }
 
@@ -359,11 +494,9 @@ export default class CodeEditor extends React.Component {
   }
 
   render () {
-    const { className, fontSize } = this.props
-    let fontFamily = this.props.fontFamily
-    fontFamily = _.isString(fontFamily) && fontFamily.length > 0
-      ? [fontFamily].concat(defaultEditorFontFamily)
-      : defaultEditorFontFamily
+    const {className, fontSize} = this.props
+    const fontFamily = normalizeEditorFontFamily(this.props.fontFamily)
+    const width = this.props.width
     return (
       <div
         className={className == null
@@ -373,8 +506,9 @@ export default class CodeEditor extends React.Component {
         ref='root'
         tabIndex='-1'
         style={{
-          fontFamily: fontFamily.join(', '),
-          fontSize: fontSize
+          fontFamily,
+          fontSize: fontSize,
+          width: width
         }}
         onDrop={(e) => this.handleDropImage(e)}
       />

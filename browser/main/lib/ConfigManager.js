@@ -1,6 +1,7 @@
 import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
 import i18n from 'browser/lib/i18n'
+import ee from 'browser/main/lib/eventEmitter'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -20,7 +21,8 @@ export const DEFAULT_CONFIG = {
   listStyle: 'DEFAULT', // 'DEFAULT', 'SMALL'
   amaEnabled: true,
   hotkey: {
-    toggleMain: OSX ? 'Cmd + Alt + L' : 'Super + Alt + E'
+    toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
+    toggleMode: OSX ? 'Command + M' : 'Ctrl + M'
   },
   ui: {
     language: 'en',
@@ -56,6 +58,10 @@ export const DEFAULT_CONFIG = {
     plantUMLServerAddress: 'http://www.plantuml.com/plantuml',
     scrollPastEnd: false,
     smartQuotes: true,
+    breaks: true,
+    smartArrows: false,
+    allowCustomCSS: false,
+    customCSS: '',
     sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
   },
   blog: {
@@ -166,6 +172,7 @@ function set (updates) {
   ipcRenderer.send('config-renew', {
     config: get()
   })
+  ee.emit('config-renew')
 }
 
 function assignConfigValues (originalConfig, rcConfig) {
@@ -175,6 +182,17 @@ function assignConfigValues (originalConfig, rcConfig) {
   config.ui = Object.assign({}, DEFAULT_CONFIG.ui, originalConfig.ui, rcConfig.ui)
   config.editor = Object.assign({}, DEFAULT_CONFIG.editor, originalConfig.editor, rcConfig.editor)
   config.preview = Object.assign({}, DEFAULT_CONFIG.preview, originalConfig.preview, rcConfig.preview)
+
+  rewriteHotkey(config)
+
+  return config
+}
+
+function rewriteHotkey (config) {
+  const keys = [...Object.keys(config.hotkey)]
+  keys.forEach(key => {
+    config.hotkey[key] = config.hotkey[key].replace(/Cmd/g, 'Command')
+  })
   return config
 }
 

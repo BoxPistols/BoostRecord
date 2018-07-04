@@ -2,6 +2,7 @@ import markdownit from 'markdown-it'
 import sanitize from './markdown-it-sanitize-html'
 import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
+import smartArrows from 'markdown-it-smartarrows'
 import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
@@ -25,7 +26,7 @@ class Markdown {
       linkify: true,
       html: true,
       xhtmlOut: true,
-      breaks: true,
+      breaks: config.preview.breaks,
       highlight: function (str, lang) {
         const delimiter = ':'
         const langInfo = lang.split(delimiter)
@@ -141,6 +142,7 @@ class Markdown {
       }
     })
     this.md.use(require('markdown-it-kbd'))
+    this.md.use(require('markdown-it-admonition'))
 
     const deflate = require('markdown-it-plantuml/lib/deflate')
     this.md.use(require('markdown-it-plantuml'), '', {
@@ -212,6 +214,10 @@ class Markdown {
 
       return true
     })
+
+    if (config.preview.smartArrows) {
+      this.md.use(smartArrows)
+    }
 
     // Add line number attribute for scrolling
     const originalRender = this.md.renderer.render

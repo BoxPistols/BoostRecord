@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
-const { remote } = require('electron')
-const { Menu } = remote
 import dataApi from 'browser/main/lib/dataApi'
 import styles from './SideNav.styl'
 import { openModal } from 'browser/main/lib/modal'
@@ -19,6 +17,7 @@ import ListButton from './ListButton'
 import TagButton from './TagButton'
 import {SortableContainer} from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
+import context from 'browser/lib/context'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
@@ -185,7 +184,7 @@ class SideNav extends React.Component {
     ).filter(
       note => activeTags.every(tag => note.tags.includes(tag))
     )
-    let relatedTags = new Set()
+    const relatedTags = new Set()
     relatedNotes.forEach(note => note.tags.map(tag => relatedTags.add(tag)))
     return relatedTags
   }
@@ -224,7 +223,7 @@ class SideNav extends React.Component {
   handleClickNarrowToTag (tag) {
     const { router } = this.context
     const { location } = this.props
-    let listOfTags = this.getActiveTags(location.pathname)
+    const listOfTags = this.getActiveTags(location.pathname)
     const indexOfTag = listOfTags.indexOf(tag)
     if (indexOfTag > -1) {
       listOfTags.splice(indexOfTag, 1)
@@ -254,10 +253,9 @@ class SideNav extends React.Component {
   handleFilterButtonContextMenu (event) {
     const { data } = this.props
     const trashedNotes = data.trashedSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
-    const menu = Menu.buildFromTemplate([
+    context.popup([
       { label: i18n.__('Empty Trash'), click: () => this.emptyTrash(trashedNotes) }
     ])
-    menu.popup()
   }
 
   render () {

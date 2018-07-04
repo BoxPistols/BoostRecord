@@ -15,7 +15,6 @@ import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
 import { escapeHtmlCharacters } from 'browser/lib/utils'
-import ConfigManager from 'browser/main/lib/ConfigManager'
 
 const { remote } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
@@ -413,7 +412,7 @@ export default class MarkdownPreview extends React.Component {
         value = value.replace(codeBlock, htmlTextHelper.encodeEntities(codeBlock))
       })
     }
-    let renderedHTML = this.markdown.render(value)
+    const renderedHTML = this.markdown.render(value)
     attachmentManagement.migrateAttachments(renderedHTML, storagePath, noteKey)
     this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(renderedHTML, storagePath)
 

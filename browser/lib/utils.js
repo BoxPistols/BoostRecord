@@ -6,7 +6,7 @@ export function lastFindInArray (array, callback) {
   }
 }
 
-function escapeHtmlCharacters (html) {
+export function escapeHtmlCharacters (html) {
   const matchHtmlRegExp = /["'&<>]/g
   const escapes = ['&quot;', '&amp;', '&#39;', '&lt;', '&gt;']
   let match = null
@@ -15,8 +15,25 @@ function escapeHtmlCharacters (html) {
     replace +
     str.substr(index + replace.length - (replace.length - 1))
 
+  // detecting code block
   while ((match = matchHtmlRegExp.exec(html)) != null) {
     const current = { char: match[0], index: match.index }
+    // position of the nearest line start
+    let previousLineEnd = current.index - 1
+    while (html[previousLineEnd] !== '\n' && previousLineEnd !== -1) {
+      previousLineEnd--
+    }
+    // 4 spaces means this character is in a code block
+    if (
+      html[previousLineEnd + 1] === ' ' &&
+      html[previousLineEnd + 2] === ' ' &&
+      html[previousLineEnd + 3] === ' ' &&
+      html[previousLineEnd + 4] === ' '
+    ) {
+      // so skip it
+      continue
+    }
+    // otherwise, escape it !!!
     if (current.char === '&') {
       let nextStr = ''
       let nextIndex = current.index

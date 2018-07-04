@@ -40,7 +40,7 @@ class Detail extends React.Component {
     let note = null
     if (location.query.key != null) {
       const noteKey = location.query.key
-      let displayedNotes, noteKeys
+      let displayedNotes = []
 
       if (location.pathname.match(/\/home/) || location.pathname.match(/alltags/)) {
         displayedNotes = data.noteMap.map(note => note)
@@ -49,10 +49,10 @@ class Detail extends React.Component {
         displayedNotes = data.starredSet.toJS().map(uniqueKey => data.noteMap.get(uniqueKey))
       }
       if (location.pathname.match(/\/searched/)) {
-        displayedNotes = searchFromNotes(
-          data.noteMap.map(note => note),
-          params.searchword
-        )
+        const searchStr = params.searchword
+        const allNotes = data.noteMap.map(note => note)
+        displayedNotes = searchStr === undefined || searchStr === '' ? allNotes
+          : searchFromNotes(allNotes, searchStr)
       }
       if (location.pathname.match(/\/trashed/)) {
         displayedNotes = data.trashedSet.toJS().map(uniqueKey => data.noteMap.get(uniqueKey))
@@ -64,7 +64,7 @@ class Detail extends React.Component {
         )
       }
 
-      noteKeys = displayedNotes.map(note => note.key)
+      const noteKeys = displayedNotes.map(note => note.key)
       if (noteKeys.includes(noteKey)) {
         note = data.noteMap.get(noteKey)
       }

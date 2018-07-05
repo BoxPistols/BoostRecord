@@ -39,42 +39,29 @@ class Detail extends React.Component {
     const { location, data, params, config } = this.props
     let note = null
 
-    function differenceWithTrashed (notes) {
-      const trashedNotes = data.trashedSet.toJS().map(uniqueKey => data.noteMap.get(uniqueKey))
-      return _.differenceWith(notes, trashedNotes, (note, trashed) => note.key === trashed.key)
-    }
-
     if (location.query.key != null) {
       const noteKey = location.query.key
-      let displayedNotes = []
-
-      if (location.pathname.match(/\/home/) || location.pathname.match(/alltags/)) {
-        const allNotes = data.noteMap.map(note => note)
-        displayedNotes = differenceWithTrashed(allNotes)
-      }
-
-      if (location.pathname.match(/\/starred/)) {
-        displayedNotes = data.starredSet.toJS().map(uniqueKey => data.noteMap.get(uniqueKey))
-      }
+      const allNotes = data.noteMap.map(note => note)
+      const trashedNotes = data.trashedSet.toJS().map(uniqueKey => data.noteMap.get(uniqueKey))
+      let displayedNotes = allNotes
 
       if (location.pathname.match(/\/searched/)) {
         const searchStr = params.searchword
-        const allNotes = data.noteMap.map(note => note)
-        const searchedNotes = searchStr === undefined || searchStr === '' ? allNotes
+        displayedNotes = searchStr === undefined || searchStr === '' ? allNotes
           : searchFromNotes(allNotes, searchStr)
-        displayedNotes = differenceWithTrashed(searchedNotes)
-      }
-
-      if (location.pathname.match(/\/trashed/)) {
-        displayedNotes = data.trashedSet.toJS().map(uniqueKey => data.noteMap.get(uniqueKey))
       }
 
       if (location.pathname.match(/\/tags/)) {
         const listOfTags = params.tagname.split(' ')
-        const searchedNotes = data.noteMap.map(note => note).filter(note =>
+        displayedNotes = data.noteMap.map(note => note).filter(note =>
           listOfTags.every(tag => note.tags.includes(tag))
         )
-        displayedNotes = differenceWithTrashed(searchedNotes)
+      }
+
+      if (location.pathname.match(/\/trashed/)) {
+        displayedNotes = trashedNotes
+      } else {
+        displayedNotes = _.differenceWith(displayedNotes, trashedNotes, (note, trashed) => note.key === trashed.key)
       }
 
       const noteKeys = displayedNotes.map(note => note.key)

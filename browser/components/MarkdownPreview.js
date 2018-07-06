@@ -132,7 +132,15 @@ const scrollBarStyle = `
 }
 
 ::-webkit-scrollbar-thumb {
-  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+`
+const scrollBarDarkStyle = `
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.3);
 }
 `
@@ -301,6 +309,21 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
+  getScrollBarStyle () {
+    const {
+      theme
+    } = this.props
+
+    switch (theme) {
+      case 'dark':
+      case 'solarized-dark':
+      case 'monokai':
+        return scrollBarDarkStyle
+      default:
+        return scrollBarStyle
+    }
+  }
+
   componentDidMount () {
     this.refs.root.setAttribute('sandbox', 'allow-scripts')
     this.refs.root.contentWindow.document.body.addEventListener('contextmenu', this.contextMenuHandler)
@@ -310,7 +333,7 @@ export default class MarkdownPreview extends React.Component {
       <link rel="stylesheet" id="codeTheme">
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
       <style>
-        ${scrollBarStyle}
+        ${this.getScrollBarStyle()}
       </style>
     `
 

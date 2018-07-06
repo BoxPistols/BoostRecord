@@ -19,8 +19,7 @@ body
   width 12px
 
 ::-webkit-scrollbar-thumb
-  box-shadow inset 0 0 6px rgba(0, 0, 0, 0.3)
-  background-color rgba(0, 0, 0, 0.3)
+  background-color rgba(0, 0, 0, 0.15)
 
 button, input, select, textarea
   font-family DEFAULT_FONTS
@@ -95,6 +94,8 @@ modalBackColor = white
 
 
 body[data-theme="dark"]
+  ::-webkit-scrollbar-thumb
+    background-color rgba(0, 0, 0, 0.3)
   .ModalBase
     .modalBack
       background-color $ui-dark-backgroundColor
@@ -135,6 +136,8 @@ body[data-theme="dark"]
   z-index modalZIndex + 5
 
 body[data-theme="solarized-dark"]
+  ::-webkit-scrollbar-thumb
+    background-color rgba(0, 0, 0, 0.3)
   .ModalBase
     .modalBack
       background-color $ui-solarized-dark-backgroundColor
@@ -142,6 +145,8 @@ body[data-theme="solarized-dark"]
     color: $ui-solarized-dark-text-color
 
 body[data-theme="monokai"]
+  ::-webkit-scrollbar-thumb
+    background-color rgba(0, 0, 0, 0.3)
   .ModalBase
     .modalBack
       background-color $ui-monokai-backgroundColor

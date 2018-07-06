@@ -10,6 +10,9 @@ module.exports = function sanitizePlugin (md, options) {
       if (state.tokens[tokenIdx].type === 'html_block') {
         state.tokens[tokenIdx].content = sanitizeHtml(state.tokens[tokenIdx].content, options)
       }
+      if (state.tokens[tokenIdx].type === 'fence') {
+        state.tokens[tokenIdx].content = state.tokens[tokenIdx].content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      }
       if (state.tokens[tokenIdx].type === 'inline') {
         const inlineTokens = state.tokens[tokenIdx].children
         for (let childIdx = 0; childIdx < inlineTokens.length; childIdx++) {

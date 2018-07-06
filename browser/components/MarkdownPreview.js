@@ -131,6 +131,25 @@ body p {
 `
 }
 
+const scrollBarStyle = `
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+`
+const scrollBarDarkStyle = `
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+`
+
 const { shell } = require('electron')
 const OSX = global.process.platform === 'darwin'
 
@@ -295,6 +314,21 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
+  getScrollBarStyle () {
+    const {
+      theme
+    } = this.props
+
+    switch (theme) {
+      case 'dark':
+      case 'solarized-dark':
+      case 'monokai':
+        return scrollBarDarkStyle
+      default:
+        return scrollBarStyle
+    }
+  }
+
   componentDidMount () {
     this.refs.root.setAttribute('sandbox', 'allow-scripts')
     this.refs.root.contentWindow.document.body.addEventListener('contextmenu', this.contextMenuHandler)
@@ -303,6 +337,9 @@ export default class MarkdownPreview extends React.Component {
       <style id='style'></style>
       <link rel="stylesheet" id="codeTheme">
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <style>
+        ${this.getScrollBarStyle()}
+      </style>
     `
 
     CSS_FILES.forEach((file) => {

@@ -113,7 +113,12 @@ export default class CodeEditor extends React.Component {
       dragDrop: false,
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      autoCloseBrackets: true,
+      autoCloseBrackets: {
+        pairs: '()[]{}\'\'""$$**``',
+        triples: '```"""\'\'\'',
+        explode: '[]{}``$$',
+        override: true
+      },
       extraKeys: {
         Tab: function (cm) {
           const cursor = cm.getCursor()

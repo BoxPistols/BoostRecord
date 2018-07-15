@@ -169,6 +169,43 @@ it('should replace the all ":storage" path with the actual storage path', functi
   expect(actual).toEqual(expectedOutput)
 })
 
+it('should replace the ":storage" path with the actual storage path when they have different path separators', function () {
+  const storageFolder = systemUnderTest.DESTINATION_FOLDER
+  const testInput =
+    '<html>\n' +
+    '    <head>\n' +
+    '        //header\n' +
+    '    </head>\n' +
+    '    <body data-theme="default">\n' +
+    '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
+    '        <p data-line="2">\n' +
+    '            <img src=":storage' + mdurl.encode(path.win32.sep) + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
+    '        </p>\n' +
+    '        <p data-line="4">\n' +
+    '            <a href=":storage' + mdurl.encode(path.posix.sep) + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
+    '        </p>\n' +
+    '    </body>\n' +
+    '</html>'
+  const storagePath = '<<dummyStoragePath>>'
+  const expectedOutput =
+    '<html>\n' +
+    '    <head>\n' +
+    '        //header\n' +
+    '    </head>\n' +
+    '    <body data-theme="default">\n' +
+    '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
+    '        <p data-line="2">\n' +
+    '            <img src="file:///' + storagePath + path.sep + storageFolder + path.sep + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
+    '        </p>\n' +
+    '        <p data-line="4">\n' +
+    '            <a href="file:///' + storagePath + path.sep + storageFolder + path.sep + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
+    '        </p>\n' +
+    '    </body>\n' +
+    '</html>'
+  const actual = systemUnderTest.fixLocalURLS(testInput, storagePath)
+  expect(actual).toEqual(expectedOutput)
+})
+
 it('should test that generateAttachmentMarkdown works correct both with previews and without', function () {
   const fileName = 'fileName'
   const path = 'path'
@@ -201,6 +238,18 @@ it('should test that getAttachmentsInContent finds all attachments', function ()
     '</html>'
   const actual = systemUnderTest.getAttachmentsInContent(testInput)
   const expected = [':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.6r4zdgc22xp.png', ':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.q2i4iw0fyx.pdf', ':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + 'd6c5ee92.jpg']
+  expect(actual).toEqual(expect.arrayContaining(expected))
+})
+
+it('should test that getAttachmentsInMarkdownContent finds all attachments when they have different path separators', function () {
+  const testInput = '"# Test\n' +
+    '\n' +
+    '![Screenshot1](:storage' + path.win32.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.win32.sep + '0.3b88d0dc.png)\n' +
+    '![Screenshot2](:storage' + path.posix.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.posix.sep + '2cb8875c.pdf)\n' +
+    '![Screenshot3](:storage' + path.win32.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.posix.sep + 'bbf49b02.jpg)"'
+
+  const actual = systemUnderTest.getAttachmentsInMarkdownContent(testInput)
+  const expected = [':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.3b88d0dc.png', ':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '2cb8875c.pdf', ':storage' + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + 'bbf49b02.jpg']
   expect(actual).toEqual(expect.arrayContaining(expected))
 })
 

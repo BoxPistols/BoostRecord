@@ -452,7 +452,7 @@ export default class MarkdownPreview extends React.Component {
       })
     }
     const renderedHTML = this.markdown.render(value)
-    attachmentManagement.migrateAttachments(renderedHTML, storagePath, noteKey)
+    attachmentManagement.migrateAttachments(value, storagePath, noteKey)
     this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(renderedHTML, storagePath)
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('input[type="checkbox"]'), (el) => {

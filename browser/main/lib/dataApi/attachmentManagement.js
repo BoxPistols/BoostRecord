@@ -75,17 +75,15 @@ function createAttachmentDestinationFolder (destinationStoragePath, noteKey) {
   }
 }
 
-// TODO: This function does not have unit test. Is it working?
-// TODO: Can we rewrite it to use markdownContent instead of renderedHTML? That way we can keep one function
 /**
  * @description Moves attachments from the old location ('/images') to the new one ('/attachments/noteKey)
- * @param renderedHTML HTML of the current note
+ * @param markdownContent of the current note
  * @param storagePath Storage path of the current note
  * @param noteKey Key of the current note
  */
-function migrateAttachments (renderedHTML, storagePath, noteKey) {
+function migrateAttachments (markdownContent, storagePath, noteKey) {
   if (sander.existsSync(path.join(storagePath, 'images'))) {
-    const attachments = getAttachmentsInContent(renderedHTML) || []
+    const attachments = getAttachmentsInMarkdownContent(markdownContent) || []
     if (attachments !== []) {
       createAttachmentDestinationFolder(storagePath, noteKey)
     }
@@ -199,17 +197,6 @@ function handlePastImageEvent (codeEditor, storageKey, noteKey, dataTransferItem
 function getAttachmentsInMarkdownContent (markdownContent) {
   const preparedInput = markdownContent.replace(new RegExp('[' + PATH_SEPARATORS + ']', 'g'), path.sep)
   const regexp = new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + ')' + '?([a-zA-Z0-9]|-)*' + '(' + escapeStringRegexp(path.sep) + ')' + '([a-zA-Z0-9]|\\.)+(\\.[a-zA-Z0-9]+)?', 'g')
-  return preparedInput.match(regexp)
-}
-
-/**
- * @description Returns all attachment paths of the given renderedHTML
- * @param {String} renderedHTML content in which the attachment paths should be found
- * @returns {String[]} Array of the relative paths (starting with :storage) of the attachments of the given markdown
- */
-function getAttachmentsInContent (renderedHTML) {
-  const preparedInput = renderedHTML.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep)
-  const regexp = new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + '|/)' + '?([a-zA-Z0-9]|-)*' + '(' + escapeStringRegexp(path.sep) + '|/)' + '([a-zA-Z0-9]|\\.)+(\\.[a-zA-Z0-9]+)?', 'g')
   return preparedInput.match(regexp)
 }
 
@@ -426,7 +413,6 @@ module.exports = {
   generateAttachmentMarkdown,
   handleAttachmentDrop,
   handlePastImageEvent,
-  getAttachmentsInContent,
   getAttachmentsInMarkdownContent,
   getAbsolutePathsOfAttachmentsInContent,
   removeStorageAndNoteReferences,

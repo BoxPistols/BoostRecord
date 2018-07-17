@@ -7,6 +7,7 @@ import 'codemirror-mode-elixir'
 import consts from 'browser/lib/consts'
 import Raphael from 'raphael'
 import flowchart from 'flowchart'
+import mermaidRender from './render/MermaidRender'
 import SequenceDiagram from 'js-sequence-diagrams'
 import Chart from 'chart.js'
 import eventEmitter from 'browser/main/lib/eventEmitter'
@@ -131,6 +132,25 @@ body p {
 }
 `
 }
+
+const scrollBarStyle = `
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+`
+const scrollBarDarkStyle = `
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+`
 
 const { shell } = require('electron')
 const OSX = global.process.platform === 'darwin'
@@ -296,6 +316,21 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
+  getScrollBarStyle () {
+    const {
+      theme
+    } = this.props
+
+    switch (theme) {
+      case 'dark':
+      case 'solarized-dark':
+      case 'monokai':
+        return scrollBarDarkStyle
+      default:
+        return scrollBarStyle
+    }
+  }
+
   componentDidMount () {
     this.refs.root.setAttribute('sandbox', 'allow-scripts')
     this.refs.root.contentWindow.document.body.addEventListener('contextmenu', this.contextMenuHandler)
@@ -304,6 +339,9 @@ export default class MarkdownPreview extends React.Component {
       <style id='style'></style>
       <link rel="stylesheet" id="codeTheme">
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <style>
+        ${this.getScrollBarStyle()}
+      </style>
     `
 
     CSS_FILES.forEach((file) => {
@@ -498,20 +536,29 @@ export default class MarkdownPreview extends React.Component {
       }
     })
 
-    _.forEach(this.refs.root.contentWindow.document.querySelectorAll('.chart'), (el) => {
-      try {
-        const chartConfig = JSON.parse(el.innerHTML)
-        el.innerHTML = ''
-        var canvas = document.createElement('canvas')
-        el.appendChild(canvas)
-        /* eslint-disable no-new */
-        new Chart(canvas, chartConfig)
-      } catch (e) {
-        console.error(e)
-        el.className = 'chart-error'
-        el.innerHTML = 'chartjs diagram parse error: ' + e.message
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('.chart'),
+      (el) => {
+        try {
+          const chartConfig = JSON.parse(el.innerHTML)
+          el.innerHTML = ''
+          var canvas = document.createElement('canvas')
+          el.appendChild(canvas)
+          /* eslint-disable no-new */
+          new Chart(canvas, chartConfig)
+        } catch (e) {
+          console.error(e)
+          el.className = 'chart-error'
+          el.innerHTML = 'chartjs diagram parse error: ' + e.message
+        }
       }
-    })
+    )
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('.mermaid'),
+      (el) => {
+        mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML))
+      }
+    )
   }
 
   focus () {

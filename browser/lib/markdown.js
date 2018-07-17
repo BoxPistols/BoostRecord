@@ -43,6 +43,9 @@ class Markdown {
         if (langType === 'chart') {
           return `<pre class="chart">${str}</pre>`
         }
+        if (langType === 'mermaid') {
+          return `<pre class="mermaid">${str}</pre>`
+        }
         return '<pre class="code CodeMirror">' +
           '<span class="filename">' + fileName + '</span>' +
           createGutter(str, firstLineNumber) +

@@ -7,6 +7,7 @@ import 'codemirror-mode-elixir'
 import consts from 'browser/lib/consts'
 import Raphael from 'raphael'
 import flowchart from 'flowchart'
+import mermaidRender from './render/MermaidRender'
 import SequenceDiagram from 'js-sequence-diagrams'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
@@ -532,6 +533,10 @@ export default class MarkdownPreview extends React.Component {
         el.className = 'sequence-error'
         el.innerHTML = 'Sequence diagram parse error: ' + e.message
       }
+    })
+
+    _.forEach(this.refs.root.contentWindow.document.querySelectorAll('.mermaid'), (el) => {
+      mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML))
     })
   }
 

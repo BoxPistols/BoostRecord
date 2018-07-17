@@ -441,7 +441,7 @@ class SnippetNoteDetail extends React.Component {
           const isSuper = global.process.platform === 'darwin'
             ? e.metaKey
             : e.ctrlKey
-          if (isSuper) {
+          if (isSuper && !e.shiftKey) {
             e.preventDefault()
             this.addSnippet()
           }

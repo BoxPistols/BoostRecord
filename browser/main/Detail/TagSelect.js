@@ -5,6 +5,7 @@ import styles from './TagSelect.styl'
 import _ from 'lodash'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import i18n from 'browser/lib/i18n'
+import ee from 'browser/main/lib/eventEmitter'
 
 class TagSelect extends React.Component {
   constructor (props) {
@@ -13,14 +14,24 @@ class TagSelect extends React.Component {
     this.state = {
       newTag: ''
     }
+    this.addtagHandler = this.handleAddTag.bind(this)
   }
 
   componentDidMount () {
     this.value = this.props.value
+    ee.on('editor:add-tag', this.addtagHandler)
   }
 
   componentDidUpdate () {
     this.value = this.props.value
+  }
+
+  componentWillUnmount () {
+    ee.off('editor:add-tag', this.addtagHandler)
+  }
+
+  handleAddTag () {
+    this.refs.newTag.focus()
   }
 
   handleNewTagInputKeyDown (e) {

@@ -9,6 +9,7 @@ import Raphael from 'raphael'
 import flowchart from 'flowchart'
 import mermaidRender from './render/MermaidRender'
 import SequenceDiagram from 'js-sequence-diagrams'
+import Chart from 'chart.js'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import convertModeName from 'browser/lib/convertModeName'
@@ -535,9 +536,29 @@ export default class MarkdownPreview extends React.Component {
       }
     })
 
-    _.forEach(this.refs.root.contentWindow.document.querySelectorAll('.mermaid'), (el) => {
-      mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML))
-    })
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('.chart'),
+      (el) => {
+        try {
+          const chartConfig = JSON.parse(el.innerHTML)
+          el.innerHTML = ''
+          var canvas = document.createElement('canvas')
+          el.appendChild(canvas)
+          /* eslint-disable no-new */
+          new Chart(canvas, chartConfig)
+        } catch (e) {
+          console.error(e)
+          el.className = 'chart-error'
+          el.innerHTML = 'chartjs diagram parse error: ' + e.message
+        }
+      }
+    )
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('.mermaid'),
+      (el) => {
+        mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML))
+      }
+    )
   }
 
   focus () {

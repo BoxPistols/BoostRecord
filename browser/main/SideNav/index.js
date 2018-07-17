@@ -1,8 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
-const { remote } = require('electron')
-const { Menu } = remote
 import dataApi from 'browser/main/lib/dataApi'
 import styles from './SideNav.styl'
 import { openModal } from 'browser/main/lib/modal'
@@ -19,6 +17,7 @@ import ListButton from './ListButton'
 import TagButton from './TagButton'
 import {SortableContainer} from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
+import context from 'browser/lib/context'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
@@ -254,10 +253,9 @@ class SideNav extends React.Component {
   handleFilterButtonContextMenu (event) {
     const { data } = this.props
     const trashedNotes = data.trashedSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
-    const menu = Menu.buildFromTemplate([
+    context.popup([
       { label: i18n.__('Empty Trash'), click: () => this.emptyTrash(trashedNotes) }
     ])
-    menu.popup()
   }
 
   render () {

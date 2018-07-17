@@ -68,7 +68,7 @@ body
     padding 5px
     margin -5px
     border-radius 5px
-  .flowchart-error, .sequence-error
+  .flowchart-error, .sequence-error .chart-error
     background-color errorBackgroundColor
     color errorTextColor
     padding 5px
@@ -213,7 +213,7 @@ pre
   margin 0 0 1em
   display flex
   line-height 1.4em
-  &.flowchart, &.sequence
+  &.flowchart, &.sequence, &.chart
     display flex
     justify-content center
     background-color white
@@ -315,6 +315,8 @@ $admonition-icon
     position absolute
     left 1.2rem
     font-family: "Material Icons"
+    font-weight: normal;
+    font-style: normal;
     font-size: 24px
     display: inline-block;
     line-height: 1;
@@ -346,27 +348,27 @@ $admonition-title
     margin-bottom 0
 
 admonition_types = {
-    note: {border-color: #448aff, title-color: rgba(68,138,255,.1), icon: "note"},
-    hint: {border-color: #00bfa5, title-color: rgba(0,191,165,.1), icon: "info"},
-    danger: {border-color: #ff1744, title-color: rgba(255,23,68,.1), icon: "block"},
-    caution: {border-color: #ff9100, title-color: rgba(255,145,0,.1), icon: "warning"},
-    error: {border-color: #ff1744, title-color: rgba(255,23,68,.1), icon: "error"},
-    attention: {border-color: #64dd17, title-color: rgba(100,221,23,.1), icon: "priority_high"}
+    note: {color: #0288D1, icon: "note"},
+    hint: {color: #009688, icon: "info_outline"},
+    danger: {color: #c2185b, icon: "block"},
+    caution: {color: #ffa726, icon: "warning"},
+    error: {color: #d32f2f, icon: "error_outline"},
+    attention: {color: #455a64, icon: "priority_high"}
 }
 
 for name, val in admonition_types
     .admonition.{name}
         @extend $admonition
-        border-left-color: val[border-color]
+        border-left-color: val[color]
     
     .admonition.{name}>.admonition-title
         @extend $admonition-title
-        border-bottom-color: .1rem solid val[title-color]
-        background-color: val[title-color]
+        border-bottom-color: .1rem solid rgba(val[color], 0.2)
+        background-color: rgba(val[color], 0.2)
 
     .admonition.{name}>.admonition-title:before
         @extend $admonition-icon
-        color: val[border-color]
+        color: val[color]
         content: val[icon]
 
 themeDarkBackground = darken(#21252B, 10%)

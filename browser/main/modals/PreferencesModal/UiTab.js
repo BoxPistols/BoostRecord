@@ -11,6 +11,7 @@ import 'codemirror-mode-elixir'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
 import { getLanguages } from 'browser/lib/Languages'
+import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -164,7 +165,7 @@ class UiTab extends React.Component {
     const { config, codemirrorTheme } = this.state
     const codemirrorSampleCode = 'function iamHappy (happy) {\n\tif (happy) {\n\t  console.log("I am Happy!")\n\t} else {\n\t  console.log("I am not Happy!")\n\t}\n};'
     const enableEditRulersStyle = config.editor.enableRulers ? 'block' : 'none'
-    const customCSS = config.preview.customCSS
+    const fontFamily = normalizeEditorFontFamily(config.editor.fontFamily)
     return (
       <div styleName='root'>
         <div styleName='group'>
@@ -262,8 +263,16 @@ class UiTab extends React.Component {
                   })
                 }
               </select>
-              <div styleName='code-mirror'>
-                <ReactCodeMirror ref={e => (this.codeMirrorInstance = e)} value={codemirrorSampleCode} options={{ lineNumbers: true, readOnly: true, mode: 'javascript', theme: codemirrorTheme }} />
+              <div styleName='code-mirror' style={{fontFamily}}>
+                <ReactCodeMirror
+                  ref={e => (this.codeMirrorInstance = e)}
+                  value={codemirrorSampleCode}
+                  options={{
+                    lineNumbers: true,
+                    readOnly: true,
+                    mode: 'javascript',
+                    theme: codemirrorTheme
+                  }} />
               </div>
             </div>
           </div>
@@ -596,7 +605,19 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Allow custom CSS for preview')}
-              <ReactCodeMirror onChange={e => this.handleUIChange(e)} ref={e => (this.customCSSCM = e)} value={config.preview.customCSS} options={{ lineNumbers: true, mode: 'css', theme: codemirrorTheme }} />
+              <div style={{fontFamily}}>
+                <ReactCodeMirror
+                  width='400px'
+                  height='400px'
+                  onChange={e => this.handleUIChange(e)}
+                  ref={e => (this.customCSSCM = e)}
+                  value={config.preview.customCSS}
+                  options={{
+                    lineNumbers: true,
+                    mode: 'css',
+                    theme: codemirrorTheme
+                  }} />
+              </div>
             </div>
           </div>
 

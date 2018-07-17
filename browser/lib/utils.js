@@ -6,52 +6,64 @@ export function lastFindInArray (array, callback) {
   }
 }
 
-export function escapeHtmlCharacters (text) {
-  const matchHtmlRegExp = /["'&<>]/
-  const str = '' + text
-  const match = matchHtmlRegExp.exec(str)
+export function escapeHtmlCharacters (html, opt = { detectCodeBlock: false }) {
+  const matchHtmlRegExp = /["'&<>]/g
+  const escapes = ['&quot;', '&amp;', '&#39;', '&lt;', '&gt;']
+  let match = null
+  const replaceAt = (str, index, replace) =>
+    str.substr(0, index) +
+    replace +
+    str.substr(index + replace.length - (replace.length - 1))
 
-  if (!match) {
-    return str
-  }
-
-  let escape
-  let html = ''
-  let index = 0
-  let lastIndex = 0
-
-  for (index = match.index; index < str.length; index++) {
-    switch (str.charCodeAt(index)) {
-      case 34: // "
-        escape = '&quot;'
-        break
-      case 38: // &
-        escape = '&amp;'
-        break
-      case 39: // '
-        escape = '&#39;'
-        break
-      case 60: // <
-        escape = '&lt;'
-        break
-      case 62: // >
-        escape = '&gt;'
-        break
-      default:
+  // detecting code block
+  while ((match = matchHtmlRegExp.exec(html)) != null) {
+    const current = { char: match[0], index: match.index }
+    if (opt.detectCodeBlock) {
+      // position of the nearest line start
+      let previousLineEnd = current.index - 1
+      while (html[previousLineEnd] !== '\n' && previousLineEnd !== -1) {
+        previousLineEnd--
+      }
+      // 4 spaces means this character is in a code block
+      if (
+        html[previousLineEnd + 1] === ' ' &&
+        html[previousLineEnd + 2] === ' ' &&
+        html[previousLineEnd + 3] === ' ' &&
+        html[previousLineEnd + 4] === ' '
+      ) {
+        // so skip it
         continue
+      }
     }
-
-    if (lastIndex !== index) {
-      html += str.substring(lastIndex, index)
+    // otherwise, escape it !!!
+    if (current.char === '&') {
+      let nextStr = ''
+      let nextIndex = current.index
+      let escapedStr = false
+      // maximum length of an escape string is 5. For example ('&quot;')
+      while (nextStr.length <= 5) {
+        nextStr += html[nextIndex]
+        nextIndex++
+        if (escapes.indexOf(nextStr) !== -1) {
+          escapedStr = true
+          break
+        }
+      }
+      if (!escapedStr) {
+        // this & char is not a part of an escaped string
+        html = replaceAt(html, current.index, '&amp;')
+      }
+    } else if (current.char === '"') {
+      html = replaceAt(html, current.index, '&quot;')
+    } else if (current.char === "'") {
+      html = replaceAt(html, current.index, '&#39;')
+    } else if (current.char === '<') {
+      html = replaceAt(html, current.index, '&lt;')
+    } else if (current.char === '>') {
+      html = replaceAt(html, current.index, '&gt;')
     }
-
-    lastIndex = index + 1
-    html += escape
   }
-
-  return lastIndex !== index
-      ? html + str.substring(lastIndex, index)
-      : html
+  return html
 }
 
 export function isObjectEqual (a, b) {

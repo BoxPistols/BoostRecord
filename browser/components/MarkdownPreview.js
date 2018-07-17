@@ -7,7 +7,9 @@ import 'codemirror-mode-elixir'
 import consts from 'browser/lib/consts'
 import Raphael from 'raphael'
 import flowchart from 'flowchart'
+import mermaidRender from './render/MermaidRender'
 import SequenceDiagram from 'js-sequence-diagrams'
+import Chart from 'chart.js'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
 import convertModeName from 'browser/lib/convertModeName'
@@ -21,10 +23,12 @@ const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
 
 const { app } = remote
 const path = require('path')
+const fileUrl = require('file-url')
+
 const dialog = remote.dialog
 
 const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
-const appPath = 'file://' + (process.env.NODE_ENV === 'production'
+const appPath = fileUrl(process.env.NODE_ENV === 'production'
   ? app.getAppPath()
   : path.resolve())
 const CSS_FILES = [
@@ -129,6 +133,25 @@ body p {
 `
 }
 
+const scrollBarStyle = `
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+}
+`
+const scrollBarDarkStyle = `
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+`
+
 const { shell } = require('electron')
 const OSX = global.process.platform === 'darwin'
 
@@ -217,7 +240,7 @@ export default class MarkdownPreview extends React.Component {
       const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme, allowCustomCSS, customCSS} = this.getStyleParams()
 
       const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme, allowCustomCSS, customCSS)
-      let body = this.markdown.render(escapeHtmlCharacters(noteContent))
+      let body = this.markdown.render(escapeHtmlCharacters(noteContent, { detectCodeBlock: true }))
 
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
       const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(noteContent, this.props.storagePath)
@@ -293,6 +316,21 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
+  getScrollBarStyle () {
+    const {
+      theme
+    } = this.props
+
+    switch (theme) {
+      case 'dark':
+      case 'solarized-dark':
+      case 'monokai':
+        return scrollBarDarkStyle
+      default:
+        return scrollBarStyle
+    }
+  }
+
   componentDidMount () {
     this.refs.root.setAttribute('sandbox', 'allow-scripts')
     this.refs.root.contentWindow.document.body.addEventListener('contextmenu', this.contextMenuHandler)
@@ -301,6 +339,9 @@ export default class MarkdownPreview extends React.Component {
       <style id='style'></style>
       <link rel="stylesheet" id="codeTheme">
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+      <style>
+        ${this.getScrollBarStyle()}
+      </style>
     `
 
     CSS_FILES.forEach((file) => {
@@ -410,8 +451,8 @@ export default class MarkdownPreview extends React.Component {
         value = value.replace(codeBlock, htmlTextHelper.encodeEntities(codeBlock))
       })
     }
-    let renderedHTML = this.markdown.render(value)
-    attachmentManagement.migrateAttachments(renderedHTML, storagePath, noteKey)
+    const renderedHTML = this.markdown.render(value)
+    attachmentManagement.migrateAttachments(value, storagePath, noteKey)
     this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(renderedHTML, storagePath)
 
     _.forEach(this.refs.root.contentWindow.document.querySelectorAll('input[type="checkbox"]'), (el) => {
@@ -494,6 +535,30 @@ export default class MarkdownPreview extends React.Component {
         el.innerHTML = 'Sequence diagram parse error: ' + e.message
       }
     })
+
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('.chart'),
+      (el) => {
+        try {
+          const chartConfig = JSON.parse(el.innerHTML)
+          el.innerHTML = ''
+          var canvas = document.createElement('canvas')
+          el.appendChild(canvas)
+          /* eslint-disable no-new */
+          new Chart(canvas, chartConfig)
+        } catch (e) {
+          console.error(e)
+          el.className = 'chart-error'
+          el.innerHTML = 'chartjs diagram parse error: ' + e.message
+        }
+      }
+    )
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('.mermaid'),
+      (el) => {
+        mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML))
+      }
+    )
   }
 
   focus () {

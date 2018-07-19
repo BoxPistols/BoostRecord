@@ -4,20 +4,24 @@ const NodeTargetPlugin = require('webpack/lib/node/NodeTargetPlugin')
 
 var config = {
   entry: {
-    main: './browser/main/index.js'
+    main: ['./browser/main/index.js']
   },
   resolve: {
     extensions: ['', '.js', '.jsx', '.styl'],
-    packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main'],
+    packageMains: [
+      'webpack',
+      'browser',
+      'web',
+      'browserify',
+      ['jam', 'main'],
+      'main'
+    ],
     alias: {
-      'lib': path.join(__dirname, 'lib'),
-      'browser': path.join(__dirname, 'browser')
+      lib: path.join(__dirname, 'lib'),
+      browser: path.join(__dirname, 'browser')
     }
   },
-  plugins: [
-    new webpack.NoErrorsPlugin(),
-    new NodeTargetPlugin()
-  ],
+  plugins: [new webpack.NoErrorsPlugin(), new NodeTargetPlugin()],
   stylus: {
     use: [require('nib')()],
     import: [
@@ -43,14 +47,13 @@ var config = {
       react: 'var React',
       'react-dom': 'var ReactDOM',
       'react-redux': 'var ReactRedux',
-      'codemirror': 'var CodeMirror',
-      'redux': 'var Redux',
-      'raphael': 'var Raphael',
-      'flowchart': 'var flowchart',
+      codemirror: 'var CodeMirror',
+      redux: 'var Redux',
+      raphael: 'var Raphael',
+      flowchart: 'var flowchart',
       'sequence-diagram': 'var Diagram'
     }
   ]
 }
 
 module.exports = config
-

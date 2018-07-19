@@ -7,14 +7,12 @@
   "license": "GPL-3.0",
   "scripts": {
     "start": "electron ./index.js",
-    "hot": "electron ./index.js --hot",
-    "webpack": "webpack-dev-server --hot --inline --config webpack.config.js",
     "compile": "grunt compile",
     "test": "PWD=$(pwd) NODE_ENV=test ava --serial",
     "jest": "jest",
     "fix": "eslint . --fix",
     "lint": "eslint .",
-    "dev-start": "concurrently --kill-others \"npm run webpack\" \"npm run hot\""
+    "dev-start": "node dev-scripts/dev.js"
   },
   "config": {
     "electron-version": "2.0.3"
@@ -144,6 +142,7 @@
     "react-router": "^2.4.0",
     "react-router-redux": "^4.0.4",
     "react-test-renderer": "^15.6.2",
+    "signale": "^1.2.1",
     "standard": "^8.4.0",
     "style-loader": "^0.12.4",
     "stylus": "^0.52.4",

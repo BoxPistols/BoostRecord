@@ -1,5 +1,11 @@
 import mermaidAPI from 'mermaid'
 
+// fixes bad styling in the mermaid dark theme
+const darkThemeStyling = `
+.loopText tspan { 
+  fill: white; 
+}`
+
 function getRandomInt (min, max) {
   return Math.floor(Math.random() * (max - min)) + min
 }
@@ -13,8 +19,13 @@ function getId () {
   return id
 }
 
-function render (element, content) {
+function render (element, content, theme) {
   try {
+    let isDarkTheme = theme === "dark" || theme === "solarized-dark" || theme === "monokai"
+    mermaidAPI.initialize({
+      theme: isDarkTheme ? "dark" : "default",
+      themeCSS: isDarkTheme ? darkThemeStyling : ""
+    })
     mermaidAPI.render(getId(), content, (svgGraph) => {
       element.innerHTML = svgGraph
     })

@@ -21,10 +21,10 @@ function getId () {
 
 function render (element, content, theme) {
   try {
-    let isDarkTheme = theme === "dark" || theme === "solarized-dark" || theme === "monokai"
+    let isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai'
     mermaidAPI.initialize({
-      theme: isDarkTheme ? "dark" : "default",
-      themeCSS: isDarkTheme ? darkThemeStyling : ""
+      theme: isDarkTheme ? 'dark' : 'default',
+      themeCSS: isDarkTheme ? darkThemeStyling : ''
     })
     mermaidAPI.render(getId(), content, (svgGraph) => {
       element.innerHTML = svgGraph

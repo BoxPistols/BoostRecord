@@ -84,7 +84,7 @@ function createAttachmentDestinationFolder (destinationStoragePath, noteKey) {
 function migrateAttachments (markdownContent, storagePath, noteKey) {
   if (noteKey !== undefined && sander.existsSync(path.join(storagePath, 'images'))) {
     const attachments = getAttachmentsInMarkdownContent(markdownContent) || []
-    if (attachments !== []) {
+    if (attachments.length) {
       createAttachmentDestinationFolder(storagePath, noteKey)
     }
     for (const attachment of attachments) {

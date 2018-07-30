@@ -319,6 +319,21 @@ it('should remove the all ":storage" and noteKey references', function () {
   expect(actual).toEqual(expectedOutput)
 })
 
+it('should make sure that "removeStorageAndNoteReferences" works with markdown content as well', function () {
+  const noteKey = 'noteKey'
+  const testInput =
+    'Test input' +
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + noteKey + path.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + noteKey + path.sep + 'pdf.pdf](pdf})'
+
+  const expectedOutput =
+    'Test input' +
+    '![' + systemUnderTest.DESTINATION_FOLDER + path.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.DESTINATION_FOLDER + path.sep + 'pdf.pdf](pdf})'
+  const actual = systemUnderTest.removeStorageAndNoteReferences(testInput, noteKey)
+  expect(actual).toEqual(expectedOutput)
+})
+
 it('should delete the correct attachment folder if a note is deleted', function () {
   const dummyStorage = {path: 'dummyStoragePath'}
   const storageKey = 'storageKey'

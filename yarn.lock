@@ -5650,9 +5650,9 @@ map-visit@^1.0.0:
   dependencies:
     object-visit "^1.0.0"
 
-"markdown-it-admonition@https://github.com/johannbre/markdown-it-admonition.git":
-  version "1.0.2"
-  resolved "https://github.com/johannbre/markdown-it-admonition.git#e0c0fcd59e9119d6d60ed209aa3d0f1177ec0166"
+markdown-it-admonition@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/markdown-it-admonition/-/markdown-it-admonition-1.0.4.tgz#d7bbc7eb1fe6168fc8cc304de7a9d8c993acb2f5"
 
 markdown-it-emoji@^1.1.1:
   version "1.4.0"

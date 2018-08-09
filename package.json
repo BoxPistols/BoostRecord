@@ -12,7 +12,7 @@
     "jest": "jest",
     "fix": "eslint . --fix",
     "lint": "eslint .",
-    "dev-start": "node dev-scripts/dev.js"
+    "dev": "node dev-scripts/dev.js"
   },
   "config": {
     "electron-version": "2.0.3"

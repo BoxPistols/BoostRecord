@@ -232,7 +232,20 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsMd () {
-    this.exportAsDocument('md')
+    this.exportAsDocument('md', (noteContent, exportTasks) => {
+      let result = noteContent
+      if (this.props && this.props.storagePath && this.props.noteKey) {
+        const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(noteContent, this.props.storagePath)
+        attachmentsAbsolutePaths.forEach((attachment) => {
+          exportTasks.push({
+            src: attachment,
+            dst: attachmentManagement.DESTINATION_FOLDER
+          })
+        })
+        result = attachmentManagement.removeStorageAndNoteReferences(noteContent, this.props.noteKey)
+      }
+      return result
+    })
   }
 
   handleSaveAsHtml () {

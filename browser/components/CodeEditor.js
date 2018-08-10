@@ -14,6 +14,8 @@ import consts from 'browser/lib/consts'
 import fs from 'fs'
 const { ipcRenderer } = require('electron')
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
+import TurndownService from 'turndown'
+import { gfm } from 'turndown-plugin-gfm'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -52,6 +54,9 @@ export default class CodeEditor extends React.Component {
     this.searchState = null
 
     this.formatTable = () => this.handleFormatTable()
+
+    this.turndownService = new TurndownService()
+    this.turndownService.use(gfm)
   }
 
   handleSearch (msg) {
@@ -406,6 +411,12 @@ export default class CodeEditor extends React.Component {
       )
       return prevChar === '](' && nextChar === ')'
     }
+
+    const pastedHtml = clipboardData.getData('text/html')
+    if (pastedHtml !== '') {
+      this.handlePasteHtml(e, editor, pastedHtml)
+    }
+
     if (dataTransferItem.type.match('image')) {
       attachmentManagement.handlePastImageEvent(this, storageKey, noteKey, dataTransferItem)
     } else if (this.props.fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
@@ -457,6 +468,12 @@ export default class CodeEditor extends React.Component {
     }).catch((e) => {
       replaceTaggedUrl(pastedTxt)
     })
+  }
+
+  handlePasteHtml (e, editor, pastedHtml) {
+    e.preventDefault()
+    const markdown = this.turndownService.turndown(pastedHtml)
+    editor.replaceSelection(markdown)
   }
 
   mapNormalResponse (response, pastedTxt) {

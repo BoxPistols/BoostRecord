@@ -415,9 +415,7 @@ export default class CodeEditor extends React.Component {
     const pastedHtml = clipboardData.getData('text/html')
     if (pastedHtml !== '') {
       this.handlePasteHtml(e, editor, pastedHtml)
-    }
-
-    if (dataTransferItem.type.match('image')) {
+    } else if (dataTransferItem.type.match('image')) {
       attachmentManagement.handlePastImageEvent(this, storageKey, noteKey, dataTransferItem)
     } else if (this.props.fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
       this.handlePasteUrl(e, editor, pastedTxt)

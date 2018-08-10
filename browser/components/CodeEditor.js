@@ -5,23 +5,18 @@ import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
 import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import convertModeName from 'browser/lib/convertModeName'
+import { options, TableEditor } from '@susisu/mte-kernel'
+import TextEditorInterface from 'browser/lib/TextEditorInterface'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
 import crypto from 'crypto'
 import consts from 'browser/lib/consts'
 import fs from 'fs'
 const { ipcRenderer } = require('electron')
+import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
-const defaultEditorFontFamily = [
-  'Monaco',
-  'Menlo',
-  'Ubuntu Mono',
-  'Consolas',
-  'source-code-pro',
-  'monospace'
-]
 const buildCMRulers = (rulers, enableRulers) =>
   (enableRulers ? rulers.map(ruler => ({ column: ruler })) : [])
 
@@ -63,6 +58,8 @@ export default class CodeEditor extends React.Component {
     }
     this.searchHandler = (e, msg) => this.handleSearch(msg)
     this.searchState = null
+
+    this.formatTable = () => this.handleFormatTable()
   }
 
   handleSearch (msg) {
@@ -97,6 +94,10 @@ export default class CodeEditor extends React.Component {
         }
       }
     })
+  }
+
+  handleFormatTable () {
+    this.tableEditor.formatAll(options({textWidthOptions: {}}))
   }
 
   componentDidMount () {
@@ -135,7 +136,12 @@ export default class CodeEditor extends React.Component {
       dragDrop: false,
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      autoCloseBrackets: true,
+      autoCloseBrackets: {
+        pairs: '()[]{}\'\'""$$**``',
+        triples: '```"""\'\'\'',
+        explode: '[]{}``$$',
+        override: true
+      },
       extraKeys: {
         Tab: function (cm) {
           const cursor = cm.getCursor()
@@ -210,6 +216,8 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
     this.setState({ isReady: true })
+    this.tableEditor = new TableEditor(new TextEditorInterface(this.editor))
+    eventEmitter.on('code:format-table', this.formatTable)
   }
 
   expandSnippet (line, cursor, cm, snippets) {
@@ -299,6 +307,8 @@ export default class CodeEditor extends React.Component {
     this.editor.off('scroll', this.scrollHandler)
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
+
+    eventEmitter.off('code:format-table', this.formatTable)
   }
 
   componentDidUpdate (prevProps, prevState) {
@@ -561,11 +571,8 @@ export default class CodeEditor extends React.Component {
   }
 
   render () {
-    const { className, fontSize } = this.props
-    let fontFamily = this.props.fontFamily
-    fontFamily = _.isString(fontFamily) && fontFamily.length > 0
-      ? [fontFamily].concat(defaultEditorFontFamily)
-      : defaultEditorFontFamily
+    const {className, fontSize} = this.props
+    const fontFamily = normalizeEditorFontFamily(this.props.fontFamily)
     const width = this.props.width
     return (
       <div
@@ -573,7 +580,7 @@ export default class CodeEditor extends React.Component {
         ref='root'
         tabIndex='-1'
         style={{
-          fontFamily: fontFamily.join(', '),
+          fontFamily,
           fontSize: fontSize,
           width: width,
           opacity: this.state.isReady ? '1' : '0'

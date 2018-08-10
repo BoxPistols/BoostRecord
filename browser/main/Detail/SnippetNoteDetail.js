@@ -32,7 +32,7 @@ import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 
 const electron = require('electron')
 const { remote } = electron
-const { Menu, MenuItem, dialog } = remote
+const { dialog } = remote
 
 class SnippetNoteDetail extends React.Component {
   constructor (props) {
@@ -441,7 +441,7 @@ class SnippetNoteDetail extends React.Component {
           const isSuper = global.process.platform === 'darwin'
             ? e.metaKey
             : e.ctrlKey
-          if (isSuper) {
+          if (isSuper && !e.shiftKey) {
             e.preventDefault()
             this.addSnippet()
           }
@@ -451,14 +451,14 @@ class SnippetNoteDetail extends React.Component {
   }
 
   handleModeButtonClick (e, index) {
-    const menu = new Menu()
+    const templetes = []
     CodeMirror.modeInfo.sort(function (a, b) { return a.name.localeCompare(b.name) }).forEach((mode) => {
-      menu.append(new MenuItem({
+      templetes.push({
         label: mode.name,
         click: (e) => this.handleModeOptionClick(index, mode.name)(e)
-      }))
+      })
     })
-    menu.popup(remote.getCurrentWindow())
+    context.popup(templetes)
   }
 
   handleIndentTypeButtonClick (e) {

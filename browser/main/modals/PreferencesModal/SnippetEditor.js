@@ -27,7 +27,12 @@ class SnippetEditor extends React.Component {
       dragDrop: false,
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      autoCloseBrackets: true,
+      autoCloseBrackets: {
+        pairs: '()[]{}\'\'""$$**``',
+        triples: '```"""\'\'\'',
+        explode: '[]{}``$$',
+        override: true
+      },
       mode: 'null'
     })
     this.cm.setSize('100%', '100%')

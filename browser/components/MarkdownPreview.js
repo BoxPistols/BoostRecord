@@ -706,7 +706,7 @@ export default class MarkdownPreview extends React.Component {
           el.className = 'sequence-error'
           el.innerHTML = 'Sequence diagram parse error: ' + e.message
         }
-      }
+      
     })
 
     _.forEach(

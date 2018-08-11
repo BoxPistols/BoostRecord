@@ -418,10 +418,10 @@ class NoteList extends React.Component {
   }
 
   handleSortByChange (e) {
-    const { dispatch } = this.props
+    const { dispatch, params: { folderKey } } = this.props
 
     const config = {
-      sortBy: e.target.value
+      [folderKey]: { sortBy: e.target.value }
     }
 
     ConfigManager.set(config)
@@ -909,12 +909,12 @@ class NoteList extends React.Component {
   }
 
   render () {
-    const { location, config } = this.props
+    const { location, config, params: { folderKey } } = this.props
     let { notes } = this.props
     const { selectedNoteKeys } = this.state
-    const sortFunc = config.sortBy === 'CREATED_AT'
+    const sortFunc = _.get(config, [folderKey, 'sortBy']) === 'CREATED_AT'
       ? sortByCreatedAt
-      : config.sortBy === 'ALPHABETICAL'
+      : _.get(config, [folderKey, 'sortBy']) === 'ALPHABETICAL'
       ? sortByAlphabetical
       : sortByUpdatedAt
     const sortedNotes = location.pathname.match(/\/starred|\/trash/)
@@ -965,7 +965,7 @@ class NoteList extends React.Component {
           notes.length === 1 ||
           (autoSelectFirst && index === 0)
         const dateDisplay = moment(
-          config.sortBy === 'CREATED_AT'
+          _.get(config, [folderKey, 'sortBy']) === 'CREATED_AT'
             ? note.createdAt : note.updatedAt
         ).fromNow('D')
 
@@ -1014,7 +1014,7 @@ class NoteList extends React.Component {
             <i className='fa fa-angle-down' />
             <select styleName='control-sortBy-select'
               title={i18n.__('Select filter mode')}
-              value={config.sortBy}
+              value={_.get(config, [folderKey, 'sortBy'])}
               onChange={(e) => this.handleSortByChange(e)}
             >
               <option title='Sort by update time' value='UPDATED_AT'>{i18n.__('Updated')}</option>

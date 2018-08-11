@@ -28,9 +28,9 @@ const fileUrl = require('file-url')
 const dialog = remote.dialog
 
 const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
-const appPath = fileUrl(process.env.NODE_ENV === 'production'
-  ? app.getAppPath()
-  : path.resolve())
+const appPath = fileUrl(
+  process.env.NODE_ENV === 'production' ? app.getAppPath() : path.resolve()
+)
 const CSS_FILES = [
   `${appPath}/node_modules/katex/dist/katex.min.css`,
   `${appPath}/node_modules/codemirror/lib/codemirror.css`
@@ -256,14 +256,20 @@ export default class MarkdownPreview extends React.Component {
     this.exportAsDocument('md', (noteContent, exportTasks) => {
       let result = noteContent
       if (this.props && this.props.storagePath && this.props.noteKey) {
-        const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(noteContent, this.props.storagePath)
-        attachmentsAbsolutePaths.forEach((attachment) => {
+        const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
+          noteContent,
+          this.props.storagePath
+        )
+        attachmentsAbsolutePaths.forEach(attachment => {
           exportTasks.push({
             src: attachment,
             dst: attachmentManagement.DESTINATION_FOLDER
           })
         })
-        result = attachmentManagement.removeStorageAndNoteReferences(noteContent, this.props.noteKey)
+        result = attachmentManagement.removeStorageAndNoteReferences(
+          noteContent,
+          this.props.noteKey
+        )
       }
       return result
     })
@@ -271,19 +277,38 @@ export default class MarkdownPreview extends React.Component {
 
   handleSaveAsHtml () {
     this.exportAsDocument('html', (noteContent, exportTasks) => {
+      const {
+        fontFamily,
+        fontSize,
+        codeBlockFontFamily,
+        lineNumber,
+        codeBlockTheme,
+        scrollPastEnd,
+        theme,
+        allowCustomCSS,
+        customCSS
+      } = this.getStyleParams()
 
-      const {fontFamily, fontSize, codeBlockFontFamily, lineNumber, codeBlockTheme, scrollPastEnd, theme, allowCustomCSS, customCSS} = this.getStyleParams()
-
-      const inlineStyles = buildStyle(fontFamily, fontSize, codeBlockFontFamily, lineNumber, scrollPastEnd, theme, allowCustomCSS, customCSS)
-      let body = this.markdown.render(escapeHtmlCharacters(noteContent, { detectCodeBlock: true }))
+      const inlineStyles = buildStyle(
+        fontFamily,
+        fontSize,
+        codeBlockFontFamily,
+        lineNumber,
+        scrollPastEnd,
+        theme,
+        allowCustomCSS,
+        customCSS
+      )
+      let body = this.markdown.render(
+        escapeHtmlCharacters(noteContent, { detectCodeBlock: true })
+      )
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
       const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
         noteContent,
         this.props.storagePath
       )
 
-
-      files.forEach((file) => {
+      files.forEach(file => {
         if (global.process.platform === 'win32') {
           file = file.replace('file:///', '')
         } else {
@@ -368,9 +393,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   getScrollBarStyle () {
-    const {
-      theme
-    } = this.props
+    const { theme } = this.props
 
     switch (theme) {
       case 'dark':
@@ -605,7 +628,10 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.body.setAttribute('data-theme', theme)
     const renderedHTML = this.markdown.render(value)
     attachmentManagement.migrateAttachments(value, storagePath, noteKey)
-    this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(renderedHTML, storagePath)
+    this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(
+      renderedHTML,
+      storagePath
+    )
     _.forEach(
       this.refs.root.contentWindow.document.querySelectorAll(
         'input[type="checkbox"]'
@@ -706,12 +732,12 @@ export default class MarkdownPreview extends React.Component {
           el.className = 'sequence-error'
           el.innerHTML = 'Sequence diagram parse error: ' + e.message
         }
-      
-    })
+      }
+    )
 
     _.forEach(
       this.refs.root.contentWindow.document.querySelectorAll('.chart'),
-      (el) => {
+      el => {
         try {
           const chartConfig = JSON.parse(el.innerHTML)
           el.innerHTML = ''
@@ -728,7 +754,7 @@ export default class MarkdownPreview extends React.Component {
     )
     _.forEach(
       this.refs.root.contentWindow.document.querySelectorAll('.mermaid'),
-      (el) => {
+      el => {
         mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML), theme)
       }
     )

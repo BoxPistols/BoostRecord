@@ -98,10 +98,10 @@ class SnippetNoteDetail extends React.Component {
   }
 
   handleGenerateToc () {
-    let currentMode = this.state.note.snippets[this.state.snippetIndex].mode
+    const currentMode = this.state.note.snippets[this.state.snippetIndex].mode
     if (currentMode.includes('Markdown')) {
-      let currentValue = this.refs['code-' + this.state.snippetIndex].value
-      let currentEditor = this.refs['code-' + this.state.snippetIndex].refs.code.editor
+      const currentValue = this.refs['code-' + this.state.snippetIndex].value
+      const currentEditor = this.refs['code-' + this.state.snippetIndex].refs.code.editor
       markdownToc.generate(currentValue, (modifiedValue) => { currentEditor.setValue(modifiedValue) })
     }
   }

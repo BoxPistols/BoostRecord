@@ -912,9 +912,10 @@ class NoteList extends React.Component {
     const { location, config, params: { folderKey } } = this.props
     let { notes } = this.props
     const { selectedNoteKeys } = this.state
-    const sortFunc = _.get(config, [folderKey, 'sortBy']) === 'CREATED_AT'
+    const sortBy = _.get(config, [folderKey, 'sortBy'], config.sortBy)
+    const sortFunc = sortBy === 'CREATED_AT'
       ? sortByCreatedAt
-      : _.get(config, [folderKey, 'sortBy']) === 'ALPHABETICAL'
+      : sortBy === 'ALPHABETICAL'
       ? sortByAlphabetical
       : sortByUpdatedAt
     const sortedNotes = location.pathname.match(/\/starred|\/trash/)
@@ -965,7 +966,7 @@ class NoteList extends React.Component {
           notes.length === 1 ||
           (autoSelectFirst && index === 0)
         const dateDisplay = moment(
-          _.get(config, [folderKey, 'sortBy']) === 'CREATED_AT'
+          sortBy === 'CREATED_AT'
             ? note.createdAt : note.updatedAt
         ).fromNow('D')
 
@@ -1014,7 +1015,7 @@ class NoteList extends React.Component {
             <i className='fa fa-angle-down' />
             <select styleName='control-sortBy-select'
               title={i18n.__('Select filter mode')}
-              value={_.get(config, [folderKey, 'sortBy'])}
+              value={sortBy}
               onChange={(e) => this.handleSortByChange(e)}
             >
               <option title='Sort by update time' value='UPDATED_AT'>{i18n.__('Updated')}</option>

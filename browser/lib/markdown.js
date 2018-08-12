@@ -40,6 +40,12 @@ class Markdown {
         if (langType === 'sequence') {
           return `<pre class="sequence">${str}</pre>`
         }
+        if (langType === 'chart') {
+          return `<pre class="chart">${str}</pre>`
+        }
+        if (langType === 'mermaid') {
+          return `<pre class="mermaid">${str}</pre>`
+        }
         return '<pre class="code CodeMirror">' +
           '<span class="filename">' + fileName + '</span>' +
           createGutter(str, firstLineNumber) +
@@ -157,6 +163,22 @@ class Markdown {
       }
     })
 
+    // Ditaa support
+    this.md.use(require('markdown-it-plantuml'), {
+      openMarker: '@startditaa',
+      closeMarker: '@endditaa',
+      generateSource: function (umlCode) {
+        const stripTrailingSlash = (url) => url.endsWith('/') ? url.slice(0, -1) : url
+        // Currently PlantUML server doesn't support Ditaa in SVG, so we set the format as PNG at the moment.
+        const serverAddress = stripTrailingSlash(config.preview.plantUMLServerAddress) + '/png'
+        const s = unescape(encodeURIComponent(umlCode))
+        const zippedCode = deflate.encode64(
+          deflate.zip_deflate(`@startditaa\n${s}\n@endditaa`, 9)
+        )
+        return `${serverAddress}/${zippedCode}`
+      }
+    })
+
     // Override task item
     this.md.block.ruler.at('paragraph', function (state, startLine/*, endLine */) {
       let content, terminate, i, l, token
@@ -245,4 +267,3 @@ class Markdown {
 }
 
 export default Markdown
-

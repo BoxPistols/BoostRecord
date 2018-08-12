@@ -5,6 +5,8 @@ import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
 import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import convertModeName from 'browser/lib/convertModeName'
+import { options, TableEditor } from '@susisu/mte-kernel'
+import TextEditorInterface from 'browser/lib/TextEditorInterface'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
 import crypto from 'crypto'
@@ -48,6 +50,8 @@ export default class CodeEditor extends React.Component {
     }
     this.searchHandler = (e, msg) => this.handleSearch(msg)
     this.searchState = null
+
+    this.formatTable = () => this.handleFormatTable()
   }
 
   handleSearch (msg) {
@@ -79,6 +83,10 @@ export default class CodeEditor extends React.Component {
         }
       }
     })
+  }
+
+  handleFormatTable () {
+    this.tableEditor.formatAll(options({textWidthOptions: {}}))
   }
 
   componentDidMount () {
@@ -113,7 +121,12 @@ export default class CodeEditor extends React.Component {
       dragDrop: false,
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      autoCloseBrackets: true,
+      autoCloseBrackets: {
+        pairs: '()[]{}\'\'""$$**``',
+        triples: '```"""\'\'\'',
+        explode: '[]{}``$$',
+        override: true
+      },
       extraKeys: {
         Tab: function (cm) {
           const cursor = cm.getCursor()
@@ -182,6 +195,9 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
+
+    this.tableEditor = new TableEditor(new TextEditorInterface(this.editor))
+    eventEmitter.on('code:format-table', this.formatTable)
   }
 
   expandSnippet (line, cursor, cm, snippets) {
@@ -264,6 +280,8 @@ export default class CodeEditor extends React.Component {
     this.editor.off('scroll', this.scrollHandler)
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
+
+    eventEmitter.off('code:format-table', this.formatTable)
   }
 
   componentDidUpdate (prevProps, prevState) {

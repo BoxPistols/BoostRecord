@@ -912,7 +912,7 @@ class NoteList extends React.Component {
     const { location, config, params: { folderKey } } = this.props
     let { notes } = this.props
     const { selectedNoteKeys } = this.state
-    const sortBy = _.get(config, [folderKey, 'sortBy'], config.sortBy)
+    const sortBy = _.get(config, [folderKey, 'sortBy'], config.sortBy.default)
     const sortFunc = sortBy === 'CREATED_AT'
       ? sortByCreatedAt
       : sortBy === 'ALPHABETICAL'

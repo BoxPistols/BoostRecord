@@ -984,6 +984,7 @@ class NoteList extends React.Component {
               folderName={this.getNoteFolder(note).name}
               storageName={this.getNoteStorage(note).name}
               viewType={viewType}
+              showTagsAlphabetically={config.ui.showTagsAlphabetically}
             />
           )
         }

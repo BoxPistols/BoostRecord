@@ -70,6 +70,8 @@ class UiTab extends React.Component {
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
         showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
+        showTagsAlphabetically: this.refs.showTagsAlphabetically.checked,
+        enableLiveNoteCounts: this.refs.enableLiveNoteCounts.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
           : false
@@ -172,7 +174,9 @@ class UiTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Interface')}</div>
 
           <div styleName='group-section'>
-            {i18n.__('Interface Theme')}
+            <div styleName='group-section-label'>
+              {i18n.__('Interface Theme')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.theme}
                 onChange={(e) => this.handleUIChange(e)}
@@ -188,7 +192,9 @@ class UiTab extends React.Component {
           </div>
 
           <div styleName='group-section'>
-            {i18n.__('Language')}
+            <div styleName='group-section-label'>
+              {i18n.__('Language')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.language}
                 onChange={(e) => this.handleUIChange(e)}
@@ -221,16 +227,6 @@ class UiTab extends React.Component {
               {i18n.__('Show a confirmation dialog when deleting notes')}
             </label>
           </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input onChange={(e) => this.handleUIChange(e)}
-                checked={this.state.config.ui.showOnlyRelatedTags}
-                ref='showOnlyRelatedTags'
-                type='checkbox'
-              />&nbsp;
-              {i18n.__('Show only related tags')}
-            </label>
-          </div>
           {
             global.process.platform === 'win32'
             ? <div styleName='group-checkBoxSection'>
@@ -246,6 +242,41 @@ class UiTab extends React.Component {
             </div>
             : null
           }
+          <div styleName='group-header2'>Tags</div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showTagsAlphabetically}
+                ref='showTagsAlphabetically'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Show tags of a note in alphabetical order')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showOnlyRelatedTags}
+                ref='showOnlyRelatedTags'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Show only related tags')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.enableLiveNoteCounts}
+                ref='enableLiveNoteCounts'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable live count of notes')}
+            </label>
+          </div>
+
           <div styleName='group-header2'>Editor</div>
 
           <div styleName='group-section'>

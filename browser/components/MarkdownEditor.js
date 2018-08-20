@@ -235,7 +235,7 @@ class MarkdownEditor extends React.Component {
     if (this.props.ignorePreviewPointerEvents) previewStyle.pointerEvents = 'none'
 
     const storage = findStorage(storageKey)
-
+    
     return (
       <div className={className == null
           ? 'MarkdownEditor'
@@ -266,6 +266,7 @@ class MarkdownEditor extends React.Component {
           storageKey={storageKey}
           noteKey={noteKey}
           fetchUrlTitle={config.editor.fetchUrlTitle}
+          enableTableEditor={config.editor.enableTableEditor}
           onChange={(e) => this.handleChange(e)}
           onBlur={(e) => this.handleBlur(e)}
         />

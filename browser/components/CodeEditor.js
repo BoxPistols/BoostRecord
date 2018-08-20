@@ -141,61 +141,9 @@ export default class CodeEditor extends React.Component {
         triples: '```"""\'\'\'',
         explode: '[]{}``$$',
         override: true
-      },
-      extraKeys: {
-        Tab: function (cm) {
-          const cursor = cm.getCursor()
-          const line = cm.getLine(cursor.line)
-          const cursorPosition = cursor.ch
-          const charBeforeCursor = line.substr(cursorPosition - 1, 1)
-          if (cm.somethingSelected()) cm.indentSelection('add')
-          else {
-            const tabs = cm.getOption('indentWithTabs')
-            if (line.trimLeft().match(/^(-|\*|\+) (\[( |x)] )?$/)) {
-              cm.execCommand('goLineStart')
-              if (tabs) {
-                cm.execCommand('insertTab')
-              } else {
-                cm.execCommand('insertSoftTab')
-              }
-              cm.execCommand('goLineEnd')
-            } else if (
-              !charBeforeCursor.match(/\t|\s|\r|\n/) &&
-              cursor.ch > 1
-            ) {
-              // text expansion on tab key if the char before is alphabet
-              const snippets = JSON.parse(
-                fs.readFileSync(consts.SNIPPET_FILE, 'utf8')
-              )
-              if (expandSnippet(line, cursor, cm, snippets) === false) {
-                if (tabs) {
-                  cm.execCommand('insertTab')
-                } else {
-                  cm.execCommand('insertSoftTab')
-                }
-              }
-            } else {
-              if (tabs) {
-                cm.execCommand('insertTab')
-              } else {
-                cm.execCommand('insertSoftTab')
-              }
-            }
-          }
-        },
-        'Cmd-T': function (cm) {
-          // Do nothing
-        },
-        Enter: 'boostNewLineAndIndentContinueMarkdownList',
-        'Ctrl-C': cm => {
-          if (cm.getOption('keyMap').substr(0, 3) === 'vim') {
-            document.execCommand('copy')
-          }
-          return CodeMirror.Pass
-        }
       }
     })
-
+    
     this.setMode(this.props.mode)
 
     this.editor.on('focus', this.focusHandler)
@@ -216,8 +164,135 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
     this.setState({ isReady: true })
-    this.tableEditor = new TableEditor(new TextEditorInterface(this.editor))
+    
+    const editorIntf = new TextEditorInterface(this.editor)
+    this.tableEditor = new TableEditor(editorIntf)
     eventEmitter.on('code:format-table', this.formatTable)
+    
+    const defaultKeyMap = CodeMirror.normalizeKeyMap({
+      Tab: function (cm) {
+        const cursor = cm.getCursor()
+        const line = cm.getLine(cursor.line)
+        const cursorPosition = cursor.ch
+        const charBeforeCursor = line.substr(cursorPosition - 1, 1)
+        if (cm.somethingSelected()) cm.indentSelection('add')
+        else {
+          const tabs = cm.getOption('indentWithTabs')
+          if (line.trimLeft().match(/^(-|\*|\+) (\[( |x)] )?$/)) {
+            cm.execCommand('goLineStart')
+            if (tabs) {
+              cm.execCommand('insertTab')
+            } else {
+              cm.execCommand('insertSoftTab')
+            }
+            cm.execCommand('goLineEnd')
+          } else if (
+            !charBeforeCursor.match(/\t|\s|\r|\n/) &&
+            cursor.ch > 1
+          ) {
+            // text expansion on tab key if the char before is alphabet
+            const snippets = JSON.parse(
+              fs.readFileSync(consts.SNIPPET_FILE, 'utf8')
+            )
+            if (expandSnippet(line, cursor, cm, snippets) === false) {
+              if (tabs) {
+                cm.execCommand('insertTab')
+              } else {
+                cm.execCommand('insertSoftTab')
+              }
+            }
+          } else {
+            if (tabs) {
+              cm.execCommand('insertTab')
+            } else {
+              cm.execCommand('insertSoftTab')
+            }
+          }
+        }
+      },
+      'Cmd-T': function (cm) {
+        // Do nothing
+      },
+      Enter: 'boostNewLineAndIndentContinueMarkdownList',
+      'Ctrl-C': cm => {
+        if (cm.getOption('keyMap').substr(0, 3) === 'vim') {
+          document.execCommand('copy')
+        }
+        return CodeMirror.Pass
+      }
+    })
+    
+    if(this.props.enableTableEditor) {
+      const opts = options({
+        smartCursor: true
+      })
+      
+      const editorKeyMap = CodeMirror.normalizeKeyMap({
+        'Tab'                 : () => { this.tableEditor.nextCell(opts) },
+        'Shift-Tab'           : () => { this.tableEditor.previousCell(opts) },
+        'Enter'               : () => { this.tableEditor.nextRow(opts) },
+        'Ctrl-Enter'          : () => { this.tableEditor.escape(opts) },
+        'Cmd-Enter'           : () => { this.tableEditor.escape(opts) },
+        'Shift-Ctrl-Left'     : () => { this.tableEditor.alignColumn(Alignment.LEFT, opts) },
+        'Shift-Cmd-Left'      : () => { this.tableEditor.alignColumn(Alignment.LEFT, opts) },
+        'Shift-Ctrl-Right'    : () => { this.tableEditor.alignColumn(Alignment.RIGHT, opts) },
+        'Shift-Cmd-Right'     : () => { this.tableEditor.alignColumn(Alignment.RIGHT, opts) },
+        'Shift-Ctrl-Up'       : () => { this.tableEditor.alignColumn(Alignment.CENTER, opts) },
+        'Shift-Cmd-Up'        : () => { this.tableEditor.alignColumn(Alignment.CENTER, opts) },
+        'Shift-Ctrl-Down'     : () => { this.tableEditor.alignColumn(Alignment.NONE, opts) },
+        'Shift-Cmd-Down'      : () => { this.tableEditor.alignColumn(Alignment.NONE, opts) },
+        'Ctrl-Left'           : () => { this.tableEditor.moveFocus(0, -1, opts) },
+        'Cmd-Left'            : () => { this.tableEditor.moveFocus(0, -1, opts) },
+        'Ctrl-Right'          : () => { this.tableEditor.moveFocus(0, 1, opts) },
+        'Cmd-Right'           : () => { this.tableEditor.moveFocus(0, 1, opts) },
+        'Ctrl-Up'             : () => { this.tableEditor.moveFocus(-1, 0, opts) },
+        'Cmd-Up'              : () => { this.tableEditor.moveFocus(-1, 0, opts) },
+        'Ctrl-Down'           : () => { this.tableEditor.moveFocus(1, 0, opts) },
+        'Cmd-Down'            : () => { this.tableEditor.moveFocus(1, 0, opts) },
+        'Ctrl-K Ctrl-I'       : () => { this.tableEditor.insertRow(opts) },
+        'Cmd-K Cmd-I'         : () => { this.tableEditor.insertRow(opts) },
+        'Ctrl-L Ctrl-I'       : () => { this.tableEditor.deleteRow(opts) },
+        'Cmd-L Cmd-I'         : () => { this.tableEditor.deleteRow(opts) },
+        'Ctrl-K Ctrl-J'       : () => { this.tableEditor.insertColumn(opts) },
+        'Cmd-K Cmd-J'         : () => { this.tableEditor.insertColumn(opts) },
+        'Ctrl-L Ctrl-J'       : () => { this.tableEditor.deleteColumn(opts) },
+        'Cmd-L Cmd-J'         : () => { this.tableEditor.deleteColumn(opts) },
+        'Alt-Shift-Ctrl-Left' : () => { this.tableEditor.moveColumn(-1, opts) },
+        'Alt-Shift-Cmd-Left'  : () => { this.tableEditor.moveColumn(-1, opts) },
+        'Alt-Shift-Ctrl-Right': () => { this.tableEditor.moveColumn(1, opts) },
+        'Alt-Shift-Cmd-Right' : () => { this.tableEditor.moveColumn(1, opts) },
+        'Alt-Shift-Ctrl-Up'   : () => { this.tableEditor.moveRow(-1, opts) },
+        'Alt-Shift-Cmd-Up'    : () => { this.tableEditor.moveRow(-1, opts) },
+        'Alt-Shift-Ctrl-Down' : () => { this.tableEditor.moveRow(1, opts) },
+        'Alt-Shift-Cmd-Down'  : () => { this.tableEditor.moveRow(1, opts) }
+      })
+      
+      const updateActiveState = () => {
+        const active = this.tableEditor.cursorIsInTable(opts)
+        if (active) {
+          this.editor.setOption('extraKeys', editorKeyMap)
+        } else {
+          this.editor.setOption('extraKeys', defaultKeyMap)
+          this.tableEditor.resetSmartCursor()
+        }
+      }
+      
+      this.editor.on('cursorActivity', () => {
+        if (!editorIntf.transaction) {
+          updateActiveState()
+        }
+      })
+      this.editor.on('changes', () => {
+        if (!editorIntf.transaction) {
+          updateActiveState()
+        }
+      })
+      editorIntf.onDidFinishTransaction = () => {
+        updateActiveState()
+      }
+    } else {
+      this.editor.setOption('extraKeys', defaultKeyMap)
+    }
   }
 
   expandSnippet (line, cursor, cm, snippets) {

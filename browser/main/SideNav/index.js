@@ -19,8 +19,8 @@ import {SortableContainer} from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
 
-function findOne(haystack, arr) {
-    return arr.some(v => haystack.indexOf(v) >= 0)
+function findOne (haystack, arr) {
+  return arr.some(v => haystack.indexOf(v) >= 0)
 }
 
 class SideNav extends React.Component {

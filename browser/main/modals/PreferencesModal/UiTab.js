@@ -420,7 +420,7 @@ class UiTab extends React.Component {
               {i18n.__('Bring in web page title when pasting URL on editor')}
             </label>
           </div>
-          
+
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}

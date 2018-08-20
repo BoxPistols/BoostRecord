@@ -2,10 +2,9 @@
 此文件還提供下列的語言 [日文](https://github.com/BoostIO/Boostnote/blob/master/docs/jp/build.md), [韓文](https://github.com/BoostIO/Boostnote/blob/master/docs/ko/build.md), [俄文](https://github.com/BoostIO/Boostnote/blob/master/docs/ru/build.md), [簡體中文](https://github.com/BoostIO/Boostnote/blob/master/docs/zh_CN/build.md), [法文](https://github.com/BoostIO/Boostnote/blob/master/docs/fr/build.md) and [德文](https://github.com/BoostIO/Boostnote/blob/master/docs/de/build.md).
 
 ## 環境
-* npm: 4.x
-* node: 7.x
 
-`$ grunt pre-build` 在 `npm v5.x` 有問題，所以只能用 `npm v4.x` 。
+* npm: 6.x
+* node: 8.x
 
 ## 開發
 
@@ -22,17 +21,8 @@ $ yarn
 **開始開發**
 
 ```
-$ yarn run dev-start
+$ yarn run dev
 ```
-
-上述指令同時運行了 `yarn run webpack` 及 `yarn run hot`，相當於將這兩個指令在不同的 terminal 中運行。
-
-`webpack` 會同時監控修改過的程式碼，並
-The `webpack` will watch for code changes and then apply them automatically.
-
-If the following error occurs: `Failed to load resource: net::ERR_CONNECTION_REFUSED`, please reload Boostnote.
-
-![net::ERR_CONNECTION_REFUSED](https://cloud.githubusercontent.com/assets/11307908/24343004/081e66ae-1279-11e7-8d9e-7f478043d835.png)
 
 > ### Notice
 > There are some cases where you have to refresh the app manually.
@@ -45,8 +35,6 @@ We use Grunt to automate deployment.
 You can build the program by using `grunt`. However, we don't recommend this because the default task includes codesign and authenticode.
 
 So, we've prepared a separate script which just makes an executable file.
-
-This build doesn't work on npm v5.3.0. So you need to use v5.2.0 when you build it.
 
 ```
 grunt pre-build

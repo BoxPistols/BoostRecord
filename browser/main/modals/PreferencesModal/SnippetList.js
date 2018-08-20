@@ -22,7 +22,7 @@ class SnippetList extends React.Component {
   reloadSnippetList () {
     dataApi.fetchSnippet().then(snippets => {
       this.setState({snippets})
-      this.props.onSnippetSelect(snippets[0])
+      this.props.onSnippetSelect(this.props.currentSnippet)
     })
   }
 

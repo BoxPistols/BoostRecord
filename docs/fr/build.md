@@ -2,10 +2,9 @@
 Cette page est également disponible en [Anglais](https://github.com/BoostIO/Boostnote/blob/master/docs/build.md), [Japonais](https://github.com/BoostIO/Boostnote/blob/master/docs/jp/build.md), [Coréen](https://github.com/BoostIO/Boostnote/blob/master/docs/ko/build.md), [Russe](https://github.com/BoostIO/Boostnote/blob/master/docs/ru/build.md), [Chinois Simplifié](https://github.com/BoostIO/Boostnote/blob/master/docs/zh_CN/build.md) et en [Allemand](https://github.com/BoostIO/Boostnote/blob/master/docs/de/build.md)
 
 ## Environnements
-* npm: 4.x
-* node: 7.x
 
-Il est conseillé d'utiliser `npm v4.x` car `$ grunt pre-build` ne marche pas sur la `v5.x`.
+* npm: 6.x
+* node: 8.x
 
 ## Développement
 
@@ -20,16 +19,8 @@ $ yarn
 Build et start
 
 ```
-$ yarn run dev-start
+$ yarn run dev
 ```
-
-Cette commande lance `yarn run webpack` et `yarn run hot` en parallèle. Cela revient au même que si on utilisait ces deux commandes dans 2 terminaux.
-
-La commande `webpack` va surveiller les changements de code et les appliquer automatiquement.
-
-Si l'erreur suivante apparait : `Failed to load resource: net::ERR_CONNECTION_REFUSED`, relancez Boostnote.
-
-![net::ERR_CONNECTION_REFUSED](https://cloud.githubusercontent.com/assets/11307908/24343004/081e66ae-1279-11e7-8d9e-7f478043d835.png)
 
 > ### Notice
 > Il y a certains cas où vous voudrez relancer l'application manuellement.
@@ -42,8 +33,6 @@ On utilise Grunt pour le déploiement automatique.
 Vous pouvez build le programme en utilisant `grunt`. Cependant, nous ne recommandons pas cette méthode car la task par défaut inclut codesign et authenticode.
 
 Nous avons donc préparé un script séparé qui va rendre un fichier exécutable.
-
-Le build ne fonctionne pas sur `npm v5.3.0`. Il faut donc utiliser `npm v5.2.0` quand vous faites le build.
 
 ```
 grunt pre-build

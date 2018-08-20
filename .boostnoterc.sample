@@ -22,7 +22,9 @@
         "fontSize": "14",
         "lineNumber": true
     },
-    "sortBy": "UPDATED_AT",
+    "sortBy": {
+        "default": "UPDATED_AT"
+    },
     "sortTagsBy": "ALPHABETICAL",
     "ui": {
         "defaultNote": "ALWAYS_ASK",

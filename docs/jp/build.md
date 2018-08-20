@@ -1,10 +1,9 @@
 # Build
 
 ## 環境
-* npm: 4.x
-* node: 7.x
 
-`npm v5.x` だと `$ grunt pre-build` が失敗するので、 `npm v4.x` を使用してください。
+* npm: 6.x
+* node: 8.x
 
 ## 開発
 
@@ -21,16 +20,8 @@ $ yarn
 ビルドして実行します。
 
 ```
-$ yarn run dev-start
+$ yarn run dev
 ```
-
-このコマンドは `yarn run webpack` と `yarn run hot`を並列に実行します。つまりこのコマンドは2つのターミナルで同時にこれらのコマンドを実行するのと同じことです。
-
-そして、Webpackが自動的にコードの変更を確認し、それを適用してくれるようになります。
-
-もし、 `Failed to load resource: net::ERR_CONNECTION_REFUSED`というエラーが起きた場合、Boostnoteをリロードしてください。
-
-![net::ERR_CONNECTION_REFUSED](https://cloud.githubusercontent.com/assets/11307908/24343004/081e66ae-1279-11e7-8d9e-7f478043d835.png)
 
 > ### 注意
 > 時々、直接リフレッシュをする必要があります。
@@ -43,8 +34,6 @@ Gruntを使います。
 実際の配布は`grunt`で実行できます。しかし、これにはCodesignとAuthenticodeを実行するタスクが含まれるので、使用しないでください。
 
 代わりに、実行ファイルを作るスクリプトを用意しておきました。
-
-このビルドはnpm v5.3.0では動かないのでv5.2.0で動かす必要があります。
 
 ```
 grunt pre-build

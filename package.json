@@ -7,17 +7,15 @@
   "license": "GPL-3.0",
   "scripts": {
     "start": "electron ./index.js",
-    "hot": "electron ./index.js --hot",
-    "webpack": "webpack-dev-server --hot --inline --config webpack.config.js",
     "compile": "grunt compile",
     "test": "PWD=$(pwd) NODE_ENV=test ava --serial",
     "jest": "jest",
     "fix": "eslint . --fix",
     "lint": "eslint .",
-    "dev-start": "concurrently --kill-others \"npm run webpack\" \"npm run hot\""
+    "dev": "node dev-scripts/dev.js"
   },
   "config": {
-    "electron-version": "2.0.3"
+    "electron-version": "2.0.7"
   },
   "repository": {
     "type": "git",
@@ -57,7 +55,7 @@
     "chart.js": "^2.7.2",
     "codemirror": "^5.39.0",
     "codemirror-mode-elixir": "^1.1.1",
-    "electron-config": "^0.2.1",
+    "electron-config": "^1.0.0",
     "electron-gh-releases": "^2.0.2",
     "escape-string-regexp": "^1.0.5",
     "file-url": "^2.0.2",
@@ -122,8 +120,8 @@
     "css-loader": "^0.19.0",
     "devtron": "^1.1.0",
     "dom-storage": "^2.0.2",
-    "electron": "2.0.3",
-    "electron-packager": "^6.0.0",
+    "electron": "2.0.7",
+    "electron-packager": "^12.0.0",
     "eslint": "^3.13.1",
     "eslint-config-standard": "^6.2.1",
     "eslint-config-standard-jsx": "^3.2.0",
@@ -147,6 +145,7 @@
     "react-router": "^2.4.0",
     "react-router-redux": "^4.0.4",
     "react-test-renderer": "^15.6.2",
+    "signale": "^1.2.1",
     "standard": "^8.4.0",
     "style-loader": "^0.12.4",
     "stylus": "^0.52.4",

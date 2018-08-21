@@ -20,6 +20,12 @@ class TagSelect extends React.Component {
   componentDidMount () {
     this.value = this.props.value
     ee.on('editor:add-tag', this.addtagHandler)
+    
+    new Awesomplete(this.refs.newTag, {
+      minChars: 1,
+      autoFirst: true,
+      list: '#datalist'
+    })
   }
 
   componentDidUpdate () {
@@ -119,7 +125,7 @@ class TagSelect extends React.Component {
   }
 
   render () {
-    const { value, className } = this.props
+    const { value, className, data } = this.props
 
     const tagList = _.isArray(value)
       ? value.map((tag) => {
@@ -137,6 +143,14 @@ class TagSelect extends React.Component {
         )
       })
       : []
+    
+    const datalist = _.sortBy(data.tagNoteMap.map(
+      (tag, name) => ({ name, size: tag.size })
+    ).filter(
+      tag => tag.size > 0
+    ), ['name']).map(
+      tag => <li>{tag.name}</li>
+    )
 
     return (
       <div className={_.isString(className)
@@ -154,6 +168,9 @@ class TagSelect extends React.Component {
           onKeyDown={(e) => this.handleNewTagInputKeyDown(e)}
           onBlur={(e) => this.handleNewTagBlur(e)}
         />
+        <ul id='datalist' styleName='datalist'>
+          {datalist}
+        </ul>
       </div>
     )
   }

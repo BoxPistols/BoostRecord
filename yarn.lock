@@ -568,6 +568,10 @@ ava@^0.25.0:
     unique-temp-dir "^1.0.0"
     update-notifier "^2.3.0"
 
+awesomplete@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/awesomplete/-/awesomplete-1.1.2.tgz#b6e253f73474e46278bba5ae7f81d4262160fb75"
+
 aws-sdk-mobile-analytics@^0.9.2:
   version "0.9.2"
   resolved "https://registry.yarnpkg.com/aws-sdk-mobile-analytics/-/aws-sdk-mobile-analytics-0.9.2.tgz#b56a6e5206fc8c3975a19170b41536c53f6d5d91"

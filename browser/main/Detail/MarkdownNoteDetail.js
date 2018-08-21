@@ -363,6 +363,7 @@ class MarkdownNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
+          data={data}
           onChange={this.handleUpdateTag.bind(this)}
         />
         <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />

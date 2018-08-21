@@ -20,8 +20,8 @@ class TagSelect extends React.Component {
   componentDidMount () {
     this.value = this.props.value
     ee.on('editor:add-tag', this.addtagHandler)
-    
-    new Awesomplete(this.refs.newTag, {
+
+    const awesomplete = new Awesomplete(this.refs.newTag, {
       minChars: 1,
       autoFirst: true,
       list: '#datalist'
@@ -143,13 +143,13 @@ class TagSelect extends React.Component {
         )
       })
       : []
-    
+
     const datalist = _.sortBy(data.tagNoteMap.map(
       (tag, name) => ({ name, size: tag.size })
     ).filter(
       tag => tag.size > 0
     ), ['name']).map(
-      tag => <li>{tag.name}</li>
+      tag => <li key={tag.name}>{tag.name}</li>
     )
 
     return (

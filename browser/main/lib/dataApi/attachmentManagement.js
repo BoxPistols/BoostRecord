@@ -11,7 +11,12 @@ import i18n from 'browser/lib/i18n'
 const STORAGE_FOLDER_PLACEHOLDER = ':storage'
 const DESTINATION_FOLDER = 'attachments'
 const PATH_SEPARATORS = escapeStringRegexp(path.posix.sep) + escapeStringRegexp(path.win32.sep)
-
+/**
+ * @description
+ * Create a Image element to get the real size of image.
+ * @param {File} file the File object dropped.
+ * @returns {Promise<Image>} Image element created
+ */
 function getImage (file) {
   return new Promise((resolve) => {
     const reader = new FileReader()
@@ -24,29 +29,54 @@ function getImage (file) {
   })
 }
 
+/**
+ * @description
+ * Get the orientation info from iamges's EXIF data.
+ * case 1: The 0th row is at the visual top of the image, and the 0th column is the visual left-hand side.
+ * case 2: The 0th row is at the visual top of the image, and the 0th column is the visual right-hand side.
+ * case 3: The 0th row is at the visual bottom of the image, and the 0th column is the visual right-hand side.
+ * case 4: The 0th row is at the visual bottom of the image, and the 0th column is the visual left-hand side.
+ * case 5: The 0th row is the visual left-hand side of the image, and the 0th column is the visual top.
+ * case 6: The 0th row is the visual right-hand side of the image, and the 0th column is the visual top.
+ * case 7: The 0th row is the visual right-hand side of the image, and the 0th column is the visual bottom.
+ * case 8: The 0th row is the visual left-hand side of the image, and the 0th column is the visual bottom.
+ * Other: reserved
+ * ref: http://sylvana.net/jpegcrop/exif_orientation.html
+ * @param {File} file the File object dropped.
+ * @returns {Promise<Number>} Orientation info
+ */
 function getOrientation (file) {
   const getData = arrayBuffer => {
     const view = new DataView(arrayBuffer)
+
+    // Not start with SOI(Start of image) Marker return fail value
     if (view.getUint16(0, false) !== 0xFFD8) return -2
     const length = view.byteLength
     let offset = 2
     while (offset < length) {
       const marker = view.getUint16(offset, false)
       offset += 2
+      // Loop and seed for APP1 Marker
       if (marker === 0xFFE1) {
+        // return fail value if it isn't EXIF data
         if (view.getUint32(offset += 2, false) !== 0x45786966) {
           return -1
         }
+        // Read TIFF header,
+        // First 2bytes defines byte align of TIFF data.
+        // If it is 0x4949="II", it means "Intel" type byte align.
+        // If it is 0x4d4d="MM", it means "Motorola" type byte align
         const little = view.getUint16(offset += 6, false) === 0x4949
         offset += view.getUint32(offset + 4, little)
-        const tags = view.getUint16(offset, little)
+        const tags = view.getUint16(offset, little) // Get TAG number
         offset += 2
         for (let i = 0; i < tags; i++) {
+          // Loop to find Orientation TAG and return the value
           if (view.getUint16(offset + (i * 12), little) === 0x0112) {
             return view.getUint16(offset + (i * 12) + 8, little)
           }
         }
-      } else if ((marker & 0xFF00) !== 0xFF00) {
+      } else if ((marker & 0xFF00) !== 0xFF00) { // If not start with 0xFF, not a Marker
         break
       } else {
         offset += view.getUint16(offset, false)
@@ -60,7 +90,13 @@ function getOrientation (file) {
     reader.readAsArrayBuffer(file.slice(0, 64 * 1024))
   })
 }
-
+/**
+ * @description
+ * Rotate image file to correct direction.
+ * Create a canvas and draw the image with correct direction, then export to base64 format.
+ * @param {*} file the File object dropped.
+ * @return {String} Base64 encoded image.
+ */
 function fixRotate (file) {
   return Promise.all([getImage(file), getOrientation(file)])
   .then(([img, orientation]) => {

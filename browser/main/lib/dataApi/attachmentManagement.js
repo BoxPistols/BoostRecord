@@ -12,6 +12,82 @@ const STORAGE_FOLDER_PLACEHOLDER = ':storage'
 const DESTINATION_FOLDER = 'attachments'
 const PATH_SEPARATORS = escapeStringRegexp(path.posix.sep) + escapeStringRegexp(path.win32.sep)
 
+function getImage (file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    const img = new Image()
+    img.onload = () => resolve(img)
+    reader.onload = e => {
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
+
+function getOrientation (file) {
+  const getData = arrayBuffer => {
+    const view = new DataView(arrayBuffer)
+    if (view.getUint16(0, false) !== 0xFFD8) return -2
+    const length = view.byteLength
+    let offset = 2
+    while (offset < length) {
+      const marker = view.getUint16(offset, false)
+      offset += 2
+      if (marker === 0xFFE1) {
+        if (view.getUint32(offset += 2, false) !== 0x45786966) {
+          return -1
+        }
+        const little = view.getUint16(offset += 6, false) === 0x4949
+        offset += view.getUint32(offset + 4, little)
+        const tags = view.getUint16(offset, little)
+        offset += 2
+        for (let i = 0; i < tags; i++) {
+          if (view.getUint16(offset + (i * 12), little) === 0x0112) {
+            return view.getUint16(offset + (i * 12) + 8, little)
+          }
+        }
+      } else if ((marker & 0xFF00) !== 0xFF00) {
+        break
+      } else {
+        offset += view.getUint16(offset, false)
+      }
+    }
+    return -1
+  }
+  return new Promise((resolve) => {
+    const reader = new FileReader()
+    reader.onload = event => resolve(getData(event.target.result))
+    reader.readAsArrayBuffer(file.slice(0, 64 * 1024))
+  })
+}
+
+function fixRotate (file) {
+  return Promise.all([getImage(file), getOrientation(file)])
+  .then(([img, orientation]) => {
+    const canvas = document.createElement('canvas')
+    const ctx = canvas.getContext('2d')
+    if (orientation > 4 && orientation < 9) {
+      canvas.width = img.height
+      canvas.height = img.width
+    } else {
+      canvas.width = img.width
+      canvas.height = img.height
+    }
+    switch (orientation) {
+      case 2: ctx.transform(-1, 0, 0, 1, img.width, 0); break
+      case 3: ctx.transform(-1, 0, 0, -1, img.width, img.height); break
+      case 4: ctx.transform(1, 0, 0, -1, 0, img.height); break
+      case 5: ctx.transform(0, 1, 1, 0, 0, 0); break
+      case 6: ctx.transform(0, 1, -1, 0, img.height, 0); break
+      case 7: ctx.transform(0, -1, -1, 0, img.height, img.width); break
+      case 8: ctx.transform(0, -1, 1, 0, 0, img.width); break
+      default: break
+    }
+    ctx.drawImage(img, 0, 0)
+    return canvas.toDataURL()
+  })
+}
+
 /**
  * @description
  * Copies a copy of an attachment to the storage folder specified by the given key and return the generated attachment name.
@@ -38,26 +114,34 @@ function copyAttachment (sourceFilePath, storageKey, noteKey, useRandomName = tr
     }
 
     try {
-      if (!fs.existsSync(sourceFilePath)) {
-        reject('source file does not exist')
+      const isBase64 = typeof sourceFilePath === 'object' && sourceFilePath.type === 'base64'
+      if (!fs.existsSync(sourceFilePath) && !isBase64) {
+        return reject('source file does not exist')
       }
-
       const targetStorage = findStorage.findStorage(storageKey)
-
-      const inputFileStream = fs.createReadStream(sourceFilePath)
       let destinationName
       if (useRandomName) {
-        destinationName = `${uniqueSlug()}${path.extname(sourceFilePath)}`
+        destinationName = `${uniqueSlug()}${path.extname(sourceFilePath.sourceFilePath || sourceFilePath)}`
       } else {
-        destinationName = path.basename(sourceFilePath)
+        destinationName = path.basename(sourceFilePath.sourceFilePath || sourceFilePath)
       }
       const destinationDir = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey)
       createAttachmentDestinationFolder(targetStorage.path, noteKey)
       const outputFile = fs.createWriteStream(path.join(destinationDir, destinationName))
-      inputFileStream.pipe(outputFile)
-      inputFileStream.on('end', () => {
-        resolve(destinationName)
-      })
+
+      if (isBase64) {
+        const base64Data = sourceFilePath.data.replace(/^data:image\/\w+;base64,/, '')
+        const dataBuffer = new Buffer(base64Data, 'base64')
+        outputFile.write(dataBuffer, () => {
+          resolve(destinationName)
+        })
+      } else {
+        const inputFileStream = fs.createReadStream(sourceFilePath)
+        inputFileStream.pipe(outputFile)
+        inputFileStream.on('end', () => {
+          resolve(destinationName)
+        })
+      }
     } catch (e) {
       return reject(e)
     }
@@ -137,10 +221,17 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
   const filePath = file.path
   const originalFileName = path.basename(filePath)
   const fileType = file['type']
-
-  copyAttachment(filePath, storageKey, noteKey).then((fileName) => {
-    const showPreview = fileType.startsWith('image')
-    const imageMd = generateAttachmentMarkdown(originalFileName, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, fileName), showPreview)
+  const isImage = fileType.startsWith('image')
+  let promise
+  if (isImage) {
+    promise = fixRotate(file).then(base64data => {
+      return copyAttachment({type: 'base64', data: base64data, sourceFilePath: filePath}, storageKey, noteKey)
+    })
+  } else {
+    promise = copyAttachment(filePath, storageKey, noteKey)
+  }
+  promise.then((fileName) => {
+    const imageMd = generateAttachmentMarkdown(originalFileName, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, fileName), isImage)
     codeEditor.insertAttachmentMd(imageMd)
   })
 }

@@ -1,5 +1,5 @@
 const Typo = require('typo-js')
-const codeMirror = require('codemirror')
+const CodeMirror = require('CodeMirror')
 jest.mock('typo-js')
 
 const systemUnderTest = require('browser/lib/spellcheck')
@@ -92,7 +92,7 @@ it('should test that checkMultiLineRange performs checks for each word in the st
   dic.check = jest.fn()
   systemUnderTest.setDictionaryForTestsOnly(dic)
   document.body.createTextRange = jest.fn(() => document.createElement('textArea'))
-  const editor = new codeMirror(jest.fn())
+  const editor = new CodeMirror(jest.fn())
   editor.setValue(
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vehicula sem id tempor sollicitudin. Sed eu sagittis ligula. Maecenas sit amet velit enim. Etiam massa urna, elementum et sapien sit amet, vestibulum pharetra lectus. Nulla consequat malesuada nunc in aliquam. Vivamus faucibus orci et faucibus maximus. Pellentesque at dolor ac mi mollis molestie in facilisis nisl.\n' +
     '\n' +
@@ -126,7 +126,7 @@ it('should test that checkMultiLineRange works correct even when the range is in
   dic.check = jest.fn()
   systemUnderTest.setDictionaryForTestsOnly(dic)
   document.body.createTextRange = jest.fn(() => document.createElement('textArea'))
-  const editor = new codeMirror(jest.fn())
+  const editor = new CodeMirror(jest.fn())
   editor.setValue(
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vehicula sem id tempor sollicitudin. Sed eu sagittis ligula. Maecenas sit amet velit enim. Etiam massa urna, elementum et sapien sit amet, vestibulum pharetra lectus. Nulla consequat malesuada nunc in aliquam. Vivamus faucibus orci et faucibus maximus. Pellentesque at dolor ac mi mollis molestie in facilisis nisl.\n' +
     '\n' +
@@ -160,7 +160,7 @@ it('should test that checkMultiLineRange works for single line', function () {
   dic.check = jest.fn()
   systemUnderTest.setDictionaryForTestsOnly(dic)
   document.body.createTextRange = jest.fn(() => document.createElement('textArea'))
-  const editor = new codeMirror(jest.fn())
+  const editor = new CodeMirror(jest.fn())
   editor.setValue(
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vehicula sem id tempor sollicitudin. Sed eu sagittis ligula. Maecenas sit amet velit enim. Etiam massa urna, elementum et sapien sit amet, vestibulum pharetra lectus. Nulla consequat malesuada nunc in aliquam. Vivamus faucibus orci et faucibus maximus. Pellentesque at dolor ac mi mollis molestie in facilisis nisl.\n' +
     '\n' +
@@ -186,7 +186,7 @@ it('should test that checkMultiLineRange works for single word', function () {
   dic.check = jest.fn()
   systemUnderTest.setDictionaryForTestsOnly(dic)
   document.body.createTextRange = jest.fn(() => document.createElement('textArea'))
-  const editor = new codeMirror(jest.fn())
+  const editor = new CodeMirror(jest.fn())
   editor.setValue(
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vehicula sem id tempor sollicitudin. Sed eu sagittis ligula. Maecenas sit amet velit enim. Etiam massa urna, elementum et sapien sit amet, vestibulum pharetra lectus. Nulla consequat malesuada nunc in aliquam. Vivamus faucibus orci et faucibus maximus. Pellentesque at dolor ac mi mollis molestie in facilisis nisl.\n' +
     '\n' +
@@ -262,7 +262,7 @@ it('should make sure that liveSpellcheck works for a single word with change at 
   dic.check = jest.fn()
   systemUnderTest.setDictionaryForTestsOnly(dic)
   document.body.createTextRange = jest.fn(() => document.createElement('textArea'))
-  const editor = new codeMirror(jest.fn())
+  const editor = new CodeMirror(jest.fn())
   editor.setValue(
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vehicula sem id tempor sollicitudin. Sed eu sagittis ligula. Maecenas sit amet velit enim. Etiam massa urna, elementum et sapien sit amet, vestibulum pharetra lectus. Nulla consequat malesuada nunc in aliquam. Vivamus faucibus orci et faucibus maximus. Pellentesque at dolor ac mi mollis molestie in facilisis nisl.\n' +
     '\n' +
@@ -286,7 +286,7 @@ it('should make sure that liveSpellcheck works for a single word with change in 
   dic.check = jest.fn()
   systemUnderTest.setDictionaryForTestsOnly(dic)
   document.body.createTextRange = jest.fn(() => document.createElement('textArea'))
-  const editor = new codeMirror(jest.fn())
+  const editor = new CodeMirror(jest.fn())
   editor.setValue(
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vehicula sem id tempor sollicitudin. Sed eu sagittis ligula. Maecenas sit amet velit enim. Etiam massa urna, elementum et sapien sit amet, vestibulum pharetra lectus. Nulla consequat malesuada nunc in aliquam. Vivamus faucibus orci et faucibus maximus. Pellentesque at dolor ac mi mollis molestie in facilisis nisl.\n' +
     '\n' +
@@ -310,7 +310,7 @@ it('should make sure that liveSpellcheck works for a single word with change at 
   dic.check = jest.fn()
   systemUnderTest.setDictionaryForTestsOnly(dic)
   document.body.createTextRange = jest.fn(() => document.createElement('textArea'))
-  const editor = new codeMirror(jest.fn())
+  const editor = new CodeMirror(jest.fn())
   editor.setValue(
     'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus vehicula sem id tempor sollicitudin. Sed eu sagittis ligula. Maecenas sit amet velit enim. Etiam massa urna, elementum et sapien sit amet, vestibulum pharetra lectus. Nulla consequat malesuada nunc in aliquam. Vivamus faucibus orci et faucibus maximus. Pellentesque at dolor ac mi mollis molestie in facilisis nisl.\n' +
     '\n' +

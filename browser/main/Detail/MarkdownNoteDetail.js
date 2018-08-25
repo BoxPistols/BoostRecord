@@ -267,8 +267,8 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleGenerateToc () {
-    markdownToc.generate(this.refs.content.value,
-      (modifiedValue) => this.refs.content.refs.code.setValue(modifiedValue))
+    const editor = this.refs.content.refs.code.editor
+    markdownToc.generateInEditor(editor)
   }
 
   handleFocus (e) {

@@ -1,19 +1,22 @@
 /**
  * @fileoverview Unit test for browser/lib/markdown-toc-generator
  */
+
+import CodeMirror from 'codemirror'
+require('codemirror/addon/search/searchcursor.js')
 const test = require('ava')
 const markdownToc = require('browser/lib/markdown-toc-generator')
 const EOL = require('os').EOL
 
 test(t => {
   /**
-   * @testCases Contains array of test cases in format :
-   *  [
-   *     test title
-   *     input markdown,
-   *     expected output markdown with toc
-   *  ]
-   *
+   * Contains array of test cases in format :
+   * [
+   *    test title
+   *    input markdown,
+   *    expected toc
+   * ]
+   * @type {*[]}
    */
   const testCases = [
     [
@@ -39,8 +42,6 @@ test(t => {
 - [one](#one)
 
 <!-- tocstop -->
-
-# one
     `
     ],
     [
@@ -55,10 +56,7 @@ test(t => {
 - [one](#one)
 - [two](#two)
 
-<!-- tocstop -->
-
-# one
-# two    
+<!-- tocstop -->    
     `
     ],
     [
@@ -82,13 +80,6 @@ test(t => {
   * [three three](#three-three)
 
 <!-- tocstop -->
-
-# one
-## one one
-# two
-## two two
-# three
-## three three
     `
     ],
     [
@@ -120,17 +111,6 @@ test(t => {
           + [three three three three three three](#three-three-three-three-three-three)
 
 <!-- tocstop -->
-
-# one
-## one one
-# two
-## two two
-# three
-## three three
-### three three three
-#### three three three three
-##### three three three three three
-###### three three three three three three
     `
     ],
     [
@@ -193,148 +173,8 @@ this is a level one text
           + [three three three three three three](#three-three-three-three-three-three)
 
 <!-- tocstop -->
-
-# one
-this is a level one text
-this is a level one text
-## one one
-# two
-  this is a level two text
-  this is a level two text
-## two two
-  this is a level two two text
-  this is a level two two text
-# three
-  this is a level three three text
-  this is a level three three text
-## three three
-  this is a text
-  this is a text
-### three three three
-  this is a text
-  this is a text
-### three three three 2
-  this is a text
-  this is a text
-#### three three three three
-  this is a text
-  this is a text
-#### three three three three 2
-  this is a text
-  this is a text
-##### three three three three three
-  this is a text
-  this is a text
-##### three three three three three 2
-  this is a text
-  this is a text
-###### three three three three three three
-  this is a text
-  this is a text
-  this is a text
     `
     ],
-    [
-      '***************************** already generated toc',
-      `
-<!-- toc -->
-
-- [one](#one)
-  * [one one](#one-one)
-- [two](#two)
-  * [two two](#two-two)
-- [three](#three)
-  * [three three](#three-three)
-    + [three three three](#three-three-three)
-      - [three three three three](#three-three-three-three)
-        * [three three three three three](#three-three-three-three-three)
-          + [three three three three three three](#three-three-three-three-three-three)
-
-<!-- tocstop -->
-
-# one
-## one one
-# two
-## two two
-# three
-## three three
-### three three three
-#### three three three three
-##### three three three three three
-###### three three three three three three      
-    `,
-      `
-<!-- toc -->
-
-- [one](#one)
-  * [one one](#one-one)
-- [two](#two)
-  * [two two](#two-two)
-- [three](#three)
-  * [three three](#three-three)
-    + [three three three](#three-three-three)
-      - [three three three three](#three-three-three-three)
-        * [three three three three three](#three-three-three-three-three)
-          + [three three three three three three](#three-three-three-three-three-three)
-
-<!-- tocstop -->
-
-# one
-## one one
-# two
-## two two
-# three
-## three three
-### three three three
-#### three three three three
-##### three three three three three
-###### three three three three three three            
-    `
-    ],
-    [
-      '***************************** note with just an opening TOC marker',
-      `
-<!-- toc -->
-
-
-# one
-## one one
-      
-    `,
-      `
-<!-- toc -->
-
-- [one](#one)
-  * [one one](#one-one)
-
-<!-- tocstop -->
-
-# one
-## one one
-    `
-    ],
-    [
-      '***************************** note with just a closing TOC marker',
-      `
-<!-- tocstop -->
-
-# one
-## one one     
-    `,
-      `
-<!-- toc -->
-
-- [one](#one)
-  * [one one](#one-one)
-
-<!-- tocstop -->
-
-# one
-## one one
-      
-    `
-    ],
-
     [
       '***************************** outdated TOC',
       `
@@ -346,8 +186,7 @@ this is a level one text
 <!-- tocstop -->
 
 # one modified
-## one one
-      
+## one one      
     `,
       `
 <!-- toc -->
@@ -356,9 +195,6 @@ this is a level one text
   * [one one](#one-one)
 
 <!-- tocstop -->
-
-# one modified
-## one one      
     `
     ],
     [
@@ -374,9 +210,6 @@ this is a level one text
   * [oNe one](#oNe-one)
 
 <!-- tocstop -->
-
-# onE 
-## oNe one      
     `
     ],
     [
@@ -397,19 +230,12 @@ this is a text
 ## oNe one      
     `,
       `
-# title
-
-this is a text
-
 <!-- toc -->
 
 - [onE](#onE)
   * [oNe one](#oNe-one)
 
 <!-- tocstop -->
-
-# onE 
-## oNe one      
     `
     ],
     [
@@ -424,11 +250,7 @@ this is a text
 
 - [hoge](#hoge)
 
-<!-- tocstop -->
-
-# hoge
-
-##      
+<!-- tocstop -->  
     `
     ]
   ]
@@ -436,9 +258,411 @@ this is a text
   testCases.forEach(testCase => {
     const title = testCase[0]
     const inputMd = testCase[1].trim()
-    const expectedOutput = testCase[2].trim()
-    let generatedOutput
-    markdownToc.generate(inputMd, (o) => { generatedOutput = o.trim() })
-    t.is(generatedOutput, expectedOutput, `Test ${title} , generated : ${EOL}${generatedOutput}, expected : ${EOL}${expectedOutput}`)
+    const expectedToc = testCase[2].trim()
+    const generatedToc = markdownToc.generate(inputMd)
+
+    t.is(generatedToc, expectedToc, `generate test : ${title} , generated : ${EOL}${generatedToc}, expected : ${EOL}${expectedToc}`)
+  })
+})
+
+test(t => {
+  /**
+   * Contains array of test cases in format :
+   * [
+   *    title
+   *    cursor
+   *    inputMd
+   *    expectedMd
+   * ]
+   * @type {*[]}
+   */
+  const testCases = [
+    [
+      `***************************** Empty note, cursor at the top`,
+      {line: 0, ch: 0},
+      ``,
+      `
+<!-- toc -->
+
+
+
+<!-- tocstop -->
+     `
+    ],
+    [
+      `***************************** Two level note,TOC at the beginning `,
+      {line: 0, ch: 0},
+      `
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `,
+      `
+<!-- toc -->
+
+- [one](#one)
+  * [one one](#one-one)
+- [two](#two)
+  * [two two](#two-two)
+
+<!-- tocstop -->
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text      
+      `
+    ],
+    [
+      `***************************** Two level note, cursor just after 'header text' `,
+      {line: 1, ch: 12},
+      `
+# header 
+ header text
+
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text   
+      `,
+      `
+# header 
+ header text
+<!-- toc -->
+
+- [one](#one)
+  * [one one](#one-one)
+- [two](#two)
+  * [two two](#two-two)
+
+<!-- tocstop -->
+
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `
+    ],
+    [
+      `***************************** Two level note, cursor at empty line under 'header text' `,
+      {line: 2, ch: 0},
+      `
+# header 
+ header text
+
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `,
+      `
+# header 
+ header text
+<!-- toc -->
+
+- [one](#one)
+  * [one one](#one-one)
+- [two](#two)
+  * [two two](#two-two)
+
+<!-- tocstop -->
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `
+    ],
+    [
+      `***************************** Two level note, cursor just before 'text' word`,
+      {line: 1, ch: 8},
+      `
+# header 
+ header text
+
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `,
+      `
+# header 
+ header 
+<!-- toc -->
+
+- [one](#one)
+  * [one one](#one-one)
+- [two](#two)
+  * [two two](#two-two)
+
+<!-- tocstop -->
+text
+
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `
+    ],
+    [
+      `***************************** Already generated TOC without header file, regenerate TOC in place, no changes`,
+      {line: 13, ch: 0},
+      `
+# header 
+ header text
+<!-- toc -->
+
+- [one](#one)
+  * [one one](#one-one)
+- [two](#two)
+  * [two two](#two-two)
+
+<!-- tocstop -->
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `,
+      `
+# header 
+ header text
+<!-- toc -->
+
+- [one](#one)
+  * [one one](#one-one)
+- [two](#two)
+  * [two two](#two-two)
+
+<!-- tocstop -->
+# one
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `
+    ],
+    [
+      `***************************** Already generated TOC, needs updating in place`,
+      {line: 0, ch: 0},
+      `
+# header 
+ header text
+<!-- toc -->
+
+- [one](#one)
+  * [one one](#one-one)
+- [two](#two)
+  * [two two](#two-two)
+
+<!-- tocstop -->
+# This is the one 
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `,
+      `
+# header 
+ header text
+<!-- toc -->
+
+- [This is the one](#This-is-the-one)
+  * [one one](#one-one)
+- [two](#two)
+  * [two two](#two-two)
+
+<!-- tocstop -->
+# This is the one 
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `
+    ],
+    [
+      `***************************** Document with cursor at the last line, expecting empty TOC `,
+      {line: 13, ch: 30},
+      `
+# header 
+ header text
+
+# This is the one 
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+      `,
+      `
+# header 
+ header text
+
+# This is the one 
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+<!-- toc -->
+
+
+
+<!-- tocstop -->
+      `
+    ],
+    [
+      `***************************** Empty, not actual TOC , should be supplemented with two new points beneath`,
+      {line: 0, ch: 0},
+      `
+# header 
+ header text
+
+# This is the one 
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+<!-- toc -->
+
+
+
+<!-- tocstop -->
+# new point included in toc
+## new subpoint
+      `,
+      `
+# header 
+ header text
+
+# This is the one 
+this is a level one text
+this is a level one text
+
+## one one
+# two
+  this is a level two text
+  this is a level two text
+## two two
+  this is a level two two text
+  this is a level two two text
+<!-- toc -->
+
+- [new point included in toc](#new-point-included-in-toc)
+  * [new subpoint](#new-subpoint)
+
+<!-- tocstop -->
+# new point included in toc
+## new subpoint
+      `
+    ]
+  ]
+  testCases.forEach(testCase => {
+    const title = testCase[0]
+    const cursor = testCase[1]
+    const inputMd = testCase[2].trim()
+    const expectedMd = testCase[3].trim()
+
+    const editor = CodeMirror()
+    editor.setValue(inputMd)
+    editor.setCursor(cursor)
+    markdownToc.generateInEditor(editor)
+
+    t.is(expectedMd, editor.getValue(), `generateInEditor test : ${title} , generated : ${EOL}${editor.getValue()}, expected : ${EOL}${expectedMd}`)
   })
 })

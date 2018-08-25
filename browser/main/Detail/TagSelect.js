@@ -21,10 +21,11 @@ class TagSelect extends React.Component {
     this.value = this.props.value
     ee.on('editor:add-tag', this.addtagHandler)
 
-    const awesomplete = new Awesomplete(this.refs.newTag, {
+    this.awesomplete = new Awesomplete(this.refs.newTag, {
       minChars: 1,
       autoFirst: true,
-      list: '#datalist'
+      list: '#datalist',
+      filter: (text, input) => !_.includes(this.value, text.value) && Awesomplete.FILTER_CONTAINS(text, input)
     })
   }
 
@@ -34,6 +35,8 @@ class TagSelect extends React.Component {
 
   componentWillUnmount () {
     ee.off('editor:add-tag', this.addtagHandler)
+
+    this.awesomplete.destroy()
   }
 
   handleAddTag () {

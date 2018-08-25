@@ -1,5 +1,5 @@
 const Typo = require('typo-js')
-const CodeMirror = require('codeMirror')
+const CodeMirror = require('codemirror')
 jest.mock('typo-js')
 
 const systemUnderTest = require('browser/lib/spellcheck')

@@ -37,8 +37,8 @@ module.exports = function sanitizePlugin (md, options) {
   })
 }
 
-const tagRegex = /<([A-Z][A-Z0-9]*)\s*((?:\s*[A-Z][A-Z0-9]*(?:="(?:[^\"]+)\")?)*)\s*\/?>|<\/([A-Z][A-Z0-9]*)\s*>/i
-const attributesRegex = /([A-Z][A-Z0-9]*)(="[^\"]+\")?/ig
+const tagRegex = /<([A-Z][A-Z0-9]*)\s*((?:\s*[A-Z][A-Z0-9]*(?:=("|')(?:[^\3]+?)\3)?)*)\s*\/?>|<\/([A-Z][A-Z0-9]*)\s*>/i
+const attributesRegex = /([A-Z][A-Z0-9]*)(?:=("|')([^\2]+?)\2)?/ig
 
 function sanitizeInline (html, options) {
   let match = tagRegex.exec(html)
@@ -63,7 +63,7 @@ function sanitizeInline (html, options) {
 
     while ((match = attributesRegex.exec(attributes))) {
       name = match[1].toLowerCase()
-      value = match[2]
+      value = match[3]
 
       if (allowedAttributes['*'].indexOf(name) !== -1 || (allowedAttributes[tag] && allowedAttributes[tag].indexOf(name) !== -1)) {
         if (allowedSchemesAppliedToAttributes.indexOf(name) !== -1) {
@@ -72,7 +72,10 @@ function sanitizeInline (html, options) {
           }
         }
 
-        attrs += ` ${name}${value}`
+        attrs += ` ${name}`
+        if (match[2]) {
+          attrs += `="${value}"`
+        }
       }
     }
 
@@ -83,7 +86,7 @@ function sanitizeInline (html, options) {
     }
   } else {
     // closing tag
-    if (allowedTags.indexOf(match[3].toLowerCase()) !== -1) {
+    if (allowedTags.indexOf(match[4].toLowerCase()) !== -1) {
       return html
     } else {
       return ''

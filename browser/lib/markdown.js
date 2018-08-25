@@ -105,7 +105,11 @@ class Markdown {
           'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen'],
           'input': ['type', 'id', 'checked']
         },
-        allowedIframeHostnames: ['www.youtube.com']
+        allowedIframeHostnames: ['www.youtube.com'],
+        selfClosing: [ 'img', 'br', 'hr', 'input' ],
+        allowedSchemes: [ 'http', 'https', 'ftp', 'mailto' ],
+        allowedSchemesAppliedToAttributes: [ 'href', 'src', 'cite' ],
+        allowProtocolRelative: true
       })
     }
 

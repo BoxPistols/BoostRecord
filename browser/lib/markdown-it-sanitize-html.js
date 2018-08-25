@@ -37,45 +37,45 @@ module.exports = function sanitizePlugin (md, options) {
   })
 }
 
-const tag_regex = /<([A-Z][A-Z0-9]*)\s*((?:\s*[A-Z][A-Z0-9]*(?:="(?:[^\"]+)\")?)*)\s*>|<\/([A-Z][A-Z0-9]*)\s*>/i
-const attributes_regex = /([A-Z][A-Z0-9]*)(="[^\"]+\")?/ig
+const tagRegex = /<([A-Z][A-Z0-9]*)\s*((?:\s*[A-Z][A-Z0-9]*(?:="(?:[^\"]+)\")?)*)\s*\/?>|<\/([A-Z][A-Z0-9]*)\s*>/i
+const attributesRegex = /([A-Z][A-Z0-9]*)(="[^\"]+\")?/ig
 
-function sanitizeInline(html, options) {
-  let match = tag_regex.exec(html)
+function sanitizeInline (html, options) {
+  let match = tagRegex.exec(html)
   if (!match) {
     return ''
   }
-  
-  const { allowedTags, allowedAttributes, allowedIframeHostnames, selfClosing, allowedSchemesAppliedToAttributes } = options
-  
-  if (match[1] !== null) {
+
+  const { allowedTags, allowedAttributes, selfClosing, allowedSchemesAppliedToAttributes } = options
+
+  if (match[1] !== undefined) {
     // opening tag
     const tag = match[1].toLowerCase()
     if (allowedTags.indexOf(tag) === -1) {
       return ''
     }
-    
+
     const attributes = match[2]
-    
+
     let attrs = ''
     let name
     let value
-    
-    while ((match = attributes_regex.exec(attributes))) {
+
+    while ((match = attributesRegex.exec(attributes))) {
       name = match[1].toLowerCase()
       value = match[2]
-      
+
       if (allowedAttributes['*'].indexOf(name) !== -1 || (allowedAttributes[tag] && allowedAttributes[tag].indexOf(name) !== -1)) {
         if (allowedSchemesAppliedToAttributes.indexOf(name) !== -1) {
-          if (naughtyHRef(value) || (tag === 'iframe' && name === 'src' && naughtyIFrame(value))) {
+          if (naughtyHRef(value, options) || (tag === 'iframe' && name === 'src' && naughtyIFrame(value, options))) {
             continue
           }
         }
-        
+
         attrs += ` ${name}${value}`
       }
     }
-    
+
     if (selfClosing.indexOf(tag)) {
       return '<' + tag + attrs + ' />'
     } else {
@@ -91,10 +91,10 @@ function sanitizeInline(html, options) {
   }
 }
 
-function naughtyHRef(name, href, options) {
-  href = href.replace(/[\x00-\x20]+/g, '')
+function naughtyHRef (href, options) {
+  // href = href.replace(/[\x00-\x20]+/g, '')
   href = href.replace(/<\!\-\-.*?\-\-\>/g, '')
-  
+
   const matches = href.match(/^([a-zA-Z]+)\:/)
   if (!matches) {
     if (href.match(/^[\/\\]{2}/)) {
@@ -110,11 +110,11 @@ function naughtyHRef(name, href, options) {
   return options.allowedSchemes.indexOf(scheme) === -1
 }
 
-function naughtyIFrame(src) {
+function naughtyIFrame (src, options) {
   try {
     const parsed = url.parse(src, false, true)
-    
-    return allowedIframeHostnames.index(parsed.hostname) === -1
+
+    return options.allowedIframeHostnames.index(parsed.hostname) === -1
   } catch (e) {
     return true
   }

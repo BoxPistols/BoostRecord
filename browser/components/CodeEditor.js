@@ -60,6 +60,7 @@ export default class CodeEditor extends React.Component {
     this.searchState = null
 
     this.formatTable = () => this.handleFormatTable()
+    this.editorActivityHandler = () => this.handleEditorActivity()
   }
 
   handleSearch (msg) {
@@ -100,6 +101,28 @@ export default class CodeEditor extends React.Component {
     this.tableEditor.formatAll(options({textWidthOptions: {}}))
   }
 
+  handleEditorActivity () {
+    if (!this.textEditorInterface.transaction) {
+      this.updateTableEditorState()
+    }
+  }
+
+  updateTableEditorState () {
+    const active = this.tableEditor.cursorIsInTable(this.tableEditorOptions)
+    if (active) {
+      if (this.extraKeysMode !== 'editor') {
+        this.extraKeysMode = 'editor'
+        this.editor.setOption('extraKeys', this.editorKeyMap)
+      }
+    } else {
+      if (this.extraKeysMode !== 'default') {
+        this.extraKeysMode = 'default'
+        this.editor.setOption('extraKeys', this.defaultKeyMap)
+        this.tableEditor.resetSmartCursor()
+      }
+    }
+  }
+
   componentDidMount () {
     const { rulers, enableRulers } = this.props
     const expandSnippet = this.expandSnippet.bind(this)
@@ -120,56 +143,7 @@ export default class CodeEditor extends React.Component {
       )
     }
 
-    this.value = this.props.value
-    this.editor = CodeMirror(this.refs.root, {
-      rulers: buildCMRulers(rulers, enableRulers),
-      value: this.props.value,
-      lineNumbers: this.props.displayLineNumbers,
-      lineWrapping: true,
-      theme: this.props.theme,
-      indentUnit: this.props.indentSize,
-      tabSize: this.props.indentSize,
-      indentWithTabs: this.props.indentType !== 'space',
-      keyMap: this.props.keyMap,
-      scrollPastEnd: this.props.scrollPastEnd,
-      inputStyle: 'textarea',
-      dragDrop: false,
-      foldGutter: true,
-      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      autoCloseBrackets: {
-        pairs: '()[]{}\'\'""$$**``',
-        triples: '```"""\'\'\'',
-        explode: '[]{}``$$',
-        override: true
-      }
-    })
-
-    this.setMode(this.props.mode)
-
-    this.editor.on('focus', this.focusHandler)
-    this.editor.on('blur', this.blurHandler)
-    this.editor.on('change', this.changeHandler)
-    this.editor.on('paste', this.pasteHandler)
-    eventEmitter.on('top:search', this.searchHandler)
-
-    eventEmitter.emit('code:init')
-    this.editor.on('scroll', this.scrollHandler)
-
-    const editorTheme = document.getElementById('editorTheme')
-    editorTheme.addEventListener('load', this.loadStyleHandler)
-
-    CodeMirror.Vim.defineEx('quit', 'q', this.quitEditor)
-    CodeMirror.Vim.defineEx('q!', 'q!', this.quitEditor)
-    CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
-    CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
-    CodeMirror.Vim.map('ZZ', ':q', 'normal')
-    this.setState({ isReady: true })
-
-    const editorIntf = new TextEditorInterface(this.editor)
-    this.tableEditor = new TableEditor(editorIntf)
-    eventEmitter.on('code:format-table', this.formatTable)
-
-    const defaultKeyMap = CodeMirror.normalizeKeyMap({
+    this.defaultKeyMap = CodeMirror.normalizeKeyMap({
       Tab: function (cm) {
         const cursor = cm.getCursor()
         const line = cm.getLine(cursor.line)
@@ -222,76 +196,103 @@ export default class CodeEditor extends React.Component {
       }
     })
 
+    this.value = this.props.value
+    this.editor = CodeMirror(this.refs.root, {
+      rulers: buildCMRulers(rulers, enableRulers),
+      value: this.props.value,
+      lineNumbers: this.props.displayLineNumbers,
+      lineWrapping: true,
+      theme: this.props.theme,
+      indentUnit: this.props.indentSize,
+      tabSize: this.props.indentSize,
+      indentWithTabs: this.props.indentType !== 'space',
+      keyMap: this.props.keyMap,
+      scrollPastEnd: this.props.scrollPastEnd,
+      inputStyle: 'textarea',
+      dragDrop: false,
+      foldGutter: true,
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+      autoCloseBrackets: {
+        pairs: '()[]{}\'\'""$$**``',
+        triples: '```"""\'\'\'',
+        explode: '[]{}``$$',
+        override: true
+      },
+      extraKeys: this.defaultKeyMap
+    })
+
+    this.setMode(this.props.mode)
+
+    this.editor.on('focus', this.focusHandler)
+    this.editor.on('blur', this.blurHandler)
+    this.editor.on('change', this.changeHandler)
+    this.editor.on('paste', this.pasteHandler)
+    eventEmitter.on('top:search', this.searchHandler)
+
+    eventEmitter.emit('code:init')
+    this.editor.on('scroll', this.scrollHandler)
+
+    const editorTheme = document.getElementById('editorTheme')
+    editorTheme.addEventListener('load', this.loadStyleHandler)
+
+    CodeMirror.Vim.defineEx('quit', 'q', this.quitEditor)
+    CodeMirror.Vim.defineEx('q!', 'q!', this.quitEditor)
+    CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
+    CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
+    CodeMirror.Vim.map('ZZ', ':q', 'normal')
+    this.setState({ isReady: true })
+
+    this.textEditorInterface = new TextEditorInterface(this.editor)
+    this.tableEditor = new TableEditor(this.textEditorInterface)
+    eventEmitter.on('code:format-table', this.formatTable)
+
+    this.tableEditorOptions = options({
+      smartCursor: true
+    })
+
+    this.editorKeyMap = CodeMirror.normalizeKeyMap({
+      'Tab': () => { this.tableEditor.nextCell(this.tableEditorOptions) },
+      'Shift-Tab': () => { this.tableEditor.previousCell(this.tableEditorOptions) },
+      'Enter': () => { this.tableEditor.nextRow(this.tableEditorOptions) },
+      'Ctrl-Enter': () => { this.tableEditor.escape(this.tableEditorOptions) },
+      'Cmd-Enter': () => { this.tableEditor.escape(this.tableEditorOptions) },
+      'Shift-Ctrl-Left': () => { this.tableEditor.alignColumn(Alignment.LEFT, this.tableEditorOptions) },
+      'Shift-Cmd-Left': () => { this.tableEditor.alignColumn(Alignment.LEFT, this.tableEditorOptions) },
+      'Shift-Ctrl-Right': () => { this.tableEditor.alignColumn(Alignment.RIGHT, this.tableEditorOptions) },
+      'Shift-Cmd-Right': () => { this.tableEditor.alignColumn(Alignment.RIGHT, this.tableEditorOptions) },
+      'Shift-Ctrl-Up': () => { this.tableEditor.alignColumn(Alignment.CENTER, this.tableEditorOptions) },
+      'Shift-Cmd-Up': () => { this.tableEditor.alignColumn(Alignment.CENTER, this.tableEditorOptions) },
+      'Shift-Ctrl-Down': () => { this.tableEditor.alignColumn(Alignment.NONE, this.tableEditorOptions) },
+      'Shift-Cmd-Down': () => { this.tableEditor.alignColumn(Alignment.NONE, this.tableEditorOptions) },
+      'Ctrl-Left': () => { this.tableEditor.moveFocus(0, -1, this.tableEditorOptions) },
+      'Cmd-Left': () => { this.tableEditor.moveFocus(0, -1, this.tableEditorOptions) },
+      'Ctrl-Right': () => { this.tableEditor.moveFocus(0, 1, this.tableEditorOptions) },
+      'Cmd-Right': () => { this.tableEditor.moveFocus(0, 1, this.tableEditorOptions) },
+      'Ctrl-Up': () => { this.tableEditor.moveFocus(-1, 0, this.tableEditorOptions) },
+      'Cmd-Up': () => { this.tableEditor.moveFocus(-1, 0, this.tableEditorOptions) },
+      'Ctrl-Down': () => { this.tableEditor.moveFocus(1, 0, this.tableEditorOptions) },
+      'Cmd-Down': () => { this.tableEditor.moveFocus(1, 0, this.tableEditorOptions) },
+      'Ctrl-K Ctrl-I': () => { this.tableEditor.insertRow(this.tableEditorOptions) },
+      'Cmd-K Cmd-I': () => { this.tableEditor.insertRow(this.tableEditorOptions) },
+      'Ctrl-L Ctrl-I': () => { this.tableEditor.deleteRow(this.tableEditorOptions) },
+      'Cmd-L Cmd-I': () => { this.tableEditor.deleteRow(this.tableEditorOptions) },
+      'Ctrl-K Ctrl-J': () => { this.tableEditor.insertColumn(this.tableEditorOptions) },
+      'Cmd-K Cmd-J': () => { this.tableEditor.insertColumn(this.tableEditorOptions) },
+      'Ctrl-L Ctrl-J': () => { this.tableEditor.deleteColumn(this.tableEditorOptions) },
+      'Cmd-L Cmd-J': () => { this.tableEditor.deleteColumn(this.tableEditorOptions) },
+      'Alt-Shift-Ctrl-Left': () => { this.tableEditor.moveColumn(-1, this.tableEditorOptions) },
+      'Alt-Shift-Cmd-Left': () => { this.tableEditor.moveColumn(-1, this.tableEditorOptions) },
+      'Alt-Shift-Ctrl-Right': () => { this.tableEditor.moveColumn(1, this.tableEditorOptions) },
+      'Alt-Shift-Cmd-Right': () => { this.tableEditor.moveColumn(1, this.tableEditorOptions) },
+      'Alt-Shift-Ctrl-Up': () => { this.tableEditor.moveRow(-1, this.tableEditorOptions) },
+      'Alt-Shift-Cmd-Up': () => { this.tableEditor.moveRow(-1, this.tableEditorOptions) },
+      'Alt-Shift-Ctrl-Down': () => { this.tableEditor.moveRow(1, this.tableEditorOptions) },
+      'Alt-Shift-Cmd-Down': () => { this.tableEditor.moveRow(1, this.tableEditorOptions) }
+    })
+
     if (this.props.enableTableEditor) {
-      const opts = options({
-        smartCursor: true
-      })
-
-      const editorKeyMap = CodeMirror.normalizeKeyMap({
-        'Tab': () => { this.tableEditor.nextCell(opts) },
-        'Shift-Tab': () => { this.tableEditor.previousCell(opts) },
-        'Enter': () => { this.tableEditor.nextRow(opts) },
-        'Ctrl-Enter': () => { this.tableEditor.escape(opts) },
-        'Cmd-Enter': () => { this.tableEditor.escape(opts) },
-        'Shift-Ctrl-Left': () => { this.tableEditor.alignColumn(Alignment.LEFT, opts) },
-        'Shift-Cmd-Left': () => { this.tableEditor.alignColumn(Alignment.LEFT, opts) },
-        'Shift-Ctrl-Right': () => { this.tableEditor.alignColumn(Alignment.RIGHT, opts) },
-        'Shift-Cmd-Right': () => { this.tableEditor.alignColumn(Alignment.RIGHT, opts) },
-        'Shift-Ctrl-Up': () => { this.tableEditor.alignColumn(Alignment.CENTER, opts) },
-        'Shift-Cmd-Up': () => { this.tableEditor.alignColumn(Alignment.CENTER, opts) },
-        'Shift-Ctrl-Down': () => { this.tableEditor.alignColumn(Alignment.NONE, opts) },
-        'Shift-Cmd-Down': () => { this.tableEditor.alignColumn(Alignment.NONE, opts) },
-        'Ctrl-Left': () => { this.tableEditor.moveFocus(0, -1, opts) },
-        'Cmd-Left': () => { this.tableEditor.moveFocus(0, -1, opts) },
-        'Ctrl-Right': () => { this.tableEditor.moveFocus(0, 1, opts) },
-        'Cmd-Right': () => { this.tableEditor.moveFocus(0, 1, opts) },
-        'Ctrl-Up': () => { this.tableEditor.moveFocus(-1, 0, opts) },
-        'Cmd-Up': () => { this.tableEditor.moveFocus(-1, 0, opts) },
-        'Ctrl-Down': () => { this.tableEditor.moveFocus(1, 0, opts) },
-        'Cmd-Down': () => { this.tableEditor.moveFocus(1, 0, opts) },
-        'Ctrl-K Ctrl-I': () => { this.tableEditor.insertRow(opts) },
-        'Cmd-K Cmd-I': () => { this.tableEditor.insertRow(opts) },
-        'Ctrl-L Ctrl-I': () => { this.tableEditor.deleteRow(opts) },
-        'Cmd-L Cmd-I': () => { this.tableEditor.deleteRow(opts) },
-        'Ctrl-K Ctrl-J': () => { this.tableEditor.insertColumn(opts) },
-        'Cmd-K Cmd-J': () => { this.tableEditor.insertColumn(opts) },
-        'Ctrl-L Ctrl-J': () => { this.tableEditor.deleteColumn(opts) },
-        'Cmd-L Cmd-J': () => { this.tableEditor.deleteColumn(opts) },
-        'Alt-Shift-Ctrl-Left': () => { this.tableEditor.moveColumn(-1, opts) },
-        'Alt-Shift-Cmd-Left': () => { this.tableEditor.moveColumn(-1, opts) },
-        'Alt-Shift-Ctrl-Right': () => { this.tableEditor.moveColumn(1, opts) },
-        'Alt-Shift-Cmd-Right': () => { this.tableEditor.moveColumn(1, opts) },
-        'Alt-Shift-Ctrl-Up': () => { this.tableEditor.moveRow(-1, opts) },
-        'Alt-Shift-Cmd-Up': () => { this.tableEditor.moveRow(-1, opts) },
-        'Alt-Shift-Ctrl-Down': () => { this.tableEditor.moveRow(1, opts) },
-        'Alt-Shift-Cmd-Down': () => { this.tableEditor.moveRow(1, opts) }
-      })
-
-      const updateActiveState = () => {
-        const active = this.tableEditor.cursorIsInTable(opts)
-        if (active) {
-          this.editor.setOption('extraKeys', editorKeyMap)
-        } else {
-          this.editor.setOption('extraKeys', defaultKeyMap)
-          this.tableEditor.resetSmartCursor()
-        }
-      }
-
-      this.editor.on('cursorActivity', () => {
-        if (!editorIntf.transaction) {
-          updateActiveState()
-        }
-      })
-      this.editor.on('changes', () => {
-        if (!editorIntf.transaction) {
-          updateActiveState()
-        }
-      })
-      editorIntf.onDidFinishTransaction = () => {
-        updateActiveState()
-      }
-    } else {
-      this.editor.setOption('extraKeys', defaultKeyMap)
+      this.editor.on('cursorActivity', this.editorActivityHandler)
+      this.editor.on('changes', this.editorActivityHandler)
     }
   }
 
@@ -427,6 +428,19 @@ export default class CodeEditor extends React.Component {
 
     if (prevProps.scrollPastEnd !== this.props.scrollPastEnd) {
       this.editor.setOption('scrollPastEnd', this.props.scrollPastEnd)
+    }
+
+    if (prevProps.enableTableEditor !== this.props.enableTableEditor) {
+      if (this.props.enableTableEditor) {
+        this.editor.on('cursorActivity', this.editorActivityHandler)
+        this.editor.on('changes', this.editorActivityHandler)
+      } else {
+        this.editor.off('cursorActivity', this.editorActivityHandler)
+        this.editor.off('changes', this.editorActivityHandler)
+      }
+
+      this.extraKeysMode = 'default'
+      this.editor.setOption('extraKeys', this.defaultKeyMap)
     }
 
     if (needRefresh) {

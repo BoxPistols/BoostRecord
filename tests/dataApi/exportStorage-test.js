@@ -37,6 +37,7 @@ test.serial('Export a storage', t => {
         const noteDir = path.join(exportDir, folderKeyToName[note.folder], `${note.title}.md`)
         if (note.type === 'MARKDOWN_NOTE') {
           t.true(fs.existsSync(noteDir))
+          t.is(fs.readFileSync(noteDir, 'utf8'), note.content)
         } else if (note.type === 'SNIPPET_NOTE') {
           t.false(fs.existsSync(noteDir))
         }

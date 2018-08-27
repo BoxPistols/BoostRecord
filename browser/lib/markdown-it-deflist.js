@@ -46,10 +46,12 @@ module.exports = function definitionListPlugin (md) {
       listLines,
       listTokIdx,
       max,
+      newEndLine,
       nextLine,
       offset,
       oldDDIndent,
       oldIndent,
+      oldLineMax,
       oldParentType,
       oldSCount,
       oldTShift,
@@ -150,7 +152,16 @@ module.exports = function definitionListPlugin (md) {
         state.tight = true
         state.parentType = 'deflist'
 
-        state.md.block.tokenize(state, ddLine, endLine, true)
+        newEndLine = ddLine
+        while (++newEndLine < endLine && (state.sCount[newEndLine] >= state.sCount[ddLine] || state.isEmpty(newEndLine))) {
+        }
+        
+        oldLineMax = state.lineMax
+        state.lineMax = newEndLine
+        
+        state.md.block.tokenize(state, ddLine, newEndLine, true)
+        
+        state.lineMax = oldLineMax
 
         // If any of list item is tight, mark list as tight
         if (!state.tight || prevEmptyEnd) {

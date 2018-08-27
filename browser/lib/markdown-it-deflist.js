@@ -155,12 +155,12 @@ module.exports = function definitionListPlugin (md) {
         newEndLine = ddLine
         while (++newEndLine < endLine && (state.sCount[newEndLine] >= state.sCount[ddLine] || state.isEmpty(newEndLine))) {
         }
-        
+
         oldLineMax = state.lineMax
         state.lineMax = newEndLine
-        
+
         state.md.block.tokenize(state, ddLine, newEndLine, true)
-        
+
         state.lineMax = oldLineMax
 
         // If any of list item is tight, mark list as tight

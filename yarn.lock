@@ -5735,6 +5735,10 @@ markdown-it-footnote@^3.0.0:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/markdown-it-footnote/-/markdown-it-footnote-3.0.1.tgz#7f3730747cacc86e2fe0bf8a17a710f34791517a"
 
+markdown-it-front-matter@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/markdown-it-front-matter/-/markdown-it-front-matter-0.1.2.tgz#e50bf56e77e6a4f5ac4ffa894d4d45ccd9896b20"
+
 markdown-it-imsize@^2.0.1:
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/markdown-it-imsize/-/markdown-it-imsize-2.0.1.tgz#cca0427905d05338a247cb9ca9d968c5cddd5170"

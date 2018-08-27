@@ -1,7 +1,17 @@
+const frontMatterRegex = /^\-{3,}/
+
 export function findNoteTitle (value) {
   const splitted = value.split('\n')
   let title = null
   let isInsideCodeBlock = false
+
+  if (frontMatterRegex.exec(splitted[0])) {
+    let index = 0
+    while (++index < splitted.length && !frontMatterRegex.exec(splitted[index])) {
+    }
+
+    splitted.splice(0, index + 1)
+  }
 
   splitted.some((line, index) => {
     const trimmedLine = line.trim()

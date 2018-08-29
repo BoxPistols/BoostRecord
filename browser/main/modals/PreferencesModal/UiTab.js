@@ -255,7 +255,7 @@ class UiTab extends React.Component {
               {i18n.__('Save tags of a note in alphabetical order')}
             </label>
           </div>
-          
+
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}

@@ -84,7 +84,7 @@ class TagSelect extends React.Component {
       : []
 
     if (!_.includes(value, newTag)) {
-        value.push(newTag)
+      value.push(newTag)
     }
 
     if (this.props.saveTagsAlphabetically) {

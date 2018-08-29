@@ -71,6 +71,7 @@ class UiTab extends React.Component {
         confirmDeletion: this.refs.confirmDeletion.checked,
         showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
         showTagsAlphabetically: this.refs.showTagsAlphabetically.checked,
+        saveTagsAlphabetically: this.refs.saveTagsAlphabetically.checked,
         enableLiveNoteCounts: this.refs.enableLiveNoteCounts.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
@@ -244,6 +245,17 @@ class UiTab extends React.Component {
           }
           <div styleName='group-header2'>Tags</div>
 
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.saveTagsAlphabetically}
+                ref='saveTagsAlphabetically'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Save tags of a note in alphabetical order')}
+            </label>
+          </div>
+          
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}

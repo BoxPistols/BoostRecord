@@ -82,8 +82,14 @@ class TagSelect extends React.Component {
     value = _.isArray(value)
       ? value.slice()
       : []
-    value.push(newTag)
-    value = _.uniq(value)
+
+    if (!_.includes(value, newTag)) {
+        value.push(newTag)
+    }
+
+    if (this.props.saveTagsAlphabetically) {
+      value = _.sortBy(value)
+    }
 
     this.setState({
       newTag: ''

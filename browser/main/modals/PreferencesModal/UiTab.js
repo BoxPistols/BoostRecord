@@ -387,7 +387,7 @@ class UiTab extends React.Component {
               <p styleName='note-for-keymap'>{i18n.__('⚠️ Please restart boostnote after you change the keymap')}</p>
             </div>
           </div>
-          
+
           <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('Snippet Default Language')}
@@ -398,7 +398,7 @@ class UiTab extends React.Component {
                 onChange={(e) => this.handleUIChange(e)}
               >
                 {
-                  _.sortBy(CodeMirror.modeInfo.map(mode => mode.name)).map(name => (<option value={name}>{name}</option>))
+                  _.sortBy(CodeMirror.modeInfo.map(mode => mode.name)).map(name => (<option key={name} value={name}>{name}</option>))
                 }
               </select>
             </div>

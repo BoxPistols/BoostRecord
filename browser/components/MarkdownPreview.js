@@ -180,9 +180,7 @@ const defaultCodeBlockFontFamily = [
 export default class MarkdownPreview extends React.Component {
   constructor (props) {
     super(props)
-    this.state = {
-      isReady: false
-    }
+
     this.contextMenuHandler = e => this.handleContextMenu(e)
     this.mouseDownHandler = e => this.handleMouseDown(e)
     this.mouseUpHandler = e => this.handleMouseUp(e)
@@ -457,7 +455,6 @@ export default class MarkdownPreview extends React.Component {
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
     eventEmitter.on('print', this.printHandler)
-    setTimeout(() => this.setState({ isReady: true }))
   }
 
   componentWillUnmount () {
@@ -850,11 +847,7 @@ export default class MarkdownPreview extends React.Component {
         className={
           className != null ? 'MarkdownPreview ' + className : 'MarkdownPreview'
         }
-        style={
-          this.state.isReady
-            ? Object.assign(style, { opacity: '1' })
-            : Object.assign(style, { opacity: '0' })
-        }
+        style={style}
         tabIndex={tabIndex}
         ref='root'
       />

@@ -6,7 +6,6 @@ import CodeEditor from 'browser/components/CodeEditor'
 import MarkdownPreview from 'browser/components/MarkdownPreview'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import { findStorage } from 'browser/lib/findStorage'
-import debounceRender from 'react-debounce-render'
 
 class MarkdownEditor extends React.Component {
   constructor (props) {
@@ -313,4 +312,4 @@ MarkdownEditor.propTypes = {
   ignorePreviewPointerEvents: PropTypes.bool
 }
 
-export default debounceRender(CSSModules(MarkdownEditor, styles))
+export default CSSModules(MarkdownEditor, styles)

@@ -27,7 +27,6 @@ export default class CodeEditor extends React.Component {
   constructor (props) {
     super(props)
 
-    this.state = { isReady: false }
     this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {
       leading: false,
       trailing: true
@@ -226,7 +225,7 @@ export default class CodeEditor extends React.Component {
     CodeMirror.Vim.defineEx('wq', 'wq', this.quitEditor)
     CodeMirror.Vim.defineEx('qw', 'qw', this.quitEditor)
     CodeMirror.Vim.map('ZZ', ':q', 'normal')
-    this.setState({ isReady: true })
+
     this.tableEditor = new TableEditor(new TextEditorInterface(this.editor))
     if (this.props.spellCheck) {
       this.editor.addPanel(this.createSpellCheckPanel(), {position: 'bottom'})
@@ -599,8 +598,7 @@ export default class CodeEditor extends React.Component {
         style={{
           fontFamily,
           fontSize: fontSize,
-          width: width,
-          opacity: this.state.isReady ? '1' : '0'
+          width: width
         }}
         onDrop={e => this.handleDropImage(e)}
       />

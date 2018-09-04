@@ -573,11 +573,12 @@ class SnippetNoteDetail extends React.Component {
   }
 
   addSnippet () {
+    const { config } = this.props
     const { note } = this.state
 
     note.snippets = note.snippets.concat([{
       name: '',
-      mode: 'Plain Text',
+      mode: config.editor.snippetDefaultLanguage || 'text',
       content: ''
     }])
     const snippetIndex = note.snippets.length - 1

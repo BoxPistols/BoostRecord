@@ -85,6 +85,7 @@ class UiTab extends React.Component {
         displayLineNumbers: this.refs.editorDisplayLineNumbers.checked,
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
+        snippetDefaultLanguage: this.refs.editorSnippetDefaultLanguage.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked,
         fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
         enableTableEditor: this.refs.enableTableEditor.checked
@@ -385,6 +386,22 @@ class UiTab extends React.Component {
                 <option value='emacs'>{i18n.__('emacs')}</option>
               </select>
               <p styleName='note-for-keymap'>{i18n.__('⚠️ Please restart boostnote after you change the keymap')}</p>
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Snippet Default Language')}
+            </div>
+            <div styleName='group-section-control'>
+              <select value={config.editor.snippetDefaultLanguage}
+                ref='editorSnippetDefaultLanguage'
+                onChange={(e) => this.handleUIChange(e)}
+              >
+                {
+                  _.sortBy(CodeMirror.modeInfo.map(mode => mode.name)).map(name => (<option key={name} value={name}>{name}</option>))
+                }
+              </select>
             </div>
           </div>
 

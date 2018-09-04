@@ -61,7 +61,7 @@ class NewNoteModal extends React.Component {
   handleSnippetNoteButtonClick (e) {
     AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_SNIPPET')
     AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_ALLNOTE')
-    const { storage, folder, dispatch, location } = this.props
+    const { storage, folder, dispatch, location, config } = this.props
 
     dataApi
       .createNote(storage, {
@@ -72,7 +72,7 @@ class NewNoteModal extends React.Component {
         snippets: [
           {
             name: '',
-            mode: 'text',
+            mode: config.editor.snippetDefaultLanguage || 'text',
             content: ''
           }
         ]

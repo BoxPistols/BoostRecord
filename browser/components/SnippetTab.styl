@@ -137,3 +137,47 @@ body[data-theme="solarized-dark"]
 
   .deleteButton
     color alpha($ui-solarized-dark-text-color, 30%)
+
+body[data-theme="monokai"]
+  .root
+    color $ui-monokai-text-color
+    border-color $ui-dark-borderColor
+    &:hover
+      background-color $ui-monokai-noteDetail-backgroundColor
+      .deleteButton
+        color $ui-monokai-text-color
+        &:hover
+          background-color darken($ui-monokai-noteDetail-backgroundColor, 15%)
+        &:active
+          color $ui-monokai-text-color
+          background-color $ui-dark-button--active-backgroundColor
+
+  .root--active
+    color $ui-monokai-text-color
+    border-color $ui-monokai-borderColor
+    &:hover
+      background-color $ui-monokai-noteDetail-backgroundColor
+      .deleteButton
+        color $ui-monokai-text-color
+        &:hover
+          background-color darken($ui-monokai-noteDetail-backgroundColor, 15%)
+        &:active
+          color $ui-monokai-text-color
+          background-color $ui-dark-button--active-backgroundColor
+
+  .button
+    border none
+    color $ui-monokai-text-color
+    background-color transparent
+    transition color background-color 0.15s
+    border-left 4px solid transparent
+    &:hover
+      color $ui-monokai-text-color
+      background-color $ui-monokai-noteDetail-backgroundColor
+
+  .input
+    background-color $ui-monokai-noteDetail-backgroundColor
+    color $ui-monokai-text-color
+
+  .deleteButton
+    color alpha($ui-monokai-text-color, 30%)

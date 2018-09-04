@@ -34,14 +34,15 @@ class NewNoteButton extends React.Component {
   }
 
   handleNewNoteButtonClick (e) {
-    const { location, dispatch } = this.props
+    const { location, dispatch, config } = this.props
     const { storage, folder } = this.resolveTargetFolder()
 
     modal.open(NewNoteModal, {
       storage: storage.key,
       folder: folder.key,
       dispatch,
-      location
+      location,
+      config
     })
   }
 

@@ -39,8 +39,9 @@
 
 .tag-label
   font-size 13px
-  color: $ui-text-color
+  color $ui-text-color
   padding 4px 16px 4px 8px
+  cursor pointer
 
 .newTag
   box-sizing border-box
@@ -66,7 +67,7 @@ body[data-theme="dark"]
     border-color none
     background-color transparent
     color $ui-dark-text-color
-    
+
 body[data-theme="solarized-dark"]
   .tag
     background-color $ui-solarized-dark-tag-backgroundColor
@@ -93,7 +94,7 @@ body[data-theme="monokai"]
 
   .tag-label
     color $ui-monokai-text-color
-    
+
   .newTag
     border-color none
     background-color transparent

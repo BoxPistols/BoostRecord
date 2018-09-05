@@ -99,6 +99,11 @@ class TagSelect extends React.Component {
     })
   }
 
+  handleTagLabelClick (tag) {
+    const { router } = this.context
+    router.push(`/tags/${tag}`)
+  }
+
   handleTagRemoveButtonClick (tag) {
     this.removeTagByCallback((value, tag) => {
       value.splice(value.indexOf(tag), 1)
@@ -127,7 +132,7 @@ class TagSelect extends React.Component {
           <span styleName='tag'
             key={tag}
           >
-            <span styleName='tag-label'>#{tag}</span>
+            <span styleName='tag-label' onClick={(e) => this.handleTagLabelClick(tag)}>#{tag}</span>
             <button styleName='tag-removeButton'
               onClick={(e) => this.handleTagRemoveButtonClick(tag)}
             >
@@ -157,6 +162,10 @@ class TagSelect extends React.Component {
       </div>
     )
   }
+}
+
+TagSelect.contextTypes = {
+  router: PropTypes.shape({})
 }
 
 TagSelect.propTypes = {

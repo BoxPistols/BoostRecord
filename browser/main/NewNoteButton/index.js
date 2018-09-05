@@ -7,6 +7,7 @@ import modal from 'browser/main/lib/modal'
 import NewNoteModal from 'browser/main/modals/NewNoteModal'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import i18n from 'browser/lib/i18n'
+import { createMarkdownNote, createSnippetNote } from 'browser/lib/newNote'
 
 const { remote } = require('electron')
 const { dialog } = remote
@@ -37,13 +38,21 @@ class NewNoteButton extends React.Component {
     const { location, dispatch, config } = this.props
     const { storage, folder } = this.resolveTargetFolder()
 
-    modal.open(NewNoteModal, {
-      storage: storage.key,
-      folder: folder.key,
-      dispatch,
-      location,
-      config
-    })
+    console.log(config)
+
+    if (config.ui.defaultNote === 'MARKDOWN_NOTE') {
+      createMarkdownNote(storage.key, folder.key, dispatch, location)
+    } else if (config.ui.defaultNote === 'SNIPPET_NOTE') {
+      createSnippetNote(storage.key, folder.key, dispatch, location, config)
+    } else {
+      modal.open(NewNoteModal, {
+        storage: storage.key,
+        folder: folder.key,
+        dispatch,
+        location,
+        config
+      })
+    }
   }
 
   resolveTargetFolder () {

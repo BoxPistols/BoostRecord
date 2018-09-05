@@ -38,8 +38,6 @@ class NewNoteButton extends React.Component {
     const { location, dispatch, config } = this.props
     const { storage, folder } = this.resolveTargetFolder()
 
-    console.log(config)
-
     if (config.ui.defaultNote === 'MARKDOWN_NOTE') {
       createMarkdownNote(storage.key, folder.key, dispatch, location)
     } else if (config.ui.defaultNote === 'SNIPPET_NOTE') {

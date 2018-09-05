@@ -19,12 +19,8 @@
 	".md": ".md",
 	".txt": ".txt",
 	".html": ".html",
-<<<<<<< HEAD
-	"Print": "Drukuj",
-=======
   "Print": "Drukuj",
   "Help": "Pomoc",
->>>>>>> f4203263bbca6a1a7c4f489df427db957c8fc136
 	"Your preferences for Boostnote": "Twoje ustawienia dla Boostnote",
 	"Storages": "Storages",
 	"Add Storage Location": "Dodaj miejsce zapisu",

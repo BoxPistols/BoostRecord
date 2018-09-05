@@ -174,7 +174,9 @@ class UiTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Interface')}</div>
 
           <div styleName='group-section'>
-            {i18n.__('Interface Theme')}
+            <div styleName='group-section-label'>
+              {i18n.__('Interface Theme')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.theme}
                 onChange={(e) => this.handleUIChange(e)}
@@ -190,7 +192,9 @@ class UiTab extends React.Component {
           </div>
 
           <div styleName='group-section'>
-            {i18n.__('Language')}
+            <div styleName='group-section-label'>
+              {i18n.__('Language')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.language}
                 onChange={(e) => this.handleUIChange(e)}

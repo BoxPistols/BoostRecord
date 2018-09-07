@@ -5,6 +5,7 @@ import styles from './TopBar.styl'
 import _ from 'lodash'
 import ee from 'browser/main/lib/eventEmitter'
 import NewNoteButton from 'browser/main/NewNoteButton'
+import i18n from 'browser/lib/i18n'
 
 class TopBar extends React.Component {
   constructor (props) {
@@ -22,14 +23,37 @@ class TopBar extends React.Component {
     this.focusSearchHandler = () => {
       this.handleOnSearchFocus()
     }
+
+    this.codeInitHandler = this.handleCodeInit.bind(this)
   }
 
   componentDidMount () {
+    const { params } = this.props
+    const searchWord = params.searchword
+    if (searchWord !== undefined) {
+      this.setState({
+        search: searchWord,
+        isSearching: true
+      })
+    }
     ee.on('top:focus-search', this.focusSearchHandler)
+    ee.on('code:init', this.codeInitHandler)
   }
 
   componentWillUnmount () {
     ee.off('top:focus-search', this.focusSearchHandler)
+    ee.off('code:init', this.codeInitHandler)
+  }
+
+  handleSearchClearButton (e) {
+    const { router } = this.context
+    this.setState({
+      search: '',
+      isSearching: false
+    })
+    this.refs.search.childNodes[0].blur
+    router.push('/searched')
+    e.preventDefault()
   }
 
   handleKeyDown (e) {
@@ -38,6 +62,23 @@ class TopBar extends React.Component {
       isAlphabet: false,
       isIME: false
     })
+
+    // Clear search on ESC
+    if (e.keyCode === 27) {
+      return this.handleSearchClearButton(e)
+    }
+
+    // Next note on DOWN key
+    if (e.keyCode === 40) {
+      ee.emit('list:next')
+      e.preventDefault()
+    }
+
+    // Prev note on UP key
+    if (e.keyCode === 38) {
+      ee.emit('list:prior')
+      e.preventDefault()
+    }
 
     // When the key is an alphabet, del, enter or ctr
     if (e.keyCode <= 90 || e.keyCode >= 186 && e.keyCode <= 222) {
@@ -64,23 +105,26 @@ class TopBar extends React.Component {
       this.setState({
         isConfirmTranslation: true
       })
-      router.push('/searched')
+      const keyword = this.refs.searchInput.value
+      router.push(`/searched/${encodeURIComponent(keyword)}`)
       this.setState({
-        search: this.refs.searchInput.value
+        search: keyword
       })
     }
   }
 
   handleSearchChange (e) {
     const { router } = this.context
+    const keyword = this.refs.searchInput.value
     if (this.state.isAlphabet || this.state.isConfirmTranslation) {
-      router.push('/searched')
+      router.push(`/searched/${encodeURIComponent(keyword)}`)
     } else {
       e.preventDefault()
     }
     this.setState({
-      search: this.refs.searchInput.value
+      search: keyword
     })
+    ee.emit('top:search', keyword)
   }
 
   handleSearchFocus (e) {
@@ -108,11 +152,16 @@ class TopBar extends React.Component {
   }
 
   handleOnSearchFocus () {
+    const el = this.refs.search.childNodes[0]
     if (this.state.isSearching) {
-      this.refs.search.childNodes[0].blur()
+      el.blur()
     } else {
-      this.refs.search.childNodes[0].focus()
+      el.select()
     }
+  }
+
+  handleCodeInit () {
+    ee.emit('top:search', this.refs.searchInput.value)
   }
 
   render () {
@@ -136,19 +185,19 @@ class TopBar extends React.Component {
                 onChange={(e) => this.handleSearchChange(e)}
                 onKeyDown={(e) => this.handleKeyDown(e)}
                 onKeyUp={(e) => this.handleKeyUp(e)}
-                placeholder='Search'
+                placeholder={i18n.__('Search')}
                 type='text'
                 className='searchInput'
               />
+              {this.state.search !== '' &&
+                <button styleName='control-search-input-clear'
+                  onClick={(e) => this.handleSearchClearButton(e)}
+                >
+                  <i className='fa fa-fw fa-times' />
+                  <span styleName='control-search-input-clear-tooltip'>{i18n.__('Clear Search')}</span>
+                </button>
+              }
             </div>
-            {this.state.search > 0 &&
-              <button styleName='left-search-clearButton'
-                onClick={(e) => this.handleSearchClearButton(e)}
-              >
-                <i className='fa fa-times' />
-              </button>
-            }
-
           </div>
         </div>
         {location.pathname === '/trashed' ? ''

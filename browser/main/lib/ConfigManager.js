@@ -1,5 +1,7 @@
 import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
+import i18n from 'browser/lib/i18n'
+import ee from 'browser/main/lib/eventEmitter'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -14,14 +16,18 @@ export const DEFAULT_CONFIG = {
   isSideNavFolded: false,
   listWidth: 280,
   navWidth: 200,
-  sortBy: 'UPDATED_AT', // 'CREATED_AT', 'UPDATED_AT', 'APLHABETICAL'
+  sortBy: {
+    default: 'UPDATED_AT' // 'CREATED_AT', 'UPDATED_AT', 'APLHABETICAL'
+  },
+  sortTagsBy: 'ALPHABETICAL', // 'ALPHABETICAL', 'COUNTER'
   listStyle: 'DEFAULT', // 'DEFAULT', 'SMALL'
   amaEnabled: true,
   hotkey: {
-    toggleFinder: OSX ? 'Cmd + Alt + S' : 'Super + Alt + S',
-    toggleMain: OSX ? 'Cmd + Alt + L' : 'Super + Alt + E'
+    toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
+    toggleMode: OSX ? 'Command + M' : 'Ctrl + M'
   },
   ui: {
+    language: 'en',
     theme: 'default',
     showCopyNotification: true,
     disableDirectWrite: false,
@@ -34,9 +40,13 @@ export const DEFAULT_CONFIG = {
     fontFamily: win ? 'Segoe UI' : 'Monaco, Consolas',
     indentType: 'space',
     indentSize: '2',
+    enableRulers: false,
+    rulers: [80, 120],
+    displayLineNumbers: true,
     switchPreview: 'BLUR', // Available value: RIGHTCLICK, BLUR
     scrollPastEnd: false,
-    type: 'SPLIT'
+    type: 'SPLIT',
+    fetchUrlTitle: true
   },
   preview: {
     fontSize: '14',
@@ -46,7 +56,23 @@ export const DEFAULT_CONFIG = {
     latexInlineOpen: '$',
     latexInlineClose: '$',
     latexBlockOpen: '$$',
-    latexBlockClose: '$$'
+    latexBlockClose: '$$',
+    plantUMLServerAddress: 'http://www.plantuml.com/plantuml',
+    scrollPastEnd: false,
+    smartQuotes: true,
+    breaks: true,
+    smartArrows: false,
+    allowCustomCSS: false,
+    customCSS: '',
+    sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
+  },
+  blog: {
+    type: 'wordpress', // Available value: wordpress, add more types in the future plz
+    address: 'http://wordpress.com/wp-json',
+    authMethod: 'JWT', // Available value: JWT, USER
+    token: '',
+    username: '',
+    password: ''
   }
 }
 
@@ -118,9 +144,13 @@ function set (updates) {
     document.body.setAttribute('data-theme', 'white')
   } else if (newConfig.ui.theme === 'solarized-dark') {
     document.body.setAttribute('data-theme', 'solarized-dark')
+  } else if (newConfig.ui.theme === 'monokai') {
+    document.body.setAttribute('data-theme', 'monokai')
   } else {
     document.body.setAttribute('data-theme', 'default')
   }
+
+  i18n.setLocale(newConfig.ui.language)
 
   let editorTheme = document.getElementById('editorTheme')
   if (editorTheme == null) {
@@ -144,14 +174,27 @@ function set (updates) {
   ipcRenderer.send('config-renew', {
     config: get()
   })
+  ee.emit('config-renew')
 }
 
 function assignConfigValues (originalConfig, rcConfig) {
   const config = Object.assign({}, DEFAULT_CONFIG, originalConfig, rcConfig)
   config.hotkey = Object.assign({}, DEFAULT_CONFIG.hotkey, originalConfig.hotkey, rcConfig.hotkey)
+  config.blog = Object.assign({}, DEFAULT_CONFIG.blog, originalConfig.blog, rcConfig.blog)
   config.ui = Object.assign({}, DEFAULT_CONFIG.ui, originalConfig.ui, rcConfig.ui)
   config.editor = Object.assign({}, DEFAULT_CONFIG.editor, originalConfig.editor, rcConfig.editor)
   config.preview = Object.assign({}, DEFAULT_CONFIG.preview, originalConfig.preview, rcConfig.preview)
+
+  rewriteHotkey(config)
+
+  return config
+}
+
+function rewriteHotkey (config) {
+  const keys = [...Object.keys(config.hotkey)]
+  keys.forEach(key => {
+    config.hotkey[key] = config.hotkey[key].replace(/Cmd/g, 'Command')
+  })
   return config
 }
 

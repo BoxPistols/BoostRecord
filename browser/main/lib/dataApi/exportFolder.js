@@ -1,6 +1,7 @@
 import { findStorage } from 'browser/lib/findStorage'
 import resolveStorageData from './resolveStorageData'
 import resolveStorageNotes from './resolveStorageNotes'
+import filenamify from 'filenamify'
 import * as path from 'path'
 import * as fs from 'fs'
 
@@ -45,7 +46,7 @@ function exportFolder (storageKey, folderKey, fileType, exportDir) {
       notes
         .filter(note => note.folder === folderKey && note.isTrashed === false && note.type === 'MARKDOWN_NOTE')
         .forEach(snippet => {
-          const notePath = path.join(exportDir, `${snippet.title}.${fileType}`)
+          const notePath = path.join(exportDir, `${filenamify(snippet.title, {replacement: '_'})}.${fileType}`)
           fs.writeFileSync(notePath, snippet.content)
         })
 

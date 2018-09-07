@@ -8,6 +8,7 @@ import { Router, Route, IndexRoute, IndexRedirect, hashHistory } from 'react-rou
 import { syncHistoryWithStore } from 'react-router-redux'
 require('./lib/ipcClient')
 require('../lib/customMeta')
+import i18n from 'browser/lib/i18n'
 
 const electron = require('electron')
 
@@ -21,6 +22,45 @@ document.addEventListener('drop', function (e) {
 document.addEventListener('dragover', function (e) {
   e.preventDefault()
   e.stopPropagation()
+})
+
+// prevent menu from popup when alt pressed
+// but still able to toggle menu when only alt is pressed
+let isAltPressing = false
+let isAltWithMouse = false
+let isAltWithOtherKey = false
+let isOtherKey = false
+
+document.addEventListener('keydown', function (e) {
+  if (e.key === 'Alt') {
+    isAltPressing = true
+    if (isOtherKey) {
+      isAltWithOtherKey = true
+    }
+  } else {
+    if (isAltPressing) {
+      isAltWithOtherKey = true
+    }
+    isOtherKey = true
+  }
+})
+
+document.addEventListener('mousedown', function (e) {
+  if (isAltPressing) {
+    isAltWithMouse = true
+  }
+})
+
+document.addEventListener('keyup', function (e) {
+  if (e.key === 'Alt') {
+    if (isAltWithMouse || isAltWithOtherKey) {
+      e.preventDefault()
+    }
+    isAltWithMouse = false
+    isAltWithOtherKey = false
+    isAltPressing = false
+    isOtherKey = false
+  }
 })
 
 document.addEventListener('click', function (e) {
@@ -46,9 +86,9 @@ function notify (...args) {
 function updateApp () {
   const index = dialog.showMessageBox(remote.getCurrentWindow(), {
     type: 'warning',
-    message: 'Update Boostnote',
-    detail: 'New Boostnote is ready to be installed.',
-    buttons: ['Restart & Install', 'Not Now']
+    message: i18n.__('Update Boostnote'),
+    detail: i18n.__('New Boostnote is ready to be installed.'),
+    buttons: [i18n.__('Restart & Install'), i18n.__('Not Now')]
   })
 
   if (index === 0) {
@@ -63,7 +103,9 @@ ReactDOM.render((
         <IndexRedirect to='/home' />
         <Route path='home' />
         <Route path='starred' />
-        <Route path='searched' />
+        <Route path='searched'>
+          <Route path=':searchword' />
+        </Route>
         <Route path='trashed' />
         <Route path='alltags' />
         <Route path='tags'>

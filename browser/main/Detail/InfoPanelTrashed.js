@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './InfoPanel.styl'
+import i18n from 'browser/lib/i18n'
 
 const InfoPanelTrashed = ({
   storageName, folderName, updatedAt, createdAt, exportAsMd, exportAsTxt, exportAsHtml
@@ -9,24 +10,24 @@ const InfoPanelTrashed = ({
   <div className='infoPanel' styleName='control-infoButton-panel-trash' style={{display: 'none'}}>
     <div>
       <p styleName='modification-date'>{updatedAt}</p>
-      <p styleName='modification-date-desc'>MODIFICATION DATE</p>
+      <p styleName='modification-date-desc'>{i18n.__('MODIFICATION DATE')}</p>
     </div>
 
     <hr />
 
     <div>
       <p styleName='infoPanel-default'>{storageName}</p>
-      <p styleName='infoPanel-sub'>STORAGE</p>
+      <p styleName='infoPanel-sub'>{i18n.__('STORAGE')}</p>
     </div>
 
     <div>
       <p styleName='infoPanel-default'><text styleName='infoPanel-trash'>Trash</text>{folderName}</p>
-      <p styleName='infoPanel-sub'>FOLDER</p>
+      <p styleName='infoPanel-sub'>{i18n.__('FOLDER')}</p>
     </div>
 
     <div>
       <p styleName='infoPanel-default'>{createdAt}</p>
-      <p styleName='infoPanel-sub'>CREATION DATE</p>
+      <p styleName='infoPanel-sub'>{i18n.__('CREATION DATE')}</p>
     </div>
 
     <div id='export-wrap'>

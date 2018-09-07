@@ -11,7 +11,8 @@
 .control-infoButton-panel
   z-index 200
   margin-top 0px
-  right 0
+  top: 50px
+  right 25px
   position absolute
   padding 20px 25px 0 25px
   width 300px
@@ -32,6 +33,7 @@
 .control-infoButton-panel-trash
   z-index 200
   margin-top 0px
+  top 50px
   right 0px
   position absolute
   padding 20px 25px 0 25px
@@ -69,15 +71,16 @@
   color $ui-text-color
 
 .infoPanel-sub
-  font-size 14px
+  font-size 12px
+  font-weight 600
   color $ui-inactive-text-color
   padding-bottom 8px
 
 .infoPanel-noteLink
   padding-right 5px
-  width 200px
+  width 210px
   height 25px
-  margin-bottom 6px
+  margin 6px 0
 
 .infoPanel-copyButton
   outline none
@@ -214,3 +217,43 @@ body[data-theme="solarized-dark"]
       color $ui-dark-inactive-text-color
       &:hover
         color $ui-solarized-ark-text-color
+
+body[data-theme="monokai"]
+  .control-infoButton-panel
+    background-color $ui-monokai-noteList-backgroundColor
+
+  .control-infoButton-panel-trash
+    background-color $ui-monokai-noteList-backgroundColor
+
+  .modification-date
+    color $ui-monokai-text-color
+
+  .modification-date-desc
+    color $ui-inactive-text-color
+
+  .infoPanel-defaul-count
+    color $ui-monokai-text-color
+
+  .infoPanel-sub-count
+    color $ui-inactive-text-color
+
+  .infoPanel-default
+    color $ui-monokai-text-color
+
+  .infoPanel-sub
+    color $ui-inactive-text-color
+
+  .infoPanel-noteLink
+    background-color alpha($ui-monokai-borderColor, 20%)
+    color $ui-monokai-text-color
+
+  [id=export-wrap]
+    button
+      color $ui-dark-inactive-text-color
+      &:hover
+        background-color alpha($ui-monokai-borderColor, 20%)
+        color $ui-monokai-text-color
+    p
+      color $ui-dark-inactive-text-color
+      &:hover
+        color $ui-monokai-text-color

@@ -10,7 +10,6 @@
         "theme": "monokai"
     },
     "hotkey": {
-        "toggleFinder": "Cmd + Alt + S",
         "toggleMain": "Cmd + Alt + L"
     },
     "isSideNavFolded": false,
@@ -24,6 +23,7 @@
         "lineNumber": true
     },
     "sortBy": "UPDATED_AT",
+    "sortTagsBy": "ALPHABETICAL",
     "ui": {
         "defaultNote": "ALWAYS_ASK",
         "disableDirectWrite": false,

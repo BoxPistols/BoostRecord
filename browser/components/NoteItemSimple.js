@@ -5,6 +5,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './NoteItemSimple.styl'
+import i18n from 'browser/lib/i18n'
 
 /**
  * @description Note item component when using simple display mode.
@@ -14,14 +15,23 @@ import styles from './NoteItemSimple.styl'
  * @param {Function} handleNoteContextMenu
  * @param {Function} handleDragStart
  */
-const NoteItemSimple = ({ isActive, note, handleNoteClick, handleNoteContextMenu, handleDragStart, pathname }) => (
+const NoteItemSimple = ({
+  isActive,
+  isAllNotesView,
+  note,
+  handleNoteClick,
+  handleNoteContextMenu,
+  handleDragStart,
+  pathname,
+  storage
+}) => (
   <div styleName={isActive
-      ? 'item-simple--active'
-      : 'item-simple'
-    }
-    key={`${note.storage}-${note.key}`}
-    onClick={e => handleNoteClick(e, `${note.storage}-${note.key}`)}
-    onContextMenu={e => handleNoteContextMenu(e, `${note.storage}-${note.key}`)}
+    ? 'item-simple--active'
+    : 'item-simple'
+  }
+    key={note.key}
+    onClick={e => handleNoteClick(e, note.key)}
+    onContextMenu={e => handleNoteContextMenu(e, note.key)}
     onDragStart={e => handleDragStart(e, note)}
     draggable='true'
   >
@@ -30,14 +40,19 @@ const NoteItemSimple = ({ isActive, note, handleNoteClick, handleNoteContextMenu
         ? <i styleName='item-simple-title-icon' className='fa fa-fw fa-code' />
         : <i styleName='item-simple-title-icon' className='fa fa-fw fa-file-text-o' />
       }
-      {note.isPinned && !pathname.match(/\/home|\/starred|\/trash/)
+      {note.isPinned && !pathname.match(/\/starred|\/trash/)
         ? <i styleName='item-pin' className='fa fa-thumb-tack' />
         : ''
       }
       {note.title.trim().length > 0
         ? note.title
-        : <span styleName='item-simple-title-empty'>Empty</span>
+        : <span styleName='item-simple-title-empty'>{i18n.__('Empty note')}</span>
       }
+      {isAllNotesView && <div styleName='item-simple-right'>
+        <span styleName='item-simple-right-storageName'>
+          {storage.name}
+        </span>
+      </div>}
     </div>
   </div>
 )

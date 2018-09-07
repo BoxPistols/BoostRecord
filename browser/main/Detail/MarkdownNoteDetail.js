@@ -19,6 +19,7 @@ import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
 import FullscreenButton from './FullscreenButton'
+import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import ToggleModeButton from './ToggleModeButton'
@@ -27,6 +28,7 @@ import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
 import { getTodoPercentageOfCompleted } from 'browser/lib/getTodoStatus'
 import striptags from 'striptags'
+import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 
 class MarkdownNoteDetail extends React.Component {
   constructor (props) {
@@ -53,10 +55,14 @@ class MarkdownNoteDetail extends React.Component {
 
   componentDidMount () {
     ee.on('topbar:togglelockbutton', this.toggleLockButton)
+    ee.on('topbar:togglemodebutton', () => {
+      const reversedType = this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
+      this.handleSwitchMode(reversedType)
+    })
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.note.key !== this.props.note.key && !this.isMovingNote) {
+    if (nextProps.note.key !== this.props.note.key && !this.state.isMovingNote) {
       if (this.saveQueue != null) this.saveNow()
       this.setState({
         note: Object.assign({}, nextProps.note)
@@ -68,11 +74,8 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   componentWillUnmount () {
-    if (this.saveQueue != null) this.saveNow()
-  }
-
-  componentDidUnmount () {
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
+    if (this.saveQueue != null) this.saveNow()
   }
 
   handleUpdateTag () {
@@ -141,7 +144,7 @@ class MarkdownNoteDetail extends React.Component {
           hashHistory.replace({
             pathname: location.pathname,
             query: {
-              key: newNote.storage + '-' + newNote.key
+              key: newNote.key
             }
           })
           this.setState({
@@ -183,10 +186,10 @@ class MarkdownNoteDetail extends React.Component {
   handleTrashButtonClick (e) {
     const { note } = this.state
     const { isTrashed } = note
-    const { confirmDeletion } = this.props
+    const { confirmDeletion } = this.props.config.ui
 
     if (isTrashed) {
-      if (confirmDeletion(true)) {
+      if (confirmDeleteNote(confirmDeletion, true)) {
         const {note, dispatch} = this.props
         dataApi
           .deleteNote(note.storage, note.key)
@@ -198,11 +201,12 @@ class MarkdownNoteDetail extends React.Component {
                 noteKey: data.noteKey
               })
             }
-            ee.once('list:moved', dispatchHandler)
+            ee.once('list:next', dispatchHandler)
           })
+          .then(() => ee.emit('list:next'))
       }
     } else {
-      if (confirmDeletion()) {
+      if (confirmDeleteNote(confirmDeletion, false)) {
         note.isTrashed = true
 
         this.setState({
@@ -273,6 +277,7 @@ class MarkdownNoteDetail extends React.Component {
 
   handleSwitchMode (type) {
     this.setState({ editorType: type }, () => {
+      this.focus()
       const newConfig = Object.assign({}, this.props.config)
       newConfig.editor.type = type
       ConfigManager.set(newConfig)
@@ -289,6 +294,7 @@ class MarkdownNoteDetail extends React.Component {
         config={config}
         value={note.content}
         storageKey={note.storage}
+        noteKey={note.key}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
@@ -298,6 +304,7 @@ class MarkdownNoteDetail extends React.Component {
         config={config}
         value={note.content}
         storageKey={note.storage}
+        noteKey={note.key}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
@@ -323,10 +330,7 @@ class MarkdownNoteDetail extends React.Component {
 
     const trashTopBar = <div styleName='info'>
       <div styleName='info-left'>
-        <i styleName='undo-button'
-          className='fa fa-undo fa-fw'
-          onClick={(e) => this.handleUndoButtonClick(e)}
-        />
+        <RestoreButton onClick={(e) => this.handleUndoButtonClick(e)} />
       </div>
       <div styleName='info-right'>
         <PermanentDeleteButton onClick={(e) => this.handleTrashButtonClick(e)} />
@@ -361,16 +365,10 @@ class MarkdownNoteDetail extends React.Component {
           value={this.state.note.tags}
           onChange={this.handleUpdateTag.bind(this)}
         />
-
-        <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
-
         <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
-        <InfoButton
-          onClick={(e) => this.handleInfoButtonClick(e)}
-        />
-
+        <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
         <StarButton
           onClick={(e) => this.handleStarButtonClick(e)}
           isActive={note.isStarred}
@@ -384,6 +382,7 @@ class MarkdownNoteDetail extends React.Component {
               onMouseDown={(e) => this.handleLockButtonMouseDown(e)}
             >
               <img styleName='iconInfo' src={imgSrc} />
+              {this.state.isLocked ? <span styleName='tooltip'>Unlock</span> : <span styleName='tooltip'>Lock</span>}
             </button>
 
           return (
@@ -395,10 +394,14 @@ class MarkdownNoteDetail extends React.Component {
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
 
+        <InfoButton
+          onClick={(e) => this.handleInfoButtonClick(e)}
+        />
+
         <InfoPanel
           storageName={currentOption.storage.name}
           folderName={currentOption.folder.name}
-          noteLink={`[${note.title}](${location.query.key})`}
+          noteLink={`[${note.title}](:note:${location.query.key})`}
           updatedAt={formatDate(note.updatedAt)}
           createdAt={formatDate(note.createdAt)}
           exportAsMd={this.exportAsMd}
@@ -442,8 +445,7 @@ MarkdownNoteDetail.propTypes = {
   style: PropTypes.shape({
     left: PropTypes.number
   }),
-  ignorePreviewPointerEvents: PropTypes.bool,
-  confirmDeletion: PropTypes.bool.isRequired
+  ignorePreviewPointerEvents: PropTypes.bool
 }
 
 export default CSSModules(MarkdownNoteDetail, styles)

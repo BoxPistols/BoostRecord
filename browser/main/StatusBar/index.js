@@ -3,10 +3,12 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './StatusBar.styl'
 import ZoomManager from 'browser/main/lib/ZoomManager'
+import i18n from 'browser/lib/i18n'
+import context from 'browser/lib/context'
 
 const electron = require('electron')
 const { remote, ipcRenderer } = electron
-const { Menu, MenuItem, dialog } = remote
+const { dialog } = remote
 
 const zoomOptions = [0.8, 0.9, 1, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0]
 
@@ -14,9 +16,9 @@ class StatusBar extends React.Component {
   updateApp () {
     const index = dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
-      message: 'Update Boostnote',
-      detail: 'New Boostnote is ready to be installed.',
-      buttons: ['Restart & Install', 'Not Now']
+      message: i18n.__('Update Boostnote'),
+      detail: i18n.__('New Boostnote is ready to be installed.'),
+      buttons: [i18n.__('Restart & Install'), i18n.__('Not Now')]
     })
 
     if (index === 0) {
@@ -25,16 +27,16 @@ class StatusBar extends React.Component {
   }
 
   handleZoomButtonClick (e) {
-    const menu = new Menu()
+    const templates = []
 
     zoomOptions.forEach((zoom) => {
-      menu.append(new MenuItem({
+      templates.push({
         label: Math.floor(zoom * 100) + '%',
         click: () => this.handleZoomMenuItemClick(zoom)
-      }))
+      })
     })
 
-    menu.popup(remote.getCurrentWindow())
+    context.popup(templates)
   }
 
   handleZoomMenuItemClick (zoomFactor) {
@@ -62,7 +64,7 @@ class StatusBar extends React.Component {
 
         {status.updateReady
           ? <button onClick={this.updateApp} styleName='update'>
-            <i styleName='update-icon' className='fa fa-cloud-download' /> Ready to Update!
+            <i styleName='update-icon' className='fa fa-cloud-download' /> {i18n.__('Ready to Update!')}
           </button>
           : null
         }

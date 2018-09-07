@@ -10,8 +10,8 @@ import CSSModules from 'browser/lib/CSSModules'
 * @param {Array} storgaeList
 */
 
-const StorageList = ({storageList}) => (
-  <div styleName='storageList'>
+const StorageList = ({storageList, isFolded}) => (
+  <div styleName={isFolded ? 'storageList-folded' : 'storageList'}>
     {storageList.length > 0 ? storageList : (
       <div styleName='storgaeList-empty'>No storage mount.</div>
     )}

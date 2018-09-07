@@ -52,12 +52,12 @@ function createNote (storageKey, input) {
       return storage
     })
     .then(function saveNote (storage) {
-      let key = keygen()
+      let key = keygen(true)
       let isUnique = false
       while (!isUnique) {
         try {
           sander.statSync(path.join(storage.path, 'notes', key + '.cson'))
-          key = keygen()
+          key = keygen(true)
         } catch (err) {
           if (err.code === 'ENOENT') {
             isUnique = true

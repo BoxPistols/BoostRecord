@@ -92,7 +92,9 @@ class MarkdownEditor extends React.Component {
     if (this.state.isLocked) return
     this.setState({ keyPressed: new Set() })
     const { config } = this.props
-    if (config.editor.switchPreview === 'BLUR') {
+    if (config.editor.switchPreview === 'BLUR' ||
+        (config.editor.switchPreview === 'DBL_CLICK' && this.state.status === 'CODE')
+    ) {
       const cursorPosition = this.refs.code.editor.getCursor()
       this.setState({
         status: 'PREVIEW'
@@ -101,6 +103,20 @@ class MarkdownEditor extends React.Component {
         this.refs.preview.scrollTo(cursorPosition.line)
       })
       eventEmitter.emit('topbar:togglelockbutton', this.state.status)
+    }
+  }
+
+  handleDoubleClick (e) {
+    if (this.state.isLocked) return
+    this.setState({keyPressed: new Set()})
+    const { config } = this.props
+    if (config.editor.switchPreview === 'DBL_CLICK') {
+      this.setState({
+        status: 'CODE'
+      }, () => {
+        this.refs.code.focus()
+        eventEmitter.emit('topbar:togglelockbutton', this.state.status)
+      })
     }
   }
 
@@ -207,7 +223,7 @@ class MarkdownEditor extends React.Component {
   }
 
   render () {
-    const { className, value, config, storageKey } = this.props
+    const {className, value, config, storageKey, noteKey} = this.props
 
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -242,8 +258,13 @@ class MarkdownEditor extends React.Component {
           fontSize={editorFontSize}
           indentType={config.editor.indentType}
           indentSize={editorIndentSize}
+          enableRulers={config.editor.enableRulers}
+          rulers={config.editor.rulers}
+          displayLineNumbers={config.editor.displayLineNumbers}
           scrollPastEnd={config.editor.scrollPastEnd}
           storageKey={storageKey}
+          noteKey={noteKey}
+          fetchUrlTitle={config.editor.fetchUrlTitle}
           onChange={(e) => this.handleChange(e)}
           onBlur={(e) => this.handleBlur(e)}
         />
@@ -260,9 +281,14 @@ class MarkdownEditor extends React.Component {
           codeBlockFontFamily={config.editor.fontFamily}
           lineNumber={config.preview.lineNumber}
           indentSize={editorIndentSize}
-          scrollPastEnd={config.editor.scrollPastEnd}
+          scrollPastEnd={config.preview.scrollPastEnd}
+          smartQuotes={config.preview.smartQuotes}
+          smartArrows={config.preview.smartArrows}
+          breaks={config.preview.breaks}
+          sanitize={config.preview.sanitize}
           ref='preview'
           onContextMenu={(e) => this.handleContextMenu(e)}
+          onDoubleClick={(e) => this.handleDoubleClick(e)}
           tabIndex='0'
           value={this.state.renderValue}
           onMouseUp={(e) => this.handlePreviewMouseUp(e)}
@@ -270,6 +296,9 @@ class MarkdownEditor extends React.Component {
           onCheckboxClick={(e) => this.handleCheckboxClick(e)}
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
+          noteKey={noteKey}
+          customCSS={config.preview.customCSS}
+          allowCustomCSS={config.preview.allowCustomCSS}
         />
       </div>
     )

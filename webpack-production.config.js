@@ -38,11 +38,6 @@ var config = Object.assign({}, skeleton, {
         'NODE_ENV': JSON.stringify('production'),
         'BABEL_ENV': JSON.stringify('production')
       }
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      compressor: {
-        warnings: false
-      }
     })
   ]
 })

@@ -6,6 +6,7 @@ import styles from './FolderList.styl'
 import store from 'browser/main/store'
 import FolderItem from './FolderItem'
 import { SortableContainer } from 'react-sortable-hoc'
+import i18n from 'browser/lib/i18n'
 
 class FolderList extends React.Component {
   render () {
@@ -24,7 +25,7 @@ class FolderList extends React.Component {
       <div styleName='folderList'>
         {folderList.length > 0
           ? folderList
-          : <div styleName='folderList-empty'>No Folders</div>
+          : <div styleName='folderList-empty'>{i18n.__('No Folders')}</div>
         }
       </div>
     )

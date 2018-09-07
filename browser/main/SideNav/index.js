@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
+import dataApi from 'browser/main/lib/dataApi'
 import styles from './SideNav.styl'
 import { openModal } from 'browser/main/lib/modal'
 import PreferencesModal from '../modals/PreferencesModal'
@@ -14,6 +15,9 @@ import EventEmitter from 'browser/main/lib/eventEmitter'
 import PreferenceButton from './PreferenceButton'
 import ListButton from './ListButton'
 import TagButton from './TagButton'
+import {SortableContainer} from 'react-sortable-hoc'
+import i18n from 'browser/lib/i18n'
+import context from 'browser/lib/context'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
@@ -65,8 +69,19 @@ class SideNav extends React.Component {
     router.push('/alltags')
   }
 
+  onSortEnd (storage) {
+    return ({oldIndex, newIndex}) => {
+      const { dispatch } = this.props
+      dataApi
+        .reorderFolder(storage.key, oldIndex, newIndex)
+        .then((data) => {
+          dispatch({ type: 'REORDER_FOLDER', storage: data.storage })
+        })
+    }
+  }
+
   SideNavComponent (isFolded, storageList) {
-    const { location, data } = this.props
+    const { location, data, config } = this.props
 
     const isHomeActive = !!location.pathname.match(/^\/home$/)
     const isStarredActive = !!location.pathname.match(/^\/starred$/)
@@ -86,20 +101,36 @@ class SideNav extends React.Component {
             isTrashedActive={isTrashedActive}
             handleStarredButtonClick={(e) => this.handleStarredButtonClick(e)}
             handleTrashedButtonClick={(e) => this.handleTrashedButtonClick(e)}
-            counterTotalNote={data.noteMap._map.size}
+            counterTotalNote={data.noteMap._map.size - data.trashedSet._set.size}
             counterStarredNote={data.starredSet._set.size}
             counterDelNote={data.trashedSet._set.size}
+            handleFilterButtonContextMenu={this.handleFilterButtonContextMenu.bind(this)}
           />
 
-          <StorageList storageList={storageList} />
+          <StorageList storageList={storageList} isFolded={isFolded} />
           <NavToggleButton isFolded={isFolded} handleToggleButtonClick={this.handleToggleButtonClick.bind(this)} />
         </div>
       )
     } else {
       component = (
         <div styleName='tabBody'>
-          <div styleName='tag-title'>
-            <p>Tags</p>
+          <div styleName='tag-control'>
+            <div styleName='tag-control-title'>
+              <p>{i18n.__('Tags')}</p>
+            </div>
+            <div styleName='tag-control-sortTagsBy'>
+              <i className='fa fa-angle-down' />
+              <select styleName='tag-control-sortTagsBy-select'
+                title={i18n.__('Select filter mode')}
+                value={config.sortTagsBy}
+                onChange={(e) => this.handleSortTagsByChange(e)}
+              >
+                <option title='Sort alphabetically'
+                  value='ALPHABETICAL'>{i18n.__('Alphabetically')}</option>
+                <option title='Sort by update time'
+                  value='COUNTER'>{i18n.__('Counter')}</option>
+              </select>
+            </div>
           </div>
           <div styleName='tagList'>
             {this.tagListComponent(data)}
@@ -112,31 +143,119 @@ class SideNav extends React.Component {
   }
 
   tagListComponent () {
-    const { data, location } = this.props
-    const tagList = data.tagNoteMap.map((tag, key) => {
-      return key
-    })
+    const { data, location, config } = this.props
+    const relatedTags = this.getRelatedTags(this.getActiveTags(location.pathname), data.noteMap)
+    let tagList = _.sortBy(data.tagNoteMap.map(
+      (tag, name) => ({ name, size: tag.size, related: relatedTags.has(name) })
+    ), ['name']).filter(
+      tag => tag.size > 0
+    )
+    if (config.sortTagsBy === 'COUNTER') {
+      tagList = _.sortBy(tagList, item => (0 - item.size))
+    }
+    if (config.ui.showOnlyRelatedTags && (relatedTags.size > 0)) {
+      tagList = tagList.filter(
+        tag => tag.related
+      )
+    }
     return (
-      tagList.map(tag => (
-        <TagListItem
-          name={tag}
-          handleClickTagListItem={this.handleClickTagListItem.bind(this)}
-          isActive={this.getTagActive(location.pathname, tag)}
-          key={tag}
-        />
-      ))
+      tagList.map(tag => {
+        return (
+          <TagListItem
+            name={tag.name}
+            handleClickTagListItem={this.handleClickTagListItem.bind(this)}
+            handleClickNarrowToTag={this.handleClickNarrowToTag.bind(this)}
+            isActive={this.getTagActive(location.pathname, tag.name)}
+            isRelated={tag.related}
+            key={tag.name}
+            count={tag.size}
+          />
+        )
+      })
     )
   }
 
+  getRelatedTags (activeTags, noteMap) {
+    if (activeTags.length === 0) {
+      return new Set()
+    }
+    const relatedNotes = noteMap.map(
+      note => ({key: note.key, tags: note.tags})
+    ).filter(
+      note => activeTags.every(tag => note.tags.includes(tag))
+    )
+    const relatedTags = new Set()
+    relatedNotes.forEach(note => note.tags.map(tag => relatedTags.add(tag)))
+    return relatedTags
+  }
+
   getTagActive (path, tag) {
+    return this.getActiveTags(path).includes(tag)
+  }
+
+  getActiveTags (path) {
     const pathSegments = path.split('/')
-    const pathTag = pathSegments[pathSegments.length - 1]
-    return pathTag === tag
+    const tags = pathSegments[pathSegments.length - 1]
+    return (tags === 'alltags')
+      ? []
+      : tags.split(' ')
   }
 
   handleClickTagListItem (name) {
     const { router } = this.context
     router.push(`/tags/${name}`)
+  }
+
+  handleSortTagsByChange (e) {
+    const { dispatch } = this.props
+
+    const config = {
+      sortTagsBy: e.target.value
+    }
+
+    ConfigManager.set(config)
+    dispatch({
+      type: 'SET_CONFIG',
+      config
+    })
+  }
+
+  handleClickNarrowToTag (tag) {
+    const { router } = this.context
+    const { location } = this.props
+    const listOfTags = this.getActiveTags(location.pathname)
+    const indexOfTag = listOfTags.indexOf(tag)
+    if (indexOfTag > -1) {
+      listOfTags.splice(indexOfTag, 1)
+    } else {
+      listOfTags.push(tag)
+    }
+    router.push(`/tags/${listOfTags.join(' ')}`)
+  }
+
+  emptyTrash (entries) {
+    const { dispatch } = this.props
+    const deletionPromises = entries.map((note) => {
+      return dataApi.deleteNote(note.storage, note.key)
+    })
+    Promise.all(deletionPromises)
+    .then((arrayOfStorageAndNoteKeys) => {
+      arrayOfStorageAndNoteKeys.forEach(({ storageKey, noteKey }) => {
+        dispatch({ type: 'DELETE_NOTE', storageKey, noteKey })
+      })
+    })
+    .catch((err) => {
+      console.error('Cannot Delete note: ' + err)
+    })
+    console.log('Trash emptied')
+  }
+
+  handleFilterButtonContextMenu (event) {
+    const { data } = this.props
+    const trashedNotes = data.trashedSet.toJS().map((uniqueKey) => data.noteMap.get(uniqueKey))
+    context.popup([
+      { label: i18n.__('Empty Trash'), click: () => this.emptyTrash(trashedNotes) }
+    ])
   }
 
   render () {
@@ -145,13 +264,16 @@ class SideNav extends React.Component {
     const isFolded = config.isSideNavFolded
 
     const storageList = data.storageMap.map((storage, key) => {
-      return <StorageItem
+      const SortableStorageItem = SortableContainer(StorageItem)
+      return <SortableStorageItem
         key={storage.key}
         storage={storage}
         data={data}
         location={location}
         isFolded={isFolded}
         dispatch={dispatch}
+        onSortEnd={this.onSortEnd.bind(this)(storage)}
+        useDragHandle
       />
     })
     const style = {}

@@ -516,7 +516,10 @@ export default class CodeEditor extends React.Component {
             body,
             'text/html'
           )
-          const linkWithTitle = `[${parsedBody.title}](${pastedTxt})`
+          const escapePipe = (str) => {
+            return str.replace('|', '\\|')
+          }
+          const linkWithTitle = `[${escapePipe(parsedBody.title)}](${pastedTxt})`
           resolve(linkWithTitle)
         } catch (e) {
           reject(e)

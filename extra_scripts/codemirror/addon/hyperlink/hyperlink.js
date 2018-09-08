@@ -17,7 +17,7 @@
       this.cm = cm
       this.lineDiv = cm.display.lineDiv
 
-      this.onClick = this.onClick.bind(this)
+      this.onMouseDown = this.onMouseDown.bind(this)
       this.onMouseEnter = this.onMouseEnter.bind(this)
       this.onMouseLeave = this.onMouseLeave.bind(this)
       this.onMouseMove = this.onMouseMove.bind(this)
@@ -31,10 +31,18 @@
       this.tooltip.appendChild(this.tooltipIndicator)
       this.tooltipContent.textContent = 'Cmd + click to follow link'
 
-      this.lineDiv.addEventListener('click', this.onClick, true)
-      this.lineDiv.addEventListener('mouseenter', this.onMouseEnter, true)
-      this.lineDiv.addEventListener('mouseleave', this.onMouseLeave, true)
-      this.lineDiv.addEventListener('mousemove', this.onMouseMove, true)
+      this.lineDiv.addEventListener('mousedown', this.onMouseDown)
+      this.lineDiv.addEventListener('mouseenter', this.onMouseEnter, {
+        capture: true,
+        passive: true
+      })
+      this.lineDiv.addEventListener('mouseleave', this.onMouseLeave, {
+        capture: true,
+        passive: true
+      })
+      this.lineDiv.addEventListener('mousemove', this.onMouseMove, {
+        passive: true
+      })
     }
     getUrl(el) {
       const className = el.className.split(' ')
@@ -46,7 +54,7 @@
 
       return null
     }
-    onClick(e) {
+    onMouseDown(e) {
       const { target, metaKey } = e
       if (!metaKey) {
         return
@@ -55,7 +63,6 @@
       const url = this.getUrl(target)
       if (url) {
         e.preventDefault()
-        e.stopPropagation()
 
         shell.openExternal(url)
       }

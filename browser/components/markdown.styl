@@ -361,7 +361,7 @@ for name, val in admonition_types
     .admonition.{name}
         @extend $admonition
         border-left-color: val[color]
-    
+
     .admonition.{name}>.admonition-title
         @extend $admonition-title
         border-bottom-color: .1rem solid rgba(val[color], 0.2)
@@ -387,16 +387,17 @@ dt
   font-weight bold
   text-align right
   overflow hidden
-  flex-basis 18%
-  padding 1%
+  flex-basis 20%
+  padding 6px 13px
+  box-sizing border-box
 
 dd
   border-top 1px solid borderColor
-  flex-basis 78%
-  max-width 78%
-  padding 1%
-  min-height 1.55em
+  flex-basis 80%
+  padding 6px 13px
+  min-height 2.5em
   background-color $ui-noteDetail-backgroundColor
+  box-sizing border-box
 
 dd + dd
   margin-left 20%

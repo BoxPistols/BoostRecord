@@ -26,7 +26,7 @@
       this.tooltip = document.createElement('div')
       this.tooltipContent = document.createElement('div')
       this.tooltipIndicator = document.createElement('div')
-      this.tooltip.setAttribute('class', 'CodeMirror-hover')
+      this.tooltip.setAttribute('class', 'CodeMirror-hover CodeMirror-matchingbracket CodeMirror-selected')
       this.tooltip.setAttribute('cm-ignore-events', 'true')
       this.tooltip.appendChild(this.tooltipContent)
       this.tooltip.appendChild(this.tooltipIndicator)
@@ -67,7 +67,10 @@
       const url = this.getUrl(target)
       if (url) {
         if (metaKey) {
-          target.classList.add('CodeMirror-hyperlink')
+          target.classList.add('CodeMirror-activeline-background', 'CodeMirror-hyperlink')
+        }
+        else {
+          target.classList.add('CodeMirror-activeline-background')
         }
 
         this.showInfo(target)
@@ -75,7 +78,7 @@
     }
     onMouseLeave(e) {
       if (this.tooltip.parentElement === this.lineDiv) {
-        e.target.classList.remove('CodeMirror-hyperlink')
+        e.target.classList.remove('CodeMirror-activeline-background', 'CodeMirror-hyperlink')
 
         this.lineDiv.removeChild(this.tooltip)
       }
@@ -104,7 +107,13 @@
         xOffset = b3.right - b2.right
         tdiv.style.left = (b1.left - b2.left - xOffset) + 'px'
       }
-      tdiv.style.top = (b1.top - b2.top - b3.height - this.yOffset) + 'px'
+      const top = b1.top - b2.top - b3.height - this.yOffset
+      if (top < 0) {
+        tdiv.style.top = (b1.top - b2.top + b1.height + this.yOffset) + 'px'
+      }
+      else {
+        tdiv.style.top = top + 'px'
+      }
 
       this.tooltipIndicator.style.marginLeft = xOffset + 'px'
     }

@@ -74,7 +74,6 @@
     "markdown-it-admonition": "^1.0.4",
     "markdown-it-emoji": "^1.1.1",
     "markdown-it-footnote": "^3.0.0",
-    "markdown-it-front-matter": "^0.1.2",
     "markdown-it-imsize": "^2.0.1",
     "markdown-it-kbd": "^1.1.1",
     "markdown-it-multimd-table": "^2.0.1",

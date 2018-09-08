@@ -10,11 +10,10 @@
   'use strict'
 
   const shell = require('electron').shell
+  const yOffset = 2
 
   class HyperLink {
     constructor(cm) {
-      this.xOffset = 10
-      this.yOffset = 2
       this.cm = cm
       this.lineDiv = cm.display.lineDiv
 
@@ -97,25 +96,18 @@
       const b1 = relatedTo.getBoundingClientRect()
       const b2 = this.lineDiv.getBoundingClientRect()
       const tdiv = this.tooltip
-      let xOffset = this.xOffset
 
-      tdiv.style.left = (b1.left - b2.left - xOffset) + 'px'
+      tdiv.style.left = (b1.left - b2.left) + 'px'
       this.lineDiv.appendChild(tdiv)
 
       const b3 = tdiv.getBoundingClientRect()
-      if (b3.right > b2.right) {
-        xOffset = b3.right - b2.right
-        tdiv.style.left = (b1.left - b2.left - xOffset) + 'px'
-      }
-      const top = b1.top - b2.top - b3.height - this.yOffset
+      const top = b1.top - b2.top - b3.height - yOffset
       if (top < 0) {
-        tdiv.style.top = (b1.top - b2.top + b1.height + this.yOffset) + 'px'
+        tdiv.style.top = (b1.top - b2.top + b1.height + yOffset) + 'px'
       }
       else {
         tdiv.style.top = top + 'px'
       }
-
-      this.tooltipIndicator.style.marginLeft = xOffset + 'px'
     }
   }
 

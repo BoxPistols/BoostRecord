@@ -7,12 +7,15 @@ module.exports = function frontMatterPlugin (md) {
     }
 
     let line = 0
-    while (++line < state.lineMax && state.src.substring(state.bMarks[line], state.eMarks[line]) !== '---') {
+    while (++line < state.lineMax) {
+      if (state.src.substring(state.bMarks[line], state.eMarks[line]) === '---') {
+        state.line = line + 1
+
+        return true
+      }
     }
 
-    state.line = line + 1
-
-    return true
+    return false
   }
 
   md.block.ruler.before('table', 'frontmatter', frontmatter, {

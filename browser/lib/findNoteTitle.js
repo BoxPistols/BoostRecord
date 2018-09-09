@@ -4,11 +4,14 @@ export function findNoteTitle (value) {
   let isInsideCodeBlock = false
 
   if (splitted[0] === '---') {
-    let index = 0
-    while (++index < splitted.length && splitted[index] !== '---') {
-    }
+    let line = 0
+    while (++line < splitted.length) {
+      if (splitted[line] === '---') {
+        splitted.splice(0, line + 1)
 
-    splitted.splice(0, index + 1)
+        break
+      }
+    }
   }
 
   splitted.some((line, index) => {

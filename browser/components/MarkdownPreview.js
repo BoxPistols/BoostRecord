@@ -251,26 +251,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsMd () {
-    this.exportAsDocument('md', (noteContent, exportTasks) => {
-      let result = noteContent
-      if (this.props && this.props.storagePath && this.props.noteKey) {
-        const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
-          noteContent,
-          this.props.storagePath
-        )
-        attachmentsAbsolutePaths.forEach(attachment => {
-          exportTasks.push({
-            src: attachment,
-            dst: attachmentManagement.DESTINATION_FOLDER
-          })
-        })
-        result = attachmentManagement.removeStorageAndNoteReferences(
-          noteContent,
-          this.props.noteKey
-        )
-      }
-      return result
-    })
+    this.exportAsDocument('md')
   }
 
   handleSaveAsHtml () {
@@ -301,11 +282,6 @@ export default class MarkdownPreview extends React.Component {
         escapeHtmlCharacters(noteContent, { detectCodeBlock: true })
       )
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
-      const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
-        noteContent,
-        this.props.storagePath
-      )
-
       files.forEach(file => {
         if (global.process.platform === 'win32') {
           file = file.replace('file:///', '')
@@ -317,16 +293,6 @@ export default class MarkdownPreview extends React.Component {
           dst: 'css'
         })
       })
-      attachmentsAbsolutePaths.forEach(attachment => {
-        exportTasks.push({
-          src: attachment,
-          dst: attachmentManagement.DESTINATION_FOLDER
-        })
-      })
-      body = attachmentManagement.removeStorageAndNoteReferences(
-        body,
-        this.props.noteKey
-      )
 
       let styles = ''
       files.forEach(file => {
@@ -359,8 +325,9 @@ export default class MarkdownPreview extends React.Component {
       if (filename) {
         const content = this.props.value
         const storage = this.props.storagePath
+        const nodeKey = this.props.noteKey
 
-        exportNote(storage, content, filename, contentFormatter)
+        exportNote(nodeKey, storage, content, filename, contentFormatter)
           .then(res => {
             dialog.showMessageBox(remote.getCurrentWindow(), {
               type: 'info',

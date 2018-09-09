@@ -12,6 +12,9 @@
   const shell = require('electron').shell
   const yOffset = 2
 
+  const macOS = global.process.platform === 'darwin'
+  const modifier = macOS ? 'metaKey' : 'ctrlKey'
+
   class HyperLink {
     constructor(cm) {
       this.cm = cm
@@ -29,7 +32,7 @@
       this.tooltip.setAttribute('cm-ignore-events', 'true')
       this.tooltip.appendChild(this.tooltipContent)
       this.tooltip.appendChild(this.tooltipIndicator)
-      this.tooltipContent.textContent = 'Cmd + click to follow link'
+      this.tooltipContent.textContent = `${macOS ? 'Cmd(⌘)' : 'Ctrl(^)'} + click to follow link`
 
       this.lineDiv.addEventListener('mousedown', this.onMouseDown)
       this.lineDiv.addEventListener('mouseenter', this.onMouseEnter, {
@@ -55,8 +58,8 @@
       return null
     }
     onMouseDown(e) {
-      const { target, metaKey } = e
-      if (!metaKey) {
+      const { target } = e
+      if (!e[modifier]) {
         return
       }
 
@@ -68,11 +71,11 @@
       }
     }
     onMouseEnter(e) {
-      const { target, metaKey } = e
+      const { target } = e
 
       const url = this.getUrl(target)
       if (url) {
-        if (metaKey) {
+        if (e[modifier]) {
           target.classList.add('CodeMirror-activeline-background', 'CodeMirror-hyperlink')
         }
         else {
@@ -91,7 +94,7 @@
     }
     onMouseMove(e) {
       if (this.tooltip.parentElement === this.lineDiv) {
-        if (e.metaKey) {
+        if (e[modifier]) {
           e.target.classList.add('CodeMirror-hyperlink')
         }
         else {

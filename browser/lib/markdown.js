@@ -148,7 +148,7 @@ class Markdown {
       }
     })
     this.md.use(require('markdown-it-kbd'))
-    this.md.use(require('markdown-it-admonition'))
+    this.md.use(require('markdown-it-admonition'), {types: ['note', 'hint', 'attention', 'caution', 'danger', 'error']})
 
     const deflate = require('markdown-it-plantuml/lib/deflate')
     this.md.use(require('markdown-it-plantuml'), '', {

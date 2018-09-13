@@ -17,6 +17,7 @@ import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
 import { escapeHtmlCharacters } from 'browser/lib/utils'
+import yaml from 'js-yaml'
 
 const { remote } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
@@ -736,7 +737,8 @@ export default class MarkdownPreview extends React.Component {
       this.refs.root.contentWindow.document.querySelectorAll('.chart'),
       el => {
         try {
-          const chartConfig = JSON.parse(el.innerHTML)
+          const format = el.attributes.getNamedItem('data-format').value
+          const chartConfig = format === 'yaml' ? yaml.load(el.innerHTML) : JSON.parse(el.innerHTML)
           el.innerHTML = ''
 
           const canvas = document.createElement('canvas')

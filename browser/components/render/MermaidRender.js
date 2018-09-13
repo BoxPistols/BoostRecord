@@ -2,8 +2,8 @@ import mermaidAPI from 'mermaid'
 
 // fixes bad styling in the mermaid dark theme
 const darkThemeStyling = `
-.loopText tspan { 
-  fill: white; 
+.loopText tspan {
+  fill: white;
 }`
 
 function getRandomInt (min, max) {
@@ -11,9 +11,9 @@ function getRandomInt (min, max) {
 }
 
 function getId () {
-  var pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  var id = 'm-'
-  for (var i = 0; i < 7; i++) {
+  const pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let id = 'm-'
+  for (let i = 0; i < 7; i++) {
     id += pool[getRandomInt(0, 16)]
   }
   return id
@@ -21,14 +21,18 @@ function getId () {
 
 function render (element, content, theme) {
   try {
+    const height = element.attributes.getNamedItem('data-height')
+    if (height && height.value !== 'undefined') {
+      element.style.height = height.value + 'vh'
+    }
     let isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai'
     mermaidAPI.initialize({
       theme: isDarkTheme ? 'dark' : 'default',
-      themeCSS: isDarkTheme ? darkThemeStyling : ''
+      themeCSS: isDarkTheme ? darkThemeStyling : '',
+      useMaxWidth: false
     })
     mermaidAPI.render(getId(), content, (svgGraph) => {
       element.innerHTML = svgGraph
-      element.style.height = element.attributes.getNamedItem('data-height').value + 'vh'
     })
   } catch (e) {
     console.error(e)

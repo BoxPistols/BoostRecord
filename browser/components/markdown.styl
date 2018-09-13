@@ -213,10 +213,12 @@ pre
   margin 0 0 1em
   display flex
   line-height 1.4em
-  &.flowchart, &.sequence, &.chart
-    display flex
-    justify-content center
-    background-color white
+  code
+    background-color inherit
+    margin 0
+    padding 0
+    border none
+    border-radius 0
   &.CodeMirror
     height initial
     flex-wrap wrap
@@ -230,12 +232,12 @@ pre
     border none
     border-radius 0
   &>span.filename
-    width 100%
-    border-radius: 5px 0px 0px 0px
-    margin -8px 100% 8px -8px
-    padding 0px 6px
+    margin -8px -7px 8px -8px
+    padding 2px 6px
     background-color #777;
     color white
+    &:empty
+      display none
   &>span.lineNumber
     display none
     font-size 1em
@@ -361,7 +363,7 @@ for name, val in admonition_types
     .admonition.{name}
         @extend $admonition
         border-left-color: val[color]
-    
+
     .admonition.{name}>.admonition-title
         @extend $admonition-title
         border-bottom-color: .1rem solid rgba(val[color], 0.2)
@@ -371,6 +373,18 @@ for name, val in admonition_types
         @extend $admonition-icon
         color: val[color]
         content: val[icon]
+
+pre.fence
+  flex-direction column
+
+  .chart, .flowchart, .mermaid, .sequence
+    display flex
+    justify-content center
+    background-color white
+    max-width 100%
+
+    canvas, svg
+      max-width 100% !important
 
 themeDarkBackground = darken(#21252B, 10%)
 themeDarkText = #f9f9f9

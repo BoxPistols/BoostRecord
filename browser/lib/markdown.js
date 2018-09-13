@@ -27,32 +27,6 @@ class Markdown {
       html: true,
       xhtmlOut: true,
       breaks: config.preview.breaks,
-      highlight: function (str, lang) {
-        const delimiter = ':'
-        const langInfo = lang.split(delimiter)
-        const langType = langInfo[0]
-        const fileName = langInfo[1] || ''
-        const firstLineNumber = parseInt(langInfo[2], 10)
-
-        if (langType === 'flowchart') {
-          return `<pre class="flowchart">${str}</pre>`
-        }
-        if (langType === 'sequence') {
-          return `<pre class="sequence">${str}</pre>`
-        }
-        if (langType === 'chart') {
-          return `<pre class="chart">${str}</pre>`
-        }
-        if (langType === 'mermaid') {
-          return `<pre class="mermaid" data-height="${fileName}">${str}</pre>`
-        }
-        return '<pre class="code CodeMirror">' +
-          '<span class="filename">' + fileName + '</span>' +
-          createGutter(str, firstLineNumber) +
-          '<code class="' + langType + '">' +
-          str +
-          '</code></pre>'
-      },
       sanitize: 'STRICT'
     }
 
@@ -149,6 +123,39 @@ class Markdown {
     })
     this.md.use(require('markdown-it-kbd'))
     this.md.use(require('markdown-it-admonition'))
+
+    this.md.use(require('./markdown-it-fence'), {
+      chart: token => {
+        return `<pre class="fence">
+          <span class="filename">${token.fileName}</span>
+          <div class="chart" data-height="${token.parameters.height}">${token.content}</div>
+        </pre>`
+      },
+      flowchart: token => {
+        return `<pre class="fence">
+          <span class="filename">${token.fileName}</span>
+          <div class="flowchart" data-height="${token.parameters.height}">${token.content}</div>
+        </pre>`
+      },
+      mermaid: token => {
+        return `<pre class="fence">
+          <span class="filename">${token.fileName}</span>
+          <div class="mermaid" data-height="${token.parameters.height}">${token.content}</div>
+        </pre>`
+      },
+      sequence: token => {
+        return `<pre class="fence">
+          <span class="filename">${token.fileName}</span>
+          <div class="sequence" data-height="${token.parameters.height}">${token.content}</div>
+        </pre>`
+      }
+    }, token => {
+      return `<pre class="code CodeMirror">
+        <span class="filename">${token.fileName}</span>
+        ${createGutter(token.content, token.firstLineNumber)}
+        <code class="${token.langType}">${token.content}</code>
+      </pre>`
+    })
 
     const deflate = require('markdown-it-plantuml/lib/deflate')
     this.md.use(require('markdown-it-plantuml'), '', {

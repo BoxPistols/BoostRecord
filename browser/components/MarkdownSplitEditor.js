@@ -145,7 +145,7 @@ class MarkdownSplitEditor extends React.Component {
           styleName='codeEditor'
           ref='code'
           width={this.state.codeEditorWidthInPercent + '%'}
-          mode='GitHub Flavored Markdown'
+          mode='Boost Flavored Markdown'
           value={value}
           theme={config.editor.theme}
           keyMap={config.editor.keyMap}

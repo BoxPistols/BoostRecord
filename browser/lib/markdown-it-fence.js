@@ -1,6 +1,8 @@
 'use strict'
 
 module.exports = function (md, renderers, defaultRenderer) {
+  const paramsRE = /^[ \t]*([\w+#-]+)?(?:\(((?:\s*\w[-\w]*(?:=(?:'(?:.*?[^\\])?'|"(?:.*?[^\\])?"|(?:[^'"][^\s]*)))?)*)\))?(?::([^:]*)(?::(\d+))?)?\s*$/
+
   function fence (state, startLine, endLine) {
     let pos = state.bMarks[startLine] + state.tShift[startLine]
     let max = state.eMarks[startLine]
@@ -66,7 +68,7 @@ module.exports = function (md, renderers, defaultRenderer) {
     let fileName = ''
     let firstLineNumber = 0
 
-    let match = /^(\w[-\w]*)?(?:\(((?:\s*\w[-\w]*(?:=(?:'(?:.*?[^\\])?'|"(?:.*?[^\\])?"|(?:[^'"][^\s]*)))?)*)\))?(?::([^:]*)(?::(\d+))?)?\s*$/.exec(params)
+    let match = paramsRE.exec(params)
     if (match) {
       if (match[1]) {
         langType = match[1]

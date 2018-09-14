@@ -46,7 +46,8 @@ export const DEFAULT_CONFIG = {
     switchPreview: 'BLUR', // Available value: RIGHTCLICK, BLUR
     scrollPastEnd: false,
     type: 'SPLIT',
-    fetchUrlTitle: true
+    fetchUrlTitle: true,
+    enableTableEditor: false
   },
   preview: {
     fontSize: '14',

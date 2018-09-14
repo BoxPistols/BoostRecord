@@ -46,55 +46,80 @@
   }
 
   CodeMirror.defineMode('bfm', function (config, baseConfig) {
-    var bfmOverlay = {
+    baseConfig.name = 'yaml-frontmatter'
+    const baseMode = CodeMirror.getMode(config, baseConfig)
+
+    return {
       startState: function() {
         return {
+          baseState: CodeMirror.startState(baseMode),
+
           fencedEndRE: null
         }
       },
       copyState: function(s) {
         return {
-          localMode: s.localMode,
-          localState: s.localMode ? CodeMirror.copyState(s.localMode, s.localState) : null,
+          baseState: CodeMirror.copyState(baseMode, s.baseState),
+
+          fencedMode: s.fencedMode,
+          fencedState: s.fencedMode ? CodeMirror.copyState(s.fencedMode, s.fencedState) : null,
 
           fencedEndRE: s.fencedEndRE
         }
       },
       token: function(stream, state) {
-        state.combineTokens = false
+        const initialPos = stream.pos
 
         if (state.fencedEndRE && stream.match(state.fencedEndRE)) {
           state.fencedEndRE = null
-          state.localMode = null
-          state.localState = null
+          state.fencedMode = null
+          state.fencedState = null
 
-          return null
+          stream.pos = initialPos
+          return baseMode.token(stream, state.baseState)
         }
 
-        if (state.localMode) {
-          return state.localMode.token(stream, state.localState) || ''
+        if (state.fencedMode) {
+          return state.fencedMode.token(stream, state.fencedState)
         }
 
         const match = stream.match(fencedCodeRE, true)
         if (match) {
           state.fencedEndRE = new RegExp(match[1] + '+ *$')
 
-          state.localMode = getMode(match[2], match[3], config, stream.lineOracle.doc.cm)
-          if (state.localMode) {
-            state.localState = CodeMirror.startState(state.localMode)
+          state.fencedMode = getMode(match[2], match[3], config, stream.lineOracle.doc.cm)
+          if (state.fencedMode) {
+            state.fencedState = CodeMirror.startState(state.fencedMode)
           }
 
-          return null
+          stream.pos = initialPos
+          return baseMode.token(stream, state.baseState)
         }
 
-        state.combineTokens = true
-        stream.next()
-        return null
+        return baseMode.token(stream, state.baseState)
       },
+      electricChars: baseMode.electricChars,
+      innerMode: function(state) {
+        if (state.fencedMode) {
+          return {
+            mode: state.fencedMode,
+            state: state.fencedState
+          }
+        } else {
+          return {
+            mode: baseMode,
+            state: state.baseState
+          }
+        }
+      },
+      blankLine: function(state) {
+        if (state.fencedMode) {
+          return state.fencedMode.blankLine && state.fencedMode.blankLine(state.fencedState)
+        } else {
+          return baseMode.blankLine(state.baseState)
+        }
+      }
     }
-
-    baseConfig.name = 'yaml-frontmatter'
-    return CodeMirror.overlayMode(CodeMirror.getMode(config, baseConfig), bfmOverlay)
   }, 'yaml-frontmatter')
 
   CodeMirror.defineMIME('text/x-bfm', 'bfm')

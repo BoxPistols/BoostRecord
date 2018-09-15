@@ -67,6 +67,7 @@ class UiTab extends React.Component {
       ui: {
         theme: this.refs.uiTheme.value,
         language: this.refs.uiLanguage.value,
+        defaultNote: this.refs.defaultNote.value,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
         showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
@@ -174,7 +175,9 @@ class UiTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Interface')}</div>
 
           <div styleName='group-section'>
-            {i18n.__('Interface Theme')}
+            <div styleName='group-section-label'>
+              {i18n.__('Interface Theme')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.theme}
                 onChange={(e) => this.handleUIChange(e)}
@@ -190,7 +193,9 @@ class UiTab extends React.Component {
           </div>
 
           <div styleName='group-section'>
-            {i18n.__('Language')}
+            <div styleName='group-section-label'>
+              {i18n.__('Language')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.language}
                 onChange={(e) => this.handleUIChange(e)}
@@ -199,6 +204,22 @@ class UiTab extends React.Component {
                 {
                   getLanguages().map((language) => <option value={language.locale} key={language.locale}>{i18n.__(language.name)}</option>)
                 }
+              </select>
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Default New Note')}
+            </div>
+            <div styleName='group-section-control'>
+              <select value={config.ui.defaultNote}
+                onChange={(e) => this.handleUIChange(e)}
+                ref='defaultNote'
+              >
+                <option value='ALWAYS_ASK'>{i18n.__('Always Ask')}</option>
+                <option value='MARKDOWN_NOTE'>{i18n.__('Markdown Note')}</option>
+                <option value='SNIPPET_NOTE'>{i18n.__('Snippet Note')}</option>
               </select>
             </div>
           </div>

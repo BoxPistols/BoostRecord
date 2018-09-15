@@ -22,7 +22,8 @@ Thank you to all the people who already contributed to Boostnote!
 Boostnote is an open source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome backers. 
 
 Any issues on Boostnote can be funded by anyone and that money will be distributed to contributors and maintainers. If you'd like to join them, please consider:
-- [Become a backer on IssueHunt](https://issuehunt.io/repos/53266139).
+
+[![issuehunt-image](https://github.com/BoostIO/issuehunt-materials/blob/master/issuehunt-badge@1x.png?raw=true)](https://issuehunt.io/repos/53266139)
 
 ## Community
 - [Facebook Group](https://www.facebook.com/groups/boostnote/)

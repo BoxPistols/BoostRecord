@@ -64,7 +64,7 @@ module.exports = function (md, renderers, defaultRenderer) {
     const parameters = {}
     let langType = ''
     let fileName = ''
-    let firstLineNumber = 0
+    let firstLineNumber = 1
 
     let match = /^(\w[-\w]*)?(?:\(((?:\s*\w[-\w]*(?:=(?:'(?:.*?[^\\])?'|"(?:.*?[^\\])?"|(?:[^'"][^\s]*)))?)*)\))?(?::([^:]*)(?::(\d+))?)?\s*$/.exec(params)
     if (match) {

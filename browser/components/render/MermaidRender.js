@@ -35,7 +35,6 @@ function render (element, content, theme) {
       element.innerHTML = svgGraph
     })
   } catch (e) {
-    console.error(e)
     element.className = 'mermaid-error'
     element.innerHTML = 'mermaid diagram parse error: ' + e.message
   }

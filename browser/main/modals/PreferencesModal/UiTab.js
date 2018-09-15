@@ -67,6 +67,7 @@ class UiTab extends React.Component {
       ui: {
         theme: this.refs.uiTheme.value,
         language: this.refs.uiLanguage.value,
+        defaultNote: this.refs.defaultNote.value,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
         showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
@@ -87,7 +88,8 @@ class UiTab extends React.Component {
         keyMap: this.refs.editorKeyMap.value,
         snippetDefaultLanguage: this.refs.editorSnippetDefaultLanguage.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked,
-        fetchUrlTitle: this.refs.editorFetchUrlTitle.checked
+        fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
+        enableTableEditor: this.refs.enableTableEditor.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -173,7 +175,9 @@ class UiTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Interface')}</div>
 
           <div styleName='group-section'>
-            {i18n.__('Interface Theme')}
+            <div styleName='group-section-label'>
+              {i18n.__('Interface Theme')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.theme}
                 onChange={(e) => this.handleUIChange(e)}
@@ -189,7 +193,9 @@ class UiTab extends React.Component {
           </div>
 
           <div styleName='group-section'>
-            {i18n.__('Language')}
+            <div styleName='group-section-label'>
+              {i18n.__('Language')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.language}
                 onChange={(e) => this.handleUIChange(e)}
@@ -198,6 +204,22 @@ class UiTab extends React.Component {
                 {
                   getLanguages().map((language) => <option value={language.locale} key={language.locale}>{i18n.__(language.name)}</option>)
                 }
+              </select>
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Default New Note')}
+            </div>
+            <div styleName='group-section-control'>
+              <select value={config.ui.defaultNote}
+                onChange={(e) => this.handleUIChange(e)}
+                ref='defaultNote'
+              >
+                <option value='ALWAYS_ASK'>{i18n.__('Always Ask')}</option>
+                <option value='MARKDOWN_NOTE'>{i18n.__('Markdown Note')}</option>
+                <option value='SNIPPET_NOTE'>{i18n.__('Snippet Note')}</option>
               </select>
             </div>
           </div>
@@ -434,6 +456,17 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Bring in web page title when pasting URL on editor')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.enableTableEditor}
+                ref='enableTableEditor'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable smart table editor')}
             </label>
           </div>
 

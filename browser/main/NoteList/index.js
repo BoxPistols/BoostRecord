@@ -80,6 +80,7 @@ class NoteList extends React.Component {
     this.getViewType = this.getViewType.bind(this)
     this.restoreNote = this.restoreNote.bind(this)
     this.copyNoteLink = this.copyNoteLink.bind(this)
+    this.navigate = this.navigate.bind(this)
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
@@ -98,6 +99,7 @@ class NoteList extends React.Component {
     ee.on('list:isMarkdownNote', this.alertIfSnippetHandler)
     ee.on('import:file', this.importFromFileHandler)
     ee.on('list:jump', this.jumpNoteByHash)
+    ee.on('list:navigate', this.navigate)
   }
 
   componentWillReceiveProps (nextProps) {
@@ -685,6 +687,16 @@ class NoteList extends React.Component {
   copyNoteLink (note) {
     const noteLink = `[${note.title}](:note:${note.key})`
     return copy(noteLink)
+  }
+
+  navigate (sender, pathname) {
+    const { router } = this.context
+    router.push({
+      pathname,
+      query: {
+        // key: noteKey
+      }
+    })
   }
 
   save (note) {

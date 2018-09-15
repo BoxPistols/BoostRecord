@@ -80,6 +80,7 @@
     "markdown-it-named-headers": "^0.0.4",
     "markdown-it-plantuml": "^1.1.0",
     "markdown-it-smartarrows": "^1.0.1",
+    "markdown-toc": "^1.2.0",
     "mdurl": "^1.0.1",
     "mermaid": "^8.0.0-rc.8",
     "moment": "^2.10.3",

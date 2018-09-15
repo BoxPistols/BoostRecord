@@ -120,7 +120,7 @@ module.exports = function (md, renderers, defaultRenderer) {
     alt: ['paragraph', 'reference', 'blockquote', 'list']
   })
 
-  for (let name in renderers) {
+  for (const name in renderers) {
     md.renderer.rules[`${name}_fence`] = (tokens, index) => renderers[name](tokens[index])
   }
 

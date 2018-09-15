@@ -29,6 +29,7 @@ import { formatDate } from 'browser/lib/date-formatter'
 import { getTodoPercentageOfCompleted } from 'browser/lib/getTodoStatus'
 import striptags from 'striptags'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
+import markdownToc from 'browser/lib/markdown-toc-generator'
 
 class MarkdownNoteDetail extends React.Component {
   constructor (props) {
@@ -47,6 +48,7 @@ class MarkdownNoteDetail extends React.Component {
     this.dispatchTimer = null
 
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
+    this.generateToc = () => this.handleGenerateToc()
   }
 
   focus () {
@@ -59,6 +61,7 @@ class MarkdownNoteDetail extends React.Component {
       const reversedType = this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
       this.handleSwitchMode(reversedType)
     })
+    ee.on('code:generate-toc', this.generateToc)
   }
 
   componentWillReceiveProps (nextProps) {
@@ -75,6 +78,7 @@ class MarkdownNoteDetail extends React.Component {
 
   componentWillUnmount () {
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
+    ee.off('code:generate-toc', this.generateToc)
     if (this.saveQueue != null) this.saveNow()
   }
 
@@ -262,6 +266,11 @@ class MarkdownNoteDetail extends React.Component {
     }
   }
 
+  handleGenerateToc () {
+    const editor = this.refs.content.refs.code.editor
+    markdownToc.generateInEditor(editor)
+  }
+
   handleFocus (e) {
     this.focus()
   }
@@ -363,6 +372,7 @@ class MarkdownNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
+          data={data}
           onChange={this.handleUpdateTag.bind(this)}
         />
         <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />

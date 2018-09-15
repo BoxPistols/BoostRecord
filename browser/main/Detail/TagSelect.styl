@@ -42,14 +42,6 @@
   color: $ui-text-color
   padding 4px 16px 4px 8px
 
-.newTag
-  box-sizing border-box
-  border none
-  background-color transparent
-  outline none
-  padding 0 4px
-  font-size 13px
-
 body[data-theme="dark"]
   .tag
     background-color alpha($ui-dark-tag-backgroundColor, 60%)
@@ -62,11 +54,6 @@ body[data-theme="dark"]
   .tag-label
     color $ui-dark-text-color
 
-  .newTag
-    border-color none
-    background-color transparent
-    color $ui-dark-text-color
-    
 body[data-theme="solarized-dark"]
   .tag
     background-color $ui-solarized-dark-tag-backgroundColor
@@ -78,11 +65,6 @@ body[data-theme="solarized-dark"]
   .tag-label
     color $ui-solarized-dark-text-color
 
-  .newTag
-    border-color none
-    background-color transparent
-    color $ui-solarized-dark-text-color
-
 body[data-theme="monokai"]
   .tag
     background-color $ui-monokai-button-backgroundColor
@@ -92,9 +74,4 @@ body[data-theme="monokai"]
     background-color transparent
 
   .tag-label
-    color $ui-monokai-text-color
-    
-  .newTag
-    border-color none
-    background-color transparent
     color $ui-monokai-text-color

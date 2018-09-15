@@ -79,10 +79,10 @@ function sanitizeInline (html, options) {
       }
     }
 
-    if (selfClosing.indexOf(tag)) {
-      return '<' + tag + attrs + ' />'
-    } else {
+    if (selfClosing.indexOf(tag) === -1) {
       return '<' + tag + attrs + '>'
+    } else {
+      return '<' + tag + attrs + ' />'
     }
   } else {
     // closing tag

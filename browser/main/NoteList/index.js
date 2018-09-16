@@ -519,7 +519,7 @@ class NoteList extends React.Component {
         click: this.cloneNote.bind(this)
       }, {
         label: copyNoteLink,
-        click: this.copyNoteLink
+        click: this.copyNoteLink.bind(this, note)
       })
       if (note.type === 'MARKDOWN_NOTE') {
         if (note.blog && note.blog.blogLink && note.blog.blogId) {
@@ -684,11 +684,8 @@ class NoteList extends React.Component {
       })
   }
 
-  copyNoteLink () {
-    const { selectedNoteKeys } = this.state
-    const notes = this.notes.map((note) => Object.assign({}, note))
-    const selectedNote = findNotesByKeys(notes, selectedNoteKeys)[0]
-    const noteLink = `[${selectedNote.title}](:note:${selectedNote.key})`
+  copyNoteLink (note) {
+    const noteLink = `[${note.title}](:note:${note.key})`
     return copy(noteLink)
   }
 

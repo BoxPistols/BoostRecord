@@ -40,7 +40,7 @@ class UiTab extends React.Component {
     this.handleSettingError = (err) => {
       this.setState({UiAlert: {
         type: 'error',
-        message: err.message != null ? err.message : i18n.__('Error occurs!')
+        message: err.message != null ? err.message : i18n.__('An error occurred!')
       }})
     }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)

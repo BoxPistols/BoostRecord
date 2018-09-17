@@ -101,7 +101,11 @@ export default class CodeEditor extends React.Component {
   }
 
   handleEditorActivity () {
-    if (!this.textEditorInterface.transaction) {
+    if (this.props.onCursorActivity) {
+      this.props.onCursorActivity(this.editor)
+    }
+
+    if (this.props.enableTableEditor && !this.textEditorInterface.transaction) {
       this.updateTableEditorState()
     }
   }
@@ -230,6 +234,7 @@ export default class CodeEditor extends React.Component {
 
     eventEmitter.emit('code:init')
     this.editor.on('scroll', this.scrollHandler)
+    this.editor.on('cursorActivity', this.editorActivityHandler)
 
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.addEventListener('load', this.loadStyleHandler)
@@ -289,7 +294,6 @@ export default class CodeEditor extends React.Component {
     })
 
     if (this.props.enableTableEditor) {
-      this.editor.on('cursorActivity', this.editorActivityHandler)
       this.editor.on('changes', this.editorActivityHandler)
     }
   }
@@ -379,10 +383,16 @@ export default class CodeEditor extends React.Component {
     this.editor.off('paste', this.pasteHandler)
     eventEmitter.off('top:search', this.searchHandler)
     this.editor.off('scroll', this.scrollHandler)
+    this.editor.off('cursorActivity', this.editorActivityHandler)
+
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
 
     eventEmitter.off('code:format-table', this.formatTable)
+
+    if (this.props.enableTableEditor) {
+      this.editor.off('changes', this.editorActivityHandler)
+    }
   }
 
   componentDidUpdate (prevProps, prevState) {

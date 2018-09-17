@@ -20,51 +20,144 @@ class MarkdownSplitEditor extends React.Component {
     }
   }
 
+  handleCursorActivity (editor) {
+    if (this.userScroll) {
+      const previewDoc = _.get(this, 'refs.preview.refs.root.contentWindow.document')
+      const previewTop = _.get(previewDoc, 'body.scrollTop')
+
+      const line = editor.doc.getCursor().line
+      let top
+      if (line === 0) {
+        top = 0
+      } else {
+        const blocks = []
+        for (const block of previewDoc.querySelectorAll('body>[data-line]')) {
+          const l = parseInt(block.getAttribute('data-line'))
+
+          blocks.push({
+            line: l,
+            top: block.offsetTop
+          })
+
+          if (l > line) {
+            break
+          }
+        }
+
+        const i = blocks.length - 1
+        if (i > 0) {
+          const ratio = (blocks[i].top - blocks[i - 1].top) / (blocks[i].line - blocks[i - 1].line)
+
+          const delta = Math.floor(_.get(previewDoc, 'body.clientHeight') / 3)
+
+          top = blocks[i - 1].top + Math.floor((line - blocks[i - 1].line) * ratio) - delta
+        } else {
+          const srcTop = _.get(editor.doc, 'scrollTop')
+          const srcHeight = _.get(editor.doc, 'height')
+          const targetHeight = _.get(previewDoc, 'body.scrollHeight')
+
+          top = targetHeight * srcTop / srcHeight
+        }
+      }
+
+      this.scrollTo(previewTop, top, y => _.set(previewDoc, 'body.scrollTop', y))
+    }
+  }
+
   handleOnChange () {
     this.value = this.refs.code.value
     this.props.onChange()
   }
 
-  handleScroll (e) {
-    const previewDoc = _.get(this, 'refs.preview.refs.root.contentWindow.document')
-    const codeDoc = _.get(this, 'refs.code.editor.doc')
-    let srcTop, srcHeight, targetTop, targetHeight
-
+  handleEditorScroll (e) {
     if (this.userScroll) {
-      if (e.doc) {
-        srcTop = _.get(e, 'doc.scrollTop')
-        srcHeight = _.get(e, 'doc.height')
-        targetTop = _.get(previewDoc, 'body.scrollTop')
-        targetHeight = _.get(previewDoc, 'body.scrollHeight')
+      const previewDoc = _.get(this, 'refs.preview.refs.root.contentWindow.document')
+      const codeDoc = _.get(this, 'refs.code.editor.doc')
+
+      const from = codeDoc.cm.coordsChar({left: 0, top: 0}).line
+      const to = codeDoc.cm.coordsChar({left: 0, top: codeDoc.cm.display.lastWrapHeight * 1.125}).line
+      const previewTop = _.get(previewDoc, 'body.scrollTop')
+
+      let top
+      if (from === 0) {
+        top = 0
+      } else if (to === codeDoc.lastLine()) {
+        top = _.get(previewDoc, 'body.scrollHeight') - _.get(previewDoc, 'body.clientHeight')
       } else {
-        srcTop = _.get(previewDoc, 'body.scrollTop')
-        srcHeight = _.get(previewDoc, 'body.scrollHeight')
-        targetTop = _.get(codeDoc, 'scrollTop')
-        targetHeight = _.get(codeDoc, 'height')
+        const line = from + Math.floor((to - from) / 3)
+
+        const blocks = []
+        for (const block of previewDoc.querySelectorAll('body>[data-line]')) {
+          const l = parseInt(block.getAttribute('data-line'))
+
+          blocks.push({
+            line: l,
+            top: block.offsetTop
+          })
+
+          if (l > line) {
+            break
+          }
+        }
+
+        const i = blocks.length - 1
+
+        const ratio = (blocks[i].top - blocks[i - 1].top) / (blocks[i].line - blocks[i - 1].line)
+
+        top = blocks[i - 1].top + Math.floor((line - blocks[i - 1].line) * ratio)
       }
 
-      const distance = (targetHeight * srcTop / srcHeight) - targetTop
-      const framerate = 1000 / 60
-      const frames = 20
-      const refractory = frames * framerate
+      this.scrollTo(previewTop, top, y => _.set(previewDoc, 'body.scrollTop', y))
+    }
+  }
 
-      this.userScroll = false
+  handlePreviewScroll (e) {
+    if (this.userScroll) {
+      const previewDoc = _.get(this, 'refs.preview.refs.root.contentWindow.document')
+      const codeDoc = _.get(this, 'refs.code.editor.doc')
 
-      let frame = 0
-      let scrollPos, time
-      const timer = setInterval(() => {
-        time = frame / frames
-        scrollPos = time < 0.5
-                  ? 2 * time * time // ease in
-                  : -1 + (4 - 2 * time) * time // ease out
-        if (e.doc) _.set(previewDoc, 'body.scrollTop', targetTop + scrollPos * distance)
-        else _.get(this, 'refs.code.editor').scrollTo(0, targetTop + scrollPos * distance)
-        if (frame >= frames) {
-          clearInterval(timer)
-          setTimeout(() => { this.userScroll = true }, refractory)
+      const srcTop = _.get(previewDoc, 'body.scrollTop')
+      const editorTop = _.get(codeDoc, 'scrollTop')
+
+      let top
+      if (srcTop === 0) {
+        top = 0
+      } else {
+        const delta = Math.floor(_.get(previewDoc, 'body.clientHeight') / 3)
+        const previewTop = srcTop + delta
+
+        const blocks = []
+        for (const block of previewDoc.querySelectorAll('body>[data-line]')) {
+          const top = block.offsetTop
+
+          blocks.push({
+            line: parseInt(block.getAttribute('data-line')),
+            top
+          })
+
+          if (top > previewTop) {
+            break
+          }
         }
-        frame++
-      }, framerate)
+
+        const i = blocks.length - 1
+        if (i > 0) {
+          const from = codeDoc.cm.heightAtLine(blocks[i - 1].line, 'local')
+          const to = codeDoc.cm.heightAtLine(blocks[i].line, 'local')
+
+          const ratio = (previewTop - blocks[i - 1].top) / (blocks[i].top - blocks[i - 1].top)
+
+          top = from + Math.floor((to - from) * ratio) - delta
+        } else {
+          const srcTop = _.get(previewDoc, 'body.scrollTop')
+          const srcHeight = _.get(previewDoc, 'body.scrollHeight')
+          const targetHeight = _.get(codeDoc, 'height')
+
+          top = targetHeight * srcTop / srcHeight
+        }
+      }
+
+      this.scrollTo(editorTop, top, y => codeDoc.cm.scrollTo(0, y))
     }
   }
 
@@ -127,6 +220,32 @@ class MarkdownSplitEditor extends React.Component {
     })
   }
 
+  scrollTo (from, to, scroller) {
+    const distance = to - from
+    const framerate = 1000 / 60
+    const frames = 20
+    const refractory = frames * framerate
+
+    this.userScroll = false
+
+    let frame = 0
+    let scrollPos, time
+    const timer = setInterval(() => {
+      time = frame / frames
+      scrollPos = time < 0.5
+                ? 2 * time * time // ease in
+                : -1 + (4 - 2 * time) * time // ease out
+
+      scroller(from + scrollPos * distance)
+
+      if (frame >= frames) {
+        clearInterval(timer)
+        setTimeout(() => { this.userScroll = true }, refractory)
+      }
+      frame++
+    }, framerate)
+  }
+
   render () {
     const {config, value, storageKey, noteKey} = this.props
     const storage = findStorage(storageKey)
@@ -162,7 +281,8 @@ class MarkdownSplitEditor extends React.Component {
           storageKey={storageKey}
           noteKey={noteKey}
           onChange={this.handleOnChange.bind(this)}
-          onScroll={this.handleScroll.bind(this)}
+          onScroll={this.handleEditorScroll.bind(this)}
+          onCursorActivity={this.handleCursorActivity.bind(this)}
        />
         <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
           <div styleName='slider-hitbox' />
@@ -186,7 +306,7 @@ class MarkdownSplitEditor extends React.Component {
           tabInde='0'
           value={value}
           onCheckboxClick={(e) => this.handleCheckboxClick(e)}
-          onScroll={this.handleScroll.bind(this)}
+          onScroll={this.handlePreviewScroll.bind(this)}
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
           noteKey={noteKey}

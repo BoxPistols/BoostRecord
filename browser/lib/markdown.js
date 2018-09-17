@@ -251,9 +251,12 @@ class Markdown {
     this.md.renderer.render = (tokens, options, env) => {
       tokens.forEach((token) => {
         switch (token.type) {
-          case 'heading_open':
-          case 'paragraph_open':
           case 'blockquote_open':
+          case 'dd_open':
+          case 'dt_open':
+          case 'heading_open':
+          case 'list_item_open':
+          case 'paragraph_open':
           case 'table_open':
             token.attrPush(['data-line', token.map[0]])
         }

@@ -116,7 +116,7 @@ module.exports = function definitionListPlugin (md) {
 
       for (;;) {
         token = state.push('dd_open', 'dd', 1)
-        token.map = itemLines = [ nextLine, 0 ]
+        token.map = itemLines = [ ddLine, 0 ]
 
         pos = contentStart
         max = state.eMarks[ddLine]

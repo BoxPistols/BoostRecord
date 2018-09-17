@@ -170,16 +170,15 @@ class NoteList extends React.Component {
     }
   }
 
-  focusNote (selectedNoteKeys, noteKey) {
+  focusNote (selectedNoteKeys, noteKey, pathname) {
     const { router } = this.context
-    const { location } = this.props
 
     this.setState({
       selectedNoteKeys
     })
 
     router.push({
-      pathname: location.pathname,
+      pathname,
       query: {
         key: noteKey
       }
@@ -198,6 +197,7 @@ class NoteList extends React.Component {
     }
     let { selectedNoteKeys } = this.state
     const { shiftKeyDown } = this.state
+    const { location } = this.props
 
     let targetIndex = this.getTargetIndex()
 
@@ -214,7 +214,7 @@ class NoteList extends React.Component {
       selectedNoteKeys.push(priorNoteKey)
     }
 
-    this.focusNote(selectedNoteKeys, priorNoteKey)
+    this.focusNote(selectedNoteKeys, priorNoteKey, location.pathname)
 
     ee.emit('list:moved')
   }
@@ -225,6 +225,7 @@ class NoteList extends React.Component {
     }
     let { selectedNoteKeys } = this.state
     const { shiftKeyDown } = this.state
+    const { location } = this.props
 
     let targetIndex = this.getTargetIndex()
     const isTargetLastNote = targetIndex === this.notes.length - 1
@@ -247,7 +248,7 @@ class NoteList extends React.Component {
       selectedNoteKeys.push(nextNoteKey)
     }
 
-    this.focusNote(selectedNoteKeys, nextNoteKey)
+    this.focusNote(selectedNoteKeys, nextNoteKey, location.pathname)
 
     ee.emit('list:moved')
   }
@@ -259,7 +260,7 @@ class NoteList extends React.Component {
     }
 
     const selectedNoteKeys = [noteHash]
-    this.focusNote(selectedNoteKeys, noteHash)
+    this.focusNote(selectedNoteKeys, noteHash, '/home')
 
     ee.emit('list:moved')
   }

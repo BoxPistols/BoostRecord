@@ -127,31 +127,31 @@ class Markdown {
 
     this.md.use(require('./markdown-it-fence'), {
       chart: token => {
-        return `<pre class="fence">
+        return `<pre class="fence" data-line="${token.map[0]}">
           <span class="filename">${token.fileName}</span>
           <div class="chart" data-height="${token.parameters.height}">${token.content}</div>
         </pre>`
       },
       flowchart: token => {
-        return `<pre class="fence">
+        return `<pre class="fence" data-line="${token.map[0]}">
           <span class="filename">${token.fileName}</span>
           <div class="flowchart" data-height="${token.parameters.height}">${token.content}</div>
         </pre>`
       },
       mermaid: token => {
-        return `<pre class="fence">
+        return `<pre class="fence" data-line="${token.map[0]}">
           <span class="filename">${token.fileName}</span>
           <div class="mermaid" data-height="${token.parameters.height}">${token.content}</div>
         </pre>`
       },
       sequence: token => {
-        return `<pre class="fence">
+        return `<pre class="fence" data-line="${token.map[0]}">
           <span class="filename">${token.fileName}</span>
           <div class="sequence" data-height="${token.parameters.height}">${token.content}</div>
         </pre>`
       }
     }, token => {
-      return `<pre class="code CodeMirror">
+      return `<pre class="code CodeMirror" data-line="${token.map[0]}">
         <span class="filename">${token.fileName}</span>
         ${createGutter(token.content, token.firstLineNumber)}
         <code class="${token.langType}">${token.content}</code>

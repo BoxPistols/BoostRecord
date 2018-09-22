@@ -149,3 +149,26 @@ body[data-theme="monokai"]
 
   .folderItem-right-dangerButton
     colorMonokaiPrimaryButton()
+
+body[data-theme="dracula"]
+  .folderItem
+    &:hover
+      background-color $ui-dracula-button-backgroundColor
+
+  .folderItem-left-danger
+    color $danger-color
+
+  .folderItem-left-key
+    color $ui-dark-inactive-text-color
+
+  .folderItem-left-colorButton
+    colorDraculaPrimaryButton()
+
+  .folderItem-right-button
+    colorDraculaPrimaryButton()
+
+  .folderItem-right-confirmButton
+    colorDraculaPrimaryButton()
+
+  .folderItem-right-dangerButton
+    colorDraculaPrimaryButton()

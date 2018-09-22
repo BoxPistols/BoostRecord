@@ -384,3 +384,29 @@ modalMonokai()
   background-color $ui-monokai-backgroundColor
   overflow hidden
   border-radius $modal-border-radius
+
+/******* Dracula theme ********/
+$ui-dracula-backgroundColor = #282a36
+$ui-dracula-noteList-backgroundColor = #282a36
+$ui-dracula-noteDetail-backgroundColor = #282a36
+
+$ui-dracula-text-color = #f8f8f2
+$ui-dracula-active-color = #50fa7b
+
+$ui-dracula-borderColor = #44475a
+
+$ui-dracula-tag-backgroundColor = #50fa7b
+
+$ui-dracula-button-backgroundColor = #44475a
+$ui-dracula-button--active-color = #ff79c6
+$ui-dracula-button--active-backgroundColor = #50fa7b
+$ui-dracula-button--hover-backgroundColor = lighten($ui-dracula-backgroundColor, 10%)
+$ui-dracula-button--focus-borderColor = lighten(#bd93f9, 25%)
+
+modalDracula()
+  position relative
+  z-index $modal-z-index
+  width 100%
+  background-color $ui-dracula-backgroundColor
+  overflow hidden
+  border-radius $modal-border-radius

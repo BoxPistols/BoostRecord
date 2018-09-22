@@ -187,6 +187,7 @@ class UiTab extends React.Component {
                 <option value='white'>{i18n.__('White')}</option>
                 <option value='solarized-dark'>{i18n.__('Solarized Dark')}</option>
                 <option value='monokai'>{i18n.__('Monokai')}</option>
+                <option value='dracula'>{i18n.__('Dracula')}</option>
                 <option value='dark'>{i18n.__('Dark')}</option>
               </select>
             </div>

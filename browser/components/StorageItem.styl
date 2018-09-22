@@ -157,3 +157,22 @@ body[data-theme="monokai"]
     &:hover
       color $ui-monokai-text-color
       background-color $ui-monokai-button-backgroundColor
+
+body[data-theme="dracula"]
+  .folderList-item
+    &:hover
+      background-color $ui-dracula-button-backgroundColor
+      color $ui-dracula-text-color
+    &:active
+      color $ui-dracula-text-color
+      background-color $ui-dracula-button-backgroundColor
+
+  .folderList-item--active
+    @extend .folderList-item
+    color $ui-dracula-text-color
+    background-color $ui-dracula-button-backgroundColor
+    &:active
+      background-color $ui-dracula-button-backgroundColor
+    &:hover
+      color $ui-dracula-text-color
+      background-color $ui-dracula-button-backgroundColor

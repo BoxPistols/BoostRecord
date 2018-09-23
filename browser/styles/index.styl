@@ -128,6 +128,16 @@ colorMonokaiPrimaryButton()
   &:active:hover
     background-color $dark-primary-button-background--active
 
+colorDraculaPrimaryButton()
+  color $ui-dracula-text-color
+  background-color $ui-dracula-button-backgroundColor
+  border none
+  &:hover
+    background-color $ui-dracula-button--active-backgroundColor
+  &:active
+  &:active:hover
+    background-color $ui-dracula-button--active-backgroundColor
+
 
 // Danger button(Brand color)
 $danger-button-background = #c9302c
@@ -391,17 +401,17 @@ $ui-dracula-noteList-backgroundColor = #282a36
 $ui-dracula-noteDetail-backgroundColor = #282a36
 
 $ui-dracula-text-color = #f8f8f2
-$ui-dracula-active-color = #50fa7b
+$ui-dracula-active-color = #bd93f9
 
 $ui-dracula-borderColor = #44475a
 
 $ui-dracula-tag-backgroundColor = #50fa7b
 
 $ui-dracula-button-backgroundColor = #44475a
-$ui-dracula-button--active-color = #ff79c6
-$ui-dracula-button--active-backgroundColor = #50fa7b
+$ui-dracula-button--active-color = #f8f8f2
+$ui-dracula-button--active-backgroundColor = #bd93f9
 $ui-dracula-button--hover-backgroundColor = lighten($ui-dracula-backgroundColor, 10%)
-$ui-dracula-button--focus-borderColor = lighten(#bd93f9, 25%)
+$ui-dracula-button--focus-borderColor = lighten(#44475a, 25%)
 
 modalDracula()
   position relative

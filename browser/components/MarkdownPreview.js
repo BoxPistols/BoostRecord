@@ -17,8 +17,11 @@ import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
 import { escapeHtmlCharacters } from 'browser/lib/utils'
+import context from 'browser/lib/context'
+import i18n from 'browser/lib/i18n'
+import fs from 'fs'
 
-const { remote } = require('electron')
+const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
 
 const { app } = remote
@@ -161,7 +164,6 @@ const scrollBarDarkStyle = `
 }
 `
 
-const { shell } = require('electron')
 const OSX = global.process.platform === 'darwin'
 
 const defaultFontFamily = ['helvetica', 'arial', 'sans-serif']
@@ -219,8 +221,28 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
-  handleContextMenu (e) {
-    this.props.onContextMenu(e)
+  handleContextMenu (event) {
+    // If a contextMenu handler was passed to us, use it instead of the self-defined one -> return
+    if (_.isFunction(this.props.onContextMenu)) {
+      this.props.onContextMenu(event)
+      return
+    }
+    // No contextMenu was passed to us -> execute our own link-opener
+    if (event.target.tagName.toLowerCase() === 'a') {
+      const href = event.target.href
+      const isLocalFile = href.startsWith('file:///')
+      if (isLocalFile) {
+        const absPath = href.replace(new RegExp('^file:///?'), '')
+        if (fs.lstatSync(absPath).isFile()) {
+          context.popup([
+            {
+              label: i18n.__('Show in explorer'),
+              click: (e) => shell.showItemInFolder(absPath)
+            }
+          ])
+        }
+      }
+    }
   }
 
   handleDoubleClick (e) {

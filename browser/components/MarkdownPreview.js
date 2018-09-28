@@ -30,6 +30,8 @@ const fileUrl = require('file-url')
 
 const dialog = remote.dialog
 
+const uri2path = require('file-uri-to-path')
+
 const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
 const appPath = fileUrl(
   process.env.NODE_ENV === 'production' ? app.getAppPath() : path.resolve()
@@ -230,16 +232,20 @@ export default class MarkdownPreview extends React.Component {
     // No contextMenu was passed to us -> execute our own link-opener
     if (event.target.tagName.toLowerCase() === 'a') {
       const href = event.target.href
-      const isLocalFile = href.startsWith('file:///')
+      const isLocalFile = href.startsWith('file:')
       if (isLocalFile) {
-        const absPath = href.replace(new RegExp('^file:///?'), '')
-        if (fs.lstatSync(absPath).isFile()) {
-          context.popup([
-            {
-              label: i18n.__('Show in explorer'),
-              click: (e) => shell.showItemInFolder(absPath)
-            }
-          ])
+        const absPath = uri2path(href)
+        try {
+          if (fs.lstatSync(absPath).isFile()) {
+            context.popup([
+              {
+                label: i18n.__('Show in explorer'),
+                click: (e) => shell.showItemInFolder(absPath)
+              }
+            ])
+          }
+        } catch (e) {
+          console.log('Error while evaluating if the file is locally available', e)
         }
       }
     }

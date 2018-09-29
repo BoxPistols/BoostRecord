@@ -117,7 +117,7 @@ class HotkeyTab extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Toggle editor mode')}</div>
+            <div styleName='group-section-label'>{i18n.__('Toggle Editor Mode')}</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
                 onChange={(e) => this.handleHotkeyChange(e)}

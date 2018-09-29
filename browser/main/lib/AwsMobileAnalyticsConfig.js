@@ -57,7 +57,7 @@ function recordDynamicCustomEvent (type, options = {}) {
     mobileAnalyticsClient.recordEvent(type, options)
   } catch (analyticsError) {
     if (analyticsError instanceof ReferenceError) {
-      return
+      console.error(analyticsError.name + ': ' + analyticsError.message)
     }
   }
 }
@@ -70,7 +70,7 @@ function recordStaticCustomEvent () {
     })
   } catch (analyticsError) {
     if (analyticsError instanceof ReferenceError) {
-      return
+      console.error(analyticsError.name + ': ' + analyticsError.message)
     }
   }
 }

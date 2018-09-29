@@ -9,6 +9,7 @@ function resolveStorageNotes (storage) {
     notePathList = sander.readdirSync(notesDirPath)
   } catch (err) {
     if (err.code === 'ENOENT') {
+      console.error(notesDirPath, ' doesn\'t exist.')
       sander.mkdirSync(notesDirPath)
     } else {
       console.warn('Failed to find note dir', notesDirPath, err)

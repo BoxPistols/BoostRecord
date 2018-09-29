@@ -62,7 +62,7 @@
 	"Preview": "プレビュー",
 	"Preview Font Size": "プレビュー時フォントサイズ",
 	"Preview Font Family": "プレビュー時フォント",
-	"Code block Theme": "コードブロックのテーマ",
+	"Code Block Theme": "コードブロックのテーマ",
 	"Allow preview to scroll past the last line": "プレビュー時に最終行以降にスクロールできるようにする",
 	"Show line numbers for preview code blocks": "プレビュー時のコードブロック内に行番号を表示する",
 	"LaTeX Inline Open Delimiter": "LaTeX 開始デリミタ（インライン）",

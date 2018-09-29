@@ -55,7 +55,7 @@
 	"Preview": "Preview",
 	"Preview Font Size": "Размер шрифта",
 	"Preview Font Family": "Шрифт",
-	"Code block Theme": "Тема оформления кода",
+	"Code Block Theme": "Тема оформления кода",
 	"Allow preview to scroll past the last line": "Разрешить прокрутку дальше последней строки в превью",
 	"Show line numbers for preview code blocks": "Показывать номера строк в блоках кода",
 	"LaTeX Inline Open Delimiter": "Символ начала inline записи в LaTeX",

@@ -247,7 +247,6 @@ class SideNav extends React.Component {
     .catch((err) => {
       console.error('Cannot Delete note: ' + err)
     })
-    console.log('Trash emptied')
   }
 
   handleFilterButtonContextMenu (event) {

@@ -37,7 +37,7 @@ function startServer () {
           resolve()
         } else {
           if (!firstRun) {
-            console.log(stats.compilation.errors[0])
+            return
           } else {
             firstRun = false
             reject(stats.compilation.errors[0])

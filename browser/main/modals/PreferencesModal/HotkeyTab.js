@@ -29,8 +29,8 @@ class HotkeyTab extends React.Component {
     }
     this.handleSettingError = (err) => {
       if (
-        this.state.config.hotkey.toggleMain == "" ||
-        this.state.config.hotkey.toggleMode == ""
+        this.state.config.hotkey.toggleMain === '' ||
+        this.state.config.hotkey.toggleMode === ''
       ) {
         return
       }

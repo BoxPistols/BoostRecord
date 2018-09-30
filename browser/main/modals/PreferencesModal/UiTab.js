@@ -125,7 +125,7 @@ class UiTab extends React.Component {
         this.props.haveToSave({
           tab: 'UI',
           type: 'warning',
-          message: i18n.__('You have to save!')
+          message: i18n.__('Unsaved Changes!')
         })
       }
     })

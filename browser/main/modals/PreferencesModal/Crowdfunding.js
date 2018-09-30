@@ -31,7 +31,7 @@ class Crowdfunding extends React.Component {
         <p>{i18n.__('To support our growing userbase, and satisfy community expectations,')}</p>
         <p>{i18n.__('we would like to invest more time and resources in this project.')}</p>
         <br />
-        <p>{i18n.__(`If you use Boostnote and see it's potential, help us out by supporting the project on OpenCollective!`)}</p>
+        <p>{i18n.__('If you use Boostnote and see its potential, help us out by supporting the project on OpenCollective!')}</p>
         <br />
         <p>{i18n.__('Thanks,')}</p>
         <p>{i18n.__('The Boostnote Team')}</p>

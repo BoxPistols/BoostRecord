@@ -31,9 +31,6 @@ function resolveStorageData (storageCache) {
 
   const version = parseInt(storage.version, 10)
   if (version >= 1) {
-    if (version > 1) {
-      return
-    }
     return Promise.resolve(storage)
   }
 

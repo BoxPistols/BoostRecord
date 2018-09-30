@@ -40,7 +40,7 @@ class UiTab extends React.Component {
     this.handleSettingError = (err) => {
       this.setState({UiAlert: {
         type: 'error',
-        message: err.message != null ? err.message : i18n.__('Error occurs!')
+        message: err.message != null ? err.message : i18n.__('An error occurred!')
       }})
     }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
@@ -125,7 +125,7 @@ class UiTab extends React.Component {
         this.props.haveToSave({
           tab: 'UI',
           type: 'warning',
-          message: i18n.__('You have to save!')
+          message: i18n.__('Unsaved Changes!')
         })
       }
     })
@@ -498,7 +498,7 @@ class UiTab extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Code block Theme')}</div>
+            <div styleName='group-section-label'>{i18n.__('Code Block Theme')}</div>
             <div styleName='group-section-control'>
               <select value={config.preview.codeBlockTheme}
                 ref='previewCodeBlockTheme'

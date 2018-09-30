@@ -122,7 +122,8 @@ class Markdown {
       }
     })
     this.md.use(require('markdown-it-kbd'))
-    this.md.use(require('markdown-it-admonition'))
+
+    this.md.use(require('markdown-it-admonition'), {types: ['note', 'hint', 'attention', 'caution', 'danger', 'error']})
     this.md.use(require('./markdown-it-frontmatter'))
 
     this.md.use(require('./markdown-it-fence'), {

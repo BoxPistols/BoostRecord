@@ -519,7 +519,7 @@ class NoteList extends React.Component {
         click: this.cloneNote.bind(this)
       }, {
         label: copyNoteLink,
-        click: this.copyNoteLink(note)
+        click: this.copyNoteLink.bind(this, note)
       })
       if (note.type === 'MARKDOWN_NOTE') {
         if (note.blog && note.blog.blogLink && note.blog.blogId) {

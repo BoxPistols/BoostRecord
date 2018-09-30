@@ -6,6 +6,7 @@ import i18n from 'browser/lib/i18n'
 import dataApi from 'browser/main/lib/dataApi'
 import SnippetList from './SnippetList'
 import eventEmitter from 'browser/main/lib/eventEmitter'
+import copy from 'copy-to-clipboard'
 
 class SnippetTab extends React.Component {
   constructor (props) {
@@ -54,6 +55,10 @@ class SnippetTab extends React.Component {
     }
   }
 
+  handleCopySnippet (e) {
+    copy(this.state.currentSnippet.content)
+  }
+
   render () {
     const { config, storageKey } = this.props
     const { currentSnippet } = this.state
@@ -70,6 +75,13 @@ class SnippetTab extends React.Component {
           onSnippetDeleted={this.handleDeleteSnippet.bind(this)}
           currentSnippet={currentSnippet} />
         <div styleName='snippet-detail' style={{visibility: currentSnippet ? 'visible' : 'hidden'}}>
+          <div styleName='group-section'>
+            <div styleName='group-section-control'>
+              <button styleName='group-control-rightButton'
+                onClick={e => this.handleCopySnippet(e)}>{i18n.__('Copy')}
+              </button>
+            </div>
+          </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Snippet name')}</div>
             <div styleName='group-section-control'>

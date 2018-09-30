@@ -32,8 +32,16 @@ class HotkeyTab extends React.Component {
         this.state.config.hotkey.toggleMain === '' ||
         this.state.config.hotkey.toggleMode === ''
       ) {
-        return
-      }
+        this.setState({keymapAlert: {
+          type: 'success',
+          message: i18n.__('Successfully applied!')
+        }})
+      } else {
+        this.setState({keymapAlert: {
+          type: 'error',
+          message: err.message != null ? err.message : i18n.__('Error occurs!')
+        }})
+      }}
       this.setState({keymapAlert: {
         type: 'error',
         message: err.message != null ? err.message : i18n.__('An error occurred!')

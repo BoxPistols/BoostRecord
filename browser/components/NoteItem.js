@@ -74,24 +74,22 @@ const NoteItem = ({
           ? note.title
           : <span styleName='item-title-empty'>{i18n.__('Empty note')}</span>}
       </div>
-      {['ALL', 'STORAGE'].includes(viewType) &&
-        <div styleName='item-middle'>
-          <div styleName='item-middle-time'>{dateDisplay}</div>
-          <div styleName='item-middle-app-meta'>
-            <div
-              title={
-                viewType === 'ALL'
-                  ? storageName
-                  : viewType === 'STORAGE' ? folderName : null
-              }
-              styleName='item-middle-app-meta-label'
-            >
-              {viewType === 'ALL' && storageName}
-              {viewType === 'STORAGE' && folderName}
-            </div>
+      <div styleName='item-middle'>
+        <div styleName='item-middle-time'>{dateDisplay}</div>
+        <div styleName='item-middle-app-meta'>
+          <div
+            title={
+              viewType === 'ALL'
+                ? storageName
+                : viewType === 'STORAGE' ? folderName : null
+            }
+            styleName='item-middle-app-meta-label'
+          >
+            {viewType === 'ALL' && storageName}
+            {viewType === 'STORAGE' && folderName}
           </div>
-        </div>}
-
+        </div>
+      </div>
       <div styleName='item-bottom'>
         <div styleName='item-bottom-tagList'>
           {note.tags.length > 0

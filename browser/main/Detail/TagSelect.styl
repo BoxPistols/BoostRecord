@@ -39,8 +39,9 @@
 
 .tag-label
   font-size 13px
-  color: $ui-text-color
+  color $ui-text-color
   padding 4px 16px 4px 8px
+  cursor pointer
 
 body[data-theme="dark"]
   .tag
@@ -67,7 +68,7 @@ body[data-theme="solarized-dark"]
 
 body[data-theme="monokai"]
   .tag
-    background-color $ui-monokai-button-backgroundColor
+    background-color $ui-monokai-tag-backgroundColor
 
   .tag-removeButton
     border-color $ui-button--focus-borderColor

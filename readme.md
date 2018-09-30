@@ -1,10 +1,10 @@
-:mega: The Boostnote team launches [IssueHunt](https://issuehunt.io/) for sustainable open-source ecosystem.
+:mega: The Boostnote team uses [IssueHunt](https://issuehunt.io/) for a sustainable open-source ecosystem.
 
 ![Boostnote app screenshot](./resources/repository/top.png)
 
 <h4 align="center">Note-taking app for programmers. </h4>
-<h5 align="center">Apps available for Mac, Windows, Linux, Android and iOS.</h5>
-<h5 align="center">Built with Electron, React + Redux, Webpack and CSSModules.</h5>
+<h5 align="center">Apps available for Mac, Windows, Linux, Android, and iOS.</h5>
+<h5 align="center">Built with Electron, React + Redux, Webpack, and CSSModules.</h5>
 
 [![Build Status](https://travis-ci.org/BoostIO/Boostnote.svg?branch=master)](https://travis-ci.org/BoostIO/Boostnote)
 
@@ -12,16 +12,17 @@
 - [Rokt33r](https://github.com/rokt33r)
 - [Sosuke](https://github.com/sosukesuzuki)
 - [Kazz](https://github.com/kazup01)
+- [ZeroX-DG](https://github.com/ZeroX-DG)
 
 ## Contributors
-Thank you to all the people who already contributed to Boostnote!
+Thank you to all the people who have contributed to Boostnote!
 
 <a href="https://github.com/BoostIO/Boostnote/graphs/contributors"><img src="https://opencollective.com/boostnoteio/contributors.svg?width=890" /></a>
 
 ## Supporting Boostnote
-Boostnote is an open source project. It's an independent project with its ongoing development made possible entirely thanks to the support by these awesome backers. 
+Boostnote is an open source project. It's an independent project with its ongoing development made possible thanks to the support by our amazing backers. 
 
-Any issues on Boostnote can be funded by anyone and that money will be distributed to contributors and maintainers. If you'd like to join them, please consider:
+Issues on Boostnote can be funded by anyone and the money will be distributed to contributors and maintainers. If you use Boostnote please consider becoming a backer:
 
 [![issuehunt-image](https://github.com/BoostIO/issuehunt-materials/blob/master/issuehunt-badge@1x.png?raw=true)](https://issuehunt.io/repos/53266139)
 

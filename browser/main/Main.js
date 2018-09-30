@@ -56,7 +56,7 @@ class Main extends React.Component {
   init () {
     dataApi
       .addStorage({
-        name: 'My Storage',
+        name: 'My Storage Location',
         path: path.join(remote.app.getPath('home'), 'Boostnote')
       })
       .then(data => {

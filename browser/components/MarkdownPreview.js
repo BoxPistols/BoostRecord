@@ -18,8 +18,11 @@ import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
 import { escapeHtmlCharacters } from 'browser/lib/utils'
 import yaml from 'js-yaml'
+import context from 'browser/lib/context'
+import i18n from 'browser/lib/i18n'
+import fs from 'fs'
 
-const { remote } = require('electron')
+const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
 
 const { app } = remote
@@ -27,6 +30,8 @@ const path = require('path')
 const fileUrl = require('file-url')
 
 const dialog = remote.dialog
+
+const uri2path = require('file-uri-to-path')
 
 const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
 const appPath = fileUrl(
@@ -162,7 +167,6 @@ const scrollBarDarkStyle = `
 }
 `
 
-const { shell } = require('electron')
 const OSX = global.process.platform === 'darwin'
 
 const defaultFontFamily = ['helvetica', 'arial', 'sans-serif']
@@ -220,8 +224,32 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
-  handleContextMenu (e) {
-    this.props.onContextMenu(e)
+  handleContextMenu (event) {
+    // If a contextMenu handler was passed to us, use it instead of the self-defined one -> return
+    if (_.isFunction(this.props.onContextMenu)) {
+      this.props.onContextMenu(event)
+      return
+    }
+    // No contextMenu was passed to us -> execute our own link-opener
+    if (event.target.tagName.toLowerCase() === 'a') {
+      const href = event.target.href
+      const isLocalFile = href.startsWith('file:')
+      if (isLocalFile) {
+        const absPath = uri2path(href)
+        try {
+          if (fs.lstatSync(absPath).isFile()) {
+            context.popup([
+              {
+                label: i18n.__('Show in explorer'),
+                click: (e) => shell.showItemInFolder(absPath)
+              }
+            ])
+          }
+        } catch (e) {
+          console.log('Error while evaluating if the file is locally available', e)
+        }
+      }
+    }
   }
 
   handleDoubleClick (e) {
@@ -705,7 +733,6 @@ export default class MarkdownPreview extends React.Component {
             el.addEventListener('click', this.linkClickHandler)
           })
         } catch (e) {
-          console.error(e)
           el.className = 'flowchart-error'
           el.innerHTML = 'Flowchart parse error: ' + e.message
         }
@@ -726,7 +753,6 @@ export default class MarkdownPreview extends React.Component {
             el.addEventListener('click', this.linkClickHandler)
           })
         } catch (e) {
-          console.error(e)
           el.className = 'sequence-error'
           el.innerHTML = 'Sequence diagram parse error: ' + e.message
         }
@@ -752,7 +778,6 @@ export default class MarkdownPreview extends React.Component {
 
           const chart = new Chart(canvas, chartConfig)
         } catch (e) {
-          console.error(e)
           el.className = 'chart-error'
           el.innerHTML = 'chartjs diagram parse error: ' + e.message
         }

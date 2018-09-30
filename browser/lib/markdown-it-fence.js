@@ -66,7 +66,7 @@ module.exports = function (md, renderers, defaultRenderer) {
     const parameters = {}
     let langType = ''
     let fileName = ''
-    let firstLineNumber = 0
+    let firstLineNumber = 1
 
     let match = paramsRE.exec(params)
     if (match) {
@@ -122,7 +122,7 @@ module.exports = function (md, renderers, defaultRenderer) {
     alt: ['paragraph', 'reference', 'blockquote', 'list']
   })
 
-  for (let name in renderers) {
+  for (const name in renderers) {
     md.renderer.rules[`${name}_fence`] = (tokens, index) => renderers[name](tokens[index])
   }
 

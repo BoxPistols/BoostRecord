@@ -56,7 +56,7 @@
 	"Preview": "预览",
 	"Preview Font Size": "预览字号",
 	"Preview Font Family": "预览字体",
-	"Code block Theme": "代码块主题",
+	"Code Block Theme": "代码块主题",
 	"Allow preview to scroll past the last line": "允许预览时滚动到最后一行",
 	"Show line numbers for preview code blocks": "在预览时显示行号",
 	"LaTeX Inline Open Delimiter": "LaTeX 单行开头分隔符",

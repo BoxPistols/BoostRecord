@@ -498,7 +498,7 @@ class UiTab extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Code block Theme')}</div>
+            <div styleName='group-section-label'>{i18n.__('Code Block Theme')}</div>
             <div styleName='group-section-control'>
               <select value={config.preview.codeBlockTheme}
                 ref='previewCodeBlockTheme'

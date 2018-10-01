@@ -24,7 +24,8 @@ export const DEFAULT_CONFIG = {
   amaEnabled: true,
   hotkey: {
     toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
-    toggleMode: OSX ? 'Command + Option + M' : 'Ctrl + M'
+    toggleMode: OSX ? 'Command + Option + M' : 'Ctrl + M',
+    deleteNote: OSX ? 'Command + Backspace' : 'Command + Backspace'
   },
   ui: {
     language: 'en',

@@ -61,6 +61,7 @@ class MarkdownNoteDetail extends React.Component {
       const reversedType = this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
       this.handleSwitchMode(reversedType)
     })
+    ee.on('hotkey:deletenote', this.handleDeleteNote.bind(this))
     ee.on('code:generate-toc', this.generateToc)
   }
 
@@ -291,6 +292,10 @@ class MarkdownNoteDetail extends React.Component {
       newConfig.editor.type = type
       ConfigManager.set(newConfig)
     })
+  }
+
+  handleDeleteNote () {
+    this.handleTrashButtonClick()
   }
 
   renderEditor () {

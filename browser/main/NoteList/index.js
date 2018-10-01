@@ -2,7 +2,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
-import debounceRender from 'react-debounce-render'
 import styles from './NoteList.styl'
 import moment from 'moment'
 import _ from 'lodash'
@@ -1078,4 +1077,4 @@ NoteList.propTypes = {
   })
 }
 
-export default debounceRender(CSSModules(NoteList, styles))
+export default CSSModules(NoteList, styles)

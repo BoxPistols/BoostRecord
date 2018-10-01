@@ -5,7 +5,7 @@ Let us know what is currently happening.
 
 Please include some **screenshots** with the **developer tools** open (console tab) when you report a bug.
 
-If your issue is regarding boostnote mobile, please open an issue in the Boostnote Mobile repo 👉 https://github.com/BoostIO/boostnote-mobile.
+If your issue is regarding Boostnote mobile, please open an issue in the Boostnote Mobile repo 👉 https://github.com/BoostIO/boostnote-mobile.
 -->
 
 # Expected behavior

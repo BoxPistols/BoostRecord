@@ -1,14 +1,24 @@
 # Current behavior
 
 <!--
-Please paste some **screenshots** with the **developer tool** open (console tab) when you report a bug.
+Let us know what is currently happening.
 
-If your issue is regarding boostnote mobile, move to https://github.com/BoostIO/boostnote-mobile.
+Please include some **screenshots** with the **developer tools** open (console tab) when you report a bug.
+
+If your issue is regarding boostnote mobile, please open an issue in the Boostnote Mobile repo 👉 https://github.com/BoostIO/boostnote-mobile.
 -->
 
 # Expected behavior
 
+<!--
+Let us know what you think should happen!
+-->
+
 # Steps to reproduce
+
+<!-- 
+Please be thorough, issues we can reproduce are easier to fix!
+-->
 
 1. 
 2. 

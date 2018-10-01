@@ -123,7 +123,7 @@ class TopBar extends React.Component {
     }
   }
 
-  updateKeyword(keyword) {
+  updateKeyword (keyword) {
     this.context.router.push(`/searched/${encodeURIComponent(keyword)}`)
     this.setState({
       search: keyword

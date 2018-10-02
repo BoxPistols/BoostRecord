@@ -265,9 +265,9 @@ class Markdown {
     }
     // FIXME We should not depend on global variable.
     window.md = this.md
-    ee.on('config-renew', () => {
+    this.updateConfig = () => {
       config = ConfigManager.get()
-    })
+    }
   }
 
   render (content) {

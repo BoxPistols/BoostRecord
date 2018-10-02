@@ -8,6 +8,8 @@ import SnippetList from './SnippetList'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import copy from 'copy-to-clipboard'
 
+const path = require('path')
+
 class SnippetTab extends React.Component {
   constructor (props) {
     super(props)
@@ -15,6 +17,17 @@ class SnippetTab extends React.Component {
       currentSnippet: null
     }
     this.changeDelay = null
+  }
+
+  notify (title, options) {
+    if (global.process.platform === 'win32') {
+      options.icon = path.join(
+        'file://',
+        global.__dirname,
+        '../../resources/app.png'
+      )
+    }
+    return new window.Notification(title, options)
   }
 
   handleSnippetNameOrPrefixChange () {
@@ -56,7 +69,14 @@ class SnippetTab extends React.Component {
   }
 
   handleCopySnippet (e) {
+    const showCopyNotification = this.props.config.ui.showCopyNotification
     copy(this.state.currentSnippet.content)
+    if (showCopyNotification) {
+      this.notify('Saved to Clipboard!', {
+        body: 'Paste it wherever you want!',
+        silent: true
+      })
+    }
   }
 
   render () {

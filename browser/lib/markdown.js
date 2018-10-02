@@ -143,6 +143,12 @@ class Markdown {
           <div class="flowchart" data-height="${token.parameters.height}">${token.content}</div>
         </pre>`
       },
+      gallery: token => {
+        return `<pre class="fence" data-line="${token.map[0]}">
+          <span class="filename">${token.fileName}</span>
+          <div class="gallery" data-autoplay="${token.parameters.autoplay}" data-height="${token.parameters.height}">${token.content}</div>
+        </pre>`
+      },
       mermaid: token => {
         return `<pre class="fence" data-line="${token.map[0]}">
           <span class="filename">${token.fileName}</span>

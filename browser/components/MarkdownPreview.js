@@ -21,6 +21,8 @@ import yaml from 'js-yaml'
 import context from 'browser/lib/context'
 import i18n from 'browser/lib/i18n'
 import fs from 'fs'
+import { render } from 'react-dom'
+import Carousel from 'react-image-carousel'
 
 const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
@@ -39,7 +41,8 @@ const appPath = fileUrl(
 )
 const CSS_FILES = [
   `${appPath}/node_modules/katex/dist/katex.min.css`,
-  `${appPath}/node_modules/codemirror/lib/codemirror.css`
+  `${appPath}/node_modules/codemirror/lib/codemirror.css`,
+  `${appPath}/node_modules/react-image-carousel/lib/css/main.min.css`
 ]
 
 function buildStyle (
@@ -787,6 +790,34 @@ export default class MarkdownPreview extends React.Component {
       this.refs.root.contentWindow.document.querySelectorAll('.mermaid'),
       el => {
         mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML), theme)
+      }
+    )
+
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('.gallery'),
+      el => {
+        const images = el.innerHTML.split(/\n/g).filter(i => i.length > 0)
+        el.innerHTML = ''
+
+        const height = el.attributes.getNamedItem('data-height')
+        if (height && height.value !== 'undefined') {
+          el.style.height = height.value + 'vh'
+        }
+
+        let autoplay = el.attributes.getNamedItem('data-autoplay')
+        if (autoplay && autoplay.value !== 'undefined') {
+          autoplay = parseInt(autoplay.value, 10) || 0
+        } else {
+          autoplay = 0
+        }
+
+        render(
+          <Carousel
+            images={images}
+            autoplay={autoplay}
+          />,
+          el
+        )
       }
     )
   }

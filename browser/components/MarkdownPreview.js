@@ -483,6 +483,7 @@ export default class MarkdownPreview extends React.Component {
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
     eventEmitter.on('print', this.printHandler)
+    eventEmitter.on('config-renew', this.rewriteIframe.bind(this))
   }
 
   componentWillUnmount () {

@@ -65,7 +65,8 @@ export const DEFAULT_CONFIG = {
     smartArrows: false,
     allowCustomCSS: false,
     customCSS: '',
-    sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
+    sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
+    lineThroughCheckbox: true
   },
   blog: {
     type: 'wordpress', // Available value: wordpress, add more types in the future plz

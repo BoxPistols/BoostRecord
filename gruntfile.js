@@ -1,3 +1,4 @@
+const fs = require('fs')
 const path = require('path')
 const ChildProcess = require('child_process')
 const packager = require('electron-packager')
@@ -282,6 +283,32 @@ module.exports = function (grunt) {
       case 'linux':
         grunt.task.run(['compile', 'pack:linux'])
     }
+  })
+
+  grunt.registerTask('bfm', function () {
+    const done = this.async()
+    const root = path.join(__dirname, 'node_modules/codemirror/theme/')
+
+    const colors = fs.readdirSync(root).map(file => {
+      const css = require('css').parse(fs.readFileSync(path.join(root, file), 'utf8'))
+
+      const rules = css.stylesheet.rules.filter(rule => rule.selectors && /\b\.CodeMirror$/.test(rule.selectors[0]))
+      if (rules.length === 1) {
+        const declarations = rules[0].declarations.filter(declaration => declaration.property === 'background-color' || declaration.property === 'background')
+        if (declarations.length === 1) {
+          let bgColor = require('color')(declarations[0].value.split(' ')[0])
+          if (bgColor.isLight()) {
+            bgColor = bgColor.darken(0.05)
+          } else {
+            bgColor = bgColor.lighten(0.35)
+          }
+
+          return `${rules[0].selectors[0]} .cm-table-row-even { background-color: ${bgColor.rgb().string()}; }`
+        }
+      }
+    }).filter(value => !!value)
+
+    fs.writeFileSync(path.join(__dirname, 'extra_scripts/codemirror/mode/bfm/bfm.css'), ['.cm-table-row-even { background-color: rgb(242, 242, 242); }', ...colors].join('\n'), 'utf8')
   })
 
   grunt.registerTask('default', ['build'])

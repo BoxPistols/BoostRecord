@@ -286,7 +286,6 @@ module.exports = function (grunt) {
   })
 
   grunt.registerTask('bfm', function () {
-    const done = this.async()
     const root = path.join(__dirname, 'node_modules/codemirror/theme/')
 
     const colors = fs.readdirSync(root).map(file => {

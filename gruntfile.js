@@ -286,28 +286,47 @@ module.exports = function (grunt) {
   })
 
   grunt.registerTask('bfm', function () {
+    const Color = require('color')
+    const parseCSS = require('css').parse
+
     const root = path.join(__dirname, 'node_modules/codemirror/theme/')
 
     const colors = fs.readdirSync(root).map(file => {
-      const css = require('css').parse(fs.readFileSync(path.join(root, file), 'utf8'))
+      const css = parseCSS(fs.readFileSync(path.join(root, file), 'utf8'))
 
       const rules = css.stylesheet.rules.filter(rule => rule.selectors && /\b\.CodeMirror$/.test(rule.selectors[0]))
       if (rules.length === 1) {
-        const declarations = rules[0].declarations.filter(declaration => declaration.property === 'background-color' || declaration.property === 'background')
-        if (declarations.length === 1) {
-          let bgColor = require('color')(declarations[0].value.split(' ')[0])
-          if (bgColor.isLight()) {
-            bgColor = bgColor.darken(0.05)
-          } else {
-            bgColor = bgColor.lighten(0.35)
-          }
+        let bgColor = Color('white')
+        let fgColor = Color('black')
 
-          return `${rules[0].selectors[0]} .cm-table-row-even { background-color: ${bgColor.rgb().string()}; }`
+        rules[0].declarations.forEach(declaration => {
+          if (declaration.property === 'background-color' || declaration.property === 'background') {
+            bgColor = Color(declaration.value.split(' ')[0])
+          }
+          else if (declaration.property === 'color') {
+            const value = /^(.*?)(?:\s*!important)?$/.exec(declaration.value)[1]
+            let match = /^rgba\((.*?),\s*1\)$/.exec(value)
+            if (match) {
+              fgColor = Color(`rgb(${match[1]})`)
+            } else {
+              fgColor = Color(value)
+            }
+          }
+        })
+
+        if (bgColor.isLight()) {
+          bgColor = bgColor.mix(fgColor, 0.05)
+        } else {
+          bgColor = bgColor.mix(fgColor, 0.1)
         }
+
+        return `${rules[0].selectors[0]} .cm-table-row-even { background-color: ${bgColor.rgb().string()}; }`
       }
     }).filter(value => !!value)
 
-    fs.writeFileSync(path.join(__dirname, 'extra_scripts/codemirror/mode/bfm/bfm.css'), ['.cm-table-row-even { background-color: rgb(242, 242, 242); }', ...colors].join('\n'), 'utf8')
+    const defaultBgColor = Color('white').mix(Color('black'), 0.05)
+
+    fs.writeFileSync(path.join(__dirname, 'extra_scripts/codemirror/mode/bfm/bfm.css'), [`.cm-table-row-even { background-color: ${defaultBgColor.rgb().string()}; }`, ...colors].join('\n'), 'utf8')
   })
 
   grunt.registerTask('default', ['build'])

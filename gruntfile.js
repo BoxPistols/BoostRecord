@@ -302,8 +302,7 @@ module.exports = function (grunt) {
         rules[0].declarations.forEach(declaration => {
           if (declaration.property === 'background-color' || declaration.property === 'background') {
             bgColor = Color(declaration.value.split(' ')[0])
-          }
-          else if (declaration.property === 'color') {
+          } else if (declaration.property === 'color') {
             const value = /^(.*?)(?:\s*!important)?$/.exec(declaration.value)[1]
             let match = /^rgba\((.*?),\s*1\)$/.exec(value)
             if (match) {

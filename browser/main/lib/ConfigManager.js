@@ -87,6 +87,7 @@ function validate (config) {
 }
 
 function _save (config) {
+  console.log(config)
   window.localStorage.setItem('config', JSON.stringify(config))
 }
 

@@ -53,7 +53,7 @@
       if (className.indexOf('cm-url') !== -1) {
         const match = /^\((.*)\)|\[(.*)\]|(.*)$/.exec(el.textContent)
         const url = match[1] || match[2] || match[3]
-        return /^:storage\//.test(url) ? null : url
+        return /^:storage(?:\/|%5C)/.test(url) ? null : url
       }
 
       return null

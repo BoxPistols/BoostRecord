@@ -54,17 +54,34 @@
         return {
           baseState: CodeMirror.startState(baseMode),
 
-          fencedEndRE: null
+          basePos: 0,
+          baseCur: null,
+          overlayPos: 0,
+          overlayCur: null,
+          streamSeen: null,
+
+          fencedEndRE: null,
+
+          inTable: false,
+          rowIndex: 0
         }
       },
       copyState: function(s) {
         return {
           baseState: CodeMirror.copyState(baseMode, s.baseState),
 
+          basePos: s.basePos,
+          baseCur: null,
+          overlayPos: s.overlayPos,
+          overlayCur: null,
+
           fencedMode: s.fencedMode,
           fencedState: s.fencedMode ? CodeMirror.copyState(s.fencedMode, s.fencedState) : null,
 
-          fencedEndRE: s.fencedEndRE
+          fencedEndRE: s.fencedEndRE,
+
+          inTable: s.inTable,
+          rowIndex: s.rowIndex
         }
       },
       token: function(stream, state) {
@@ -76,27 +93,108 @@
           state.fencedState = null
 
           stream.pos = initialPos
-          return baseMode.token(stream, state.baseState)
+        }
+        else {
+          if (state.fencedMode) {
+            return state.fencedMode.token(stream, state.fencedState)
+          }
+
+          const match = stream.match(fencedCodeRE, true)
+          if (match) {
+            state.fencedEndRE = new RegExp(match[1] + '+ *$')
+
+            state.fencedMode = getMode(match[2], match[3], config, stream.lineOracle.doc.cm)
+            if (state.fencedMode) {
+              state.fencedState = CodeMirror.startState(state.fencedMode)
+            }
+
+            stream.pos = initialPos
+          }
         }
 
-        if (state.fencedMode) {
-          return state.fencedMode.token(stream, state.fencedState)
+        if (stream != state.streamSeen || Math.min(state.basePos, state.overlayPos) < stream.start) {
+          state.streamSeen = stream
+          state.basePos = state.overlayPos = stream.start
+        }
+
+        if (stream.start == state.basePos) {
+          state.baseCur = baseMode.token(stream, state.baseState)
+          state.basePos = stream.pos
+        }
+        if (stream.start == state.overlayPos) {
+          stream.pos = stream.start
+          state.overlayCur = this.overlayToken(stream, state)
+          state.overlayPos = stream.pos
+        }
+        stream.pos = Math.min(state.basePos, state.overlayPos)
+
+        if (state.overlayCur == null) {
+          return state.baseCur
+        }
+        else if (state.baseCur != null && state.combineTokens) {
+          return state.baseCur + ' ' + state.overlayCur
+        }
+        else {
+          return state.overlayCur
+        }
+      },
+      overlayToken: function(stream, state) {
+        state.combineTokens = false
+
+        if (state.fencedEndRE && stream.match(state.fencedEndRE)) {
+          state.fencedEndRE = null
+          state.localMode = null
+          state.localState = null
+
+          return null
+        }
+
+        if (state.localMode) {
+          return state.localMode.token(stream, state.localState) || ''
         }
 
         const match = stream.match(fencedCodeRE, true)
         if (match) {
           state.fencedEndRE = new RegExp(match[1] + '+ *$')
 
-          state.fencedMode = getMode(match[2], match[3], config, stream.lineOracle.doc.cm)
-          if (state.fencedMode) {
-            state.fencedState = CodeMirror.startState(state.fencedMode)
+          state.localMode = getMode(match[2], match[3], config, stream.lineOracle.doc.cm)
+          if (state.localMode) {
+            state.localState = CodeMirror.startState(state.localMode)
           }
 
-          stream.pos = initialPos
-          return baseMode.token(stream, state.baseState)
+          return null
         }
 
-        return baseMode.token(stream, state.baseState)
+        state.combineTokens = true
+
+        if (state.inTable) {
+          if (stream.match(/^\|/)) {
+            ++state.rowIndex
+
+            stream.skipToEnd()
+
+            if (state.rowIndex === 1) {
+              return 'table table-separator'
+            } else if (state.rowIndex % 2 === 0) {
+              return 'table table-row table-row-even'
+            } else {
+              return 'table table-row table-row-odd'
+            }
+          } else {
+            state.inTable = false
+
+            stream.skipToEnd()
+            return null
+          }
+        } else if (stream.match(/^\|/)) {
+          state.inTable = true
+          state.rowIndex = 0
+
+          stream.skipToEnd()
+          return 'table table-header'
+        }
+
+        stream.next()
       },
       electricChars: baseMode.electricChars,
       innerMode: function(state) {

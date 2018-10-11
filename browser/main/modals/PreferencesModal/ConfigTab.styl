@@ -138,6 +138,10 @@ colorMonokaiControl()
   background-color $ui-monokai-button-backgroundColor
   color $ui-monokai-text-color
 
+colorDraculaControl()
+  border none
+  background-color $ui-dracula-button-backgroundColor
+  color $ui-dracula-text-color
 
 body[data-theme="dark"]
   .root
@@ -220,3 +224,30 @@ body[data-theme="monokai"]
   .group-section-control
     select, .group-section-control-input
       colorMonokaiControl()
+
+body[data-theme="dracula"]
+  .root
+    color $ui-dracula-text-color
+
+  .group-header
+    color $ui-dracula-text-color
+    border-color $ui-dracula-borderColor
+
+  .group-header2
+    color $ui-dracula-text-color
+
+  .group-section-control-input
+    border-color $ui-dracula-borderColor
+
+  .group-control
+    border-color $ui-dracula-borderColor
+  .group-control-leftButton
+    colorDarkDefaultButton()
+    border-color $ui-dracula-borderColor
+  .group-control-rightButton
+    colorDraculaPrimaryButton()
+  .group-hint
+    colorDraculaControl()
+  .group-section-control
+    select, .group-section-control-input
+      colorDraculaControl()

@@ -80,6 +80,9 @@ li
     &.checked
       text-decoration line-through
       opacity 0.5
+  &.taskListItem.checked
+    text-decoration line-through
+    opacity 0.5
 div.math-rendered
   text-align center
 .math-failed
@@ -225,6 +228,8 @@ pre
     &>code
       flex 1
       overflow-x auto
+  &.mermaid svg
+    max-width 100% !important
   &>span.filename
     margin -0.5rem 100% 0.5rem -0.5rem
     padding 0.125rem 0.375rem
@@ -492,8 +497,8 @@ body[data-theme="solarized-dark"]
       .carousel-main, .carousel-footer
         background-color $ui-solarized-dark-noteDetail-backgroundColor
       .prev, .next
-        color $ui-solarized-dark-text-color
-        background-color $ui-solarized-dark-tag-backgroundColor
+        color $ui-solarized-dark-button--active-color
+        background-color $ui-solarized-dark-button-backgroundColor
 
 themeMonokaiTableOdd = $ui-monokai-noteDetail-backgroundColor
 themeMonokaiTableEven = darken($ui-monokai-noteDetail-backgroundColor, 10%)
@@ -529,5 +534,42 @@ body[data-theme="monokai"]
       .carousel-main, .carousel-footer
         background-color $ui-monokai-noteDetail-backgroundColor
       .prev, .next
-        color $ui-monokai-text-color
-        background-color $ui-monokai-tag-backgroundColor
+        color $ui-monokai-button--active-color
+        background-color $ui-monokai-button-backgroundColor
+
+themeDraculaTableOdd = $ui-dracula-noteDetail-backgroundColor
+themeDraculaTableEven = darken($ui-dracula-noteDetail-backgroundColor, 10%)
+themeDraculaTableHead = themeDraculaTableEven
+themeDraculaTableBorder = themeDarkBorder
+
+body[data-theme="dracula"]
+  color $ui-dracula-text-color
+  border-color themeDarkBorder
+  background-color $ui-dracula-noteDetail-backgroundColor
+  table
+    thead
+      tr
+        background-color themeDraculaTableHead
+      th
+        border-color themeDraculaTableBorder
+        &:last-child
+          border-right solid 1px themeDraculaTableBorder
+    tbody
+      tr:nth-child(2n + 1)
+        background-color themeDraculaTableOdd
+      tr:nth-child(2n)
+        background-color themeDraculaTableEven
+      td
+        border-color themeDraculaTableBorder
+        &:last-child
+          border-right solid 1px themeDraculaTableBorder
+  kbd
+    background-color themeDarkBackground
+
+  pre.fence
+    .gallery
+      .carousel-main, .carousel-footer
+        background-color $ui-dracula-noteDetail-backgroundColor
+      .prev, .next
+        color $ui-dracula-button--active-color
+        background-color $ui-dracula-button-backgroundColor

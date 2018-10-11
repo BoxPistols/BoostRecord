@@ -84,7 +84,7 @@ body[data-theme="dark"]
     color $ui-dark-inactive-text-color
     &:hover
       color $ui-dark-text-color
-  
+
   .control-button--active
     color $ui-dark-text-color
     &:active
@@ -109,7 +109,7 @@ body[data-theme="solarized-dark"]
     color $ui-solarized-dark-inactive-text-color
     &:hover
       color $ui-solarized-dark-text-color
-  
+
   .control-button--active
     color $ui-solarized-dark-text-color
     &:active
@@ -138,3 +138,27 @@ body[data-theme="monokai"]
     color $ui-monokai-text-color
     &:active
       color $ui-monokai-text-color
+
+body[data-theme="dracula"]
+  .root
+    border-color $ui-dracula-borderColor
+    background-color $ui-dracula-noteList-backgroundColor
+
+  .control
+    background-color $ui-dracula-noteList-backgroundColor
+    border-color $ui-dracula-borderColor
+
+  .control-sortBy-select
+    &:hover
+      transition 0.2s
+      color $ui-dracula-text-color
+
+  .control-button
+    color $ui-dracula-inactive-text-color
+    &:hover
+      color $ui-dracula-text-color
+
+  .control-button--active
+    color $ui-dracula-text-color
+    &:active
+      color $ui-dracula-text-color

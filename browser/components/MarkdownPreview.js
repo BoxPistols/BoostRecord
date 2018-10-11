@@ -425,6 +425,7 @@ export default class MarkdownPreview extends React.Component {
       case 'dark':
       case 'solarized-dark':
       case 'monokai':
+      case 'dracula':
         return scrollBarDarkStyle
       default:
         return scrollBarStyle

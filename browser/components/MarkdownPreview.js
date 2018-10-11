@@ -484,10 +484,6 @@ export default class MarkdownPreview extends React.Component {
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
     eventEmitter.on('print', this.printHandler)
-    eventEmitter.on('config-renew', () => {
-      this.markdown.updateConfig()
-      this.rewriteIframe()
-    })
   }
 
   componentWillUnmount () {
@@ -531,7 +527,8 @@ export default class MarkdownPreview extends React.Component {
       prevProps.smartQuotes !== this.props.smartQuotes ||
       prevProps.sanitize !== this.props.sanitize ||
       prevProps.smartArrows !== this.props.smartArrows ||
-      prevProps.breaks !== this.props.breaks
+      prevProps.breaks !== this.props.breaks ||
+      prevProps.lineThroughCheckbox !== this.props.lineThroughCheckbox
     ) {
       this.initMarkdown()
       this.rewriteIframe()

@@ -107,6 +107,7 @@ class UiTab extends React.Component {
         smartArrows: this.refs.previewSmartArrows.checked,
         sanitize: this.refs.previewSanitize.value,
         allowCustomCSS: this.refs.previewAllowCustomCSS.checked,
+        lineThroughCheckbox: this.refs.lineThroughCheckbox.checked,
         customCSS: this.customCSSCM.getCodeMirror().getValue()
       }
     }
@@ -511,6 +512,16 @@ class UiTab extends React.Component {
                 }
               </select>
             </div>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.lineThroughCheckbox}
+                ref='lineThroughCheckbox'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Allow line through checkbox')}
+            </label>
           </div>
           <div styleName='group-checkBoxSection'>
             <label>

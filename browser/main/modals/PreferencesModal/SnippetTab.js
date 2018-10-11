@@ -41,12 +41,14 @@ class SnippetTab extends React.Component {
 
   handleSnippetSelect (snippet) {
     const { currentSnippet } = this.state
-    if (currentSnippet === null || currentSnippet.id !== snippet.id) {
-      dataApi.fetchSnippet(snippet.id).then(changedSnippet => {
-        // notify the snippet editor to load the content of the new snippet
-        this.snippetEditor.onSnippetChanged(changedSnippet)
-        this.setState({currentSnippet: changedSnippet})
-      })
+    if (snippet !== null) {
+      if (currentSnippet === null || currentSnippet.id !== snippet.id) {
+        dataApi.fetchSnippet(snippet.id).then(changedSnippet => {
+          // notify the snippet editor to load the content of the new snippet
+          this.snippetEditor.onSnippetChanged(changedSnippet)
+          this.setState({currentSnippet: changedSnippet})
+        })
+      }
     }
   }
 

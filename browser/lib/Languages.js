@@ -61,6 +61,9 @@ const languages = [
   }, {
     name: 'Turkish',
     locale: 'tr'
+  }, {
+    name: 'Thai',
+    locale: 'th'
   }
 ]
 

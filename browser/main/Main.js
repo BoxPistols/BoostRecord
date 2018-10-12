@@ -168,7 +168,7 @@ class Main extends React.Component {
       }
     })
 
-    delete CodeMirror.keyMap.emacs["Ctrl-V"]
+    delete CodeMirror.keyMap.emacs['Ctrl-V']
 
     eventEmitter.on('editor:fullscreen', this.toggleFullScreen)
   }

@@ -860,6 +860,15 @@ export default class MarkdownPreview extends React.Component {
       return
     }
 
+    const regexIsLine = /^:line:[0-9]/
+    if (regexIsLine.test(linkHash)) {
+      const numberPattern = /\d+/g
+
+      const lineNumber = parseInt(linkHash.match(numberPattern)[0])
+      eventEmitter.emit('line:jump', lineNumber)
+      return
+    }
+
     // this will match the old link format storage.key-note.key
     // e.g.
     // 877f99c3268608328037-1c211eb7dcb463de6490

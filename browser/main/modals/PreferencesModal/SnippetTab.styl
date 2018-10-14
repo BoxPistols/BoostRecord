@@ -196,3 +196,19 @@ body[data-theme="monokai"]
     color white
   .group-control-button
     colorMonokaiPrimaryButton()
+
+body[data-theme="dracula"]
+  .snippets
+    background $ui-dracula-backgroundColor
+    .snippet-item
+      color #f8f8f2
+      &::after
+        background $ui-dracula-borderColor
+      &:hover
+        background darken($ui-dracula-backgroundColor, 5)
+    .snippet-item-selected
+      background darken($ui-dracula-backgroundColor, 5)
+  .snippet-detail
+    color #f8f8f2
+  .group-control-button
+    colorDraculaPrimaryButton()

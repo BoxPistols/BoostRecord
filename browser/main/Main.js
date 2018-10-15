@@ -297,7 +297,7 @@ class Main extends React.Component {
         onMouseUp={e => this.handleMouseUp(e)}
       >
         <SideNav
-          {..._.pick(this.props, ['dispatch', 'data', 'config', 'location'])}
+          {..._.pick(this.props, ['dispatch', 'data', 'config', 'params', 'location'])}
           width={this.state.navWidth}
         />
         {!config.isSideNavFolded &&

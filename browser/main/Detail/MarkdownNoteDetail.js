@@ -65,7 +65,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.note.key !== this.props.note.key && !this.state.isMovingNote) {
+    if (!this.state.isMovingNote && (nextProps.note.key !== this.props.note.key || nextProps.note.updatedAt > this.props.note.updatedAt)) {
       if (this.saveQueue != null) this.saveNow()
       this.setState({
         note: Object.assign({}, nextProps.note)

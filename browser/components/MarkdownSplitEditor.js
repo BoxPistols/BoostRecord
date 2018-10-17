@@ -20,6 +20,10 @@ class MarkdownSplitEditor extends React.Component {
     }
   }
 
+  setValue (value) {
+    this.refs.code.setValue(value)
+  }
+
   handleOnChange () {
     this.value = this.refs.code.value
     this.props.onChange()

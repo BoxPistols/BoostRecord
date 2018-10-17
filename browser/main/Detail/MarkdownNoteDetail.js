@@ -395,7 +395,7 @@ class MarkdownNoteDetail extends React.Component {
           data={data}
           onChange={this.handleUpdateTag.bind(this)}
         />
-        <TodoListPercentage onClick={(e) => this.handleClearTodo(e)} percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
+        <TodoListPercentage onClearCheckboxClick={(e) => this.handleClearTodo(e)} percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
         <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />

@@ -1,13 +1,18 @@
 # Description
 <!--
-Please attach a gif image describing your PR if possible
+Tell us what your PR does.
+Please attach a screenshot / video / gif image describing your PR if possible.
 -->
 
 # Issue fixed
 <!--
-Please list out all issue fixed with this PR
+Please list out all issue fixed with this PR here.
 -->
 
+<!--
+Please make sure you fill in these checkboxes,
+your PR will be reviewed faster if we know exactly what it does.
+-->
 # Type of changes
 
 - [ ] Bug fix (Change that fixed an issue)

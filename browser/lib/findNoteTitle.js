@@ -1,4 +1,4 @@
-export function findNoteTitle (value) {
+export function findNoteTitle (value, enableFrontMatterTitle, frontMatterTitleField = 'title') {
   const splitted = value.split('\n')
   let title = null
   let isInsideCodeBlock = false
@@ -6,8 +6,8 @@ export function findNoteTitle (value) {
   if (splitted[0] === '---') {
     let line = 0
     while (++line < splitted.length) {
-      if (splitted[line].startsWith('title:')) {
-        title = splitted[line].substring(6).trim()
+      if (enableFrontMatterTitle && splitted[line].startsWith(frontMatterTitleField + ':')) {
+        title = splitted[line].substring(frontMatterTitleField.length + 1).trim()
 
         break
       }

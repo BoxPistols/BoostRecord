@@ -89,7 +89,9 @@ class UiTab extends React.Component {
         snippetDefaultLanguage: this.refs.editorSnippetDefaultLanguage.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked,
         fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
-        enableTableEditor: this.refs.enableTableEditor.checked
+        enableTableEditor: this.refs.enableTableEditor.checked,
+        enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
+        frontMatterTitleField: this.refs.frontMatterTitleField.value
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -426,6 +428,31 @@ class UiTab extends React.Component {
                 }
               </select>
             </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Front matter title field')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='frontMatterTitleField'
+                value={config.editor.frontMatterTitleField}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.enableFrontMatterTitle}
+                ref='enableFrontMatterTitle'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Extract title from front matter')}
+            </label>
           </div>
 
           <div styleName='group-checkBoxSection'>

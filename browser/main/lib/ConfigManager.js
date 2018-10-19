@@ -47,7 +47,9 @@ export const DEFAULT_CONFIG = {
     scrollPastEnd: false,
     type: 'SPLIT',
     fetchUrlTitle: true,
-    enableTableEditor: false
+    enableTableEditor: false,
+    enableFrontMatterTitle: true,
+    frontMatterTitleField: 'title'
   },
   preview: {
     fontSize: '14',

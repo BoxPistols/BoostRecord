@@ -15,7 +15,10 @@ test('findNoteTitle#find  should return a correct title (string)', t => {
     ['====', '===='],
     ['```\n# hoge\n```', '```'],
     ['hoge', 'hoge'],
-    ['---\nlayout: test\n---\n # hoge', '# hoge']
+    ['---\nlayout: test\n---\n # hoge', '# hoge'],
+    ['---\nlayout: test\ntitle:  hoge hoge hoge  \n---\n# fuga', 'hoge hoge hoge'],
+    ['---\ntitle:hoge\n---\n# fuga', 'hoge'],
+    ['title: fuga\n# hoge', '# hoge']
   ]
 
   testCases.forEach(testCase => {
@@ -23,4 +26,3 @@ test('findNoteTitle#find  should return a correct title (string)', t => {
     t.is(findNoteTitle(input), expected, `Test for find() input: ${input} expected: ${expected}`)
   })
 })
-

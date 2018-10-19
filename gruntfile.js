@@ -289,19 +289,18 @@ module.exports = function (grunt) {
     const Color = require('color')
     const parseCSS = require('css').parse
 
-    function generateRule(selector, bgColor, fgColor) {
+    function generateRule (selector, bgColor, fgColor) {
       if (bgColor.isLight()) {
-          bgColor = bgColor.mix(fgColor, 0.05)
-        } else {
-          bgColor = bgColor.mix(fgColor, 0.1)
-        }
+        bgColor = bgColor.mix(fgColor, 0.05)
+      } else {
+        bgColor = bgColor.mix(fgColor, 0.1)
+      }
 
-        if (selector && selector.length > 0) {
-          return `${selector} .cm-table-row-even { background-color: ${bgColor.rgb().string()}; }`
-        }
-        else {
-          return `.cm-table-row-even { background-color: ${bgColor.rgb().string()}; }`
-        }
+      if (selector && selector.length > 0) {
+        return `${selector} .cm-table-row-even { background-color: ${bgColor.rgb().string()}; }`
+      } else {
+        return `.cm-table-row-even { background-color: ${bgColor.rgb().string()}; }`
+      }
     }
 
     const root = path.join(__dirname, 'node_modules/codemirror/theme/')
@@ -319,7 +318,7 @@ module.exports = function (grunt) {
             bgColor = Color(declaration.value.split(' ')[0])
           } else if (declaration.property === 'color') {
             const value = /^(.*?)(?:\s*!important)?$/.exec(declaration.value)[1]
-            let match = /^rgba\((.*?),\s*1\)$/.exec(value)
+            const match = /^rgba\((.*?),\s*1\)$/.exec(value)
             if (match) {
               fgColor = Color(`rgb(${match[1]})`)
             } else {
@@ -328,18 +327,9 @@ module.exports = function (grunt) {
           }
         })
 
-        /* if (bgColor.isLight()) {
-          bgColor = bgColor.mix(fgColor, 0.05)
-        } else {
-          bgColor = bgColor.mix(fgColor, 0.1)
-        }
-
-        return `${rules[0].selectors[0]} .cm-table-row-even { background-color: ${bgColor.rgb().string()}; }` */
         return generateRule(rules[0].selectors[0], bgColor, fgColor)
       }
     }).filter(value => !!value)
-
-    //const defaultBgColor = Color('white').mix(Color('black'), 0.05)
 
     // default
     colors.unshift(generateRule(null, Color('white'), Color('black')))
@@ -347,18 +337,7 @@ module.exports = function (grunt) {
     colors.push(generateRule('.cm-s-solarized.cm-s-dark', Color('#002b36'), Color('#839496')))
     // solarized light
     colors.push(generateRule('.cm-s-solarized.cm-s-light', Color('#fdf6e3'), Color('#657b83')))
-    /* .cm-s-solarized.cm-s-dark {
-  color: #839496;
-  background-color: #002b36;
-  text-shadow: #002b36 0 1px;
-}
-.cm-s-solarized.cm-s-light {
-  background-color: #fdf6e3;
-  color: #657b83;
-  text-shadow: #eee8d5 0 1px;
-} */
 
-    /* fs.writeFileSync(path.join(__dirname, 'extra_scripts/codemirror/mode/bfm/bfm.css'), [`.cm-table-row-even { background-color: ${defaultBgColor.rgb().string()}; }`, ...colors].join('\n'), 'utf8') */
     fs.writeFileSync(path.join(__dirname, 'extra_scripts/codemirror/mode/bfm/bfm.css'), colors.join('\n'), 'utf8')
   })
 

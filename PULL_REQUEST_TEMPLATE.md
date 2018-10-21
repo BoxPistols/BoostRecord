@@ -12,6 +12,8 @@ Please list out all issue fixed with this PR here.
 <!--
 Please make sure you fill in these checkboxes,
 your PR will be reviewed faster if we know exactly what it does.
+
+Put an `x` in all the boxes that apply.
 -->
 ## Type of changes
 

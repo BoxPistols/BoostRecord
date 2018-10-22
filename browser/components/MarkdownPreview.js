@@ -80,7 +80,6 @@ function buildStyle (
        url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
        url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
 }
-${allowCustomCSS ? customCSS : ''}
 ${markdownStyle}
 
 body {
@@ -144,6 +143,8 @@ body p {
     display: none
   }
 }
+
+${allowCustomCSS ? customCSS : ''}
 `
 }
 

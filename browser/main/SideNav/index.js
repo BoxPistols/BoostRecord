@@ -18,6 +18,7 @@ import TagButton from './TagButton'
 import {SortableContainer} from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
+import { remote } from 'electron'
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
@@ -28,6 +29,52 @@ class SideNav extends React.Component {
 
   componentWillUnmount () {
     EventEmitter.off('side:preferences', this.handleMenuButtonClick)
+  }
+
+  deleteTag (tag) {
+    const selectedButton = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+      ype: 'warning',
+      message: i18n.__('Confirm tag deletion'),
+      detail: i18n.__('This will permanently remove this tag.'),
+      buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
+    })
+
+    if (selectedButton === 0) {
+      const { data, dispatch, location, params } = this.props
+
+      const notes = data.noteMap
+        .map(note => note)
+        .filter(note => note.tags.indexOf(tag) !== -1)
+        .map(note => {
+          note = Object.assign({}, note)
+          note.tags = note.tags.slice()
+
+          note.tags.splice(note.tags.indexOf(tag), 1)
+
+          return note
+        })
+
+      Promise
+        .all(notes.map(note => dataApi.updateNote(note.storage, note.key, note)))
+        .then(updatedNotes => {
+          updatedNotes.forEach(note => {
+            dispatch({
+              type: 'UPDATE_NOTE',
+              note
+            })
+          })
+
+          if (location.pathname.match('/tags')) {
+            const tags = params.tagname.split(' ')
+            const index = tags.indexOf(tag)
+            if (index !== -1) {
+              tags.splice(index, 1)
+
+              this.context.router.push(`/tags/${tags.map(tag => encodeURIComponent(tag)).join(' ')}`)
+            }
+          }
+        })
+    }
   }
 
   handleMenuButtonClick (e) {
@@ -42,6 +89,17 @@ class SideNav extends React.Component {
   handleStarredButtonClick (e) {
     const { router } = this.context
     router.push('/starred')
+  }
+
+  handleTagContextMenu (e, tag) {
+    const menu = []
+
+    menu.push({
+      label: i18n.__('Delete Tag'),
+      click: this.deleteTag.bind(this, tag)
+    })
+
+    context.popup(menu)
   }
 
   handleToggleButtonClick (e) {
@@ -165,6 +223,7 @@ class SideNav extends React.Component {
             name={tag.name}
             handleClickTagListItem={this.handleClickTagListItem.bind(this)}
             handleClickNarrowToTag={this.handleClickNarrowToTag.bind(this)}
+            handleContextMenu={this.handleTagContextMenu.bind(this)}
             isActive={this.getTagActive(location.pathname, tag.name)}
             isRelated={tag.related}
             key={tag.name}

@@ -48,7 +48,9 @@ export const DEFAULT_CONFIG = {
     scrollPastEnd: false,
     type: 'SPLIT',
     fetchUrlTitle: true,
-    enableTableEditor: false
+    enableTableEditor: false,
+    enableFrontMatterTitle: true,
+    frontMatterTitleField: 'title'
   },
   preview: {
     fontSize: '14',
@@ -66,7 +68,8 @@ export const DEFAULT_CONFIG = {
     smartArrows: false,
     allowCustomCSS: false,
     customCSS: '',
-    sanitize: 'STRICT' // 'STRICT', 'ALLOW_STYLES', 'NONE'
+    sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
+    lineThroughCheckbox: true
   },
   blog: {
     type: 'wordpress', // Available value: wordpress, add more types in the future plz
@@ -148,6 +151,8 @@ function set (updates) {
     document.body.setAttribute('data-theme', 'solarized-dark')
   } else if (newConfig.ui.theme === 'monokai') {
     document.body.setAttribute('data-theme', 'monokai')
+  } else if (newConfig.ui.theme === 'dracula') {
+    document.body.setAttribute('data-theme', 'dracula')
   } else {
     document.body.setAttribute('data-theme', 'default')
   }

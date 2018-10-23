@@ -66,7 +66,9 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.note.key !== this.props.note.key && !this.state.isMovingNote) {
+    const isNewNote = nextProps.note.key !== this.props.note.key
+    const hasDeletedTags = nextProps.note.tags.length < this.props.note.tags.length
+    if (!this.state.isMovingNote && (isNewNote || hasDeletedTags)) {
       if (this.saveQueue != null) this.saveNow()
       this.setState({
         note: Object.assign({}, nextProps.note)
@@ -92,7 +94,7 @@ class MarkdownNoteDetail extends React.Component {
   handleUpdateContent () {
     const { note } = this.state
     note.content = this.refs.content.value
-    note.title = markdown.strip(striptags(findNoteTitle(note.content)))
+    note.title = markdown.strip(striptags(findNoteTitle(note.content, this.props.config.editor.enableFrontMatterTitle, this.props.config.editor.frontMatterTitleField)))
     this.updateNote(note)
   }
 
@@ -298,9 +300,29 @@ class MarkdownNoteDetail extends React.Component {
     this.handleTrashButtonClick()
   }
 
+  handleClearTodo () {
+    const { note } = this.state
+    const splitted = note.content.split('\n')
+
+    const clearTodoContent = splitted.map((line) => {
+      const trimmedLine = line.trim()
+      if (trimmedLine.match(/\[x\]/i)) {
+        return line.replace(/\[x\]/i, '[ ]')
+      } else {
+        return line
+      }
+    }).join('\n')
+
+    note.content = clearTodoContent
+    this.refs.content.setValue(note.content)
+
+    this.updateNote(note)
+  }
+
   renderEditor () {
     const { config, ignorePreviewPointerEvents } = this.props
     const { note } = this.state
+
     if (this.state.editorType === 'EDITOR_PREVIEW') {
       return <MarkdownEditor
         ref='content'
@@ -380,7 +402,7 @@ class MarkdownNoteDetail extends React.Component {
           data={data}
           onChange={this.handleUpdateTag.bind(this)}
         />
-        <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
+        <TodoListPercentage onClearCheckboxClick={(e) => this.handleClearTodo(e)} percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
         <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />

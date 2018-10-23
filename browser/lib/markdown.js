@@ -7,6 +7,7 @@ import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
 import { lastFindInArray } from './utils'
+import ee from 'browser/main/lib/eventEmitter'
 
 function createGutter (str, firstLineNumber) {
   if (Number.isNaN(firstLineNumber)) firstLineNumber = 1
@@ -223,7 +224,11 @@ class Markdown {
             if (!liToken.attrs) {
               liToken.attrs = []
             }
-            liToken.attrs.push(['class', 'taskListItem'])
+            if (config.preview.lineThroughCheckbox) {
+              liToken.attrs.push(['class', `taskListItem${match[1] !== ' ' ? ' checked' : ''}`])
+            } else {
+              liToken.attrs.push(['class', 'taskListItem'])
+            }
           }
           content = `<label class='taskListItem${match[1] !== ' ' ? ' checked' : ''}' for='checkbox-${startLine + 1}'><input type='checkbox'${match[1] !== ' ' ? ' checked' : ''} id='checkbox-${startLine + 1}'/> ${content.substring(4, content.length)}</label>`
         }

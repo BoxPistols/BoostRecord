@@ -80,13 +80,17 @@ function buildStyle (
        url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
        url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
 }
-${allowCustomCSS ? customCSS : ''}
 ${markdownStyle}
 
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
   ${scrollPastEnd && 'padding-bottom: 90vh;'}
+}
+@media print {
+  body {
+    padding-bottom: initial;
+  }
 }
 code {
   font-family: '${codeBlockFontFamily.join("','")}';
@@ -144,6 +148,8 @@ body p {
     display: none
   }
 }
+
+${allowCustomCSS ? customCSS : ''}
 `
 }
 
@@ -425,6 +431,7 @@ export default class MarkdownPreview extends React.Component {
       case 'dark':
       case 'solarized-dark':
       case 'monokai':
+      case 'dracula':
         return scrollBarDarkStyle
       default:
         return scrollBarStyle
@@ -526,7 +533,8 @@ export default class MarkdownPreview extends React.Component {
       prevProps.smartQuotes !== this.props.smartQuotes ||
       prevProps.sanitize !== this.props.sanitize ||
       prevProps.smartArrows !== this.props.smartArrows ||
-      prevProps.breaks !== this.props.breaks
+      prevProps.breaks !== this.props.breaks ||
+      prevProps.lineThroughCheckbox !== this.props.lineThroughCheckbox
     ) {
       this.initMarkdown()
       this.rewriteIframe()
@@ -852,6 +860,15 @@ export default class MarkdownPreview extends React.Component {
     const regexIsNoteLink = /^:note:([a-zA-Z0-9-]{20,36})$/
     if (regexIsNoteLink.test(linkHash)) {
       eventEmitter.emit('list:jump', linkHash.replace(':note:', ''))
+      return
+    }
+
+    const regexIsLine = /^:line:[0-9]/
+    if (regexIsLine.test(linkHash)) {
+      const numberPattern = /\d+/g
+
+      const lineNumber = parseInt(linkHash.match(numberPattern)[0])
+      eventEmitter.emit('line:jump', lineNumber)
       return
     }
 

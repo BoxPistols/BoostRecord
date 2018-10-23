@@ -91,7 +91,7 @@ class MarkdownNoteDetail extends React.Component {
   handleUpdateContent () {
     const { note } = this.state
     note.content = this.refs.content.value
-    note.title = markdown.strip(striptags(findNoteTitle(note.content)))
+    note.title = markdown.strip(striptags(findNoteTitle(note.content, this.props.config.editor.enableFrontMatterTitle, this.props.config.editor.frontMatterTitleField)))
     this.updateNote(note)
   }
 

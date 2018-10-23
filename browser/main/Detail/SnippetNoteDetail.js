@@ -112,7 +112,7 @@ class SnippetNoteDetail extends React.Component {
     if (this.refs.tags) note.tags = this.refs.tags.value
     note.description = this.refs.description.value
     note.updatedAt = new Date()
-    note.title = findNoteTitle(note.description)
+    note.title = findNoteTitle(note.description, false)
 
     this.setState({
       note

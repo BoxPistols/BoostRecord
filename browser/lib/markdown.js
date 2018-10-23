@@ -7,6 +7,7 @@ import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
 import { lastFindInArray } from './utils'
+import ee from 'browser/main/lib/eventEmitter'
 
 function createGutter (str, firstLineNumber) {
   if (Number.isNaN(firstLineNumber)) firstLineNumber = 1
@@ -20,7 +21,7 @@ function createGutter (str, firstLineNumber) {
 
 class Markdown {
   constructor (options = {}) {
-    const config = ConfigManager.get()
+    let config = ConfigManager.get()
     const defaultOptions = {
       typographer: config.preview.smartQuotes,
       linkify: true,
@@ -226,7 +227,11 @@ class Markdown {
             if (!liToken.attrs) {
               liToken.attrs = []
             }
-            liToken.attrs.push(['class', 'taskListItem'])
+            if (config.preview.lineThroughCheckbox) {
+              liToken.attrs.push(['class', `taskListItem${match[1] !== ' ' ? ' checked' : ''}`])
+            } else {
+              liToken.attrs.push(['class', 'taskListItem'])
+            }
           }
           content = `<label class='taskListItem${match[1] !== ' ' ? ' checked' : ''}' for='checkbox-${startLine + 1}'><input type='checkbox'${match[1] !== ' ' ? ' checked' : ''} id='checkbox-${startLine + 1}'/> ${content.substring(4, content.length)}</label>`
         }
@@ -266,6 +271,9 @@ class Markdown {
     }
     // FIXME We should not depend on global variable.
     window.md = this.md
+    this.updateConfig = () => {
+      config = ConfigManager.get()
+    }
   }
 
   render (content) {

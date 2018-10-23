@@ -2,8 +2,8 @@ import mermaidAPI from 'mermaid'
 
 // fixes bad styling in the mermaid dark theme
 const darkThemeStyling = `
-.loopText tspan { 
-  fill: white; 
+.loopText tspan {
+  fill: white;
 }`
 
 function getRandomInt (min, max) {
@@ -21,7 +21,7 @@ function getId () {
 
 function render (element, content, theme) {
   try {
-    let isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai'
+    let isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai' || theme === 'dracula'
     mermaidAPI.initialize({
       theme: isDarkTheme ? 'dark' : 'default',
       themeCSS: isDarkTheme ? darkThemeStyling : ''

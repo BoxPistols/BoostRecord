@@ -57,6 +57,7 @@ export default class CodeEditor extends React.Component {
     }
     this.searchHandler = (e, msg) => this.handleSearch(msg)
     this.searchState = null
+    this.scrollToLineHandeler = this.scrollToLine.bind(this)
 
     this.formatTable = () => this.handleFormatTable()
     this.editorActivityHandler = () => this.handleEditorActivity()
@@ -125,6 +126,7 @@ export default class CodeEditor extends React.Component {
   componentDidMount () {
     const { rulers, enableRulers } = this.props
     const expandSnippet = this.expandSnippet.bind(this)
+    eventEmitter.on('line:jump', this.scrollToLineHandeler)
 
     const defaultSnippet = [
       {
@@ -475,7 +477,13 @@ export default class CodeEditor extends React.Component {
 
   moveCursorTo (row, col) {}
 
-  scrollToLine (num) {}
+  scrollToLine (event, num) {
+    const cursor = {
+      line: num,
+      ch: 1
+    }
+    this.editor.setCursor(cursor)
+  }
 
   focus () {
     this.editor.focus()

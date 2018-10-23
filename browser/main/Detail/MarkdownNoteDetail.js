@@ -293,9 +293,29 @@ class MarkdownNoteDetail extends React.Component {
     })
   }
 
+  handleClearTodo () {
+    const { note } = this.state
+    const splitted = note.content.split('\n')
+
+    const clearTodoContent = splitted.map((line) => {
+      const trimmedLine = line.trim()
+      if (trimmedLine.match(/\[x\]/i)) {
+        return line.replace(/\[x\]/i, '[ ]')
+      } else {
+        return line
+      }
+    }).join('\n')
+
+    note.content = clearTodoContent
+    this.refs.content.setValue(note.content)
+
+    this.updateNote(note)
+  }
+
   renderEditor () {
     const { config, ignorePreviewPointerEvents } = this.props
     const { note } = this.state
+
     if (this.state.editorType === 'EDITOR_PREVIEW') {
       return <MarkdownEditor
         ref='content'
@@ -375,7 +395,7 @@ class MarkdownNoteDetail extends React.Component {
           data={data}
           onChange={this.handleUpdateTag.bind(this)}
         />
-        <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
+        <TodoListPercentage onClearCheckboxClick={(e) => this.handleClearTodo(e)} percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
         <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />

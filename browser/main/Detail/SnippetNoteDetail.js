@@ -759,6 +759,7 @@ class SnippetNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
+          data={data}
           onChange={(e) => this.handleChange(e)}
         />
       </div>

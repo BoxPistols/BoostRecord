@@ -40,7 +40,7 @@ class UiTab extends React.Component {
     this.handleSettingError = (err) => {
       this.setState({UiAlert: {
         type: 'error',
-        message: err.message != null ? err.message : i18n.__('Error occurs!')
+        message: err.message != null ? err.message : i18n.__('An error occurred!')
       }})
     }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
@@ -107,6 +107,7 @@ class UiTab extends React.Component {
         smartArrows: this.refs.previewSmartArrows.checked,
         sanitize: this.refs.previewSanitize.value,
         allowCustomCSS: this.refs.previewAllowCustomCSS.checked,
+        lineThroughCheckbox: this.refs.lineThroughCheckbox.checked,
         customCSS: this.customCSSCM.getCodeMirror().getValue()
       }
     }
@@ -125,7 +126,7 @@ class UiTab extends React.Component {
         this.props.haveToSave({
           tab: 'UI',
           type: 'warning',
-          message: i18n.__('You have to save!')
+          message: i18n.__('Unsaved Changes!')
         })
       }
     })
@@ -187,6 +188,7 @@ class UiTab extends React.Component {
                 <option value='white'>{i18n.__('White')}</option>
                 <option value='solarized-dark'>{i18n.__('Solarized Dark')}</option>
                 <option value='monokai'>{i18n.__('Monokai')}</option>
+                <option value='dracula'>{i18n.__('Dracula')}</option>
                 <option value='dark'>{i18n.__('Dark')}</option>
               </select>
             </div>
@@ -498,7 +500,7 @@ class UiTab extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Code block Theme')}</div>
+            <div styleName='group-section-label'>{i18n.__('Code Block Theme')}</div>
             <div styleName='group-section-control'>
               <select value={config.preview.codeBlockTheme}
                 ref='previewCodeBlockTheme'
@@ -511,6 +513,16 @@ class UiTab extends React.Component {
                 }
               </select>
             </div>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.lineThroughCheckbox}
+                ref='lineThroughCheckbox'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Allow line through checkbox')}
+            </label>
           </div>
           <div styleName='group-checkBoxSection'>
             <label>

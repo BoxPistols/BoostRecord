@@ -250,7 +250,7 @@ class MarkdownEditor extends React.Component {
             : 'codeEditor--hide'
           }
           ref='code'
-          mode='GitHub Flavored Markdown'
+          mode='Boost Flavored Markdown'
           value={value}
           theme={config.editor.theme}
           keyMap={config.editor.keyMap}

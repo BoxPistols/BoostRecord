@@ -87,6 +87,11 @@ body {
   font-size: ${fontSize}px;
   ${scrollPastEnd && 'padding-bottom: 90vh;'}
 }
+@media print {
+  body {
+    padding-bottom: initial;
+  }
+}
 code {
   font-family: '${codeBlockFontFamily.join("','")}';
   background-color: rgba(0,0,0,0.04);

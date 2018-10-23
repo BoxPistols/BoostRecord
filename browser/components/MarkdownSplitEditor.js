@@ -196,6 +196,7 @@ class MarkdownSplitEditor extends React.Component {
           noteKey={noteKey}
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
+          lineThroughCheckbox={config.preview.lineThroughCheckbox}
        />
       </div>
     )

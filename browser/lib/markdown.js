@@ -21,7 +21,7 @@ function createGutter (str, firstLineNumber) {
 
 class Markdown {
   constructor (options = {}) {
-    let config = ConfigManager.get()
+    const config = ConfigManager.get()
     const defaultOptions = {
       typographer: config.preview.smartQuotes,
       linkify: true,
@@ -265,9 +265,6 @@ class Markdown {
     }
     // FIXME We should not depend on global variable.
     window.md = this.md
-    this.updateConfig = () => {
-      config = ConfigManager.get()
-    }
   }
 
   render (content) {

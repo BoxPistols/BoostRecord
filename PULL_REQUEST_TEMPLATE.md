@@ -1,3 +1,8 @@
+<!--
+Before submitting this PR, please make sure that:
+- You have read and understand the contributing.md
+- You have checked docs/code_style.md for information on code style
+-->
 ## Description
 <!--
 Tell us what your PR does.
@@ -25,7 +30,7 @@ Change :white_circle: to :radio_button: in all the options that apply
 
 ## Checklist:
 
-- :white_circle: My code follows the project code style
+- :white_circle: My code follows [the project code style](docs/code_style.md)
 - :white_circle: I have written test for my code and it has been tested
 - :white_circle: All existing tests have been passed
 - :white_circle: I have attached a screenshot/video to visualize my change if possible

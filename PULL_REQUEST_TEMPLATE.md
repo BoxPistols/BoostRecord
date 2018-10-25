@@ -13,19 +13,19 @@ Please list out all issue fixed with this PR here.
 Please make sure you fill in these checkboxes,
 your PR will be reviewed faster if we know exactly what it does.
 
-Put an `x` in all the boxes that apply.
+Change :white_circle: to :radio_button: in all the options that apply
 -->
 ## Type of changes
 
-- [ ] Bug fix (Change that fixed an issue)
-- [ ] Breaking change (Change that can cause existing functionality to change)
-- [ ] Improvement (Change that improves the code. Maybe performance or development improvement)
-- [ ] Feature (Change that adds new functionality)
-- [ ] Documentation change (Change that modifies documentation. Maybe typo fixes)
+- :white_circle: Bug fix (Change that fixed an issue)
+- :white_circle: Breaking change (Change that can cause existing functionality to change)
+- :white_circle: Improvement (Change that improves the code. Maybe performance or development improvement)
+- :white_circle: Feature (Change that adds new functionality)
+- :white_circle: Documentation change (Change that modifies documentation. Maybe typo fixes)
 
 ## Checklist:
 
-- [ ] My code follows the project code style
-- [ ] I have written test for my code and it has been tested
-- [ ] All existing tests have been passed
-- [ ] I have attached a screenshot/video to visualize my change if possible
+- :white_circle: My code follows the project code style
+- :white_circle: I have written test for my code and it has been tested
+- :white_circle: All existing tests have been passed
+- :white_circle: I have attached a screenshot/video to visualize my change if possible

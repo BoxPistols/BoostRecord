@@ -58,3 +58,25 @@ const isSecondMarkdownNote = note.type == 'markdown' && note.index == 2
 const isNoteHasString = note.content.indexOf('string') != -1
 if (isSecondMarkdownNote && isNoteHasString)
 ```
+
+### Use class property instead of class methods
+When writing React components, try to use class property instead of class methods. The reason for this is explained perfectly here:
+https://codeburst.io/use-class-properties-to-clean-up-your-classes-and-react-components-93185879f688
+
+**Example**:
+
+```js
+// BAD
+class MyComponent extends React.Component {
+  myMethod () {
+    // code goes here...
+  }
+}
+
+// GOOD
+class MyComponent extends React.Component {
+  myMethod = () => {
+    // code goes here...
+  }
+}
+```

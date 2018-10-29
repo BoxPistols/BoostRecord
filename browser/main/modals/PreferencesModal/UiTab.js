@@ -40,7 +40,7 @@ class UiTab extends React.Component {
     this.handleSettingError = (err) => {
       this.setState({UiAlert: {
         type: 'error',
-        message: err.message != null ? err.message : i18n.__('Error occurs!')
+        message: err.message != null ? err.message : i18n.__('An error occurred!')
       }})
     }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
@@ -67,6 +67,7 @@ class UiTab extends React.Component {
       ui: {
         theme: this.refs.uiTheme.value,
         language: this.refs.uiLanguage.value,
+        defaultNote: this.refs.defaultNote.value,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
         showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
@@ -85,8 +86,12 @@ class UiTab extends React.Component {
         displayLineNumbers: this.refs.editorDisplayLineNumbers.checked,
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
+        snippetDefaultLanguage: this.refs.editorSnippetDefaultLanguage.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked,
-        fetchUrlTitle: this.refs.editorFetchUrlTitle.checked
+        fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
+        enableTableEditor: this.refs.enableTableEditor.checked,
+        enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
+        frontMatterTitleField: this.refs.frontMatterTitleField.value
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -104,6 +109,7 @@ class UiTab extends React.Component {
         smartArrows: this.refs.previewSmartArrows.checked,
         sanitize: this.refs.previewSanitize.value,
         allowCustomCSS: this.refs.previewAllowCustomCSS.checked,
+        lineThroughCheckbox: this.refs.lineThroughCheckbox.checked,
         customCSS: this.customCSSCM.getCodeMirror().getValue()
       }
     }
@@ -122,7 +128,7 @@ class UiTab extends React.Component {
         this.props.haveToSave({
           tab: 'UI',
           type: 'warning',
-          message: i18n.__('You have to save!')
+          message: i18n.__('Unsaved Changes!')
         })
       }
     })
@@ -172,7 +178,9 @@ class UiTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Interface')}</div>
 
           <div styleName='group-section'>
-            {i18n.__('Interface Theme')}
+            <div styleName='group-section-label'>
+              {i18n.__('Interface Theme')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.theme}
                 onChange={(e) => this.handleUIChange(e)}
@@ -182,13 +190,16 @@ class UiTab extends React.Component {
                 <option value='white'>{i18n.__('White')}</option>
                 <option value='solarized-dark'>{i18n.__('Solarized Dark')}</option>
                 <option value='monokai'>{i18n.__('Monokai')}</option>
+                <option value='dracula'>{i18n.__('Dracula')}</option>
                 <option value='dark'>{i18n.__('Dark')}</option>
               </select>
             </div>
           </div>
 
           <div styleName='group-section'>
-            {i18n.__('Language')}
+            <div styleName='group-section-label'>
+              {i18n.__('Language')}
+            </div>
             <div styleName='group-section-control'>
               <select value={config.ui.language}
                 onChange={(e) => this.handleUIChange(e)}
@@ -197,6 +208,22 @@ class UiTab extends React.Component {
                 {
                   getLanguages().map((language) => <option value={language.locale} key={language.locale}>{i18n.__(language.name)}</option>)
                 }
+              </select>
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Default New Note')}
+            </div>
+            <div styleName='group-section-control'>
+              <select value={config.ui.defaultNote}
+                onChange={(e) => this.handleUIChange(e)}
+                ref='defaultNote'
+              >
+                <option value='ALWAYS_ASK'>{i18n.__('Always Ask')}</option>
+                <option value='MARKDOWN_NOTE'>{i18n.__('Markdown Note')}</option>
+                <option value='SNIPPET_NOTE'>{i18n.__('Snippet Note')}</option>
               </select>
             </div>
           </div>
@@ -387,6 +414,47 @@ class UiTab extends React.Component {
             </div>
           </div>
 
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Snippet Default Language')}
+            </div>
+            <div styleName='group-section-control'>
+              <select value={config.editor.snippetDefaultLanguage}
+                ref='editorSnippetDefaultLanguage'
+                onChange={(e) => this.handleUIChange(e)}
+              >
+                {
+                  _.sortBy(CodeMirror.modeInfo.map(mode => mode.name)).map(name => (<option key={name} value={name}>{name}</option>))
+                }
+              </select>
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Front matter title field')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='frontMatterTitleField'
+                value={config.editor.frontMatterTitleField}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.enableFrontMatterTitle}
+                ref='enableFrontMatterTitle'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Extract title from front matter')}
+            </label>
+          </div>
+
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
@@ -420,6 +488,17 @@ class UiTab extends React.Component {
             </label>
           </div>
 
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.enableTableEditor}
+                ref='enableTableEditor'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable smart table editor')}
+            </label>
+          </div>
+
           <div styleName='group-header2'>{i18n.__('Preview')}</div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
@@ -448,7 +527,7 @@ class UiTab extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Code block Theme')}</div>
+            <div styleName='group-section-label'>{i18n.__('Code Block Theme')}</div>
             <div styleName='group-section-control'>
               <select value={config.preview.codeBlockTheme}
                 ref='previewCodeBlockTheme'
@@ -461,6 +540,16 @@ class UiTab extends React.Component {
                 }
               </select>
             </div>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.lineThroughCheckbox}
+                ref='lineThroughCheckbox'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Allow line through checkbox')}
+            </label>
           </div>
           <div styleName='group-checkBoxSection'>
             <label>

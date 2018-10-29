@@ -20,6 +20,10 @@ class MarkdownSplitEditor extends React.Component {
     }
   }
 
+  setValue (value) {
+    this.refs.code.setValue(value)
+  }
+
   handleOnChange () {
     this.value = this.refs.code.value
     this.props.onChange()
@@ -145,7 +149,7 @@ class MarkdownSplitEditor extends React.Component {
           styleName='codeEditor'
           ref='code'
           width={this.state.codeEditorWidthInPercent + '%'}
-          mode='GitHub Flavored Markdown'
+          mode='Boost Flavored Markdown'
           value={value}
           theme={config.editor.theme}
           keyMap={config.editor.keyMap}
@@ -158,6 +162,7 @@ class MarkdownSplitEditor extends React.Component {
           rulers={config.editor.rulers}
           scrollPastEnd={config.editor.scrollPastEnd}
           fetchUrlTitle={config.editor.fetchUrlTitle}
+          enableTableEditor={config.editor.enableTableEditor}
           storageKey={storageKey}
           noteKey={noteKey}
           onChange={this.handleOnChange.bind(this)}
@@ -191,6 +196,7 @@ class MarkdownSplitEditor extends React.Component {
           noteKey={noteKey}
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
+          lineThroughCheckbox={config.preview.lineThroughCheckbox}
        />
       </div>
     )

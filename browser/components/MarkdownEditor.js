@@ -6,7 +6,6 @@ import CodeEditor from 'browser/components/CodeEditor'
 import MarkdownPreview from 'browser/components/MarkdownPreview'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import { findStorage } from 'browser/lib/findStorage'
-import debounceRender from 'react-debounce-render'
 
 class MarkdownEditor extends React.Component {
   constructor (props) {
@@ -63,6 +62,10 @@ class MarkdownEditor extends React.Component {
     this.setState({
       renderValue: value
     })
+  }
+
+  setValue (value) {
+    this.refs.code.setValue(value)
   }
 
   handleChange (e) {
@@ -251,7 +254,7 @@ class MarkdownEditor extends React.Component {
             : 'codeEditor--hide'
           }
           ref='code'
-          mode='GitHub Flavored Markdown'
+          mode='Boost Flavored Markdown'
           value={value}
           theme={config.editor.theme}
           keyMap={config.editor.keyMap}
@@ -266,6 +269,7 @@ class MarkdownEditor extends React.Component {
           storageKey={storageKey}
           noteKey={noteKey}
           fetchUrlTitle={config.editor.fetchUrlTitle}
+          enableTableEditor={config.editor.enableTableEditor}
           onChange={(e) => this.handleChange(e)}
           onBlur={(e) => this.handleBlur(e)}
         />
@@ -300,6 +304,7 @@ class MarkdownEditor extends React.Component {
           noteKey={noteKey}
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
+          lineThroughCheckbox={config.preview.lineThroughCheckbox}
         />
       </div>
     )
@@ -313,4 +318,4 @@ MarkdownEditor.propTypes = {
   ignorePreviewPointerEvents: PropTypes.bool
 }
 
-export default debounceRender(CSSModules(MarkdownEditor, styles))
+export default CSSModules(MarkdownEditor, styles)

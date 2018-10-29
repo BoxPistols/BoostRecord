@@ -5,7 +5,7 @@ $danger-color = #c9302c
 $danger-lighten-color = lighten(#c9302c, 5%)
 
 // Layouts
-$statusBar-height = 22px
+$statusBar-height = 28px
 $sideNav-width = 200px
 $sideNav--folded-width = 44px
 $topBar-height = 60px
@@ -127,6 +127,16 @@ colorMonokaiPrimaryButton()
   &:active
   &:active:hover
     background-color $dark-primary-button-background--active
+
+colorDraculaPrimaryButton()
+  color $ui-dracula-text-color
+  background-color $ui-dracula-button-backgroundColor
+  border none
+  &:hover
+    background-color $ui-dracula-button--active-backgroundColor
+  &:active
+  &:active:hover
+    background-color $ui-dracula-button--active-backgroundColor
 
 
 // Danger button(Brand color)
@@ -369,7 +379,7 @@ $ui-monokai-active-color = #f92672
 
 $ui-monokai-borderColor = #373831
 
-$ui-monokai-tag-backgroundColor = #f92672
+$ui-monokai-tag-backgroundColor = #373831
 
 $ui-monokai-button-backgroundColor = #373831
 $ui-monokai-button--active-color = white
@@ -377,10 +387,36 @@ $ui-monokai-button--active-backgroundColor = #f92672
 $ui-monokai-button--hover-backgroundColor = lighten($ui-dark-backgroundColor, 10%)
 $ui-monokai-button--focus-borderColor = lighten(#369DCD, 25%)
 
-modalmonokai()
+modalMonokai()
   position relative
   z-index $modal-z-index
   width 100%
   background-color $ui-monokai-backgroundColor
+  overflow hidden
+  border-radius $modal-border-radius
+
+/******* Dracula theme ********/
+$ui-dracula-backgroundColor = #282a36
+$ui-dracula-noteList-backgroundColor = #282a36
+$ui-dracula-noteDetail-backgroundColor = #282a36
+
+$ui-dracula-text-color = #f8f8f2
+$ui-dracula-active-color = #bd93f9
+
+$ui-dracula-borderColor = #44475a
+
+$ui-dracula-tag-backgroundColor = #8be9fd
+
+$ui-dracula-button-backgroundColor = #44475a
+$ui-dracula-button--active-color = #f8f8f2
+$ui-dracula-button--active-backgroundColor = #bd93f9
+$ui-dracula-button--hover-backgroundColor = lighten($ui-dracula-backgroundColor, 10%)
+$ui-dracula-button--focus-borderColor = lighten(#44475a, 25%)
+
+modalDracula()
+  position relative
+  z-index $modal-z-index
+  width 100%
+  background-color $ui-dracula-backgroundColor
   overflow hidden
   border-radius $modal-border-radius

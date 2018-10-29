@@ -41,6 +41,7 @@ var config = {
     'markdown-it-kbd',
     'markdown-it-plantuml',
     'markdown-it-admonition',
+    'markdown-toc',
     'devtron',
     '@rokt33r/season',
     {

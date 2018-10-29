@@ -29,6 +29,7 @@ import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
 import i18n from 'browser/lib/i18n'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
+import markdownToc from 'browser/lib/markdown-toc-generator'
 
 const electron = require('electron')
 const { remote } = electron
@@ -52,6 +53,7 @@ class SnippetNoteDetail extends React.Component {
     }
 
     this.scrollToNextTabThreshold = 0.7
+    this.generateToc = () => this.handleGenerateToc()
   }
 
   componentDidMount () {
@@ -65,6 +67,7 @@ class SnippetNoteDetail extends React.Component {
         enableLeftArrow: allTabs.offsetLeft !== 0
       })
     }
+    ee.on('code:generate-toc', this.generateToc)
   }
 
   componentWillReceiveProps (nextProps) {
@@ -91,6 +94,16 @@ class SnippetNoteDetail extends React.Component {
 
   componentWillUnmount () {
     if (this.saveQueue != null) this.saveNow()
+    ee.off('code:generate-toc', this.generateToc)
+  }
+
+  handleGenerateToc () {
+    const { note, snippetIndex } = this.state
+    const currentMode = note.snippets[snippetIndex].mode
+    if (currentMode.includes('Markdown')) {
+      const currentEditor = this.refs[`code-${snippetIndex}`].refs.code.editor
+      markdownToc.generateInEditor(currentEditor)
+    }
   }
 
   handleChange (e) {
@@ -99,7 +112,7 @@ class SnippetNoteDetail extends React.Component {
     if (this.refs.tags) note.tags = this.refs.tags.value
     note.description = this.refs.description.value
     note.updatedAt = new Date()
-    note.title = findNoteTitle(note.description)
+    note.title = findNoteTitle(note.description, false)
 
     this.setState({
       note
@@ -441,7 +454,7 @@ class SnippetNoteDetail extends React.Component {
           const isSuper = global.process.platform === 'darwin'
             ? e.metaKey
             : e.ctrlKey
-          if (isSuper && !e.shiftKey) {
+          if (isSuper && !e.shiftKey && !e.altKey) {
             e.preventDefault()
             this.addSnippet()
           }
@@ -573,11 +586,12 @@ class SnippetNoteDetail extends React.Component {
   }
 
   addSnippet () {
+    const { config } = this.props
     const { note } = this.state
 
     note.snippets = note.snippets.concat([{
       name: '',
-      mode: 'Plain Text',
+      mode: config.editor.snippetDefaultLanguage || 'text',
       content: ''
     }])
     const snippetIndex = note.snippets.length - 1
@@ -691,6 +705,7 @@ class SnippetNoteDetail extends React.Component {
             keyMap={config.editor.keyMap}
             scrollPastEnd={config.editor.scrollPastEnd}
             fetchUrlTitle={config.editor.fetchUrlTitle}
+            enableTableEditor={config.editor.enableTableEditor}
             onChange={(e) => this.handleCodeChange(index)(e)}
             ref={'code-' + index}
           />
@@ -744,6 +759,7 @@ class SnippetNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
+          data={data}
           onChange={(e) => this.handleChange(e)}
         />
       </div>

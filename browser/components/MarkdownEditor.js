@@ -64,6 +64,10 @@ class MarkdownEditor extends React.Component {
     })
   }
 
+  setValue (value) {
+    this.refs.code.setValue(value)
+  }
+
   handleChange (e) {
     this.value = this.refs.code.value
     this.props.onChange(e)
@@ -250,7 +254,7 @@ class MarkdownEditor extends React.Component {
             : 'codeEditor--hide'
           }
           ref='code'
-          mode='GitHub Flavored Markdown'
+          mode='Boost Flavored Markdown'
           value={value}
           theme={config.editor.theme}
           keyMap={config.editor.keyMap}
@@ -265,6 +269,7 @@ class MarkdownEditor extends React.Component {
           storageKey={storageKey}
           noteKey={noteKey}
           fetchUrlTitle={config.editor.fetchUrlTitle}
+          enableTableEditor={config.editor.enableTableEditor}
           onChange={(e) => this.handleChange(e)}
           onBlur={(e) => this.handleBlur(e)}
           spellCheck
@@ -300,6 +305,7 @@ class MarkdownEditor extends React.Component {
           noteKey={noteKey}
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
+          lineThroughCheckbox={config.preview.lineThroughCheckbox}
         />
       </div>
     )

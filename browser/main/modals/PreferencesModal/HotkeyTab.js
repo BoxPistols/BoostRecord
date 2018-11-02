@@ -30,7 +30,7 @@ class HotkeyTab extends React.Component {
     this.handleSettingError = (err) => {
       this.setState({keymapAlert: {
         type: 'error',
-        message: err.message != null ? err.message : i18n.__('Error occurs!')
+        message: err.message != null ? err.message : i18n.__('An error occurred!')
       }})
     }
     this.oldHotkey = this.state.config.hotkey
@@ -68,7 +68,8 @@ class HotkeyTab extends React.Component {
     const { config } = this.state
     config.hotkey = {
       toggleMain: this.refs.toggleMain.value,
-      toggleMode: this.refs.toggleMode.value
+      toggleMode: this.refs.toggleMode.value,
+      deleteNote: this.refs.deleteNote.value
     }
     this.setState({
       config
@@ -79,7 +80,7 @@ class HotkeyTab extends React.Component {
       this.props.haveToSave({
         tab: 'Hotkey',
         type: 'warning',
-        message: i18n.__('You have to save!')
+        message: i18n.__('Unsaved Changes!')
       })
     }
   }
@@ -117,12 +118,23 @@ class HotkeyTab extends React.Component {
             </div>
           </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Toggle editor mode')}</div>
+            <div styleName='group-section-label'>{i18n.__('Toggle Editor Mode')}</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
                 onChange={(e) => this.handleHotkeyChange(e)}
                 ref='toggleMode'
                 value={config.hotkey.toggleMode}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>{i18n.__('Delete Note')}</div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                onChange={(e) => this.handleHotkeyChange(e)}
+                ref='deleteNote'
+                value={config.hotkey.deleteNote}
                 type='text'
               />
             </div>

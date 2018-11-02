@@ -3,6 +3,7 @@
 exports[`TagListItem renders correctly 1`] = `
 <div
   className="tagList-itemContainer"
+  onContextMenu={[Function]}
 >
   <div
     className="tagList-itemNarrow"

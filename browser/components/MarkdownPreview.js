@@ -17,8 +17,11 @@ import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
 import { escapeHtmlCharacters } from 'browser/lib/utils'
+import context from 'browser/lib/context'
+import i18n from 'browser/lib/i18n'
+import fs from 'fs'
 
-const { remote } = require('electron')
+const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
 
 const { app } = remote
@@ -26,6 +29,8 @@ const path = require('path')
 const fileUrl = require('file-url')
 
 const dialog = remote.dialog
+
+const uri2path = require('file-uri-to-path')
 
 const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
 const appPath = fileUrl(
@@ -75,13 +80,17 @@ function buildStyle (
        url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
        url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
 }
-${allowCustomCSS ? customCSS : ''}
 ${markdownStyle}
 
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
   ${scrollPastEnd && 'padding-bottom: 90vh;'}
+}
+@media print {
+  body {
+    padding-bottom: initial;
+  }
 }
 code {
   font-family: '${codeBlockFontFamily.join("','")}';
@@ -139,6 +148,8 @@ body p {
     display: none
   }
 }
+
+${allowCustomCSS ? customCSS : ''}
 `
 }
 
@@ -161,7 +172,6 @@ const scrollBarDarkStyle = `
 }
 `
 
-const { shell } = require('electron')
 const OSX = global.process.platform === 'darwin'
 
 const defaultFontFamily = ['helvetica', 'arial', 'sans-serif']
@@ -219,8 +229,32 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
-  handleContextMenu (e) {
-    this.props.onContextMenu(e)
+  handleContextMenu (event) {
+    // If a contextMenu handler was passed to us, use it instead of the self-defined one -> return
+    if (_.isFunction(this.props.onContextMenu)) {
+      this.props.onContextMenu(event)
+      return
+    }
+    // No contextMenu was passed to us -> execute our own link-opener
+    if (event.target.tagName.toLowerCase() === 'a') {
+      const href = event.target.href
+      const isLocalFile = href.startsWith('file:')
+      if (isLocalFile) {
+        const absPath = uri2path(href)
+        try {
+          if (fs.lstatSync(absPath).isFile()) {
+            context.popup([
+              {
+                label: i18n.__('Show in explorer'),
+                click: (e) => shell.showItemInFolder(absPath)
+              }
+            ])
+          }
+        } catch (e) {
+          console.log('Error while evaluating if the file is locally available', e)
+        }
+      }
+    }
   }
 
   handleDoubleClick (e) {
@@ -397,6 +431,7 @@ export default class MarkdownPreview extends React.Component {
       case 'dark':
       case 'solarized-dark':
       case 'monokai':
+      case 'dracula':
         return scrollBarDarkStyle
       default:
         return scrollBarStyle
@@ -498,7 +533,8 @@ export default class MarkdownPreview extends React.Component {
       prevProps.smartQuotes !== this.props.smartQuotes ||
       prevProps.sanitize !== this.props.sanitize ||
       prevProps.smartArrows !== this.props.smartArrows ||
-      prevProps.breaks !== this.props.breaks
+      prevProps.breaks !== this.props.breaks ||
+      prevProps.lineThroughCheckbox !== this.props.lineThroughCheckbox
     ) {
       this.initMarkdown()
       this.rewriteIframe()
@@ -824,6 +860,15 @@ export default class MarkdownPreview extends React.Component {
     const regexIsNoteLink = /^:note:([a-zA-Z0-9-]{20,36})$/
     if (regexIsNoteLink.test(linkHash)) {
       eventEmitter.emit('list:jump', linkHash.replace(':note:', ''))
+      return
+    }
+
+    const regexIsLine = /^:line:[0-9]/
+    if (regexIsLine.test(linkHash)) {
+      const numberPattern = /\d+/g
+
+      const lineNumber = parseInt(linkHash.match(numberPattern)[0])
+      eventEmitter.emit('line:jump', lineNumber)
       return
     }
 

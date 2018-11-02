@@ -6,6 +6,9 @@ import i18n from 'browser/lib/i18n'
 import dataApi from 'browser/main/lib/dataApi'
 import SnippetList from './SnippetList'
 import eventEmitter from 'browser/main/lib/eventEmitter'
+import copy from 'copy-to-clipboard'
+
+const path = require('path')
 
 class SnippetTab extends React.Component {
   constructor (props) {
@@ -14,6 +17,17 @@ class SnippetTab extends React.Component {
       currentSnippet: null
     }
     this.changeDelay = null
+  }
+
+  notify (title, options) {
+    if (global.process.platform === 'win32') {
+      options.icon = path.join(
+        'file://',
+        global.__dirname,
+        '../../resources/app.png'
+      )
+    }
+    return new window.Notification(title, options)
   }
 
   handleSnippetNameOrPrefixChange () {
@@ -27,12 +41,14 @@ class SnippetTab extends React.Component {
 
   handleSnippetSelect (snippet) {
     const { currentSnippet } = this.state
-    if (currentSnippet === null || currentSnippet.id !== snippet.id) {
-      dataApi.fetchSnippet(snippet.id).then(changedSnippet => {
-        // notify the snippet editor to load the content of the new snippet
-        this.snippetEditor.onSnippetChanged(changedSnippet)
-        this.setState({currentSnippet: changedSnippet})
-      })
+    if (snippet !== null) {
+      if (currentSnippet === null || currentSnippet.id !== snippet.id) {
+        dataApi.fetchSnippet(snippet.id).then(changedSnippet => {
+          // notify the snippet editor to load the content of the new snippet
+          this.snippetEditor.onSnippetChanged(changedSnippet)
+          this.setState({currentSnippet: changedSnippet})
+        })
+      }
     }
   }
 
@@ -54,6 +70,17 @@ class SnippetTab extends React.Component {
     }
   }
 
+  handleCopySnippet (e) {
+    const showCopyNotification = this.props.config.ui.showCopyNotification
+    copy(this.state.currentSnippet.content)
+    if (showCopyNotification) {
+      this.notify('Saved to Clipboard!', {
+        body: 'Paste it wherever you want!',
+        silent: true
+      })
+    }
+  }
+
   render () {
     const { config, storageKey } = this.props
     const { currentSnippet } = this.state
@@ -70,6 +97,13 @@ class SnippetTab extends React.Component {
           onSnippetDeleted={this.handleDeleteSnippet.bind(this)}
           currentSnippet={currentSnippet} />
         <div styleName='snippet-detail' style={{visibility: currentSnippet ? 'visible' : 'hidden'}}>
+          <div styleName='group-section'>
+            <div styleName='group-section-control'>
+              <button styleName='group-control-rightButton'
+                onClick={e => this.handleCopySnippet(e)}>{i18n.__('Copy')}
+              </button>
+            </div>
+          </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Snippet name')}</div>
             <div styleName='group-section-control'>

@@ -56,7 +56,7 @@ class Main extends React.Component {
   init () {
     dataApi
       .addStorage({
-        name: 'My Storage',
+        name: 'My Storage Location',
         path: path.join(remote.app.getPath('home'), 'Boostnote')
       })
       .then(data => {
@@ -141,7 +141,7 @@ class Main extends React.Component {
   componentDidMount () {
     const { dispatch, config } = this.props
 
-    const supportedThemes = ['dark', 'white', 'solarized-dark', 'monokai']
+    const supportedThemes = ['dark', 'white', 'solarized-dark', 'monokai', 'dracula']
 
     if (supportedThemes.indexOf(config.ui.theme) !== -1) {
       document.body.setAttribute('data-theme', config.ui.theme)
@@ -297,7 +297,7 @@ class Main extends React.Component {
         onMouseUp={e => this.handleMouseUp(e)}
       >
         <SideNav
-          {..._.pick(this.props, ['dispatch', 'data', 'config', 'location'])}
+          {..._.pick(this.props, ['dispatch', 'data', 'config', 'params', 'location'])}
           width={this.state.navWidth}
         />
         {!config.isSideNavFolded &&

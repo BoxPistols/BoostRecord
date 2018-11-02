@@ -18,6 +18,9 @@ body
 ::-webkit-scrollbar
   width 12px
 
+::-webkit-scrollbar-corner
+  background-color: transparent;
+
 ::-webkit-scrollbar-thumb
   background-color rgba(0, 0, 0, 0.15)
 
@@ -132,6 +135,15 @@ body[data-theme="dark"]
 .CodeMirror-foldgutter-folded:after
   content: "\25B8"
 
+.CodeMirror-hover
+  padding 2px 4px 0 4px
+  position absolute
+  z-index 99
+
+.CodeMirror-hyperlink
+  cursor pointer
+
+
 .sortableItemHelper
   z-index modalZIndex + 5
 
@@ -153,6 +165,17 @@ body[data-theme="monokai"]
   .sortableItemHelper
     color: $ui-monokai-text-color
 
+body[data-theme="dracula"]
+  ::-webkit-scrollbar-thumb
+    background-color rgba(0, 0, 0, 0.3)
+  .ModalBase
+    .modalBack
+      background-color $ui-dracula-backgroundColor
+  .sortableItemHelper
+    color: $ui-dracula-text-color
+
 body[data-theme="default"]
   .SideNav ::-webkit-scrollbar-thumb
     background-color rgba(255, 255, 255, 0.3)
+
+@import '../styles/Detail/TagSelect.styl'

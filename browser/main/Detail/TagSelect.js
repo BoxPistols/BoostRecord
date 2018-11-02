@@ -6,71 +6,33 @@ import _ from 'lodash'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
+import Autosuggest from 'react-autosuggest'
 
 class TagSelect extends React.Component {
   constructor (props) {
     super(props)
 
     this.state = {
-      newTag: ''
+      newTag: '',
+      suggestions: []
     }
-    this.addtagHandler = this.handleAddTag.bind(this)
+
+    this.handleAddTag = this.handleAddTag.bind(this)
+    this.onInputBlur = this.onInputBlur.bind(this)
+    this.onInputChange = this.onInputChange.bind(this)
+    this.onInputKeyDown = this.onInputKeyDown.bind(this)
+    this.onSuggestionsClearRequested = this.onSuggestionsClearRequested.bind(this)
+    this.onSuggestionsFetchRequested = this.onSuggestionsFetchRequested.bind(this)
+    this.onSuggestionSelected = this.onSuggestionSelected.bind(this)
   }
 
-  componentDidMount () {
-    this.value = this.props.value
-    ee.on('editor:add-tag', this.addtagHandler)
-  }
-
-  componentDidUpdate () {
-    this.value = this.props.value
-  }
-
-  componentWillUnmount () {
-    ee.off('editor:add-tag', this.addtagHandler)
-  }
-
-  handleAddTag () {
-    this.refs.newTag.focus()
-  }
-
-  handleNewTagInputKeyDown (e) {
-    switch (e.keyCode) {
-      case 9:
-        e.preventDefault()
-        this.submitTag()
-        break
-      case 13:
-        this.submitTag()
-        break
-      case 8:
-        if (this.refs.newTag.value.length === 0) {
-          this.removeLastTag()
-        }
-    }
-  }
-
-  handleNewTagBlur (e) {
-    this.submitTag()
-  }
-
-  removeLastTag () {
-    this.removeTagByCallback((value) => {
-      value.pop()
-    })
-  }
-
-  reset () {
-    this.setState({
-      newTag: ''
-    })
-  }
-
-  submitTag () {
+  addNewTag (newTag) {
     AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_TAG')
-    let { value } = this.props
-    let newTag = this.refs.newTag.value.trim().replace(/ +/g, '_')
-    newTag = newTag.charAt(0) === '#' ? newTag.substring(1) : newTag
+
+    newTag = newTag.trim().replace(/ +/g, '_')
+    if (newTag.charAt(0) === '#') {
+      newTag.substring(1)
+    }
 
     if (newTag.length <= 0) {
       this.setState({
@@ -79,6 +41,7 @@ class TagSelect extends React.Component {
       return
     }
 
+    let { value } = this.props
     value = _.isArray(value)
       ? value.slice()
       : []
@@ -93,16 +56,101 @@ class TagSelect extends React.Component {
     })
   }
 
-  handleNewTagInputChange (e) {
-    this.setState({
-      newTag: this.refs.newTag.value
-    })
+  buildSuggestions () {
+    this.suggestions = _.sortBy(this.props.data.tagNoteMap.map(
+      (tag, name) => ({
+        name,
+        nameLC: name.toLowerCase(),
+        size: tag.size
+      })
+    ).filter(
+      tag => tag.size > 0
+    ), ['name'])
+  }
+
+  componentDidMount () {
+    this.value = this.props.value
+
+    this.buildSuggestions()
+
+    ee.on('editor:add-tag', this.handleAddTag)
+  }
+
+  componentDidUpdate () {
+    this.value = this.props.value
+  }
+
+  componentWillUnmount () {
+    ee.off('editor:add-tag', this.handleAddTag)
+  }
+
+  handleAddTag () {
+    this.refs.newTag.input.focus()
+  }
+
+  handleTagLabelClick (tag) {
+    const { router } = this.context
+    router.push(`/tags/${tag}`)
   }
 
   handleTagRemoveButtonClick (tag) {
     this.removeTagByCallback((value, tag) => {
       value.splice(value.indexOf(tag), 1)
     }, tag)
+  }
+
+  onInputBlur (e) {
+    this.submitNewTag()
+  }
+
+  onInputChange (e, { newValue, method }) {
+    this.setState({
+      newTag: newValue
+    })
+  }
+
+  onInputKeyDown (e) {
+    switch (e.keyCode) {
+      case 9:
+        e.preventDefault()
+        this.submitNewTag()
+        break
+      case 13:
+        this.submitNewTag()
+        break
+      case 8:
+        if (this.state.newTag.length === 0) {
+          this.removeLastTag()
+        }
+    }
+  }
+
+  onSuggestionsClearRequested () {
+    this.setState({
+      suggestions: []
+    })
+  }
+
+  onSuggestionsFetchRequested ({ value }) {
+    const valueLC = value.toLowerCase()
+    const suggestions = _.filter(
+      this.suggestions,
+      tag => !_.includes(this.value, tag.name) && tag.nameLC.indexOf(valueLC) !== -1
+    )
+
+    this.setState({
+      suggestions
+    })
+  }
+
+  onSuggestionSelected (event, { suggestion, suggestionValue }) {
+    this.addNewTag(suggestionValue)
+  }
+
+  removeLastTag () {
+    this.removeTagByCallback((value) => {
+      value.pop()
+    })
   }
 
   removeTagByCallback (callback, tag = null) {
@@ -118,6 +166,18 @@ class TagSelect extends React.Component {
     this.props.onChange()
   }
 
+  reset () {
+    this.buildSuggestions()
+
+    this.setState({
+      newTag: ''
+    })
+  }
+
+  submitNewTag () {
+    this.addNewTag(this.refs.newTag.input.value)
+  }
+
   render () {
     const { value, className } = this.props
 
@@ -127,7 +187,7 @@ class TagSelect extends React.Component {
           <span styleName='tag'
             key={tag}
           >
-            <span styleName='tag-label'>#{tag}</span>
+            <span styleName='tag-label' onClick={(e) => this.handleTagLabelClick(tag)}>#{tag}</span>
             <button styleName='tag-removeButton'
               onClick={(e) => this.handleTagRemoveButtonClick(tag)}
             >
@@ -138,6 +198,8 @@ class TagSelect extends React.Component {
       })
       : []
 
+    const { newTag, suggestions } = this.state
+
     return (
       <div className={_.isString(className)
           ? 'TagSelect ' + className
@@ -146,24 +208,39 @@ class TagSelect extends React.Component {
         styleName='root'
       >
         {tagList}
-        <input styleName='newTag'
+        <Autosuggest
           ref='newTag'
-          value={this.state.newTag}
-          placeholder={i18n.__('Add tag...')}
-          onChange={(e) => this.handleNewTagInputChange(e)}
-          onKeyDown={(e) => this.handleNewTagInputKeyDown(e)}
-          onBlur={(e) => this.handleNewTagBlur(e)}
+          suggestions={suggestions}
+          onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+          onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+          onSuggestionSelected={this.onSuggestionSelected}
+          getSuggestionValue={suggestion => suggestion.name}
+          renderSuggestion={suggestion => (
+            <div>
+              {suggestion.name}
+            </div>
+          )}
+          inputProps={{
+            placeholder: i18n.__('Add tag...'),
+            value: newTag,
+            onChange: this.onInputChange,
+            onKeyDown: this.onInputKeyDown,
+            onBlur: this.onInputBlur
+          }}
         />
       </div>
     )
   }
 }
 
+TagSelect.contextTypes = {
+  router: PropTypes.shape({})
+}
+
 TagSelect.propTypes = {
   className: PropTypes.string,
   value: PropTypes.arrayOf(PropTypes.string),
   onChange: PropTypes.func
-
 }
 
 export default CSSModules(TagSelect, styles)

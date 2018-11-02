@@ -49,7 +49,7 @@ const languages = [
   },
   {
     name: 'Portuguese',
-    locale: 'pt'
+    locale: 'pt-BR'
   },
   {
     name: 'Russian',

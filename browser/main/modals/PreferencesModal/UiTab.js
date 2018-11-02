@@ -104,6 +104,7 @@ class UiTab extends React.Component {
         latexBlockClose: this.refs.previewLatexBlockClose.value,
         plantUMLServerAddress: this.refs.previewPlantUMLServerAddress.value,
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
+        scrollSync: this.refs.previewScrollSync.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
         breaks: this.refs.previewBreaks.checked,
         smartArrows: this.refs.previewSmartArrows.checked,
@@ -559,6 +560,16 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Allow preview to scroll past the last line')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.scrollSync}
+                ref='previewScrollSync'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('When scrolling, synchronize preview with editor')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>

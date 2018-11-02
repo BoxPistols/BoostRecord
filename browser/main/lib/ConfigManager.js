@@ -62,6 +62,7 @@ export const DEFAULT_CONFIG = {
     latexBlockClose: '$$',
     plantUMLServerAddress: 'http://www.plantuml.com/plantuml',
     scrollPastEnd: false,
+    scrollSync: true,
     smartQuotes: true,
     breaks: true,
     smartArrows: false,

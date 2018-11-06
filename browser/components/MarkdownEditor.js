@@ -84,7 +84,7 @@ class MarkdownEditor extends React.Component {
         }
         eventEmitter.emit('topbar:togglelockbutton', this.state.status)
 
-        const newConfig = Object.assign({}, this.props.config)
+        const newConfig = Object.assign({}, config)
         newConfig.editor.delfaultStatus = newStatus
         ConfigManager.set(newConfig)
       })

@@ -50,11 +50,14 @@ const smartQuotes = 'This is a "QUOTE".'
 
 const breaks = 'This is the first line.\nThis is the second line.'
 
+const shortcuts = '<kbd>Ctrl</kbd>\n\n[[Ctrl]]'
+
 export default {
   basic,
   codeblock,
   katex,
   checkboxes,
   smartQuotes,
-  breaks
+  breaks,
+  shortcuts
 }

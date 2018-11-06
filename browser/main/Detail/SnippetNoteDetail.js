@@ -756,6 +756,8 @@ class SnippetNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
+          saveTagsAlphabetically={config.ui.saveTagsAlphabetically}
+          showTagsAlphabetically={config.ui.showTagsAlphabetically}
           data={data}
           onChange={(e) => this.handleChange(e)}
         />

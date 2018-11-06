@@ -348,7 +348,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   render () {
-    const { data, location } = this.props
+    const { data, location, config } = this.props
     const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
@@ -399,6 +399,8 @@ class MarkdownNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
+          saveTagsAlphabetically={config.ui.saveTagsAlphabetically}
+          showTagsAlphabetically={config.ui.showTagsAlphabetically}
           data={data}
           onChange={this.handleUpdateTag.bind(this)}
         />

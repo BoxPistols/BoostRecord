@@ -24,7 +24,8 @@ export const DEFAULT_CONFIG = {
   amaEnabled: true,
   hotkey: {
     toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
-    toggleMode: OSX ? 'Command + Option + M' : 'Ctrl + M'
+    toggleMode: OSX ? 'Command + Alt + M' : 'Ctrl + M',
+    deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace'
   },
   ui: {
     language: 'en',
@@ -47,7 +48,9 @@ export const DEFAULT_CONFIG = {
     scrollPastEnd: false,
     type: 'SPLIT',
     fetchUrlTitle: true,
-    enableTableEditor: false
+    enableTableEditor: false,
+    enableFrontMatterTitle: true,
+    frontMatterTitleField: 'title'
   },
   preview: {
     fontSize: '14',
@@ -60,6 +63,7 @@ export const DEFAULT_CONFIG = {
     latexBlockClose: '$$',
     plantUMLServerAddress: 'http://www.plantuml.com/plantuml',
     scrollPastEnd: false,
+    scrollSync: true,
     smartQuotes: true,
     breaks: true,
     smartArrows: false,

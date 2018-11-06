@@ -21,7 +21,7 @@ function createGutter (str, firstLineNumber) {
 
 class Markdown {
   constructor (options = {}) {
-    let config = ConfigManager.get()
+    const config = ConfigManager.get()
     const defaultOptions = {
       typographer: config.preview.smartQuotes,
       linkify: true,
@@ -80,7 +80,11 @@ class Markdown {
           'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen'],
           'input': ['type', 'id', 'checked']
         },
-        allowedIframeHostnames: ['www.youtube.com']
+        allowedIframeHostnames: ['www.youtube.com'],
+        selfClosing: [ 'img', 'br', 'hr', 'input' ],
+        allowedSchemes: [ 'http', 'https', 'ftp', 'mailto' ],
+        allowedSchemesAppliedToAttributes: [ 'href', 'src', 'cite' ],
+        allowProtocolRelative: true
       })
     }
 
@@ -272,9 +276,6 @@ class Markdown {
     }
     // FIXME We should not depend on global variable.
     window.md = this.md
-    this.updateConfig = () => {
-      config = ConfigManager.get()
-    }
   }
 
   render (content) {

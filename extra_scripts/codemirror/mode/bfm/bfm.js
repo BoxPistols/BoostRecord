@@ -54,6 +54,9 @@
 
         stream.skipToEnd()
         return null
+      },
+      blankLine(state) {
+        state.inTable = false
       }
     }
 

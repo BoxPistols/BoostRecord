@@ -16,7 +16,6 @@ import convertModeName from 'browser/lib/convertModeName'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
-import { escapeHtmlCharacters } from 'browser/lib/utils'
 import context from 'browser/lib/context'
 import i18n from 'browser/lib/i18n'
 import fs from 'fs'
@@ -331,9 +330,7 @@ export default class MarkdownPreview extends React.Component {
         allowCustomCSS,
         customCSS
       )
-      let body = this.markdown.render(
-        escapeHtmlCharacters(noteContent, { detectCodeBlock: true })
-      )
+      let body = this.markdown.render(noteContent)
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
       const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
         noteContent,

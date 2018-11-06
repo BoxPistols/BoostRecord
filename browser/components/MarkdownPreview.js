@@ -737,7 +737,6 @@ export default class MarkdownPreview extends React.Component {
             el.addEventListener('click', this.linkClickHandler)
           })
         } catch (e) {
-          console.error(e)
           el.className = 'flowchart-error'
           el.innerHTML = 'Flowchart parse error: ' + e.message
         }
@@ -758,7 +757,6 @@ export default class MarkdownPreview extends React.Component {
             el.addEventListener('click', this.linkClickHandler)
           })
         } catch (e) {
-          console.error(e)
           el.className = 'sequence-error'
           el.innerHTML = 'Sequence diagram parse error: ' + e.message
         }
@@ -771,12 +769,18 @@ export default class MarkdownPreview extends React.Component {
         try {
           const chartConfig = JSON.parse(el.innerHTML)
           el.innerHTML = ''
-          var canvas = document.createElement('canvas')
+
+          const canvas = document.createElement('canvas')
           el.appendChild(canvas)
-          /* eslint-disable no-new */
-          new Chart(canvas, chartConfig)
+
+          const height = el.attributes.getNamedItem('data-height')
+          if (height && height.value !== 'undefined') {
+            el.style.height = height.value + 'vh'
+            canvas.height = height.value + 'vh'
+          }
+
+          const chart = new Chart(canvas, chartConfig)
         } catch (e) {
-          console.error(e)
           el.className = 'chart-error'
           el.innerHTML = 'chartjs diagram parse error: ' + e.message
         }

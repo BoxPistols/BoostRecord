@@ -354,12 +354,10 @@ class SnippetNoteDetail extends React.Component {
       this.refs['code-' + this.state.snippetIndex].reload()
 
       if (this.visibleTabs.offsetWidth > this.allTabs.scrollWidth) {
-        console.log('no need for arrows')
         this.moveTabBarBy(0)
       } else {
         const lastTab = this.allTabs.lastChild
         if (lastTab.offsetLeft + lastTab.offsetWidth < this.visibleTabs.offsetWidth) {
-          console.log('need to scroll')
           const width = this.visibleTabs.offsetWidth
           const newLeft = lastTab.offsetLeft + lastTab.offsetWidth - width
           this.moveTabBarBy(newLeft > 0 ? -newLeft : 0)
@@ -627,7 +625,6 @@ class SnippetNoteDetail extends React.Component {
   }
 
   focusEditor () {
-    console.log('code-' + this.state.snippetIndex)
     this.refs['code-' + this.state.snippetIndex].focus()
   }
 

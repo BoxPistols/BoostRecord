@@ -43,3 +43,8 @@ test('Markdown.render() should render line breaks correctly', t => {
   const renderedNonBreaks = newmd.render(markdownFixtures.breaks)
   t.snapshot(renderedNonBreaks)
 })
+
+test('Markdown.render() should render shortcuts correctly', t => {
+  const rendered = md.render(markdownFixtures.shortcuts)
+  t.snapshot(rendered)
+})

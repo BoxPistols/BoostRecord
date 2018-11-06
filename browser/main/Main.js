@@ -80,7 +80,6 @@ class Main extends React.Component {
         }
       })
       .then(data => {
-        console.log(data)
         store.dispatch({
           type: 'ADD_STORAGE',
           storage: data.storage,
@@ -297,7 +296,7 @@ class Main extends React.Component {
         onMouseUp={e => this.handleMouseUp(e)}
       >
         <SideNav
-          {..._.pick(this.props, ['dispatch', 'data', 'config', 'location'])}
+          {..._.pick(this.props, ['dispatch', 'data', 'config', 'params', 'location'])}
           width={this.state.navWidth}
         />
         {!config.isSideNavFolded &&

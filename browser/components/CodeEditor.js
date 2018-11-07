@@ -14,6 +14,8 @@ import consts from 'browser/lib/consts'
 import fs from 'fs'
 const { ipcRenderer } = require('electron')
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
+import TurndownService from 'turndown'
+import { gfm } from 'turndown-plugin-gfm'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -57,6 +59,7 @@ export default class CodeEditor extends React.Component {
     }
     this.searchHandler = (e, msg) => this.handleSearch(msg)
     this.searchState = null
+    this.scrollToLineHandeler = this.scrollToLine.bind(this)
 
     this.formatTable = () => this.handleFormatTable()
     this.editorActivityHandler = () => this.handleEditorActivity()
@@ -125,6 +128,7 @@ export default class CodeEditor extends React.Component {
   componentDidMount () {
     const { rulers, enableRulers } = this.props
     const expandSnippet = this.expandSnippet.bind(this)
+    eventEmitter.on('line:jump', this.scrollToLineHandeler)
 
     const defaultSnippet = [
       {
@@ -475,7 +479,13 @@ export default class CodeEditor extends React.Component {
 
   moveCursorTo (row, col) {}
 
-  scrollToLine (num) {}
+  scrollToLine (event, num) {
+    const cursor = {
+      line: num,
+      ch: 1
+    }
+    this.editor.setCursor(cursor)
+  }
 
   focus () {
     this.editor.focus()
@@ -538,7 +548,11 @@ export default class CodeEditor extends React.Component {
       )
       return prevChar === '](' && nextChar === ')'
     }
-    if (dataTransferItem.type.match('image')) {
+
+    const pastedHtml = clipboardData.getData('text/html')
+    if (pastedHtml !== '') {
+      this.handlePasteHtml(e, editor, pastedHtml)
+    } else if (dataTransferItem.type.match('image')) {
       attachmentManagement.handlePastImageEvent(
         this,
         storageKey,
@@ -606,6 +620,12 @@ export default class CodeEditor extends React.Component {
       .catch(e => {
         replaceTaggedUrl(pastedTxt)
       })
+  }
+
+  handlePasteHtml (e, editor, pastedHtml) {
+    e.preventDefault()
+    const markdown = this.turndownService.turndown(pastedHtml)
+    editor.replaceSelection(markdown)
   }
 
   mapNormalResponse (response, pastedTxt) {

@@ -14,8 +14,8 @@ import CSSModules from 'browser/lib/CSSModules'
 * @param {bool} isRelated
 */
 
-const TagListItem = ({name, handleClickTagListItem, handleClickNarrowToTag, isActive, isRelated, count}) => (
-  <div styleName='tagList-itemContainer'>
+const TagListItem = ({name, handleClickTagListItem, handleClickNarrowToTag, handleContextMenu, isActive, isRelated, count}) => (
+  <div styleName='tagList-itemContainer' onContextMenu={e => handleContextMenu(e, name)}>
     {isRelated
       ? <button styleName={isActive ? 'tagList-itemNarrow-active' : 'tagList-itemNarrow'} onClick={() => handleClickNarrowToTag(name)}>
         <i className={isActive ? 'fa fa-minus-circle' : 'fa fa-plus-circle'} />
@@ -25,7 +25,7 @@ const TagListItem = ({name, handleClickTagListItem, handleClickNarrowToTag, isAc
     <button styleName={isActive ? 'tagList-item-active' : 'tagList-item'} onClick={() => handleClickTagListItem(name)}>
       <span styleName='tagList-item-name'>
         {`# ${name}`}
-        <span styleName='tagList-item-count'>{count}</span>
+        <span styleName='tagList-item-count'>{count !== 0 ? count : ''}</span>
       </span>
     </button>
   </div>

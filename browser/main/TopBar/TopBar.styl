@@ -256,3 +256,25 @@ body[data-theme="monokai"]
     input
       background-color $ui-monokai-noteList-backgroundColor
       color $ui-monokai-text-color
+
+body[data-theme="dracula"]
+  .root, .root--expanded
+    background-color $ui-dracula-noteList-backgroundColor
+
+  .control
+    border-color $ui-dracula-borderColor
+  .control-search
+    background-color $ui-dracula-noteList-backgroundColor
+
+  .control-search-icon
+    absolute top bottom left
+    line-height 32px
+    width 35px
+    color $ui-dracula-inactive-text-color
+    background-color $ui-dracula-noteList-backgroundColor
+
+  .control-search-input
+    background-color $ui-dracula-noteList-backgroundColor
+    input
+      background-color $ui-dracula-noteList-backgroundColor
+      color $ui-dracula-text-color

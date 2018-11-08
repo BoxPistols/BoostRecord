@@ -373,6 +373,36 @@ for name, val in admonition_types
         color: val[color]
         content: val[icon]
 
+dl
+  margin 2rem 0
+  padding 0
+  display flex
+  width 100%
+  flex-wrap wrap
+  align-items flex-start
+  border-bottom 1px solid borderColor
+  background-color tableHeadBgColor
+
+dt
+  border-top 1px solid borderColor
+  font-weight bold
+  text-align right
+  overflow hidden
+  flex-basis 20%
+  padding 0.4rem 0.9rem
+  box-sizing border-box
+
+dd
+  border-top 1px solid borderColor
+  flex-basis 80%
+  padding 0.4rem 0.9rem
+  min-height 2.5rem
+  background-color $ui-noteDetail-backgroundColor
+  box-sizing border-box
+
+dd + dd
+  margin-left 20%
+
 pre.fence
   flex-wrap wrap
 
@@ -456,6 +486,14 @@ body[data-theme="dark"]
   kbd
     background-color themeDarkBorder
     color themeDarkText
+  dl
+    border-color themeDarkBorder
+    background-color themeDarkTableHead
+  dt
+    border-color themeDarkBorder
+  dd
+    border-color themeDarkBorder
+    background-color themeDarkPreview
 
   pre.fence
     .gallery
@@ -491,6 +529,14 @@ body[data-theme="solarized-dark"]
         border-color themeSolarizedDarkTableBorder
         &:last-child
           border-right solid 1px themeSolarizedDarkTableBorder
+  dl
+    border-color themeDarkBorder
+    background-color themeSolarizedDarkTableHead
+  dt
+    border-color themeDarkBorder
+  dd
+    border-color themeDarkBorder
+    background-color $ui-solarized-dark-noteDetail-backgroundColor
 
   pre.fence
     .gallery
@@ -529,6 +575,15 @@ body[data-theme="monokai"]
   kbd
     background-color themeDarkBackground
 
+  dl
+    border-color themeDarkBorder
+    background-color themeMonokaiTableHead
+  dt
+    border-color themeDarkBorder
+  dd
+    border-color themeDarkBorder
+    background-color $ui-monokai-noteDetail-backgroundColor
+
   pre.fence
     .gallery
       .carousel-main, .carousel-footer
@@ -565,6 +620,15 @@ body[data-theme="dracula"]
           border-right solid 1px themeDraculaTableBorder
   kbd
     background-color themeDarkBackground
+
+  dl
+    border-color themeDarkBorder
+    background-color themeDraculaTableHead
+  dt
+    border-color themeDarkBorder
+  dd
+    border-color themeDarkBorder
+    background-color $ui-dracula-noteDetail-backgroundColor
 
   pre.fence
     .gallery

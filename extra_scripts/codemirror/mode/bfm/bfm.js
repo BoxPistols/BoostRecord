@@ -194,7 +194,8 @@
           return 'table table-header'
         }
 
-        stream.next()
+        stream.skipToEnd()
+        return null
       },
       electricChars: baseMode.electricChars,
       innerMode: function(state) {
@@ -211,6 +212,8 @@
         }
       },
       blankLine: function(state) {
+        state.inTable = false
+
         if (state.fencedMode) {
           return state.fencedMode.blankLine && state.fencedMode.blankLine(state.fencedState)
         } else {

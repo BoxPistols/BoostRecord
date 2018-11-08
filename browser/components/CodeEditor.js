@@ -63,6 +63,8 @@ export default class CodeEditor extends React.Component {
 
     this.formatTable = () => this.handleFormatTable()
     this.editorActivityHandler = () => this.handleEditorActivity()
+
+    this.turndownService = new TurndownService()
   }
 
   handleSearch (msg) {

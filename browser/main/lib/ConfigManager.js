@@ -44,6 +44,7 @@ export const DEFAULT_CONFIG = {
     enableRulers: false,
     rulers: [80, 120],
     displayLineNumbers: true,
+    enableBracketMatching: true,
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
     delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,

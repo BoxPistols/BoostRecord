@@ -62,7 +62,8 @@ class UiTab extends React.Component {
       checkHighLight.setAttribute('rel', 'stylesheet')
       document.head.appendChild(checkHighLight)
     }
-
+    console.log("This is a console log")
+    
     const newConfig = {
       ui: {
         theme: this.refs.uiTheme.value,
@@ -94,7 +95,8 @@ class UiTab extends React.Component {
         fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
         enableTableEditor: this.refs.enableTableEditor.checked,
         enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
-        frontMatterTitleField: this.refs.frontMatterTitleField.value
+        frontMatterTitleField: this.refs.frontMatterTitleField.value,
+        enableBracketMatching: this.refs.enableBracketMatching.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -536,6 +538,17 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Enable smart table editor')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.enableBracketMatching}
+                ref='enableBracketMatching'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable bracket matching')}
             </label>
           </div>
 

@@ -5,25 +5,35 @@ import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
 import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import convertModeName from 'browser/lib/convertModeName'
-import { options, TableEditor, Alignment } from '@susisu/mte-kernel'
+import {
+  options,
+  TableEditor,
+  Alignment
+} from '@susisu/mte-kernel'
 import TextEditorInterface from 'browser/lib/TextEditorInterface'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
 import crypto from 'crypto'
 import consts from 'browser/lib/consts'
 import fs from 'fs'
-const { ipcRenderer } = require('electron')
+const {
+  ipcRenderer
+} = require('electron')
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 import TurndownService from 'turndown'
-import { gfm } from 'turndown-plugin-gfm'
+import {
+  gfm
+} from 'turndown-plugin-gfm'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
 const buildCMRulers = (rulers, enableRulers) =>
-  (enableRulers ? rulers.map(ruler => ({ column: ruler })) : [])
+  (enableRulers ? rulers.map(ruler => ({
+    column: ruler
+  })) : [])
 
 export default class CodeEditor extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {
@@ -46,7 +56,10 @@ export default class CodeEditor extends React.Component {
       }
       this.props.onBlur != null && this.props.onBlur(e)
 
-      const { storageKey, noteKey } = this.props
+      const {
+        storageKey,
+        noteKey
+      } = this.props
       attachmentManagement.deleteAttachmentsNotPresentInNote(
         this.editor.getValue(),
         storageKey,
@@ -65,7 +78,7 @@ export default class CodeEditor extends React.Component {
     this.editorActivityHandler = () => this.handleEditorActivity()
   }
 
-  handleSearch (msg) {
+  handleSearch(msg) {
     const cm = this.editor
     const component = this
 
@@ -76,7 +89,7 @@ export default class CodeEditor extends React.Component {
       component.searchState = makeOverlay(msg, 'searching')
       cm.addOverlay(component.searchState)
 
-      function makeOverlay (query, style) {
+      function makeOverlay(query, style) {
         query = new RegExp(
           query.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'),
           'gi'
@@ -99,17 +112,19 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  handleFormatTable () {
-    this.tableEditor.formatAll(options({textWidthOptions: {}}))
+  handleFormatTable() {
+    this.tableEditor.formatAll(options({
+      textWidthOptions: {}
+    }))
   }
 
-  handleEditorActivity () {
+  handleEditorActivity() {
     if (!this.textEditorInterface.transaction) {
       this.updateTableEditorState()
     }
   }
 
-  updateTableEditorState () {
+  updateTableEditorState() {
     const active = this.tableEditor.cursorIsInTable(this.tableEditorOptions)
     if (active) {
       if (this.extraKeysMode !== 'editor') {
@@ -125,19 +140,20 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  componentDidMount () {
-    const { rulers, enableRulers } = this.props
+  componentDidMount() {
+    const {
+      rulers,
+      enableRulers
+    } = this.props
     const expandSnippet = this.expandSnippet.bind(this)
     eventEmitter.on('line:jump', this.scrollToLineHandeler)
 
-    const defaultSnippet = [
-      {
-        id: crypto.randomBytes(16).toString('hex'),
-        name: 'Dummy text',
-        prefix: ['lorem', 'ipsum'],
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-      }
-    ]
+    const defaultSnippet = [{
+      id: crypto.randomBytes(16).toString('hex'),
+      name: 'Dummy text',
+      prefix: ['lorem', 'ipsum'],
+      content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+    }]
     if (!fs.existsSync(consts.SNIPPET_FILE)) {
       fs.writeFileSync(
         consts.SNIPPET_FILE,
@@ -215,12 +231,17 @@ export default class CodeEditor extends React.Component {
       dragDrop: false,
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
-      autoCloseBrackets: {
-        pairs: '()[]{}\'\'""$$**``',
+      autoCloseBrackets: (this.props.enableBracketMatching ? {
+        pairs: '()[]{}\'\'""$$**``ll',
         triples: '```"""\'\'\'',
         explode: '[]{}``$$',
         override: true
-      },
+      } : {
+        pairs: '',
+        triples: '',
+        explode: '',
+        override: true
+      }),
       extraKeys: this.defaultKeyMap
     })
 
@@ -253,43 +274,117 @@ export default class CodeEditor extends React.Component {
     })
 
     this.editorKeyMap = CodeMirror.normalizeKeyMap({
-      'Tab': () => { this.tableEditor.nextCell(this.tableEditorOptions) },
-      'Shift-Tab': () => { this.tableEditor.previousCell(this.tableEditorOptions) },
-      'Enter': () => { this.tableEditor.nextRow(this.tableEditorOptions) },
-      'Ctrl-Enter': () => { this.tableEditor.escape(this.tableEditorOptions) },
-      'Cmd-Enter': () => { this.tableEditor.escape(this.tableEditorOptions) },
-      'Shift-Ctrl-Left': () => { this.tableEditor.alignColumn(Alignment.LEFT, this.tableEditorOptions) },
-      'Shift-Cmd-Left': () => { this.tableEditor.alignColumn(Alignment.LEFT, this.tableEditorOptions) },
-      'Shift-Ctrl-Right': () => { this.tableEditor.alignColumn(Alignment.RIGHT, this.tableEditorOptions) },
-      'Shift-Cmd-Right': () => { this.tableEditor.alignColumn(Alignment.RIGHT, this.tableEditorOptions) },
-      'Shift-Ctrl-Up': () => { this.tableEditor.alignColumn(Alignment.CENTER, this.tableEditorOptions) },
-      'Shift-Cmd-Up': () => { this.tableEditor.alignColumn(Alignment.CENTER, this.tableEditorOptions) },
-      'Shift-Ctrl-Down': () => { this.tableEditor.alignColumn(Alignment.NONE, this.tableEditorOptions) },
-      'Shift-Cmd-Down': () => { this.tableEditor.alignColumn(Alignment.NONE, this.tableEditorOptions) },
-      'Ctrl-Left': () => { this.tableEditor.moveFocus(0, -1, this.tableEditorOptions) },
-      'Cmd-Left': () => { this.tableEditor.moveFocus(0, -1, this.tableEditorOptions) },
-      'Ctrl-Right': () => { this.tableEditor.moveFocus(0, 1, this.tableEditorOptions) },
-      'Cmd-Right': () => { this.tableEditor.moveFocus(0, 1, this.tableEditorOptions) },
-      'Ctrl-Up': () => { this.tableEditor.moveFocus(-1, 0, this.tableEditorOptions) },
-      'Cmd-Up': () => { this.tableEditor.moveFocus(-1, 0, this.tableEditorOptions) },
-      'Ctrl-Down': () => { this.tableEditor.moveFocus(1, 0, this.tableEditorOptions) },
-      'Cmd-Down': () => { this.tableEditor.moveFocus(1, 0, this.tableEditorOptions) },
-      'Ctrl-K Ctrl-I': () => { this.tableEditor.insertRow(this.tableEditorOptions) },
-      'Cmd-K Cmd-I': () => { this.tableEditor.insertRow(this.tableEditorOptions) },
-      'Ctrl-L Ctrl-I': () => { this.tableEditor.deleteRow(this.tableEditorOptions) },
-      'Cmd-L Cmd-I': () => { this.tableEditor.deleteRow(this.tableEditorOptions) },
-      'Ctrl-K Ctrl-J': () => { this.tableEditor.insertColumn(this.tableEditorOptions) },
-      'Cmd-K Cmd-J': () => { this.tableEditor.insertColumn(this.tableEditorOptions) },
-      'Ctrl-L Ctrl-J': () => { this.tableEditor.deleteColumn(this.tableEditorOptions) },
-      'Cmd-L Cmd-J': () => { this.tableEditor.deleteColumn(this.tableEditorOptions) },
-      'Alt-Shift-Ctrl-Left': () => { this.tableEditor.moveColumn(-1, this.tableEditorOptions) },
-      'Alt-Shift-Cmd-Left': () => { this.tableEditor.moveColumn(-1, this.tableEditorOptions) },
-      'Alt-Shift-Ctrl-Right': () => { this.tableEditor.moveColumn(1, this.tableEditorOptions) },
-      'Alt-Shift-Cmd-Right': () => { this.tableEditor.moveColumn(1, this.tableEditorOptions) },
-      'Alt-Shift-Ctrl-Up': () => { this.tableEditor.moveRow(-1, this.tableEditorOptions) },
-      'Alt-Shift-Cmd-Up': () => { this.tableEditor.moveRow(-1, this.tableEditorOptions) },
-      'Alt-Shift-Ctrl-Down': () => { this.tableEditor.moveRow(1, this.tableEditorOptions) },
-      'Alt-Shift-Cmd-Down': () => { this.tableEditor.moveRow(1, this.tableEditorOptions) }
+      'Tab': () => {
+        this.tableEditor.nextCell(this.tableEditorOptions)
+      },
+      'Shift-Tab': () => {
+        this.tableEditor.previousCell(this.tableEditorOptions)
+      },
+      'Enter': () => {
+        this.tableEditor.nextRow(this.tableEditorOptions)
+      },
+      'Ctrl-Enter': () => {
+        this.tableEditor.escape(this.tableEditorOptions)
+      },
+      'Cmd-Enter': () => {
+        this.tableEditor.escape(this.tableEditorOptions)
+      },
+      'Shift-Ctrl-Left': () => {
+        this.tableEditor.alignColumn(Alignment.LEFT, this.tableEditorOptions)
+      },
+      'Shift-Cmd-Left': () => {
+        this.tableEditor.alignColumn(Alignment.LEFT, this.tableEditorOptions)
+      },
+      'Shift-Ctrl-Right': () => {
+        this.tableEditor.alignColumn(Alignment.RIGHT, this.tableEditorOptions)
+      },
+      'Shift-Cmd-Right': () => {
+        this.tableEditor.alignColumn(Alignment.RIGHT, this.tableEditorOptions)
+      },
+      'Shift-Ctrl-Up': () => {
+        this.tableEditor.alignColumn(Alignment.CENTER, this.tableEditorOptions)
+      },
+      'Shift-Cmd-Up': () => {
+        this.tableEditor.alignColumn(Alignment.CENTER, this.tableEditorOptions)
+      },
+      'Shift-Ctrl-Down': () => {
+        this.tableEditor.alignColumn(Alignment.NONE, this.tableEditorOptions)
+      },
+      'Shift-Cmd-Down': () => {
+        this.tableEditor.alignColumn(Alignment.NONE, this.tableEditorOptions)
+      },
+      'Ctrl-Left': () => {
+        this.tableEditor.moveFocus(0, -1, this.tableEditorOptions)
+      },
+      'Cmd-Left': () => {
+        this.tableEditor.moveFocus(0, -1, this.tableEditorOptions)
+      },
+      'Ctrl-Right': () => {
+        this.tableEditor.moveFocus(0, 1, this.tableEditorOptions)
+      },
+      'Cmd-Right': () => {
+        this.tableEditor.moveFocus(0, 1, this.tableEditorOptions)
+      },
+      'Ctrl-Up': () => {
+        this.tableEditor.moveFocus(-1, 0, this.tableEditorOptions)
+      },
+      'Cmd-Up': () => {
+        this.tableEditor.moveFocus(-1, 0, this.tableEditorOptions)
+      },
+      'Ctrl-Down': () => {
+        this.tableEditor.moveFocus(1, 0, this.tableEditorOptions)
+      },
+      'Cmd-Down': () => {
+        this.tableEditor.moveFocus(1, 0, this.tableEditorOptions)
+      },
+      'Ctrl-K Ctrl-I': () => {
+        this.tableEditor.insertRow(this.tableEditorOptions)
+      },
+      'Cmd-K Cmd-I': () => {
+        this.tableEditor.insertRow(this.tableEditorOptions)
+      },
+      'Ctrl-L Ctrl-I': () => {
+        this.tableEditor.deleteRow(this.tableEditorOptions)
+      },
+      'Cmd-L Cmd-I': () => {
+        this.tableEditor.deleteRow(this.tableEditorOptions)
+      },
+      'Ctrl-K Ctrl-J': () => {
+        this.tableEditor.insertColumn(this.tableEditorOptions)
+      },
+      'Cmd-K Cmd-J': () => {
+        this.tableEditor.insertColumn(this.tableEditorOptions)
+      },
+      'Ctrl-L Ctrl-J': () => {
+        this.tableEditor.deleteColumn(this.tableEditorOptions)
+      },
+      'Cmd-L Cmd-J': () => {
+        this.tableEditor.deleteColumn(this.tableEditorOptions)
+      },
+      'Alt-Shift-Ctrl-Left': () => {
+        this.tableEditor.moveColumn(-1, this.tableEditorOptions)
+      },
+      'Alt-Shift-Cmd-Left': () => {
+        this.tableEditor.moveColumn(-1, this.tableEditorOptions)
+      },
+      'Alt-Shift-Ctrl-Right': () => {
+        this.tableEditor.moveColumn(1, this.tableEditorOptions)
+      },
+      'Alt-Shift-Cmd-Right': () => {
+        this.tableEditor.moveColumn(1, this.tableEditorOptions)
+      },
+      'Alt-Shift-Ctrl-Up': () => {
+        this.tableEditor.moveRow(-1, this.tableEditorOptions)
+      },
+      'Alt-Shift-Cmd-Up': () => {
+        this.tableEditor.moveRow(-1, this.tableEditorOptions)
+      },
+      'Alt-Shift-Ctrl-Down': () => {
+        this.tableEditor.moveRow(1, this.tableEditorOptions)
+      },
+      'Alt-Shift-Cmd-Down': () => {
+        this.tableEditor.moveRow(1, this.tableEditorOptions)
+      }
     })
 
     if (this.props.enableTableEditor) {
@@ -302,7 +397,7 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  expandSnippet (line, cursor, cm, snippets) {
+  expandSnippet(line, cursor, cm, snippets) {
     const wordBeforeCursor = this.getWordBeforeCursor(
       line,
       cursor.line,
@@ -345,7 +440,7 @@ export default class CodeEditor extends React.Component {
     return false
   }
 
-  getWordBeforeCursor (line, lineNumber, cursorPosition) {
+  getWordBeforeCursor(line, lineNumber, cursorPosition) {
     let wordBeforeCursor = ''
     const originCursorPosition = cursorPosition
     const emptyChars = /\t|\s|\r|\n/
@@ -370,17 +465,23 @@ export default class CodeEditor extends React.Component {
     return {
       text: wordBeforeCursor,
       range: {
-        from: { line: lineNumber, ch: originCursorPosition },
-        to: { line: lineNumber, ch: cursorPosition }
+        from: {
+          line: lineNumber,
+          ch: originCursorPosition
+        },
+        to: {
+          line: lineNumber,
+          ch: cursorPosition
+        }
       }
     }
   }
 
-  quitEditor () {
+  quitEditor() {
     document.querySelector('textarea').blur()
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     this.editor.off('focus', this.focusHandler)
     this.editor.off('blur', this.blurHandler)
     this.editor.off('change', this.changeHandler)
@@ -393,9 +494,12 @@ export default class CodeEditor extends React.Component {
     eventEmitter.off('code:format-table', this.formatTable)
   }
 
-  componentDidUpdate (prevProps, prevState) {
+  componentDidUpdate(prevProps, prevState) {
     let needRefresh = false
-    const { rulers, enableRulers } = this.props
+    const {
+      rulers,
+      enableRulers
+    } = this.props
     if (prevProps.mode !== this.props.mode) {
       this.setMode(this.props.mode)
     }
@@ -436,6 +540,21 @@ export default class CodeEditor extends React.Component {
       this.editor.setOption('scrollPastEnd', this.props.scrollPastEnd)
     }
 
+    if (prevProps.enableBracketMatching !== this.props.enableBracketMatching) {
+      const bracketObject = (this.props.enableBracketMatching ? {
+        pairs: '()[]{}\'\'""$$**``ll',
+        triples: '```"""\'\'\'',
+        explode: '[]{}``$$',
+        override: true
+      } : {
+        pairs: '',
+        triples: '',
+        explode: '',
+        override: true
+      });
+      this.editor.setOption('autoCloseBrackets', bracketObject)
+    }
+
     if (prevProps.enableTableEditor !== this.props.enableTableEditor) {
       if (this.props.enableTableEditor) {
         this.editor.on('cursorActivity', this.editorActivityHandler)
@@ -462,7 +581,7 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  setMode (mode) {
+  setMode(mode) {
     let syntax = CodeMirror.findModeByName(convertModeName(mode))
     if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
 
@@ -470,16 +589,16 @@ export default class CodeEditor extends React.Component {
     CodeMirror.autoLoadMode(this.editor, syntax.mode)
   }
 
-  handleChange (e) {
+  handleChange(e) {
     this.value = this.editor.getValue()
     if (this.props.onChange) {
       this.props.onChange(e)
     }
   }
 
-  moveCursorTo (row, col) {}
+  moveCursorTo(row, col) {}
 
-  scrollToLine (event, num) {
+  scrollToLine(event, num) {
     const cursor = {
       line: num,
       ch: 1
@@ -487,15 +606,15 @@ export default class CodeEditor extends React.Component {
     this.editor.setCursor(cursor)
   }
 
-  focus () {
+  focus() {
     this.editor.focus()
   }
 
-  blur () {
+  blur() {
     this.editor.blur()
   }
 
-  reload () {
+  reload() {
     // Change event shouldn't be fired when switch note
     this.editor.off('change', this.changeHandler)
     this.value = this.props.value
@@ -505,15 +624,18 @@ export default class CodeEditor extends React.Component {
     this.editor.refresh()
   }
 
-  setValue (value) {
+  setValue(value) {
     const cursor = this.editor.getCursor()
     this.editor.setValue(value)
     this.editor.setCursor(cursor)
   }
 
-  handleDropImage (dropEvent) {
+  handleDropImage(dropEvent) {
     dropEvent.preventDefault()
-    const { storageKey, noteKey } = this.props
+    const {
+      storageKey,
+      noteKey
+    } = this.props
     attachmentManagement.handleAttachmentDrop(
       this,
       storageKey,
@@ -522,13 +644,16 @@ export default class CodeEditor extends React.Component {
     )
   }
 
-  insertAttachmentMd (imageMd) {
+  insertAttachmentMd(imageMd) {
     this.editor.replaceSelection(imageMd)
   }
 
-  handlePaste (editor, e) {
+  handlePaste(editor, e) {
     const clipboardData = e.clipboardData
-    const { storageKey, noteKey } = this.props
+    const {
+      storageKey,
+      noteKey
+    } = this.props
     const dataTransferItem = clipboardData.items[0]
     const pastedTxt = clipboardData.getData('text')
     const isURL = str => {
@@ -537,15 +662,21 @@ export default class CodeEditor extends React.Component {
     }
     const isInLinkTag = editor => {
       const startCursor = editor.getCursor('start')
-      const prevChar = editor.getRange(
-        { line: startCursor.line, ch: startCursor.ch - 2 },
-        { line: startCursor.line, ch: startCursor.ch }
-      )
+      const prevChar = editor.getRange({
+        line: startCursor.line,
+        ch: startCursor.ch - 2
+      }, {
+        line: startCursor.line,
+        ch: startCursor.ch
+      })
       const endCursor = editor.getCursor('end')
-      const nextChar = editor.getRange(
-        { line: endCursor.line, ch: endCursor.ch },
-        { line: endCursor.line, ch: endCursor.ch + 1 }
-      )
+      const nextChar = editor.getRange({
+        line: endCursor.line,
+        ch: endCursor.ch
+      }, {
+        line: endCursor.line,
+        ch: endCursor.ch + 1
+      })
       return prevChar === '](' && nextChar === ')'
     }
 
@@ -576,13 +707,13 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  handleScroll (e) {
+  handleScroll(e) {
     if (this.props.onScroll) {
       this.props.onScroll(e)
     }
   }
 
-  handlePasteUrl (e, editor, pastedTxt) {
+  handlePasteUrl(e, editor, pastedTxt) {
     e.preventDefault()
     const taggedUrl = `<${pastedTxt}>`
     editor.replaceSelection(taggedUrl)
@@ -605,8 +736,8 @@ export default class CodeEditor extends React.Component {
     }
 
     fetch(pastedTxt, {
-      method: 'get'
-    })
+        method: 'get'
+      })
       .then(response => {
         if (isImageReponse(response)) {
           return this.mapImageResponse(response, pastedTxt)
@@ -622,13 +753,13 @@ export default class CodeEditor extends React.Component {
       })
   }
 
-  handlePasteHtml (e, editor, pastedHtml) {
+  handlePasteHtml(e, editor, pastedHtml) {
     e.preventDefault()
     const markdown = this.turndownService.turndown(pastedHtml)
     editor.replaceSelection(markdown)
   }
 
-  mapNormalResponse (response, pastedTxt) {
+  mapNormalResponse(response, pastedTxt) {
     return this.decodeResponse(response).then(body => {
       return new Promise((resolve, reject) => {
         try {
@@ -648,7 +779,7 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  mapImageResponse (response, pastedTxt) {
+  mapImageResponse(response, pastedTxt) {
     return new Promise((resolve, reject) => {
       try {
         const url = response.url
@@ -661,18 +792,18 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  decodeResponse (response) {
+  decodeResponse(response) {
     const headers = response.headers
-    const _charset = headers.has('content-type')
-      ? this.extractContentTypeCharset(headers.get('content-type'))
-      : undefined
+    const _charset = headers.has('content-type') ?
+      this.extractContentTypeCharset(headers.get('content-type')) :
+      undefined
     return response.arrayBuffer().then(buff => {
       return new Promise((resolve, reject) => {
         try {
           const charset = _charset !== undefined &&
-            iconv.encodingExists(_charset)
-            ? _charset
-            : 'utf-8'
+            iconv.encodingExists(_charset) ?
+            _charset :
+            'utf-8'
           resolve(iconv.decode(new Buffer(buff), charset).toString())
         } catch (e) {
           reject(e)
@@ -681,7 +812,7 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  extractContentTypeCharset (contentType) {
+  extractContentTypeCharset(contentType) {
     return contentType
       .split(';')
       .filter(str => {
@@ -692,21 +823,29 @@ export default class CodeEditor extends React.Component {
       })[0]
   }
 
-  render () {
-    const {className, fontSize} = this.props
+  render() {
+    const {
+      className,
+      fontSize
+    } = this.props
     const fontFamily = normalizeEditorFontFamily(this.props.fontFamily)
     const width = this.props.width
-    return (
-      <div
-        className={className == null ? 'CodeEditor' : `CodeEditor ${className}`}
-        ref='root'
-        tabIndex='-1'
-        style={{
+    return ( <
+      div className = {
+        className == null ? 'CodeEditor' : `CodeEditor ${className}`
+      }
+      ref = 'root'
+      tabIndex = '-1'
+      style = {
+        {
           fontFamily,
           fontSize: fontSize,
           width: width
-        }}
-        onDrop={e => this.handleDropImage(e)}
+        }
+      }
+      onDrop = {
+        e => this.handleDropImage(e)
+      }
       />
     )
   }

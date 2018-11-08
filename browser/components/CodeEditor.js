@@ -823,19 +823,19 @@ export default class CodeEditor extends React.Component {
     const fontFamily = normalizeEditorFontFamily(this.props.fontFamily)
     const width = this.props.width
     return (<
-      div className ={
+      div className={
         className == null ? 'CodeEditor' : `CodeEditor ${className}`
       }
-      ref= 'root'
-      tabIndex= '-1'
-      style= {
+      ref='root'
+      tabIndex='-1'
+      style={
       {
         fontFamily,
         fontSize: fontSize,
         width: width
       }
       }
-      onDrop= {
+      onDrop={
         e => this.handleDropImage(e)
       }
       />

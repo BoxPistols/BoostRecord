@@ -62,7 +62,6 @@ class UiTab extends React.Component {
       checkHighLight.setAttribute('rel', 'stylesheet')
       document.head.appendChild(checkHighLight)
     }
-    console.log("This is a console log")
     
     const newConfig = {
       ui: {

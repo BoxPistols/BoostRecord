@@ -33,7 +33,7 @@ const buildCMRulers = (rulers, enableRulers) =>
   })) : [])
 
 export default class CodeEditor extends React.Component {
-  constructor(props) {
+  constructor (props) {
     super(props)
 
     this.scrollHandler = _.debounce(this.handleScroll.bind(this), 100, {
@@ -78,7 +78,7 @@ export default class CodeEditor extends React.Component {
     this.editorActivityHandler = () => this.handleEditorActivity()
   }
 
-  handleSearch(msg) {
+  handleSearch (msg) {
     const cm = this.editor
     const component = this
 
@@ -89,7 +89,7 @@ export default class CodeEditor extends React.Component {
       component.searchState = makeOverlay(msg, 'searching')
       cm.addOverlay(component.searchState)
 
-      function makeOverlay(query, style) {
+      function makeOverlay (query, style) {
         query = new RegExp(
           query.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, '\\$&'),
           'gi'
@@ -112,19 +112,19 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  handleFormatTable() {
+  handleFormatTable () {
     this.tableEditor.formatAll(options({
       textWidthOptions: {}
     }))
   }
 
-  handleEditorActivity() {
+  handleEditorActivity () {
     if (!this.textEditorInterface.transaction) {
       this.updateTableEditorState()
     }
   }
 
-  updateTableEditorState() {
+  updateTableEditorState () {
     const active = this.tableEditor.cursorIsInTable(this.tableEditorOptions)
     if (active) {
       if (this.extraKeysMode !== 'editor') {
@@ -140,7 +140,7 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  componentDidMount() {
+  componentDidMount () {
     const {
       rulers,
       enableRulers
@@ -392,7 +392,7 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  expandSnippet(line, cursor, cm, snippets) {
+  expandSnippet (line, cursor, cm, snippets) {
     const wordBeforeCursor = this.getWordBeforeCursor(
       line,
       cursor.line,
@@ -435,7 +435,7 @@ export default class CodeEditor extends React.Component {
     return false
   }
 
-  getWordBeforeCursor(line, lineNumber, cursorPosition) {
+  getWordBeforeCursor (line, lineNumber, cursorPosition) {
     let wordBeforeCursor = ''
     const originCursorPosition = cursorPosition
     const emptyChars = /\t|\s|\r|\n/
@@ -472,11 +472,11 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  quitEditor() {
+  quitEditor () {
     document.querySelector('textarea').blur()
   }
 
-  componentWillUnmount() {
+  componentWillUnmount () {
     this.editor.off('focus', this.focusHandler)
     this.editor.off('blur', this.blurHandler)
     this.editor.off('change', this.changeHandler)
@@ -489,7 +489,7 @@ export default class CodeEditor extends React.Component {
     eventEmitter.off('code:format-table', this.formatTable)
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate (prevProps, prevState) {
     let needRefresh = false
     const {
       rulers,
@@ -538,7 +538,7 @@ export default class CodeEditor extends React.Component {
     if (prevProps.matchingPairs !== this.props.matchingPairs ||
       prevProps.matchingTriples !== this.props.matchingTriples ||
       prevProps.explodingPairs !== this.props.explodingPairs) {
-      const bracketObject ={
+      const bracketObject = {
         pairs: this.props.matchingPairs,
         triples: this.props.matchingTriples,
         explode: this.props.explodingPairs,
@@ -573,7 +573,7 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  setMode(mode) {
+  setMode (mode) {
     let syntax = CodeMirror.findModeByName(convertModeName(mode))
     if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
 
@@ -581,16 +581,16 @@ export default class CodeEditor extends React.Component {
     CodeMirror.autoLoadMode(this.editor, syntax.mode)
   }
 
-  handleChange(e) {
+  handleChange (e) {
     this.value = this.editor.getValue()
     if (this.props.onChange) {
       this.props.onChange(e)
     }
   }
 
-  moveCursorTo(row, col) {}
+  moveCursorTo (row, col) {}
 
-  scrollToLine(event, num) {
+  scrollToLine (event, num) {
     const cursor = {
       line: num,
       ch: 1
@@ -598,15 +598,15 @@ export default class CodeEditor extends React.Component {
     this.editor.setCursor(cursor)
   }
 
-  focus() {
+  focus () {
     this.editor.focus()
   }
 
-  blur() {
+  blur () {
     this.editor.blur()
   }
 
-  reload() {
+  reload () {
     // Change event shouldn't be fired when switch note
     this.editor.off('change', this.changeHandler)
     this.value = this.props.value
@@ -616,13 +616,13 @@ export default class CodeEditor extends React.Component {
     this.editor.refresh()
   }
 
-  setValue(value) {
+  setValue (value) {
     const cursor = this.editor.getCursor()
     this.editor.setValue(value)
     this.editor.setCursor(cursor)
   }
 
-  handleDropImage(dropEvent) {
+  handleDropImage (dropEvent) {
     dropEvent.preventDefault()
     const {
       storageKey,
@@ -636,11 +636,11 @@ export default class CodeEditor extends React.Component {
     )
   }
 
-  insertAttachmentMd(imageMd) {
+  insertAttachmentMd (imageMd) {
     this.editor.replaceSelection(imageMd)
   }
 
-  handlePaste(editor, e) {
+  handlePaste (editor, e) {
     const clipboardData = e.clipboardData
     const {
       storageKey,
@@ -699,13 +699,13 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  handleScroll(e) {
+  handleScroll (e) {
     if (this.props.onScroll) {
       this.props.onScroll(e)
     }
   }
 
-  handlePasteUrl(e, editor, pastedTxt) {
+  handlePasteUrl (e, editor, pastedTxt) {
     e.preventDefault()
     const taggedUrl = `<${pastedTxt}>`
     editor.replaceSelection(taggedUrl)
@@ -728,8 +728,8 @@ export default class CodeEditor extends React.Component {
     }
 
     fetch(pastedTxt, {
-        method: 'get'
-      })
+      method: 'get'
+    })
       .then(response => {
         if (isImageReponse(response)) {
           return this.mapImageResponse(response, pastedTxt)
@@ -745,13 +745,13 @@ export default class CodeEditor extends React.Component {
       })
   }
 
-  handlePasteHtml(e, editor, pastedHtml) {
+  handlePasteHtml (e, editor, pastedHtml) {
     e.preventDefault()
     const markdown = this.turndownService.turndown(pastedHtml)
     editor.replaceSelection(markdown)
   }
 
-  mapNormalResponse(response, pastedTxt) {
+  mapNormalResponse (response, pastedTxt) {
     return this.decodeResponse(response).then(body => {
       return new Promise((resolve, reject) => {
         try {
@@ -771,7 +771,7 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  mapImageResponse(response, pastedTxt) {
+  mapImageResponse (response, pastedTxt) {
     return new Promise((resolve, reject) => {
       try {
         const url = response.url
@@ -784,18 +784,18 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  decodeResponse(response) {
+  decodeResponse (response) {
     const headers = response.headers
-    const _charset = headers.has('content-type') ?
-      this.extractContentTypeCharset(headers.get('content-type')) :
-      undefined
+    const _charset = headers.has('content-type')
+      ? this.extractContentTypeCharset(headers.get('content-type'))
+      : undefined
     return response.arrayBuffer().then(buff => {
       return new Promise((resolve, reject) => {
         try {
           const charset = _charset !== undefined &&
-            iconv.encodingExists(_charset) ?
-            _charset :
-            'utf-8'
+            iconv.encodingExists(_charset)
+            ? _charset
+            : 'utf-8'
           resolve(iconv.decode(new Buffer(buff), charset).toString())
         } catch (e) {
           reject(e)
@@ -804,7 +804,7 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  extractContentTypeCharset(contentType) {
+  extractContentTypeCharset (contentType) {
     return contentType
       .split(';')
       .filter(str => {
@@ -815,27 +815,27 @@ export default class CodeEditor extends React.Component {
       })[0]
   }
 
-  render() {
+  render () {
     const {
       className,
       fontSize
     } = this.props
     const fontFamily = normalizeEditorFontFamily(this.props.fontFamily)
     const width = this.props.width
-    return ( <
-      div className = {
+    return (<
+      div className ={
         className == null ? 'CodeEditor' : `CodeEditor ${className}`
       }
-      ref = 'root'
-      tabIndex = '-1'
-      style = {
-        {
-          fontFamily,
-          fontSize: fontSize,
-          width: width
-        }
+      ref= 'root'
+      tabIndex= '-1'
+      style= {
+      {
+        fontFamily,
+        fontSize: fontSize,
+        width: width
       }
-      onDrop = {
+      }
+      onDrop= {
         e => this.handleDropImage(e)
       }
       />

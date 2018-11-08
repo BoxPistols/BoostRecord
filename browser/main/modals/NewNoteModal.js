@@ -21,8 +21,8 @@ class NewNoteModal extends React.Component {
   }
 
   handleMarkdownNoteButtonClick (e) {
-    const { storage, folder, dispatch, location, params } = this.props
-    createMarkdownNote(storage, folder, dispatch, location, params).then(() => {
+    const { storage, folder, dispatch, location, params, config } = this.props
+    createMarkdownNote(storage, folder, dispatch, location, params, config).then(() => {
       setTimeout(this.props.close, 200)
     })
   }

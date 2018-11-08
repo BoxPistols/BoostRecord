@@ -102,6 +102,7 @@ Term 2 with *inline markup*
 
     Third paragraph of definition 2.
 `
+const shortcuts = '<kbd>Ctrl</kbd>\n\n[[Ctrl]]'
 
 export default {
   basic,
@@ -113,5 +114,6 @@ export default {
   abbrevations,
   subTexts,
   supTexts,
-  deflists
+  deflists,
+  shortcuts
 }

@@ -63,3 +63,8 @@ test('Markdown.render() should renders definition lists correctly', t => {
   const rendered = md.render(markdownFixtures.deflists)
   t.snapshot(rendered)
 })
+
+test('Markdown.render() should render shortcuts correctly', t => {
+  const rendered = md.render(markdownFixtures.shortcuts)
+  t.snapshot(rendered)
+})

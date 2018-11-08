@@ -6,6 +6,7 @@ import CodeEditor from 'browser/components/CodeEditor'
 import MarkdownPreview from 'browser/components/MarkdownPreview'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import { findStorage } from 'browser/lib/findStorage'
+import ConfigManager from 'browser/main/lib/ConfigManager'
 
 class MarkdownEditor extends React.Component {
   constructor (props) {
@@ -18,7 +19,7 @@ class MarkdownEditor extends React.Component {
     this.supportMdSelectionBold = [16, 17, 186]
 
     this.state = {
-      status: 'PREVIEW',
+      status: props.config.editor.switchPreview === 'RIGHTCLICK' ? props.config.editor.delfaultStatus : 'PREVIEW',
       renderValue: props.value,
       keyPressed: new Set(),
       isLocked: false
@@ -64,6 +65,10 @@ class MarkdownEditor extends React.Component {
     })
   }
 
+  setValue (value) {
+    this.refs.code.setValue(value)
+  }
+
   handleChange (e) {
     this.value = this.refs.code.value
     this.props.onChange(e)
@@ -72,9 +77,7 @@ class MarkdownEditor extends React.Component {
   handleContextMenu (e) {
     const { config } = this.props
     if (config.editor.switchPreview === 'RIGHTCLICK') {
-      const newStatus = this.state.status === 'PREVIEW'
-        ? 'CODE'
-        : 'PREVIEW'
+      const newStatus = this.state.status === 'PREVIEW' ? 'CODE' : 'PREVIEW'
       this.setState({
         status: newStatus
       }, () => {
@@ -84,6 +87,10 @@ class MarkdownEditor extends React.Component {
           this.refs.preview.focus()
         }
         eventEmitter.emit('topbar:togglelockbutton', this.state.status)
+
+        const newConfig = Object.assign({}, config)
+        newConfig.editor.delfaultStatus = newStatus
+        ConfigManager.set(newConfig)
       })
     }
   }
@@ -300,6 +307,7 @@ class MarkdownEditor extends React.Component {
           noteKey={noteKey}
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
+          lineThroughCheckbox={config.preview.lineThroughCheckbox}
         />
       </div>
     )

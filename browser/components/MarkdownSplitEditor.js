@@ -20,12 +20,18 @@ class MarkdownSplitEditor extends React.Component {
     }
   }
 
+  setValue (value) {
+    this.refs.code.setValue(value)
+  }
+
   handleOnChange () {
     this.value = this.refs.code.value
     this.props.onChange()
   }
 
   handleScroll (e) {
+    if (!this.props.config.preview.scrollSync) return
+
     const previewDoc = _.get(this, 'refs.preview.refs.root.contentWindow.document')
     const codeDoc = _.get(this, 'refs.code.editor.doc')
     let srcTop, srcHeight, targetTop, targetHeight
@@ -192,6 +198,7 @@ class MarkdownSplitEditor extends React.Component {
           noteKey={noteKey}
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
+          lineThroughCheckbox={config.preview.lineThroughCheckbox}
        />
       </div>
     )

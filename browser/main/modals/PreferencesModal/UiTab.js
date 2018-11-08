@@ -62,7 +62,7 @@ class UiTab extends React.Component {
       checkHighLight.setAttribute('rel', 'stylesheet')
       document.head.appendChild(checkHighLight)
     }
-    
+
     const newConfig = {
       ui: {
         theme: this.refs.uiTheme.value,
@@ -542,7 +542,7 @@ class UiTab extends React.Component {
             </label>
           </div>
 
-          <div styleName='group-section'>            
+          <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('Matching character pairs')}
             </div>
@@ -556,7 +556,7 @@ class UiTab extends React.Component {
             </div>
           </div>
 
-          <div styleName='group-section'>            
+          <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('Matching character triples')}
             </div>
@@ -570,7 +570,7 @@ class UiTab extends React.Component {
             </div>
           </div>
 
-          <div styleName='group-section'>            
+          <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('Exploding character pairs')}
             </div>
@@ -611,7 +611,7 @@ class UiTab extends React.Component {
               />
             </div>
           </div>
-          
+
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Code Block Theme')}</div>
             <div styleName='group-section-control'>

@@ -44,7 +44,6 @@ export const DEFAULT_CONFIG = {
     enableRulers: false,
     rulers: [80, 120],
     displayLineNumbers: true,
-    enableBracketMatching: true,
     matchingPairs:'()[]{}\'\'""$$**``',
     matchingTriples:'```"""\'\'\'',
     explodingPairs:'[]{}``$$',

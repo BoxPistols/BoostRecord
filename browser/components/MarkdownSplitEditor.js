@@ -158,7 +158,6 @@ class MarkdownSplitEditor extends React.Component {
           fontFamily={config.editor.fontFamily}
           fontSize={editorFontSize}
           displayLineNumbers={config.editor.displayLineNumbers}
-          enableBracketMatching={config.editor.enableBracketMatching}
           matchingPairs={config.editor.matchingPairs}
           matchingTriples={config.editor.matchingTriples}
           explodingPairs={config.editor.explodingPairs}

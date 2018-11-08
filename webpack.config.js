@@ -33,7 +33,7 @@ var config = Object.assign({}, skeleton, {
     port: 8080,
     hot: true,
     inline: true,
-    quiet: true,
+    quiet: false,
     publicPath: 'http://localhost:8080/assets/'
   }
 })

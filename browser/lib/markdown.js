@@ -127,8 +127,11 @@ class Markdown {
       }
     })
     this.md.use(require('markdown-it-kbd'))
-
     this.md.use(require('markdown-it-admonition'), {types: ['note', 'hint', 'attention', 'caution', 'danger', 'error']})
+    this.md.use(require('markdown-it-abbr'))
+    this.md.use(require('markdown-it-sub'))
+    this.md.use(require('markdown-it-sup'))
+    this.md.use(require('./markdown-it-deflist'))
     this.md.use(require('./markdown-it-frontmatter'))
 
     this.md.use(require('./markdown-it-fence'), {
@@ -268,9 +271,12 @@ class Markdown {
     this.md.renderer.render = (tokens, options, env) => {
       tokens.forEach((token) => {
         switch (token.type) {
-          case 'heading_open':
-          case 'paragraph_open':
           case 'blockquote_open':
+          case 'dd_open':
+          case 'dt_open':
+          case 'heading_open':
+          case 'list_item_open':
+          case 'paragraph_open':
           case 'table_open':
             token.attrPush(['data-line', token.map[0]])
         }

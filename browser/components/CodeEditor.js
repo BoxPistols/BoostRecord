@@ -63,6 +63,8 @@ export default class CodeEditor extends React.Component {
 
     this.formatTable = () => this.handleFormatTable()
     this.editorActivityHandler = () => this.handleEditorActivity()
+
+    this.turndownService = new TurndownService()
   }
 
   handleSearch (msg) {
@@ -550,6 +552,7 @@ export default class CodeEditor extends React.Component {
     }
 
     const pastedHtml = clipboardData.getData('text/html')
+    console.log(pastedHtml)
     if (pastedHtml !== '') {
       this.handlePasteHtml(e, editor, pastedHtml)
     } else if (dataTransferItem.type.match('image')) {

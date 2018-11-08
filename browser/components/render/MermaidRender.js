@@ -22,17 +22,36 @@ function getId () {
 function render (element, content, theme) {
   try {
     const height = element.attributes.getNamedItem('data-height')
-    if (height && height.value !== 'undefined') {
+    const isPredefined = height && height.value !== 'undefined'
+    if (isPredefined) {
       element.style.height = height.value + 'vh'
     }
     let isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai' || theme === 'dracula'
     mermaidAPI.initialize({
       theme: isDarkTheme ? 'dark' : 'default',
       themeCSS: isDarkTheme ? darkThemeStyling : '',
-      useMaxWidth: false
+      gantt: {
+        useWidth: element.clientWidth
+      }
     })
     mermaidAPI.render(getId(), content, (svgGraph) => {
       element.innerHTML = svgGraph
+
+      if (!isPredefined) {
+        const el = element.firstChild
+        const viewBox = el.getAttribute('viewBox').split(' ')
+
+        let ratio = viewBox[2] / viewBox[3]
+
+        if (el.style.maxWidth) {
+          const maxWidth = parseFloat(el.style.maxWidth)
+
+          ratio *= el.parentNode.clientWidth / maxWidth
+        }
+
+        el.setAttribute('ratio', ratio)
+        el.setAttribute('height', el.parentNode.clientWidth / ratio)
+      }
     })
   } catch (e) {
     element.className = 'mermaid-error'

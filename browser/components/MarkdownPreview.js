@@ -807,7 +807,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleResize () {
-     _.forEach(
+    _.forEach(
       this.refs.root.contentWindow.document.querySelectorAll('svg[ratio]'),
       el => {
         el.setAttribute('height', el.clientWidth / el.getAttribute('ratio'))

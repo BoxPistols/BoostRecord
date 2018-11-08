@@ -203,7 +203,7 @@ function rewriteHotkey (config) {
   const keys = [...Object.keys(config.hotkey)]
   keys.forEach(key => {
     config.hotkey[key] = config.hotkey[key].replace(/Cmd/g, 'Command')
-    config.hotkey[key] = config.hotkey[key].replace(/Opt/g, 'Alt')
+    config.hotkey[key] = config.hotkey[key].replace(/Opt\s/g, 'Option ')
   })
   return config
 }

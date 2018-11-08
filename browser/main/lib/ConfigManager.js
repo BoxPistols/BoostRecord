@@ -45,6 +45,9 @@ export const DEFAULT_CONFIG = {
     rulers: [80, 120],
     displayLineNumbers: true,
     enableBracketMatching: true,
+    matchingPairs:'()[]{}\'\'""$$**``',
+    matchingTriples:'```"""\'\'\'',
+    explodingPairs:'[]{}``$$',
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
     delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,

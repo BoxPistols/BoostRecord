@@ -269,6 +269,9 @@ class MarkdownEditor extends React.Component {
           rulers={config.editor.rulers}
           displayLineNumbers={config.editor.displayLineNumbers}
           enableBracketMatching={config.editor.enableBracketMatching}
+          matchingPairs={config.editor.matchingPairs}
+          matchingTriples={config.editor.matchingTriples}
+          explodingPairs={config.editor.explodingPairs}
           scrollPastEnd={config.editor.scrollPastEnd}
           storageKey={storageKey}
           noteKey={noteKey}

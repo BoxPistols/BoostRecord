@@ -700,6 +700,9 @@ class SnippetNoteDetail extends React.Component {
             indentSize={editorIndentSize}
             displayLineNumbers={config.editor.displayLineNumbers}
             enableBracketMatching={config.editor.enableBracketMatching}
+            matchingPairs={config.editor.matchingPairs}
+            matchingTriples={config.editor.matchingTriples}
+            explodingPairs={config.editor.explodingPairs}
             keyMap={config.editor.keyMap}
             scrollPastEnd={config.editor.scrollPastEnd}
             fetchUrlTitle={config.editor.fetchUrlTitle}

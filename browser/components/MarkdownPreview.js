@@ -16,6 +16,8 @@ import convertModeName from 'browser/lib/convertModeName'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
+import { escapeHtmlCharacters } from 'browser/lib/utils'
+import yaml from 'js-yaml'
 import context from 'browser/lib/context'
 import i18n from 'browser/lib/i18n'
 import fs from 'fs'
@@ -767,7 +769,8 @@ export default class MarkdownPreview extends React.Component {
       this.refs.root.contentWindow.document.querySelectorAll('.chart'),
       el => {
         try {
-          const chartConfig = JSON.parse(el.innerHTML)
+          const format = el.attributes.getNamedItem('data-format').value
+          const chartConfig = format === 'yaml' ? yaml.load(el.innerHTML) : JSON.parse(el.innerHTML)
           el.innerHTML = ''
 
           const canvas = document.createElement('canvas')

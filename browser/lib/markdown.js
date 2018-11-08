@@ -133,9 +133,13 @@ class Markdown {
 
     this.md.use(require('./markdown-it-fence'), {
       chart: token => {
+        if (token.parameters.hasOwnProperty('yaml')) {
+          token.parameters.format = 'yaml'
+        }
+
         return `<pre class="fence" data-line="${token.map[0]}">
           <span class="filename">${token.fileName}</span>
-          <div class="chart" data-height="${token.parameters.height}">${token.content}</div>
+          <div class="chart" data-height="${token.parameters.height}" data-format="${token.parameters.format || 'json'}">${token.content}</div>
         </pre>`
       },
       flowchart: token => {

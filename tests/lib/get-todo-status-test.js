@@ -28,7 +28,7 @@ test('getTodoStatus should return a correct hash object', t => {
     ['- [x] `- [x] a`\n', { total: 1, completed: 1 }],
     ['- [X] `- [X] a`\n', { total: 1, completed: 1 }],
     [' \t - [X] `- [X] a`\n', { total: 1, completed: 1 }],
-    [' \t - [X] `- [X] a`\n \t - [ ] `- [X] a`\n', { total: 2, completed: 1 }],
+    [' \t - [X] `- [X] a`\n \t - [ ] `- [X] a`\n', { total: 2, completed: 1 }]
   ]
 
   testCases.forEach(testCase => {

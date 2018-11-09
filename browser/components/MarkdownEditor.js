@@ -225,21 +225,21 @@ class MarkdownEditor extends React.Component {
     const { storageKey, noteKey } = this.props
 
     this.setState({
-        status: 'CODE'
-      }, () => {
-        this.refs.code.focus()
+      status: 'CODE'
+    }, () => {
+      this.refs.code.focus()
 
-        this.refs.code.editor.execCommand('goDocEnd')
-        this.refs.code.editor.execCommand('goLineEnd')
-        this.refs.code.editor.execCommand('newlineAndIndent')
+      this.refs.code.editor.execCommand('goDocEnd')
+      this.refs.code.editor.execCommand('goLineEnd')
+      this.refs.code.editor.execCommand('newlineAndIndent')
 
-        attachmentManagement.handleAttachmentDrop(
-          this.refs.code,
-          storageKey,
-          noteKey,
-          dropEvent
-        )
-      })
+      attachmentManagement.handleAttachmentDrop(
+        this.refs.code,
+        storageKey,
+        noteKey,
+        dropEvent
+      )
+    })
   }
 
   handleKeyUp (e) {

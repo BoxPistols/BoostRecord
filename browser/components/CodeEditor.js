@@ -218,10 +218,16 @@ export default class CodeEditor extends React.Component {
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
       autoCloseBrackets: {
-        pairs: '()[]{}\'\'""$$**``',
-        triples: '```"""\'\'\'',
-        explode: '[]{}``$$',
-        override: true
+        codeBlock: {
+          pairs: '()[]{}\'\'""``',
+          triples: '',
+          explode: '[]{}``'
+        },
+        markdown: {
+          pairs: '()[]{}\'\'""$$**``',
+          triples: '```"""\'\'\'',
+          explode: '[]{}``$$'
+        }
       },
       extraKeys: this.defaultKeyMap
     })

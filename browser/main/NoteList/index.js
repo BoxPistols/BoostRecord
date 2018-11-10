@@ -427,12 +427,14 @@ class NoteList extends React.Component {
     selectedNoteKeys.push(uniqueKey)
 
     if (shiftKeyDown && hasSelectedNoteKey) {
-      const firstSelectedNoteIndex =
-        Math.max(this.getNoteIndexByKey(selectedNoteKeys[0]),
-        this.state.firstShiftSelectedNoteIndex)
+      const firstSelectedNoteIndex = selectedNoteKeys[0] > this.state.firstShiftSelectedNoteIndex
+        ? selectedNoteKeys[0] : this.state.firstShiftSelectedNoteIndex
       const lastSelectedNoteIndex = this.getNoteIndexByKey(uniqueKey)
-      const startIndex = Math.min(firstSelectedNoteIndex, lastSelectedNoteIndex)
-      const endIndex = Math.max(firstSelectedNoteIndex, lastSelectedNoteIndex)
+      const startIndex = firstSelectedNoteIndex < lastSelectedNoteIndex
+        ? firstSelectedNoteIndex : lastSelectedNoteIndex
+      const endIndex = firstSelectedNoteIndex > lastSelectedNoteIndex
+        ? firstSelectedNoteIndex : lastSelectedNoteIndex
+
       selectedNoteKeys = []
       for (let i = startIndex; i <= endIndex; i++) {
         selectedNoteKeys.push(this.notes[i].key)

@@ -412,6 +412,7 @@ class NoteList extends React.Component {
     let { selectedNoteKeys } = this.state
     const { ctrlKeyDown, shiftKeyDown } = this.state
     let firstShiftSelectedNoteIndex = -1
+    const hasSelectedNoteKey = selectedNoteKeys.length > 0
 
     if (ctrlKeyDown && selectedNoteKeys.includes(uniqueKey)) {
       const newSelectedNoteKeys = selectedNoteKeys.filter((noteKey) => noteKey !== uniqueKey)
@@ -425,7 +426,7 @@ class NoteList extends React.Component {
     }
     selectedNoteKeys.push(uniqueKey)
 
-    if (shiftKeyDown && selectedNoteKeys.length > 0) {
+    if (shiftKeyDown && hasSelectedNoteKey) {
       const firstSelectedNoteIndex =
         Math.max(this.getNoteIndexByKey(selectedNoteKeys[0]),
         this.state.firstShiftSelectedNoteIndex)

@@ -86,7 +86,7 @@ class NoteList extends React.Component {
     this.state = {
       ctrlKeyDown: false,
       shiftKeyDown: false,
-      firstShiftSelectedNoteIndex: -1,
+      prevShiftNoteIndex: -1,
       selectedNoteKeys: []
     }
 
@@ -409,9 +409,8 @@ class NoteList extends React.Component {
   handleNoteClick (e, uniqueKey) {
     const { router } = this.context
     const { location } = this.props
-    let { selectedNoteKeys } = this.state
+    let { selectedNoteKeys, prevShiftNoteIndex } = this.state
     const { ctrlKeyDown, shiftKeyDown } = this.state
-    let firstShiftSelectedNoteIndex = -1
     const hasSelectedNoteKey = selectedNoteKeys.length > 0
 
     if (ctrlKeyDown && selectedNoteKeys.includes(uniqueKey)) {
@@ -424,28 +423,40 @@ class NoteList extends React.Component {
     if (!ctrlKeyDown && !shiftKeyDown) {
       selectedNoteKeys = []
     }
+
+    if (!shiftKeyDown) {
+      prevShiftNoteIndex = -1
+    }
+
     selectedNoteKeys.push(uniqueKey)
 
     if (shiftKeyDown && hasSelectedNoteKey) {
-      const firstSelectedNoteIndex = selectedNoteKeys[0] > this.state.firstShiftSelectedNoteIndex
-        ? selectedNoteKeys[0] : this.state.firstShiftSelectedNoteIndex
-      const lastSelectedNoteIndex = this.getNoteIndexByKey(uniqueKey)
-      const startIndex = firstSelectedNoteIndex < lastSelectedNoteIndex
-        ? firstSelectedNoteIndex : lastSelectedNoteIndex
-      const endIndex = firstSelectedNoteIndex > lastSelectedNoteIndex
-        ? firstSelectedNoteIndex : lastSelectedNoteIndex
+      let firstShiftNoteIndex = this.getNoteIndexByKey(selectedNoteKeys[0])
+      // Shift selection can either start from first note in the exisiting selectedNoteKeys
+      // or previous first shift note index
+      firstShiftNoteIndex = firstShiftNoteIndex > prevShiftNoteIndex
+        ? firstShiftNoteIndex : prevShiftNoteIndex
+
+      const lastShiftNoteIndex = this.getNoteIndexByKey(uniqueKey)
+
+      const startIndex = firstShiftNoteIndex < lastShiftNoteIndex
+        ? firstShiftNoteIndex : lastShiftNoteIndex
+      const endIndex = firstShiftNoteIndex > lastShiftNoteIndex
+        ? firstShiftNoteIndex : lastShiftNoteIndex
 
       selectedNoteKeys = []
       for (let i = startIndex; i <= endIndex; i++) {
         selectedNoteKeys.push(this.notes[i].key)
       }
 
-      firstShiftSelectedNoteIndex = firstSelectedNoteIndex
+      if (prevShiftNoteIndex < 0) {
+        prevShiftNoteIndex = firstShiftNoteIndex
+      }
     }
 
     this.setState({
       selectedNoteKeys,
-      firstShiftSelectedNoteIndex
+      prevShiftNoteIndex
     })
 
     router.push({

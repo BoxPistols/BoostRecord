@@ -84,7 +84,9 @@ class NoteList extends React.Component {
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
+      ctrlKeyDown: false,
       shiftKeyDown: false,
+      firstShiftSelectedNoteIndex: -1,
       selectedNoteKeys: []
     }
 
@@ -267,7 +269,7 @@ class NoteList extends React.Component {
   }
 
   handleNoteListKeyDown (e) {
-    if (e.metaKey || e.ctrlKey) return true
+    if (e.metaKey) return true
 
     // A key
     if (e.keyCode === 65 && !e.shiftKey) {
@@ -307,12 +309,18 @@ class NoteList extends React.Component {
 
     if (e.shiftKey) {
       this.setState({ shiftKeyDown: true })
+    } else if (e.ctrlKey) {
+      this.setState({ ctrlKeyDown: true })
     }
   }
 
   handleNoteListKeyUp (e) {
     if (!e.shiftKey) {
       this.setState({ shiftKeyDown: false })
+    }
+
+    if (!e.ctrlKey) {
+      this.setState({ ctrlKeyDown: false })
     }
   }
 
@@ -390,25 +398,51 @@ class NoteList extends React.Component {
     return pinnedNotes.concat(unpinnedNotes)
   }
 
+  getNoteIndexByKey (noteKey) {
+    return this.notes.findIndex((note) => {
+      if (!note) return -1
+
+      return note.key === noteKey
+    })
+  }
+
   handleNoteClick (e, uniqueKey) {
     const { router } = this.context
     const { location } = this.props
     let { selectedNoteKeys } = this.state
-    const { shiftKeyDown } = this.state
+    const { ctrlKeyDown, shiftKeyDown } = this.state
+    let firstShiftSelectedNoteIndex = -1
 
-    if (shiftKeyDown && selectedNoteKeys.includes(uniqueKey)) {
+    if (ctrlKeyDown && selectedNoteKeys.includes(uniqueKey)) {
       const newSelectedNoteKeys = selectedNoteKeys.filter((noteKey) => noteKey !== uniqueKey)
       this.setState({
         selectedNoteKeys: newSelectedNoteKeys
       })
       return
     }
-    if (!shiftKeyDown) {
+    if (!ctrlKeyDown && !shiftKeyDown) {
       selectedNoteKeys = []
     }
     selectedNoteKeys.push(uniqueKey)
+
+    if (shiftKeyDown && selectedNoteKeys.length > 0) {
+      const firstSelectedNoteIndex =
+        Math.max(this.getNoteIndexByKey(selectedNoteKeys[0]),
+        this.state.firstShiftSelectedNoteIndex)
+      const lastSelectedNoteIndex = this.getNoteIndexByKey(uniqueKey)
+      const startIndex = Math.min(firstSelectedNoteIndex, lastSelectedNoteIndex)
+      const endIndex = Math.max(firstSelectedNoteIndex, lastSelectedNoteIndex)
+      selectedNoteKeys = []
+      for (let i = startIndex; i <= endIndex; i++) {
+        selectedNoteKeys.push(this.notes[i].key)
+      }
+
+      firstShiftSelectedNoteIndex = firstSelectedNoteIndex
+    }
+
     this.setState({
-      selectedNoteKeys
+      selectedNoteKeys,
+      firstShiftSelectedNoteIndex
     })
 
     router.push({

@@ -269,7 +269,7 @@ class SideNav extends React.Component {
     const tags = pathSegments[pathSegments.length - 1]
     return (tags === 'alltags')
       ? []
-      : tags.split(' ').map(tag => decodeURIComponent(tag))
+      : decodeURIComponent(tags).split(' ')
   }
 
   handleClickTagListItem (name) {
@@ -301,7 +301,7 @@ class SideNav extends React.Component {
     } else {
       listOfTags.push(tag)
     }
-    router.push(`/tags/${listOfTags.map(tag => encodeURIComponent(tag)).join(' ')}`)
+    router.push(`/tags/${encodeURIComponent(listOfTags.join(' '))}`)
   }
 
   emptyTrash (entries) {

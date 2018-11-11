@@ -205,7 +205,7 @@
 	"Rename": "重命名",
 	"Folder Name": "文件夹名称",
 	"No tags":"无标签",
-	"Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.": "将文本箭头转换为完整符号。 ⚠ 注意这或会影响 Markdown 的 HTML 注释。",
+	"Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.": "将文本箭头转换为完整符号。 ⚠ 注意这会影响 Markdown 的 HTML 注释。",
   "⚠ You have pasted a link referring an attachment that could not be found in the storage location of this note. Pasting links referring attachments is only supported if the source and destination location is the same storage. Please Drag&Drop the attachment instead! ⚠": "⚠ You have pasted a link referring an attachment that could not be found in the storage location of this note. Pasting links referring attachments is only supported if the source and destination location is the same storage. Please Drag&Drop the attachment instead! ⚠",
   "Default New Note":"预设新笔记类型",
   "Show only related tags": "只显示相关标签",

@@ -15,7 +15,7 @@
     "dev": "node dev-scripts/dev.js"
   },
   "config": {
-    "electron-version": "3.0.3"
+    "electron-version": "3.0.8"
   },
   "repository": {
     "type": "git",

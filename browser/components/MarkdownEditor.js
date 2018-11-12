@@ -272,7 +272,7 @@ class MarkdownEditor extends React.Component {
           enableTableEditor={config.editor.enableTableEditor}
           onChange={(e) => this.handleChange(e)}
           onBlur={(e) => this.handleBlur(e)}
-          spellCheck
+          spellCheck={config.editor.spellcheck}
         />
         <MarkdownPreview styleName={this.state.status === 'PREVIEW'
             ? 'preview'

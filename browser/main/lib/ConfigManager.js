@@ -50,7 +50,8 @@ export const DEFAULT_CONFIG = {
     fetchUrlTitle: true,
     enableTableEditor: false,
     enableFrontMatterTitle: true,
-    frontMatterTitleField: 'title'
+    frontMatterTitleField: 'title',
+    spellcheck: false
   },
   preview: {
     fontSize: '14',

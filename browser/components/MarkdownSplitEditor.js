@@ -169,7 +169,7 @@ class MarkdownSplitEditor extends React.Component {
           noteKey={noteKey}
           onChange={this.handleOnChange.bind(this)}
           onScroll={this.handleScroll.bind(this)}
-          spellCheck
+          spellCheck={config.editor.spellcheck}
        />
         <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
           <div styleName='slider-hitbox' />

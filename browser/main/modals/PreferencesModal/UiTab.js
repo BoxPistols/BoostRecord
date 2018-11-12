@@ -91,7 +91,8 @@ class UiTab extends React.Component {
         fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
         enableTableEditor: this.refs.enableTableEditor.checked,
         enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
-        frontMatterTitleField: this.refs.frontMatterTitleField.value
+        frontMatterTitleField: this.refs.frontMatterTitleField.value,
+        spellcheck: this.refs.spellcheck.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -497,6 +498,16 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Enable smart table editor')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                     checked={this.state.config.editor.spellcheck}
+                     ref='spellcheck'
+                     type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable spellcheck - Experimental feature!! :)')}
             </label>
           </div>
 

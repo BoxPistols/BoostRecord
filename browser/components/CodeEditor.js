@@ -473,6 +473,16 @@ export default class CodeEditor extends React.Component {
       needRefresh = true
     }
 
+    if (prevProps.spellCheck !== this.props.spellCheck) {
+      if (this.props.spellCheck === false) {
+        spellcheck.setLanguage(this.editor, spellcheck.SPELLCHECK_DISABLED)
+        let elem = document.getElementById('editor-bottom-panel')
+        elem.parentNode.removeChild(elem)
+      } else {
+        this.editor.addPanel(this.createSpellCheckPanel(), {position: 'bottom'})
+      }
+    }
+
     if (needRefresh) {
       this.editor.refresh()
     }
@@ -731,6 +741,7 @@ export default class CodeEditor extends React.Component {
   createSpellCheckPanel () {
     const panel = document.createElement('div')
     panel.className = 'panel bottom'
+    panel.id = 'editor-bottom-panel'
     const dropdown = document.createElement('select')
     dropdown.title = 'Spellcheck'
     dropdown.className = styles['spellcheck-select']

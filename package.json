@@ -12,7 +12,8 @@
     "jest": "jest",
     "fix": "eslint . --fix",
     "lint": "eslint .",
-    "dev": "node dev-scripts/dev.js"
+    "dev": "node dev-scripts/dev.js",
+    "watch": "webpack-dev-server --hot"
   },
   "config": {
     "electron-version": "3.0.3"

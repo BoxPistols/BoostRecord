@@ -542,9 +542,9 @@ class UiTab extends React.Component {
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
-                     checked={this.state.config.editor.spellcheck}
-                     ref='spellcheck'
-                     type='checkbox'
+                checked={this.state.config.editor.spellcheck}
+                ref='spellcheck'
+                type='checkbox'
               />&nbsp;
               {i18n.__('Enable spellcheck - Experimental feature!! :)')}
             </label>

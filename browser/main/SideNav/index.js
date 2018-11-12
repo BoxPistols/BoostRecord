@@ -19,6 +19,7 @@ import {SortableContainer} from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
 import { remote } from 'electron'
+import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 
 function matchActiveTags (tags, activeTags) {
   return _.every(activeTags, v => tags.indexOf(v) >= 0)
@@ -309,6 +310,8 @@ class SideNav extends React.Component {
     const deletionPromises = entries.map((note) => {
       return dataApi.deleteNote(note.storage, note.key)
     })
+    const { confirmDeletion } = this.props.config.ui
+    if (!confirmDeleteNote(confirmDeletion, true)) return
     Promise.all(deletionPromises)
     .then((arrayOfStorageAndNoteKeys) => {
       arrayOfStorageAndNoteKeys.forEach(({ storageKey, noteKey }) => {

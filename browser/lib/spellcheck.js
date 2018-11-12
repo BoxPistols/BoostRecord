@@ -188,6 +188,9 @@ const debouncedSpellCheck = _.debounce(checkChangeRange, MILLISECONDS_TILL_LIVEC
  * @param changeObject codeMirror changeObject
  */
 function handleChange (editor, changeObject) {
+  if (dictionary === null) {
+    return
+  }
   debouncedSpellCheckLeading(changeObject)
   debouncedSpellCheck(editor, liveSpellCheckFrom, changeObject)
 }

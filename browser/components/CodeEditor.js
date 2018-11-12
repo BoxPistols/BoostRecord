@@ -72,6 +72,8 @@ export default class CodeEditor extends React.Component {
       }
     }
     this.editorActivityHandler = () => this.handleEditorActivity()
+
+    this.turndownService = new TurndownService()
   }
 
   handleSearch (msg) {

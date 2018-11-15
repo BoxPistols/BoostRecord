@@ -16,143 +16,20 @@ import convertModeName from 'browser/lib/convertModeName'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
+import formatMarkdown from 'browser/main/lib/dataApi/formatMarkdown'
+import formatHTML, { CSS_FILES, buildStyle, getCodeThemeLink, getStyleParams } from 'browser/main/lib/dataApi/formatHTML'
 import { escapeHtmlCharacters } from 'browser/lib/utils'
 import yaml from 'js-yaml'
 import context from 'browser/lib/context'
 import i18n from 'browser/lib/i18n'
 import fs from 'fs'
-
-const { remote, shell } = require('electron')
-const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
-
-const { app } = remote
-const path = require('path')
-const fileUrl = require('file-url')
+import path from 'path'
+import uri2path from 'file-uri-to-path'
+import { remote, shell } from 'electron'
+import attachmentManagement from '../main/lib/dataApi/attachmentManagement'
+import filenamify from 'filenamify'
 
 const dialog = remote.dialog
-
-const uri2path = require('file-uri-to-path')
-
-const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
-const appPath = fileUrl(
-  process.env.NODE_ENV === 'production' ? app.getAppPath() : path.resolve()
-)
-const CSS_FILES = [
-  `${appPath}/node_modules/katex/dist/katex.min.css`,
-  `${appPath}/node_modules/codemirror/lib/codemirror.css`
-]
-
-function buildStyle (
-  fontFamily,
-  fontSize,
-  codeBlockFontFamily,
-  lineNumber,
-  scrollPastEnd,
-  theme,
-  allowCustomCSS,
-  customCSS
-) {
-  return `
-@font-face {
-  font-family: 'Lato';
-  src: url('${appPath}/resources/fonts/Lato-Regular.woff2') format('woff2'), /* Modern Browsers */
-       url('${appPath}/resources/fonts/Lato-Regular.woff') format('woff'), /* Modern Browsers */
-       url('${appPath}/resources/fonts/Lato-Regular.ttf') format('truetype');
-  font-style: normal;
-  font-weight: normal;
-  text-rendering: optimizeLegibility;
-}
-@font-face {
-  font-family: 'Lato';
-  src: url('${appPath}/resources/fonts/Lato-Black.woff2') format('woff2'), /* Modern Browsers */
-       url('${appPath}/resources/fonts/Lato-Black.woff') format('woff'), /* Modern Browsers */
-       url('${appPath}/resources/fonts/Lato-Black.ttf') format('truetype');
-  font-style: normal;
-  font-weight: 700;
-  text-rendering: optimizeLegibility;
-}
-@font-face {
-  font-family: 'Material Icons';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Material Icons'),
-       local('MaterialIcons-Regular'),
-       url('${appPath}/resources/fonts/MaterialIcons-Regular.woff2') format('woff2'),
-       url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
-       url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
-}
-${markdownStyle}
-
-body {
-  font-family: '${fontFamily.join("','")}';
-  font-size: ${fontSize}px;
-  ${scrollPastEnd && 'padding-bottom: 90vh;'}
-}
-@media print {
-  body {
-    padding-bottom: initial;
-  }
-}
-code {
-  font-family: '${codeBlockFontFamily.join("','")}';
-  background-color: rgba(0,0,0,0.04);
-}
-.lineNumber {
-  ${lineNumber && 'display: block !important;'}
-  font-family: '${codeBlockFontFamily.join("','")}';
-}
-
-.clipboardButton {
-  color: rgba(147,147,149,0.8);;
-  fill: rgba(147,147,149,1);;
-  border-radius: 50%;
-  margin: 0px 10px;
-  border: none;
-  background-color: transparent;
-  outline: none;
-  height: 15px;
-  width: 15px;
-  cursor: pointer;
-}
-
-.clipboardButton:hover {
-  transition: 0.2s;
-  color: #939395;
-  fill: #939395;
-  background-color: rgba(0,0,0,0.1);
-}
-
-h1, h2 {
-  border: none;
-}
-
-h1 {
-  padding-bottom: 4px;
-  margin: 1em 0 8px;
-}
-
-h2 {
-  padding-bottom: 0.2em;
-  margin: 1em 0 0.37em;
-}
-
-body p {
-  white-space: normal;
-}
-
-@media print {
-  body[data-theme="${theme}"] {
-    color: #000;
-    background-color: #fff;
-  }
-  .clipboardButton {
-    display: none
-  }
-}
-
-${allowCustomCSS ? customCSS : ''}
-`
-}
 
 const scrollBarStyle = `
 ::-webkit-scrollbar {
@@ -173,21 +50,6 @@ const scrollBarDarkStyle = `
 }
 `
 
-const OSX = global.process.platform === 'darwin'
-
-const defaultFontFamily = ['helvetica', 'arial', 'sans-serif']
-if (!OSX) {
-  defaultFontFamily.unshift('Microsoft YaHei')
-  defaultFontFamily.unshift('meiryo')
-}
-const defaultCodeBlockFontFamily = [
-  'Monaco',
-  'Menlo',
-  'Ubuntu Mono',
-  'Consolas',
-  'source-code-pro',
-  'monospace'
-]
 export default class MarkdownPreview extends React.Component {
   constructor (props) {
     super(props)
@@ -286,96 +148,11 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsMd () {
-    this.exportAsDocument('md', (noteContent, exportTasks) => {
-      let result = noteContent
-      if (this.props && this.props.storagePath && this.props.noteKey) {
-        const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
-          noteContent,
-          this.props.storagePath
-        )
-        attachmentsAbsolutePaths.forEach(attachment => {
-          exportTasks.push({
-            src: attachment,
-            dst: attachmentManagement.DESTINATION_FOLDER
-          })
-        })
-        result = attachmentManagement.removeStorageAndNoteReferences(
-          noteContent,
-          this.props.noteKey
-        )
-      }
-      return result
-    })
+    this.exportAsDocument('md', formatMarkdown(this.props))
   }
 
   handleSaveAsHtml () {
-    this.exportAsDocument('html', (noteContent, exportTasks) => {
-      const {
-        fontFamily,
-        fontSize,
-        codeBlockFontFamily,
-        lineNumber,
-        codeBlockTheme,
-        scrollPastEnd,
-        theme,
-        allowCustomCSS,
-        customCSS
-      } = this.getStyleParams()
-
-      const inlineStyles = buildStyle(
-        fontFamily,
-        fontSize,
-        codeBlockFontFamily,
-        lineNumber,
-        scrollPastEnd,
-        theme,
-        allowCustomCSS,
-        customCSS
-      )
-      let body = this.markdown.render(noteContent)
-      const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
-      const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
-        noteContent,
-        this.props.storagePath
-      )
-
-      files.forEach(file => {
-        if (global.process.platform === 'win32') {
-          file = file.replace('file:///', '')
-        } else {
-          file = file.replace('file://', '')
-        }
-        exportTasks.push({
-          src: file,
-          dst: 'css'
-        })
-      })
-      attachmentsAbsolutePaths.forEach(attachment => {
-        exportTasks.push({
-          src: attachment,
-          dst: attachmentManagement.DESTINATION_FOLDER
-        })
-      })
-      body = attachmentManagement.removeStorageAndNoteReferences(
-        body,
-        this.props.noteKey
-      )
-
-      let styles = ''
-      files.forEach(file => {
-        styles += `<link rel="stylesheet" href="css/${path.basename(file)}">`
-      })
-
-      return `<html>
-                 <head>
-                   <meta charset="UTF-8">
-                   <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
-                   <style id="style">${inlineStyles}</style>
-                   ${styles}
-                 </head>
-                 <body>${body}</body>
-              </html>`
-    })
+    this.exportAsDocument('html', formatHTML(this.props))
   }
 
   handlePrint () {
@@ -383,17 +160,21 @@ export default class MarkdownPreview extends React.Component {
   }
 
   exportAsDocument (fileType, contentFormatter) {
+    const note = this.props.getNote()
+
     const options = {
+      defaultPath: filenamify(note.title, {
+        replacement: '_'
+      }),
       filters: [{ name: 'Documents', extensions: [fileType] }],
       properties: ['openFile', 'createDirectory']
     }
 
     dialog.showSaveDialog(remote.getCurrentWindow(), options, filename => {
       if (filename) {
-        const content = this.props.value
-        const storage = this.props.storagePath
+        const storagePath = this.props.storagePath
 
-        exportNote(storage, content, filename, contentFormatter)
+        exportNote(storagePath, note, filename, contentFormatter)
           .then(res => {
             dialog.showMessageBox(remote.getCurrentWindow(), {
               type: 'info',
@@ -555,44 +336,6 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
-  getStyleParams () {
-    const {
-      fontSize,
-      lineNumber,
-      codeBlockTheme,
-      scrollPastEnd,
-      theme,
-      allowCustomCSS,
-      customCSS
-    } = this.props
-    let { fontFamily, codeBlockFontFamily } = this.props
-    fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
-      ? fontFamily
-          .split(',')
-          .map(fontName => fontName.trim())
-          .concat(defaultFontFamily)
-      : defaultFontFamily
-    codeBlockFontFamily = _.isString(codeBlockFontFamily) &&
-      codeBlockFontFamily.trim().length > 0
-      ? codeBlockFontFamily
-          .split(',')
-          .map(fontName => fontName.trim())
-          .concat(defaultCodeBlockFontFamily)
-      : defaultCodeBlockFontFamily
-
-    return {
-      fontFamily,
-      fontSize,
-      codeBlockFontFamily,
-      lineNumber,
-      codeBlockTheme,
-      scrollPastEnd,
-      theme,
-      allowCustomCSS,
-      customCSS
-    }
-  }
-
   applyStyle () {
     const {
       fontFamily,
@@ -604,11 +347,10 @@ export default class MarkdownPreview extends React.Component {
       theme,
       allowCustomCSS,
       customCSS
-    } = this.getStyleParams()
+    } = getStyleParams(this.props)
 
-    this.getWindow().document.getElementById(
-      'codeTheme'
-    ).href = this.GetCodeThemeLink(codeBlockTheme)
+    this.getWindow().document.getElementById('codeTheme').href = getCodeThemeLink(codeBlockTheme)
+
     this.getWindow().document.getElementById('style').innerHTML = buildStyle(
       fontFamily,
       fontSize,
@@ -619,16 +361,6 @@ export default class MarkdownPreview extends React.Component {
       allowCustomCSS,
       customCSS
     )
-  }
-
-  GetCodeThemeLink (theme) {
-    theme = consts.THEMES.some(_theme => _theme === theme) &&
-      theme !== 'default'
-      ? theme
-      : 'elegant'
-    return theme.startsWith('solarized')
-      ? `${appPath}/node_modules/codemirror/theme/solarized.css`
-      : `${appPath}/node_modules/codemirror/theme/${theme}.css`
   }
 
   rewriteIframe () {

@@ -42,12 +42,16 @@ class StorageItem extends React.Component {
         label: i18n.__('Export Storage'),
         submenu: [
           {
-            label: i18n.__('Export as txt'),
+            label: i18n.__('Export as Plain Text (.txt)'),
             click: (e) => this.handleExportStorageClick(e, 'txt')
           },
           {
-            label: i18n.__('Export as md'),
+            label: i18n.__('Export as Markdown (.md)'),
             click: (e) => this.handleExportStorageClick(e, 'md')
+          },
+          {
+            label: i18n.__('Export as HTML (.html)'),
+            click: (e) => this.handleExportStorageClick(e, 'html')
           }
         ]
       },
@@ -94,15 +98,27 @@ class StorageItem extends React.Component {
     dialog.showOpenDialog(remote.getCurrentWindow(), options,
       (paths) => {
         if (paths && paths.length === 1) {
-          const { storage, dispatch } = this.props
+          const { storage, dispatch, config } = this.props
           dataApi
-            .exportStorage(storage.key, fileType, paths[0])
+            .exportStorage(storage.key, fileType, paths[0], config)
             .then(data => {
+              dialog.showMessageBox(remote.getCurrentWindow(), {
+                type: 'info',
+                message: `Exported to ${paths[0]}`
+              })
+
               dispatch({
                 type: 'EXPORT_STORAGE',
                 storage: data.storage,
                 fileType: data.fileType
               })
+            })
+            .catch(error => {
+              dialog.showErrorBox(
+                'Export error',
+                error ? error.message || error : 'Unexpected error during export'
+              )
+              throw error
             })
         }
       })
@@ -157,12 +173,16 @@ class StorageItem extends React.Component {
         label: i18n.__('Export Folder'),
         submenu: [
           {
-            label: i18n.__('Export as txt'),
+            label: i18n.__('Export as Plain Text (.txt)'),
             click: (e) => this.handleExportFolderClick(e, folder, 'txt')
           },
           {
-            label: i18n.__('Export as md'),
+            label: i18n.__('Export as Markdown (.md)'),
             click: (e) => this.handleExportFolderClick(e, folder, 'md')
+          },
+          {
+            label: i18n.__('Export as HTML (.html)'),
+            click: (e) => this.handleExportFolderClick(e, folder, 'html')
           }
         ]
       },
@@ -194,16 +214,28 @@ class StorageItem extends React.Component {
     dialog.showOpenDialog(remote.getCurrentWindow(), options,
     (paths) => {
       if (paths && paths.length === 1) {
-        const { storage, dispatch } = this.props
+        const { storage, dispatch, config } = this.props
         dataApi
-          .exportFolder(storage.key, folder.key, fileType, paths[0])
-          .then((data) => {
+          .exportFolder(storage.key, folder.key, fileType, paths[0], config)
+          .then(data => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+              type: 'info',
+              message: `Exported to ${paths[0]}`
+            })
+
             dispatch({
               type: 'EXPORT_FOLDER',
               storage: data.storage,
               folderKey: data.folderKey,
               fileType: data.fileType
             })
+          })
+          .catch(error => {
+            dialog.showErrorBox(
+              'Export error',
+              error ? error.message || error : 'Unexpected error during export'
+            )
+            throw error
           })
       }
     })
@@ -274,7 +306,7 @@ class StorageItem extends React.Component {
     const { folderNoteMap, trashedSet } = data
     const SortableStorageItemChild = SortableElement(StorageItemChild)
     const folderList = storage.folders.map((folder, index) => {
-      let folderRegex = new RegExp(escapeStringRegexp(path.sep) + 'storages' + escapeStringRegexp(path.sep) + storage.key + escapeStringRegexp(path.sep) + 'folders' + escapeStringRegexp(path.sep) + folder.key)
+      const folderRegex = new RegExp(escapeStringRegexp(path.sep) + 'storages' + escapeStringRegexp(path.sep) + storage.key + escapeStringRegexp(path.sep) + 'folders' + escapeStringRegexp(path.sep) + folder.key)
       const isActive = !!(location.pathname.match(folderRegex))
       const noteSet = folderNoteMap.get(storage.key + '-' + folder.key)
 

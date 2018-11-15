@@ -49,6 +49,8 @@ class MarkdownNoteDetail extends React.Component {
 
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
     this.generateToc = () => this.handleGenerateToc()
+
+    this.getNote = this.getNote.bind(this)
   }
 
   focus () {
@@ -319,6 +321,10 @@ class MarkdownNoteDetail extends React.Component {
     this.updateNote(note)
   }
 
+  getNote () {
+    return this.state.note
+  }
+
   renderEditor () {
     const { config, ignorePreviewPointerEvents } = this.props
     const { note } = this.state
@@ -333,6 +339,7 @@ class MarkdownNoteDetail extends React.Component {
         noteKey={note.key}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
+        getNote={this.getNote}
       />
     } else {
       return <MarkdownSplitEditor
@@ -343,6 +350,7 @@ class MarkdownNoteDetail extends React.Component {
         noteKey={note.key}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
+        getNote={this.getNote}
       />
     }
   }

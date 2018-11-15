@@ -82,8 +82,9 @@ export const DEFAULT_CONFIG = {
     password: ''
   },
   export: {
-    action: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'
-    variable: 'metadata'
+    metadata: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'
+    variable: 'boostnote',
+    prefixAttachmentFolder: false
   }
 }
 

@@ -347,6 +347,7 @@ class SideNav extends React.Component {
         dispatch={dispatch}
         onSortEnd={this.onSortEnd.bind(this)(storage)}
         useDragHandle
+        config={config}
       />
     })
     const style = {}

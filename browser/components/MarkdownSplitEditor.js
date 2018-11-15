@@ -134,7 +134,7 @@ class MarkdownSplitEditor extends React.Component {
   }
 
   render () {
-    const {config, value, storageKey, noteKey} = this.props
+    const {config, value, storageKey, noteKey, getTitle} = this.props
     const storage = findStorage(storageKey)
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -199,6 +199,8 @@ class MarkdownSplitEditor extends React.Component {
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
           lineThroughCheckbox={config.preview.lineThroughCheckbox}
+          getTitle={getTitle}
+          export={config.export}
        />
       </div>
     )

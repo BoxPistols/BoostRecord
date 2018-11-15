@@ -387,6 +387,17 @@ function removeStorageAndNoteReferences (input, noteKey) {
 }
 
 /**
+ * @description replace all :storage references with given destination folder.
+ * @param input Input in which the references should be deleted
+ * @param noteKey Key of the current note
+ * @param destinationFolder Destination folder of the attachements
+ * @returns {String} Input without the references
+ */
+function replaceStorageReferences (input, noteKey, destinationFolder) {
+  return input.replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + noteKey + ')?', 'g'), destinationFolder || DESTINATION_FOLDER)
+}
+
+/**
  * @description Deletes the attachment folder specified by the given storageKey and noteKey
  * @param storageKey Key of the storage of the note to be deleted
  * @param noteKey Key of the note to be deleted
@@ -542,6 +553,7 @@ module.exports = {
   getAttachmentsInMarkdownContent,
   getAbsolutePathsOfAttachmentsInContent,
   removeStorageAndNoteReferences,
+  replaceStorageReferences,
   deleteAttachmentFolder,
   deleteAttachmentsNotPresentInNote,
   moveAttachments,

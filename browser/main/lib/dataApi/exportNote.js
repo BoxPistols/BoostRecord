@@ -16,7 +16,7 @@ const path = require('path')
  * @param {function} outputFormatter
  * @return {Promise.<*[]>}
  */
-function exportNote (storageKey, noteContent, targetPath, outputFormatter) {
+function exportNote (storageKey, note, targetPath, outputFormatter) {
   const storagePath = path.isAbsolute(storageKey) ? storageKey : findStorage(storageKey).path
   const exportTasks = []
 
@@ -24,20 +24,18 @@ function exportNote (storageKey, noteContent, targetPath, outputFormatter) {
     throw new Error('Storage path is not found')
   }
 
-  let exportedData = noteContent
-
-  if (outputFormatter) {
-    exportedData = outputFormatter(exportedData, exportTasks)
-  }
+  const exportedData = outputFormatter ? outputFormatter(note, targetPath, exportTasks) : note.content
 
   const tasks = prepareTasks(exportTasks, storagePath, path.dirname(targetPath))
 
-  return Promise.all(tasks.map((task) => copyFile(task.src, task.dst)))
+  return Promise
+  .all(tasks.map(task => copyFile(task.src, task.dst)))
   .then(() => {
     return saveToFile(exportedData, targetPath)
-  }).catch((err) => {
+  })
+  .catch(error => {
     rollbackExport(tasks)
-    throw err
+    throw error
   })
 }
 
@@ -57,10 +55,12 @@ function prepareTasks (tasks, storagePath, targetPath) {
 
 function saveToFile (data, filename) {
   return new Promise((resolve, reject) => {
-    fs.writeFile(filename, data, (err) => {
-      if (err) return reject(err)
-
-      resolve(filename)
+    fs.writeFile(filename, data, error => {
+      if (error) {
+        reject(error)
+      } else {
+        resolve(filename)
+      }
     })
   })
 }

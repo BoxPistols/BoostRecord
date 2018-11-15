@@ -47,12 +47,20 @@ test.serial('Export a folder', (t) => {
   }
   input2.title = 'input2'
 
+  const config = {
+    export: {
+      metadata: 'DONT_EXPORT',
+      variable: 'boostnote',
+      prefixAttachmentFolder: false
+    }
+  }
+
   return createNote(storageKey, input1)
     .then(function () {
       return createNote(storageKey, input2)
     })
     .then(function () {
-      return exportFolder(storageKey, folderKey, 'md', storagePath)
+      return exportFolder(storageKey, folderKey, 'md', storagePath, config)
     })
     .then(function assert () {
       let filePath = path.join(storagePath, 'input1.md')

@@ -2,14 +2,17 @@ import { findStorage } from 'browser/lib/findStorage'
 import resolveStorageData from './resolveStorageData'
 import resolveStorageNotes from './resolveStorageNotes'
 import filenamify from 'filenamify'
-import * as path from 'path'
-import * as fs from 'fs'
+import path from 'path'
+import exportNote from './exportNote'
+import formatMarkdown from './formatMarkdown'
+import formatHTML from './formatHTML'
 
 /**
  * @param {String} storageKey
  * @param {String} folderKey
  * @param {String} fileType
  * @param {String} exportDir
+ * @param {Object} config
  *
  * @return {Object}
  * ```
@@ -22,7 +25,7 @@ import * as fs from 'fs'
  * ```
  */
 
-function exportFolder (storageKey, folderKey, fileType, exportDir) {
+function exportFolder (storageKey, folderKey, fileType, exportDir, config) {
   let targetStorage
   try {
     targetStorage = findStorage(storageKey)
@@ -31,31 +34,50 @@ function exportFolder (storageKey, folderKey, fileType, exportDir) {
   }
 
   return resolveStorageData(targetStorage)
-    .then(function assignNotes (storage) {
-      return resolveStorageNotes(storage)
-        .then((notes) => {
-          return {
-            storage,
-            notes
-          }
-        })
-    })
-    .then(function exportNotes (data) {
-      const { storage, notes } = data
-
-      notes
-        .filter(note => note.folder === folderKey && note.isTrashed === false && note.type === 'MARKDOWN_NOTE')
-        .forEach(snippet => {
-          const notePath = path.join(exportDir, `${filenamify(snippet.title, {replacement: '_'})}.${fileType}`)
-          fs.writeFileSync(notePath, snippet.content)
-        })
-
-      return {
+    .then(storage => {
+      return resolveStorageNotes(storage).then(notes => ({
         storage,
-        folderKey,
-        fileType,
-        exportDir
+        notes: notes.filter(note => note.folder === folderKey && !note.isTrashed && note.type === 'MARKDOWN_NOTE')
+      }))
+    })
+    .then(({ storage, notes }) => {
+      let contentFormatter = null
+      if (fileType === 'md') {
+        contentFormatter = formatMarkdown({
+          storagePath: storage.path,
+          export: config.export
+        })
+      } else if (fileType === 'html') {
+        contentFormatter = formatHTML({
+          theme: config.ui.theme,
+          fontSize: config.preview.fontSize,
+          fontFamily: config.preview.fontFamily,
+          codeBlockTheme: config.preview.codeBlockTheme,
+          codeBlockFontFamily: config.editor.fontFamily,
+          lineNumber: config.preview.lineNumber,
+          scrollPastEnd: config.preview.scrollPastEnd,
+          smartQuotes: config.preview.smartQuotes,
+          breaks: config.preview.breaks,
+          sanitize: config.preview.sanitize,
+          customCSS: config.preview.customCSS,
+          allowCustomCSS: config.preview.allowCustomCSS,
+          storagePath: storage.path,
+          export: config.export
+        })
       }
+
+      return Promise
+        .all(notes.map(note => {
+          const targetPath = path.join(exportDir, `${filenamify(note.title, {replacement: '_'})}.${fileType}`)
+
+          return exportNote(storage.key, note, targetPath, contentFormatter)
+        }))
+        .then(() => ({
+          storage,
+          folderKey,
+          fileType,
+          exportDir
+        }))
     })
 }
 

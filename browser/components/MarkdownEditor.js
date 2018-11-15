@@ -230,7 +230,7 @@ class MarkdownEditor extends React.Component {
   }
 
   render () {
-    const {className, value, config, storageKey, noteKey} = this.props
+    const {className, value, config, storageKey, noteKey, getNote} = this.props
 
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -308,6 +308,8 @@ class MarkdownEditor extends React.Component {
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
           lineThroughCheckbox={config.preview.lineThroughCheckbox}
+          getNote={getNote}
+          export={config.export}
         />
       </div>
     )

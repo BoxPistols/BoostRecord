@@ -30,21 +30,19 @@ class ExportTab extends React.Component {
   componentDidMount () {
     this.handleSettingDone = () => {
       this.setState({
-          ExportAlert: {
-            type: 'success',
-            message: i18n.__('Successfully applied!')
-          }
+        ExportAlert: {
+          type: 'success',
+          message: i18n.__('Successfully applied!')
         }
-      )
+      })
     }
     this.handleSettingError = (err) => {
       this.setState({
-          ExportAlert: {
-            type: 'error',
-            message: err.message != null ? err.message : i18n.__('An error occurred!')
-          }
+        ExportAlert: {
+          type: 'error',
+          message: err.message != null ? err.message : i18n.__('An error occurred!')
         }
-      )
+      })
     }
 
     this.oldExport = this.state.config.export
@@ -78,8 +76,9 @@ class ExportTab extends React.Component {
     const { config } = this.state
 
     config.export = {
-      action: this.refs.action.value,
-      variable: !_.isNil(this.refs.variable) ? this.refs.variable.value : config.export.variable
+      metadata: this.refs.metadata.value,
+      variable: !_.isNil(this.refs.variable) ? this.refs.variable.value : config.export.variable,
+      prefixAttachmentFolder: this.refs.prefixAttachmentFolder.checked
     }
 
     this.setState({
@@ -99,7 +98,6 @@ class ExportTab extends React.Component {
 
   render () {
     const { config, ExportAlert } = this.state
-    console.log(config.export)
 
     const ExportAlertElement = ExportAlert != null
       ? <p className={`alert ${ExportAlert.type}`}>
@@ -114,12 +112,12 @@ class ExportTab extends React.Component {
 
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              {i18n.__('Action')}
+              {i18n.__('Metadata')}
             </div>
             <div styleName='group-section-control'>
-              <select value={config.export.action}
+              <select value={config.export.metadata}
                 onChange={(e) => this.handleExportChange(e)}
-                ref='action'
+                ref='metadata'
               >
                 <option value='DONT_EXPORT'>{i18n.__(`Don't export`)}</option>
                 <option value='MERGE_HEADER'>{i18n.__('Merge with the header')}</option>
@@ -128,7 +126,7 @@ class ExportTab extends React.Component {
             </div>
           </div>
 
-          { config.export.action === 'MERGE_VARIABLE' &&
+          { config.export.metadata === 'MERGE_VARIABLE' &&
             <div styleName='group-section'>
               <div styleName='group-section-label'>{i18n.__('Variable Name')}</div>
               <div styleName='group-section-control'>
@@ -140,6 +138,17 @@ class ExportTab extends React.Component {
               </div>
             </div>
           }
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleExportChange(e)}
+                checked={config.export.prefixAttachmentFolder}
+                ref='prefixAttachmentFolder'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Prefix attachment folder')}
+            </label>
+          </div>
 
           <div styleName='group-control'>
             <button styleName='group-control-rightButton'

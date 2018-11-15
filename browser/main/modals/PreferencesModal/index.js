@@ -89,7 +89,7 @@ class Preferences extends React.Component {
             haveToSave={alert => this.setState({BlogAlert: alert})}
           />
         )
-       case 'EXPORT':
+      case 'EXPORT':
         return (
           <ExportTab
             dispatch={dispatch}

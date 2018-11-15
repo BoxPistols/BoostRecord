@@ -80,6 +80,10 @@ export const DEFAULT_CONFIG = {
     token: '',
     username: '',
     password: ''
+  },
+  export: {
+    action: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'
+    variable: 'metadata'
   }
 }
 

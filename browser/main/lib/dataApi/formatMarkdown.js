@@ -70,7 +70,7 @@ function getFrontMatter (markdown) {
 
   if (delimiterRegExp.test(lines[0])) {
     let line = 0
-    while (++line < lines.length && delimiterRegExp.test(lines[line])) {
+    while (++line < lines.length && !delimiterRegExp.test(lines[line])) {
     }
 
     return yaml.load(lines.slice(1, line).join('\n')) || {}
@@ -82,9 +82,9 @@ function getFrontMatter (markdown) {
 function replaceFrontMatter (markdown, metadata) {
   const lines = markdown.split('\n')
 
-  if (lines[0] === '---') {
+  if (delimiterRegExp.test(lines[0])) {
     let line = 0
-    while (++line < lines.length && lines[line] !== '---') {
+    while (++line < lines.length && !delimiterRegExp.test(lines[line])) {
     }
 
     return `---\n${yaml.dump(metadata)}---\n${lines.slice(line + 1).join('\n')}`

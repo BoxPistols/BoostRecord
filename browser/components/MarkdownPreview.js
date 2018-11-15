@@ -21,6 +21,7 @@ import yaml from 'js-yaml'
 import context from 'browser/lib/context'
 import i18n from 'browser/lib/i18n'
 import fs from 'fs'
+import ConfigManager from '../main/lib/ConfigManager'
 
 const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
@@ -263,6 +264,10 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleMouseDown (e) {
+    const config = ConfigManager.get()
+    if (config.editor.switchPreview === 'RIGHTCLICK' && e.buttons === 2 && config.editor.type === 'SPLIT') {
+      eventEmitter.emit('topbar:togglemodebutton', 'CODE')
+    }
     if (e.target != null) {
       switch (e.target.tagName) {
         case 'A':

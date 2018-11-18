@@ -388,7 +388,7 @@ function removeStorageAndNoteReferences (input, noteKey) {
 
 /**
  * @description replace all :storage references with given destination folder.
- * @param input Input in which the references should be deleted
+ * @param input Input in which the references should be replaced
  * @param noteKey Key of the current note
  * @param destinationFolder Destination folder of the attachements
  * @returns {String} Input without the references

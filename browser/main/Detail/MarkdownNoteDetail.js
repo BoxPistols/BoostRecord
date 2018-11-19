@@ -217,30 +217,6 @@ class MarkdownNoteDetail extends React.Component {
           }
         }
         break
-      // L key
-      case 76:
-        {
-          const isSuper = global.process.platform === 'darwin'
-            ? e.metaKey
-            : e.ctrlKey
-          if (isSuper) {
-            e.preventDefault()
-            this.focus()
-          }
-        }
-        break
-      // T key
-      case 84:
-        {
-          const isSuper = global.process.platform === 'darwin'
-            ? e.metaKey
-            : e.ctrlKey
-          if (isSuper && !e.shiftKey && !e.altKey) {
-            e.preventDefault()
-            this.addSnippet()
-          }
-        }
-        break
     }
   }
 

@@ -789,6 +789,7 @@ class SnippetNoteDetail extends React.Component {
           exportAsMd={this.showWarning}
           exportAsTxt={this.showWarning}
           type={note.type}
+          print={this.showWarning}
         />
       </div>
     </div>

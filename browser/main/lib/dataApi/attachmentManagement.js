@@ -227,7 +227,15 @@ function migrateAttachments (markdownContent, storagePath, noteKey) {
  * @returns {String} postprocessed HTML in which all :storage references are mapped to the actual paths.
  */
 function fixLocalURLS (renderedHTML, storagePath) {
-  return renderedHTML.replace(new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '.*?', 'g'), function (match) {
+  /*
+    A :storage reference is like `:storage/3b6f8bd6-4edd-4b15-96e0-eadc4475b564/f939b2c3.jpg`.
+
+    - `STORAGE_FOLDER_PLACEHOLDER` will match `:storage`
+    - `(?:(?:\\\/|%5C)[\\w.]+)+` will match `/3b6f8bd6-4edd-4b15-96e0-eadc4475b564/f939b2c3.jpg`
+    - `(?:\\\/|%5C)[\\w.]+` will either match `/3b6f8bd6-4edd-4b15-96e0-eadc4475b564` or `/f939b2c3.jpg`
+    - `(?:\\\/|%5C)` match the path seperator. `\\\/` for posix systems and `%5C` for windows.
+  */
+  return renderedHTML.replace(new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '(?:(?:\\\/|%5C)[\\w.]+)+', 'g'), function (match) {
     var encodedPathSeparators = new RegExp(mdurl.encode(path.win32.sep) + '|' + mdurl.encode(path.posix.sep), 'g')
     return match.replace(encodedPathSeparators, path.sep).replace(new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER, 'g'), 'file:///' + path.join(storagePath, DESTINATION_FOLDER))
   })

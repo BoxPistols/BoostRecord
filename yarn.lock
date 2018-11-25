@@ -58,6 +58,11 @@
   dependencies:
     arrify "^1.0.1"
 
+"@enyaxu/markdown-it-anchor@^5.0.2":
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/@enyaxu/markdown-it-anchor/-/markdown-it-anchor-5.0.2.tgz#d173f7b60b492aabc17dfba864c4d071f5595f72"
+  integrity sha512-HBQ+by3IFHh2i5nw8fzn9qrdA+6uwzre68EzHpBX/WrwgnKrfvckPzdi7MphKp2C617edfpeibucslHDNPYkvQ==
+
 "@ladjs/time-require@^0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@ladjs/time-require/-/time-require-0.1.4.tgz#5c615d75fd647ddd5de9cf6922649558856b21a1"
@@ -2942,9 +2947,9 @@ electron-winstaller@^2.2.0:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
-electron@3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-3.0.3.tgz#2857ed8d37c1b46e0a75a72684800252255f3243"
+electron@3.0.8:
+  version "3.0.8"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-3.0.8.tgz#7905806ebaead4c693531e11cda6568c32efa7bb"
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^4.1.0"
@@ -5892,12 +5897,6 @@ markdown-it-multimd-table@^2.0.1:
   dependencies:
     markdown-it "^5.0.3"
 
-markdown-it-named-headers@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/markdown-it-named-headers/-/markdown-it-named-headers-0.0.4.tgz#82efc28324240a6b1e77b9aae501771d5f351c1f"
-  dependencies:
-    string "^3.0.1"
-
 markdown-it-plantuml@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/markdown-it-plantuml/-/markdown-it-plantuml-1.1.0.tgz#9ab8bfa09a02d80845e16e60f87a488edb50fdde"
@@ -8492,10 +8491,6 @@ string-width@^1.0.1, string-width@^1.0.2:
     is-fullwidth-code-point "^2.0.0"
     strip-ansi "^4.0.0"
 
-string@^3.0.1:
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/string/-/string-3.3.3.tgz#5ea211cd92d228e184294990a6cc97b366a77cb0"
-
 string_decoder@^0.10.25, string_decoder@~0.10.x:
   version "0.10.31"
   resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-0.10.31.tgz#62e203bc41766c6c28c9fc84301dab1c5310fa94"
@@ -8935,6 +8930,10 @@ type-is@~1.6.15, type-is@~1.6.16:
 typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
+
+typo-js@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/typo-js/-/typo-js-1.0.3.tgz#54d8ebc7949f1a7810908b6002c6841526c99d5a"
 
 ua-parser-js@^0.7.9:
   version "0.7.18"

@@ -68,6 +68,7 @@ class UiTab extends React.Component {
         theme: this.refs.uiTheme.value,
         language: this.refs.uiLanguage.value,
         defaultNote: this.refs.defaultNote.value,
+        tagNewNoteWithFilteringTags: this.refs.tagNewNoteWithFilteringTags.checked,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
         showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
@@ -268,6 +269,7 @@ class UiTab extends React.Component {
             </div>
             : null
           }
+
           <div styleName='group-header2'>Tags</div>
 
           <div styleName='group-checkBoxSection'>
@@ -311,6 +313,17 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Enable live count of notes')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.tagNewNoteWithFilteringTags}
+                ref='tagNewNoteWithFilteringTags'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('New notes are tagged with the filtering tags')}
             </label>
           </div>
 

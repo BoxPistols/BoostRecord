@@ -18,15 +18,23 @@ const PATH_SEPARATORS = escapeStringRegexp(path.posix.sep) + escapeStringRegexp(
  * @returns {Promise<Image>} Image element created
  */
 function getImage (file) {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    const img = new Image()
-    img.onload = () => resolve(img)
-    reader.onload = e => {
-      img.src = e.target.result
-    }
-    reader.readAsDataURL(file)
-  })
+  if (_.isString(file)) {
+    return new Promise(resolve => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.src = file
+    })
+  } else {
+    return new Promise(resolve => {
+      const reader = new FileReader()
+      const img = new Image()
+      img.onload = () => resolve(img)
+      reader.onload = e => {
+        img.src = e.target.result
+      }
+      reader.readAsDataURL(file)
+    })
+  }
 }
 
 /**
@@ -253,23 +261,57 @@ function generateAttachmentMarkdown (fileName, path, showPreview) {
  * @param {Event} dropEvent DropEvent
  */
 function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
-  const file = dropEvent.dataTransfer.files[0]
-  const filePath = file.path
-  const originalFileName = path.basename(filePath)
-  const fileType = file['type']
-  const isImage = fileType.startsWith('image')
-  let promise
-  if (isImage) {
-    promise = fixRotate(file).then(base64data => {
-      return copyAttachment({type: 'base64', data: base64data, sourceFilePath: filePath}, storageKey, noteKey)
+  if (dropEvent.dataTransfer.files.length > 0) {
+    const file = dropEvent.dataTransfer.files[0]
+    const filePath = file.path
+    const originalFileName = path.basename(filePath)
+    const fileType = file['type']
+    const isImage = fileType.startsWith('image')
+    let promise
+    if (isImage) {
+      console.log(file)
+      promise = fixRotate(file).then(base64data => {
+        return copyAttachment({type: 'base64', data: base64data, sourceFilePath: filePath}, storageKey, noteKey)
+      })
+    } else {
+      promise = copyAttachment(filePath, storageKey, noteKey)
+    }
+    promise.then((fileName) => {
+      const imageMd = generateAttachmentMarkdown(originalFileName, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, fileName), isImage)
+      codeEditor.insertAttachmentMd(imageMd)
     })
   } else {
-    promise = copyAttachment(filePath, storageKey, noteKey)
+    for (let i = 0; i < dropEvent.dataTransfer.items.length; i++) {
+      const item = dropEvent.dataTransfer.items[i]
+
+      if (item.type === 'text/html') {
+        const html = dropEvent.dataTransfer.getData('text/html')
+
+        const match = /<img[^>]*src="([^"]+)"/.exec(html)
+        if (match) {
+          const imageURL = match[1]
+
+          getImage(imageURL)
+            .then(image => {
+              const canvas = document.createElement('canvas')
+              const context = canvas.getContext('2d')
+              canvas.width = image.width
+              canvas.height = image.height
+              context.drawImage(image, 0, 0)
+
+              return copyAttachment({type: 'base64', data: canvas.toDataURL(), sourceFilePath: imageURL}, storageKey, noteKey)
+            })
+            .then(fileName => {
+              const imageMd = generateAttachmentMarkdown(imageURL, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, fileName), true)
+
+              codeEditor.insertAttachmentMd(imageMd)
+            })
+
+          break
+        }
+      }
+    }
   }
-  promise.then((fileName) => {
-    const imageMd = generateAttachmentMarkdown(originalFileName, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, fileName), isImage)
-    codeEditor.insertAttachmentMd(imageMd)
-  })
 }
 
 /**

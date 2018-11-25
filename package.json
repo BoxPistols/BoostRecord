@@ -48,6 +48,7 @@
   },
   "homepage": "https://boostnote.io",
   "dependencies": {
+    "@enyaxu/markdown-it-anchor": "^5.0.2",
     "@rokt33r/markdown-it-math": "^4.0.1",
     "@rokt33r/season": "^5.3.0",
     "@susisu/mte-kernel": "^2.0.0",
@@ -81,7 +82,6 @@
     "markdown-it-imsize": "^2.0.1",
     "markdown-it-kbd": "^1.1.1",
     "markdown-it-multimd-table": "^2.0.1",
-    "markdown-it-named-headers": "^0.0.4",
     "markdown-it-plantuml": "^1.1.0",
     "markdown-it-smartarrows": "^1.0.1",
     "markdown-it-sub": "^1.0.0",
@@ -105,11 +105,11 @@
     "sander": "^0.5.1",
     "sanitize-html": "^1.18.2",
     "striptags": "^2.2.1",
+    "turndown": "^4.0.2",
+    "turndown-plugin-gfm": "^1.0.2",
     "typo-js": "^1.0.3",
     "unique-slug": "2.0.0",
-    "uuid": "^3.2.1",
-    "turndown":"^4.0.2",
-    "turndown-plugin-gfm":"^1.0.2"
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "ava": "^0.25.0",

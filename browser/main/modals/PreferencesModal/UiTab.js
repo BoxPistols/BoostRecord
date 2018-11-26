@@ -47,7 +47,6 @@ class UiTab extends React.Component {
 
     this.handleSlider(null, 1)
     this.handleSlider(null, 2)
-
   }
 
   componentWillUnmount () {

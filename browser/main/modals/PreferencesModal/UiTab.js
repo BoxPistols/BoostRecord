@@ -12,7 +12,6 @@ import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
 import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
-
 const OSX = global.process.platform === 'darwin'
 
 const electron = require('electron')
@@ -163,6 +162,20 @@ class UiTab extends React.Component {
     }, 2000)()
   }
 
+  handleSlider (number) {
+    const sliderID = 'rs-range-line-' + number
+    const bulletID = 'rs-bullet-' + number
+
+    const rangeSlider = document.getElementById(sliderID)
+    const rangeBullet = document.getElementById(bulletID)
+
+    if (rangeSlider && rangeBullet) {
+      rangeBullet.innerHTML = Math.floor(rangeSlider.value / 60) + ':' + rangeSlider.value % 60
+      const bulletPosition = (rangeSlider.value / rangeSlider.max)
+      rangeBullet.style.left = (bulletPosition * 578) + 'px'
+    }
+  }
+
   render () {
     const UiAlert = this.state.UiAlert
     const UiAlertElement = UiAlert != null
@@ -197,6 +210,23 @@ class UiTab extends React.Component {
                 <option value='dracula'>{i18n.__('Dracula')}</option>
                 <option value='dark'>{i18n.__('Dark')}</option>
               </select>
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='container'>
+              <div styleName='range-slider' id='firstRow'>
+                <span id='rs-bullet-1' styleName='rs-label'>00:00</span>
+                <input id='rs-range-line-1' styleName='rs-range' type='range' value={config.ui.scheduleStart} min='0' max='1440' step='5'
+                  onChange={() => this.handleSlider(1)} />
+              </div>
+              <div styleName='range-slider' id='secondRow'>
+                <span id='rs-bullet-2' styleName='rs-label'>24:00</span>
+                <input id='rs-range-line-2' styleName='rs-range' type='range' value={config.ui.scheduleEnd} min='0' max='1440' step='5'
+                  onInput={() => this.handleSlider(2)} />
+              </div>
+              <div styleName='box-minmax'>
+                <span>00:00</span><span>24:00</span>
+              </div>
             </div>
           </div>
 

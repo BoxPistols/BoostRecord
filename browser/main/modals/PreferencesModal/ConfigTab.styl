@@ -17,7 +17,9 @@
   span first-child
   margin-top 18px
   padding-right 10px
+  padding-left  10px
   position relative
+  background $ui-backgroundColor
 
 div[id^="secondRow"]
   position absolute;
@@ -70,7 +72,9 @@ div[id^="firstRow"]
   font-weight: normal
   box-sizing: border-box
   border: none
-  margin-bottom: -15px
+  margin-bottom: -5px
+  margin-top: -10px
+  width: 0px
   margin-left: 0px
   left: attr(value)
   color: $ui-text-color
@@ -248,11 +252,9 @@ body[data-theme="dark"]
     select, .group-section-control-input
       colorDarkControl()
 
-  .box-minmax
+  .box-minmax, .rs-range, .rs-label
     colorDarkControl()
-  
-  .rs-range
-    colorDarkControl()
+
 
 body[data-theme="solarized-dark"]
   .root
@@ -279,6 +281,8 @@ body[data-theme="solarized-dark"]
     colorSolarizedDarkControl()
   .group-section-control
     select, .group-section-control-input
+      colorSolarizedDarkControl()
+  .box-minmax, .rs-range, .rs-label
       colorSolarizedDarkControl()
 
 body[data-theme="monokai"]
@@ -307,6 +311,8 @@ body[data-theme="monokai"]
   .group-section-control
     select, .group-section-control-input
       colorMonokaiControl()
+  .box-minmax, .rs-range, .rs-label
+      colorMonokaiControl()
 
 body[data-theme="dracula"]
   .root
@@ -334,3 +340,5 @@ body[data-theme="dracula"]
   .group-section-control
     select, .group-section-control-input
       colorDraculaControl()
+  .box-minmax, .rs-range, .rs-label
+    colorDraculaControl()

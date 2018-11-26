@@ -44,6 +44,10 @@ class UiTab extends React.Component {
     }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
+
+    this.handleSlider(null, 1)
+    this.handleSlider(null, 2)
+
   }
 
   componentWillUnmount () {
@@ -65,6 +69,10 @@ class UiTab extends React.Component {
     const newConfig = {
       ui: {
         theme: this.refs.uiTheme.value,
+        enableScheduleTheme: this.refs.enableScheduleTheme.value,
+        scheduledTheme: this.refs.uiScheduledTheme.value,
+        scheduleStart: this.refs.scheduleStart.value,
+        scheduleEnd: this.refs.scheduleEnd.value,
         language: this.refs.uiLanguage.value,
         defaultNote: this.refs.defaultNote.value,
         showCopyNotification: this.refs.showCopyNotification.checked,
@@ -162,7 +170,26 @@ class UiTab extends React.Component {
     }, 2000)()
   }
 
-  handleSlider (number) {
+  /**
+   * Gets the total number of minutes and returns a string in the HH:MM format
+   * @param {Number} time total number of minutes
+   */
+  formatTime (time) {
+    let hour = Math.floor(time / 60)
+    let minute = time % 60
+
+    if (hour < 10) {
+      hour = '0' + hour
+    }
+
+    if (minute < 10) {
+      minute = '0' + minute
+    }
+
+    return `${hour}:${minute}`
+  }
+
+  handleSlider (e, number) {
     const sliderID = 'rs-range-line-' + number
     const bulletID = 'rs-bullet-' + number
 
@@ -170,9 +197,15 @@ class UiTab extends React.Component {
     const rangeBullet = document.getElementById(bulletID)
 
     if (rangeSlider && rangeBullet) {
-      rangeBullet.innerHTML = Math.floor(rangeSlider.value / 60) + ':' + rangeSlider.value % 60
+      rangeBullet.innerHTML = this.formatTime(rangeSlider.value)
       const bulletPosition = (rangeSlider.value / rangeSlider.max)
       rangeBullet.style.left = (bulletPosition * 578) + 'px'
+    }
+
+    if (e) {
+      this.handleUIChange(e)
+    } else {
+      console.log('HEY')
     }
   }
 
@@ -212,17 +245,48 @@ class UiTab extends React.Component {
               </select>
             </div>
           </div>
+          <div styleName='group-header2'>
+            {i18n.__('Theme Schedule')}
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.enableScheduleTheme}
+                ref='enableScheduleTheme'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable Scheduled Themes')}
+            </label>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Scheduled Theme')}
+            </div>
+            <div styleName='group-section-control'>
+              <select value={config.ui.scheduledTheme}
+                onChange={(e) => this.handleUIChange(e)}
+                ref='uiScheduledTheme'
+              >
+                <option value='default'>{i18n.__('Default')}</option>
+                <option value='white'>{i18n.__('White')}</option>
+                <option value='solarized-dark'>{i18n.__('Solarized Dark')}</option>
+                <option value='monokai'>{i18n.__('Monokai')}</option>
+                <option value='dracula'>{i18n.__('Dracula')}</option>
+                <option value='dark'>{i18n.__('Dark')}</option>
+              </select>
+            </div>
+          </div>
           <div styleName='group-section'>
             <div styleName='container'>
               <div styleName='range-slider' id='firstRow'>
-                <span id='rs-bullet-1' styleName='rs-label'>00:00</span>
-                <input id='rs-range-line-1' styleName='rs-range' type='range' value={config.ui.scheduleStart} min='0' max='1440' step='5'
-                  onChange={() => this.handleSlider(1)} />
+                <span id='rs-bullet-1' styleName='rs-label'>{this.formatTime(config.ui.scheduleStart)}</span>
+                <input id='rs-range-line-1' styleName='rs-range' type='range' value={config.ui.scheduleStart} min='0' max='1440' step='5' ref='scheduleStart'
+                  onChange={(e) => this.handleSlider(e, 1)} />
               </div>
               <div styleName='range-slider' id='secondRow'>
-                <span id='rs-bullet-2' styleName='rs-label'>24:00</span>
-                <input id='rs-range-line-2' styleName='rs-range' type='range' value={config.ui.scheduleEnd} min='0' max='1440' step='5'
-                  onInput={() => this.handleSlider(2)} />
+                <span id='rs-bullet-2' styleName='rs-label'>{this.formatTime(config.ui.scheduleEnd)}</span>
+                <input id='rs-range-line-2' styleName='rs-range' type='range' value={config.ui.scheduleEnd} min='0' max='1440' step='5' ref='scheduleEnd'
+                  onChange={(e) => this.handleSlider(e, 2)} />
               </div>
               <div styleName='box-minmax'>
                 <span>00:00</span><span>24:00</span>

@@ -30,6 +30,10 @@ export const DEFAULT_CONFIG = {
   ui: {
     language: 'en',
     theme: 'default',
+    enableScheduleTheme: false,
+    scheduledTheme: 'Monokai',
+    scheduleStart: 1200,
+    scheduleEnd: 360,
     showCopyNotification: true,
     disableDirectWrite: false,
     defaultNote: 'ALWAYS_ASK' // 'ALWAYS_ASK', 'SNIPPET_NOTE', 'MARKDOWN_NOTE'

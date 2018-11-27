@@ -97,7 +97,7 @@ class UiTab extends React.Component {
         enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
         frontMatterTitleField: this.refs.frontMatterTitleField.value,
         spellcheck: this.refs.spellcheck.checked,
-        enableSmartPaste: this.refs.enableSmartPaste.checked,
+        enableSmartPaste: this.refs.enableSmartPaste.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,

@@ -496,11 +496,11 @@ class NoteList extends React.Component {
 
   alertIfSnippet (msg) {
     const warningMessage = (msg) => ({
-		  'export-txt': 'Text export is available only as a markdown note',
-		  'export-md': 'Markdown export is available only as a markdown note.',
-		  'export-html': 'HTML export is available only as a markdown note.',
-		  'print': 'Print is available only as a markdown note.'
-	  })[msg]
+      'export-txt': 'Text export is available only as a markdown note',
+      'export-md': 'Markdown export is available only as a markdown note.',
+      'export-html': 'HTML export is available only as a markdown note.',
+      'print': 'Print is available only as a markdown note.'
+    })[msg]
 
     const targetIndex = this.getTargetIndex()
     if (this.notes[targetIndex].type === 'SNIPPET_NOTE') {

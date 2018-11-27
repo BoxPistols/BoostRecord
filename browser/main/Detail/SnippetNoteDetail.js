@@ -635,16 +635,16 @@ class SnippetNoteDetail extends React.Component {
 
   showWarning (e, msg) {
     const warningMessage = (msg) => ({
-      'export-txt': 'Text export is available only as a markdown note',
-      'export-md': 'Markdown export is available only as a markdown note.',
-      'export-html': 'HTML export is available only as a markdown note.',
-      'print': 'Print is available only as a markdown note.'
+      'export-txt': 'Text export',
+      'export-md': 'Markdown export',
+      'export-html': 'HTML export',
+      'print': 'Print'
     })[msg]
 
     dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
       message: i18n.__('Sorry!'),
-      detail: i18n.__(warningMessage(msg)),
+      detail: i18n.__(warningMessage(msg) + ' is available only as a markdown note.'),
       buttons: [i18n.__('OK')]
     })
   }

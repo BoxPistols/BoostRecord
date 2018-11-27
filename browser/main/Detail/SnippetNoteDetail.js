@@ -633,11 +633,18 @@ class SnippetNoteDetail extends React.Component {
     if (infoPanel.style) infoPanel.style.display = infoPanel.style.display === 'none' ? 'inline' : 'none'
   }
 
-  showWarning () {
+  showWarning (e, msg) {
+    const warningMessage = (msg) => ({
+		  'export-txt': 'Text export is available only as a markdown note',
+		  'export-md': 'Markdown export is available only as a markdown note.',
+		  'export-html': 'HTML export is available only as a markdown note.',
+		  'print': 'Print is available only as a markdown note.'
+    })[msg]
+    
     dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
       message: i18n.__('Sorry!'),
-      detail: i18n.__('md/text import is available only a markdown note.'),
+      detail: i18n.__(warningMessage(msg)),
       buttons: [i18n.__('OK')]
     })
   }
@@ -788,6 +795,7 @@ class SnippetNoteDetail extends React.Component {
           createdAt={formatDate(note.createdAt)}
           exportAsMd={this.showWarning}
           exportAsTxt={this.showWarning}
+          exportAsHtml={this.showWarning}
           type={note.type}
           print={this.showWarning}
         />

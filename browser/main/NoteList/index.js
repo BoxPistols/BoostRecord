@@ -64,8 +64,8 @@ class NoteList extends React.Component {
     this.focusHandler = () => {
       this.refs.list.focus()
     }
-    this.alertIfSnippetHandler = () => {
-      this.alertIfSnippet()
+    this.alertIfSnippetHandler = (event, msg) => {
+      this.alertIfSnippet(msg)
     }
     this.importFromFileHandler = this.importFromFile.bind(this)
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
@@ -494,14 +494,21 @@ class NoteList extends React.Component {
     })
   }
 
-  alertIfSnippet () {
+  alertIfSnippet (msg) {
+    const warningMessage = (msg) => ({
+		  'export-txt': 'Text export is available only as a markdown note',
+		  'export-md': 'Markdown export is available only as a markdown note.',
+		  'export-html': 'HTML export is available only as a markdown note.',
+		  'print': 'Print is available only as a markdown note.'
+	  })[msg]
+
     const targetIndex = this.getTargetIndex()
     if (this.notes[targetIndex].type === 'SNIPPET_NOTE') {
       dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
         message: i18n.__('Sorry!'),
-        detail: i18n.__('md/text import is available only a markdown note.'),
-        buttons: [i18n.__('OK'), i18n.__('Cancel')]
+        detail: i18n.__(warningMessage(msg)),
+        buttons: [i18n.__('OK')]
       })
     }
   }

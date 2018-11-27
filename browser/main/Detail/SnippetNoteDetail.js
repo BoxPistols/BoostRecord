@@ -717,6 +717,8 @@ class SnippetNoteDetail extends React.Component {
             enableTableEditor={config.editor.enableTableEditor}
             onChange={(e) => this.handleCodeChange(index)(e)}
             ref={'code-' + index}
+            enableSmartPaste={config.editor.enableSmartPaste}
+            hotkey={config.hotkey}
           />
         }
       </div>

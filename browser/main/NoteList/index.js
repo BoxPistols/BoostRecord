@@ -507,7 +507,7 @@ class NoteList extends React.Component {
       dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
         message: i18n.__('Sorry!'),
-        detail: i18n.__(warningMessage(msg) + ' is available only as a markdown note.'),
+        detail: i18n.__(warningMessage(msg) + ' is available only in markdown notes.'),
         buttons: [i18n.__('OK')]
       })
     }

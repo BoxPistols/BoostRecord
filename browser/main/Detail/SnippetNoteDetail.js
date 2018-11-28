@@ -112,7 +112,7 @@ class SnippetNoteDetail extends React.Component {
     if (this.refs.tags) note.tags = this.refs.tags.value
     note.description = this.refs.description.value
     note.updatedAt = new Date()
-    note.title = findNoteTitle(note.description)
+    note.title = findNoteTitle(note.description, false)
 
     this.setState({
       note
@@ -354,12 +354,10 @@ class SnippetNoteDetail extends React.Component {
       this.refs['code-' + this.state.snippetIndex].reload()
 
       if (this.visibleTabs.offsetWidth > this.allTabs.scrollWidth) {
-        console.log('no need for arrows')
         this.moveTabBarBy(0)
       } else {
         const lastTab = this.allTabs.lastChild
         if (lastTab.offsetLeft + lastTab.offsetWidth < this.visibleTabs.offsetWidth) {
-          console.log('need to scroll')
           const width = this.visibleTabs.offsetWidth
           const newLeft = lastTab.offsetLeft + lastTab.offsetWidth - width
           this.moveTabBarBy(newLeft > 0 ? -newLeft : 0)
@@ -434,6 +432,18 @@ class SnippetNoteDetail extends React.Component {
         } else if (!e.ctrlKey && !e.shiftKey && e.target === this.refs.description) {
           e.preventDefault()
           this.focusEditor()
+        }
+        break
+      // I key
+      case 73:
+        {
+          const isSuper = global.process.platform === 'darwin'
+            ? e.metaKey
+            : e.ctrlKey
+          if (isSuper) {
+            e.preventDefault()
+            this.handleInfoButtonClick(e)
+          }
         }
         break
       // L key
@@ -627,7 +637,6 @@ class SnippetNoteDetail extends React.Component {
   }
 
   focusEditor () {
-    console.log('code-' + this.state.snippetIndex)
     this.refs['code-' + this.state.snippetIndex].focus()
   }
 
@@ -759,6 +768,9 @@ class SnippetNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
+          saveTagsAlphabetically={config.ui.saveTagsAlphabetically}
+          showTagsAlphabetically={config.ui.showTagsAlphabetically}
+          data={data}
           onChange={(e) => this.handleChange(e)}
         />
       </div>

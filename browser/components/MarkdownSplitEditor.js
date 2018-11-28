@@ -165,8 +165,10 @@ class MarkdownSplitEditor extends React.Component {
     e.preventDefault()
     e.stopPropagation()
     const idMatch = /checkbox-([0-9]+)/
-    const checkedMatch = /\[x\]/i
-    const uncheckedMatch = /\[ \]/
+    const checkedMatch = /^\s*[\+\-\*] \[x\]/i
+    const uncheckedMatch = /^\s*[\+\-\*] \[ \]/
+    const checkReplace = /\[x\]/i
+    const uncheckReplace = /\[ \]/
     if (idMatch.test(e.target.getAttribute('id'))) {
       const lineIndex = parseInt(e.target.getAttribute('id').match(idMatch)[1], 10) - 1
       const lines = this.refs.code.value
@@ -175,10 +177,10 @@ class MarkdownSplitEditor extends React.Component {
       const targetLine = lines[lineIndex]
 
       if (targetLine.match(checkedMatch)) {
-        lines[lineIndex] = targetLine.replace(checkedMatch, '[ ]')
+        lines[lineIndex] = targetLine.replace(checkReplace, '[ ]')
       }
       if (targetLine.match(uncheckedMatch)) {
-        lines[lineIndex] = targetLine.replace(uncheckedMatch, '[x]')
+        lines[lineIndex] = targetLine.replace(uncheckReplace, '[x]')
       }
       this.refs.code.setValue(lines.join('\n'))
     }
@@ -264,7 +266,7 @@ class MarkdownSplitEditor extends React.Component {
           styleName='codeEditor'
           ref='code'
           width={this.state.codeEditorWidthInPercent + '%'}
-          mode='GitHub Flavored Markdown'
+          mode='Boost Flavored Markdown'
           value={value}
           theme={config.editor.theme}
           keyMap={config.editor.keyMap}
@@ -283,6 +285,7 @@ class MarkdownSplitEditor extends React.Component {
           onChange={this.handleOnChange.bind(this)}
           onScroll={this.handleEditorScroll.bind(this)}
           onCursorActivity={this.handleCursorActivity.bind(this)}
+          spellCheck={config.editor.spellcheck}
        />
         <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
           <div styleName='slider-hitbox' />
@@ -312,6 +315,7 @@ class MarkdownSplitEditor extends React.Component {
           noteKey={noteKey}
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
+          lineThroughCheckbox={config.preview.lineThroughCheckbox}
        />
       </div>
     )

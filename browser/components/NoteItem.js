@@ -24,16 +24,19 @@ const TagElement = ({ tagName }) => (
 /**
  * @description Tag element list component.
  * @param {Array|null} tags
+ * @param {boolean} showTagsAlphabetically
  * @return {React.Component}
  */
-const TagElementList = tags => {
+const TagElementList = (tags, showTagsAlphabetically) => {
   if (!isArray(tags)) {
     return []
   }
 
-  const tagElements = tags.map(tag => TagElement({ tagName: tag }))
-
-  return tagElements
+  if (showTagsAlphabetically) {
+    return _.sortBy(tags).map(tag => TagElement({ tagName: tag }))
+  } else {
+    return tags.map(tag => TagElement({ tagName: tag }))
+  }
 }
 
 /**
@@ -55,7 +58,8 @@ const NoteItem = ({
   pathname,
   storageName,
   folderName,
-  viewType
+  viewType,
+  showTagsAlphabetically
 }) => (
   <div
     styleName={isActive ? 'item--active' : 'item'}
@@ -74,28 +78,26 @@ const NoteItem = ({
           ? note.title
           : <span styleName='item-title-empty'>{i18n.__('Empty note')}</span>}
       </div>
-      {['ALL', 'STORAGE'].includes(viewType) &&
-        <div styleName='item-middle'>
-          <div styleName='item-middle-time'>{dateDisplay}</div>
-          <div styleName='item-middle-app-meta'>
-            <div
-              title={
-                viewType === 'ALL'
-                  ? storageName
-                  : viewType === 'STORAGE' ? folderName : null
-              }
-              styleName='item-middle-app-meta-label'
-            >
-              {viewType === 'ALL' && storageName}
-              {viewType === 'STORAGE' && folderName}
-            </div>
+      <div styleName='item-middle'>
+        <div styleName='item-middle-time'>{dateDisplay}</div>
+        <div styleName='item-middle-app-meta'>
+          <div
+            title={
+              viewType === 'ALL'
+                ? storageName
+                : viewType === 'STORAGE' ? folderName : null
+            }
+            styleName='item-middle-app-meta-label'
+          >
+            {viewType === 'ALL' && storageName}
+            {viewType === 'STORAGE' && folderName}
           </div>
-        </div>}
-
+        </div>
+      </div>
       <div styleName='item-bottom'>
         <div styleName='item-bottom-tagList'>
           {note.tags.length > 0
-            ? TagElementList(note.tags)
+            ? TagElementList(note.tags, showTagsAlphabetically)
             : <span
               style={{ fontStyle: 'italic', opacity: 0.5 }}
               styleName='item-bottom-tagList-empty'

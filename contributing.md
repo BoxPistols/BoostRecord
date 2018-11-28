@@ -1,18 +1,30 @@
 # Contributing to Boostnote (English)
 
-### When you open an issue of a bug report
-There are no issue template. But there is a request.
+### When you open an issue or a bug report
+There is an issue template for you to follow. Please provide as much information as you can according to the template.
 
-**Please paste screenshots of Boostnote with developer tool open**
+Thank you in advance for your help.
 
-Thank you for your help in advance.
+### When you open a pull request
+There is a pull request template for your to follow. Please fill in the template before submitting your code. Your pull request will be reviewed faster if we know exactly what it does.
 
-### About copyright of Pull Request
+Make sure that you have:
+- Checked [`code_style.md`](docs/code_style.md) for information on code style
+- Write tests for your code and run test with the following command
+```
+npm run test
+```
+- Lint your code using the following command
+```
+npm run lint
+```
 
-If you make a pull request, It means you agree to transfer the copyright of the code changes to BoostIO.
+### Concerning Copyright
 
-It doesn't mean Boostnote will become a paid app. If we want to earn some money, We will try other way, which is some kind of cloud storage, Mobile app integration or some SPECIAL features.
-Because GPL v3 is too strict to be compatible with any other License, We thought this is needed to replace the license with much freer one(like BSD, MIT) somewhen.
+By making a pull request you agree to transfer ownership of your code to BoostIO.
+
+This doesn't mean Boostnote will become a paid app. If we want to earn money, we will find other way. Potentially some kind of cloud storage, mobile app integration, or some premium features.
+GPL v3 is too strict to be compatible with another license, so we thought it might be necessary to replace the license with a more open one (like BSD, MIT) eventually.
 
 ---
 

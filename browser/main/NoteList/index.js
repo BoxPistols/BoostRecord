@@ -56,7 +56,6 @@ class NoteList extends React.Component {
     super(props)
 
     this.selectNextNoteHandler = () => {
-      console.log('fired next')
       this.selectNextNote()
     }
     this.selectPriorNoteHandler = () => {
@@ -84,7 +83,9 @@ class NoteList extends React.Component {
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
+      ctrlKeyDown: false,
       shiftKeyDown: false,
+      prevShiftNoteIndex: -1,
       selectedNoteKeys: []
     }
 
@@ -267,7 +268,7 @@ class NoteList extends React.Component {
   }
 
   handleNoteListKeyDown (e) {
-    if (e.metaKey || e.ctrlKey) return true
+    if (e.metaKey) return true
 
     // A key
     if (e.keyCode === 65 && !e.shiftKey) {
@@ -307,12 +308,18 @@ class NoteList extends React.Component {
 
     if (e.shiftKey) {
       this.setState({ shiftKeyDown: true })
+    } else if (e.ctrlKey) {
+      this.setState({ ctrlKeyDown: true })
     }
   }
 
   handleNoteListKeyUp (e) {
     if (!e.shiftKey) {
       this.setState({ shiftKeyDown: false })
+    }
+
+    if (!e.ctrlKey) {
+      this.setState({ ctrlKeyDown: false })
     }
   }
 
@@ -390,25 +397,65 @@ class NoteList extends React.Component {
     return pinnedNotes.concat(unpinnedNotes)
   }
 
+  getNoteIndexByKey (noteKey) {
+    return this.notes.findIndex((note) => {
+      if (!note) return -1
+
+      return note.key === noteKey
+    })
+  }
+
   handleNoteClick (e, uniqueKey) {
     const { router } = this.context
     const { location } = this.props
-    let { selectedNoteKeys } = this.state
-    const { shiftKeyDown } = this.state
+    let { selectedNoteKeys, prevShiftNoteIndex } = this.state
+    const { ctrlKeyDown, shiftKeyDown } = this.state
+    const hasSelectedNoteKey = selectedNoteKeys.length > 0
 
-    if (shiftKeyDown && selectedNoteKeys.includes(uniqueKey)) {
+    if (ctrlKeyDown && selectedNoteKeys.includes(uniqueKey)) {
       const newSelectedNoteKeys = selectedNoteKeys.filter((noteKey) => noteKey !== uniqueKey)
       this.setState({
         selectedNoteKeys: newSelectedNoteKeys
       })
       return
     }
-    if (!shiftKeyDown) {
+    if (!ctrlKeyDown && !shiftKeyDown) {
       selectedNoteKeys = []
     }
+
+    if (!shiftKeyDown) {
+      prevShiftNoteIndex = -1
+    }
+
     selectedNoteKeys.push(uniqueKey)
+
+    if (shiftKeyDown && hasSelectedNoteKey) {
+      let firstShiftNoteIndex = this.getNoteIndexByKey(selectedNoteKeys[0])
+      // Shift selection can either start from first note in the exisiting selectedNoteKeys
+      // or previous first shift note index
+      firstShiftNoteIndex = firstShiftNoteIndex > prevShiftNoteIndex
+        ? firstShiftNoteIndex : prevShiftNoteIndex
+
+      const lastShiftNoteIndex = this.getNoteIndexByKey(uniqueKey)
+
+      const startIndex = firstShiftNoteIndex < lastShiftNoteIndex
+        ? firstShiftNoteIndex : lastShiftNoteIndex
+      const endIndex = firstShiftNoteIndex > lastShiftNoteIndex
+        ? firstShiftNoteIndex : lastShiftNoteIndex
+
+      selectedNoteKeys = []
+      for (let i = startIndex; i <= endIndex; i++) {
+        selectedNoteKeys.push(this.notes[i].key)
+      }
+
+      if (prevShiftNoteIndex < 0) {
+        prevShiftNoteIndex = firstShiftNoteIndex
+      }
+    }
+
     this.setState({
-      selectedNoteKeys
+      selectedNoteKeys,
+      prevShiftNoteIndex
     })
 
     router.push({
@@ -519,7 +566,7 @@ class NoteList extends React.Component {
         click: this.cloneNote.bind(this)
       }, {
         label: copyNoteLink,
-        click: this.copyNoteLink(note)
+        click: this.copyNoteLink.bind(this, note)
       })
       if (note.type === 'MARKDOWN_NOTE') {
         if (note.blog && note.blog.blogLink && note.blog.blogId) {
@@ -616,7 +663,6 @@ class NoteList extends React.Component {
       .catch((err) => {
         console.error('Cannot Delete note: ' + err)
       })
-      console.log('Notes were all deleted')
     } else {
       if (!confirmDeleteNote(confirmDeletion, false)) return
 
@@ -636,7 +682,6 @@ class NoteList extends React.Component {
           })
         })
         AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
-        console.log('Notes went to trash')
       })
       .catch((err) => {
         console.error('Notes could not go to trash: ' + err)
@@ -996,6 +1041,7 @@ class NoteList extends React.Component {
               folderName={this.getNoteFolder(note).name}
               storageName={this.getNoteStorage(note).name}
               viewType={viewType}
+              showTagsAlphabetically={config.ui.showTagsAlphabetically}
             />
           )
         }

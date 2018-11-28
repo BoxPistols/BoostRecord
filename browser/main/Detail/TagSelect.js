@@ -88,6 +88,11 @@ class TagSelect extends React.Component {
     this.refs.newTag.input.focus()
   }
 
+  handleTagLabelClick (tag) {
+    const { router } = this.context
+    router.push(`/tags/${tag}`)
+  }
+
   handleTagRemoveButtonClick (tag) {
     this.removeTagByCallback((value, tag) => {
       value.splice(value.indexOf(tag), 1)
@@ -174,15 +179,15 @@ class TagSelect extends React.Component {
   }
 
   render () {
-    const { value, className } = this.props
+    const { value, className, showTagsAlphabetically } = this.props
 
     const tagList = _.isArray(value)
-      ? value.map((tag) => {
+      ? (showTagsAlphabetically ? _.sortBy(value) : value).map((tag) => {
         return (
           <span styleName='tag'
             key={tag}
           >
-            <span styleName='tag-label'>#{tag}</span>
+            <span styleName='tag-label' onClick={(e) => this.handleTagLabelClick(tag)}>#{tag}</span>
             <button styleName='tag-removeButton'
               onClick={(e) => this.handleTagRemoveButtonClick(tag)}
             >
@@ -226,6 +231,10 @@ class TagSelect extends React.Component {
       </div>
     )
   }
+}
+
+TagSelect.contextTypes = {
+  router: PropTypes.shape({})
 }
 
 TagSelect.propTypes = {

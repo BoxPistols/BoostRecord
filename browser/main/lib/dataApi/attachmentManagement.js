@@ -261,29 +261,28 @@ function generateAttachmentMarkdown (fileName, path, showPreview) {
  * @param {Event} dropEvent DropEvent
  */
 function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
+  let promise
   if (dropEvent.dataTransfer.files.length > 0) {
-    const file = dropEvent.dataTransfer.files[0]
-    const filePath = file.path
-    const originalFileName = path.basename(filePath)
-    const fileType = file['type']
-    const isImage = fileType.startsWith('image')
-    let promise
-    if (isImage) {
-      console.log(file)
-      promise = fixRotate(file).then(base64data => {
-        return copyAttachment({type: 'base64', data: base64data, sourceFilePath: filePath}, storageKey, noteKey)
-      })
-    } else {
-      promise = copyAttachment(filePath, storageKey, noteKey)
-    }
-    promise.then((fileName) => {
-      const imageMd = generateAttachmentMarkdown(originalFileName, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, fileName), isImage)
-      codeEditor.insertAttachmentMd(imageMd)
-    })
+    promise = Promise.all(Array.from(dropEvent.dataTransfer.files).map(file => {
+      if (file['type'].startsWith('image')) {
+        return fixRotate(file)
+          .then(data => copyAttachment({type: 'base64', data: data, sourceFilePath: file.path}, storageKey, noteKey)
+            .then(fileName => ({
+              fileName,
+              title: path.basename(file.path),
+              isImage: true
+            }))
+          )
+      } else {
+        return copyAttachment(file.path, storageKey, noteKey).then(fileName => ({
+          fileName,
+          title: path.basename(file.path),
+          isImage: false
+        }))
+      }
+    }))
   } else {
-    for (let i = 0; i < dropEvent.dataTransfer.items.length; i++) {
-      const item = dropEvent.dataTransfer.items[i]
-
+    promise = Promise.all(Array.from(dropEvent.dataTransfer.items).map(item => {
       if (item.type === 'text/html') {
         const html = dropEvent.dataTransfer.getData('text/html')
 
@@ -291,7 +290,7 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
         if (match) {
           const imageURL = match[1]
 
-          getImage(imageURL)
+          return getImage(imageURL)
             .then(image => {
               const canvas = document.createElement('canvas')
               const context = canvas.getContext('2d')
@@ -301,17 +300,21 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
 
               return copyAttachment({type: 'base64', data: canvas.toDataURL(), sourceFilePath: imageURL}, storageKey, noteKey)
             })
-            .then(fileName => {
-              const imageMd = generateAttachmentMarkdown(imageURL, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, fileName), true)
-
-              codeEditor.insertAttachmentMd(imageMd)
-            })
-
-          break
+            .then(fileName => ({
+              fileName,
+              title: imageURL,
+              isImage: true
+            }))
         }
       }
-    }
+    }))
   }
+
+  promise.then(files => {
+    const attachments = files.filter(file => !!file).map(file => generateAttachmentMarkdown(file.title, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, file.fileName), file.isImage))
+
+    codeEditor.insertAttachmentMd(attachments.join('\n'))
+  })
 }
 
 /**

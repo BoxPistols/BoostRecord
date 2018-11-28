@@ -1,6 +1,6 @@
 function choose (ui) {
   console.log(ui.enableScheduleTheme)
-  if (ui.enableScheduleTheme !== 'on') {
+  if (!ui.enableScheduleTheme) {
     return
   }
 

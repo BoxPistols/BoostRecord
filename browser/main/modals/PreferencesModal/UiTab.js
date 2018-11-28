@@ -69,7 +69,7 @@ class UiTab extends React.Component {
       ui: {
         theme: this.refs.uiTheme.value,
         defaultTheme: this.refs.uiTheme.value,
-        enableScheduleTheme: this.refs.enableScheduleTheme.value,
+        enableScheduleTheme: this.refs.enableScheduleTheme.checked,
         scheduledTheme: this.refs.uiScheduledTheme.value,
         scheduleStart: this.refs.scheduleStart.value,
         scheduleEnd: this.refs.scheduleEnd.value,

@@ -2,6 +2,7 @@ import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
 import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
+import theme from 'browser/main/lib/ThemeManager'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -30,8 +31,9 @@ export const DEFAULT_CONFIG = {
   ui: {
     language: 'en',
     theme: 'default',
+    defaultTheme: 'default',
     enableScheduleTheme: false,
-    scheduledTheme: 'Monokai',
+    scheduledTheme: 'monokai',
     scheduleStart: 1200,
     scheduleEnd: 360,
     showCopyNotification: true,
@@ -149,19 +151,8 @@ function set (updates) {
   if (!validate(newConfig)) throw new Error('INVALID CONFIG')
   _save(newConfig)
 
-  if (newConfig.ui.theme === 'dark') {
-    document.body.setAttribute('data-theme', 'dark')
-  } else if (newConfig.ui.theme === 'white') {
-    document.body.setAttribute('data-theme', 'white')
-  } else if (newConfig.ui.theme === 'solarized-dark') {
-    document.body.setAttribute('data-theme', 'solarized-dark')
-  } else if (newConfig.ui.theme === 'monokai') {
-    document.body.setAttribute('data-theme', 'monokai')
-  } else if (newConfig.ui.theme === 'dracula') {
-    document.body.setAttribute('data-theme', 'dracula')
-  } else {
-    document.body.setAttribute('data-theme', 'default')
-  }
+  theme.choose(newConfig.ui)
+  theme.apply(newConfig.ui.theme)
 
   i18n.setLocale(newConfig.ui.language)
 

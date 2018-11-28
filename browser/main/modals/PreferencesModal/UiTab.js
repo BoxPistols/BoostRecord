@@ -68,6 +68,7 @@ class UiTab extends React.Component {
     const newConfig = {
       ui: {
         theme: this.refs.uiTheme.value,
+        defaultTheme: this.refs.uiTheme.value,
         enableScheduleTheme: this.refs.enableScheduleTheme.value,
         scheduledTheme: this.refs.uiScheduledTheme.value,
         scheduleStart: this.refs.scheduleStart.value,
@@ -203,8 +204,6 @@ class UiTab extends React.Component {
 
     if (e) {
       this.handleUIChange(e)
-    } else {
-      console.log('HEY')
     }
   }
 
@@ -231,7 +230,7 @@ class UiTab extends React.Component {
               {i18n.__('Interface Theme')}
             </div>
             <div styleName='group-section-control'>
-              <select value={config.ui.theme}
+              <select value={config.ui.defaultTheme}
                 onChange={(e) => this.handleUIChange(e)}
                 ref='uiTheme'
               >

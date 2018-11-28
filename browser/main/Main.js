@@ -17,6 +17,7 @@ import store from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
 import { getLocales } from 'browser/lib/Languages'
 import applyShortcuts from 'browser/main/lib/shortcutManager'
+import theme from 'browser/main/lib/ThemeManager'
 const path = require('path')
 const electron = require('electron')
 const { remote } = electron
@@ -140,13 +141,12 @@ class Main extends React.Component {
   componentDidMount () {
     const { dispatch, config } = this.props
 
-    const supportedThemes = ['dark', 'white', 'solarized-dark', 'monokai', 'dracula']
+    this.refreshTheme = setInterval(() => {
+      theme.choose(ConfigManager.get().ui)
+    }, 5 * 1000)
 
-    if (supportedThemes.indexOf(config.ui.theme) !== -1) {
-      document.body.setAttribute('data-theme', config.ui.theme)
-    } else {
-      document.body.setAttribute('data-theme', 'default')
-    }
+    theme.choose(config.ui)
+    theme.apply(config.ui.theme)
 
     if (getLocales().indexOf(config.ui.language) !== -1) {
       i18n.setLocale(config.ui.language)

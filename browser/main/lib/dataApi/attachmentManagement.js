@@ -287,7 +287,7 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
       if (item.type === 'text/html') {
         const html = dropEvent.dataTransfer.getData('text/html')
 
-        const match = /<img[^>]*src="([^"]+)"/.exec(html)
+        const match = /<img[^>]*[\s"']src="([^"]+)"/.exec(html)
         if (match) {
           const imageURL = match[1]
 

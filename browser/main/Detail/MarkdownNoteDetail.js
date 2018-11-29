@@ -288,6 +288,8 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleSwitchMode (type) {
+    // If in split mode, hide the lock button
+    if (type === 'SPLIT') this.setState({isLockButtonShown: false})
     this.setState({ editorType: type }, () => {
       this.focus()
       const newConfig = Object.assign({}, this.props.config)
@@ -332,6 +334,7 @@ class MarkdownNoteDetail extends React.Component {
         storageKey={note.storage}
         noteKey={note.key}
         onChange={this.handleUpdateContent.bind(this)}
+        isLocked={this.state.isLocked}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
     } else {

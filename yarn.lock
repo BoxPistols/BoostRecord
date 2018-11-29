@@ -58,6 +58,11 @@
   dependencies:
     arrify "^1.0.1"
 
+"@enyaxu/markdown-it-anchor@^5.0.2":
+  version "5.0.2"
+  resolved "https://registry.yarnpkg.com/@enyaxu/markdown-it-anchor/-/markdown-it-anchor-5.0.2.tgz#d173f7b60b492aabc17dfba864c4d071f5595f72"
+  integrity sha512-HBQ+by3IFHh2i5nw8fzn9qrdA+6uwzre68EzHpBX/WrwgnKrfvckPzdi7MphKp2C617edfpeibucslHDNPYkvQ==
+
 "@ladjs/time-require@^0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@ladjs/time-require/-/time-require-0.1.4.tgz#5c615d75fd647ddd5de9cf6922649558856b21a1"
@@ -2938,9 +2943,9 @@ electron-winstaller@^2.2.0:
     lodash.template "^4.2.2"
     temp "^0.8.3"
 
-electron@3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/electron/-/electron-3.0.3.tgz#2857ed8d37c1b46e0a75a72684800252255f3243"
+electron@3.0.8:
+  version "3.0.8"
+  resolved "https://registry.yarnpkg.com/electron/-/electron-3.0.8.tgz#7905806ebaead4c693531e11cda6568c32efa7bb"
   dependencies:
     "@types/node" "^8.0.24"
     electron-download "^4.1.0"
@@ -5326,7 +5331,7 @@ js-yaml@^3.10.0, js-yaml@^3.5.1, js-yaml@^3.7.0:
     argparse "^1.0.7"
     esprima "^4.0.0"
 
-js-yaml@^3.8.1:
+js-yaml@^3.12.0, js-yaml@^3.8.1:
   version "3.12.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-3.12.0.tgz#eaed656ec8344f10f527c6bfa1b6e2244de167d1"
   dependencies:
@@ -5848,6 +5853,10 @@ map-visit@^1.0.0:
   dependencies:
     object-visit "^1.0.0"
 
+markdown-it-abbr@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/markdown-it-abbr/-/markdown-it-abbr-1.0.4.tgz#d66b5364521cbb3dd8aa59dadfba2fb6865c8fd8"
+
 markdown-it-admonition@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/markdown-it-admonition/-/markdown-it-admonition-1.0.4.tgz#d7bbc7eb1fe6168fc8cc304de7a9d8c993acb2f5"
@@ -5874,12 +5883,6 @@ markdown-it-multimd-table@^2.0.1:
   dependencies:
     markdown-it "^5.0.3"
 
-markdown-it-named-headers@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/markdown-it-named-headers/-/markdown-it-named-headers-0.0.4.tgz#82efc28324240a6b1e77b9aae501771d5f351c1f"
-  dependencies:
-    string "^3.0.1"
-
 markdown-it-plantuml@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/markdown-it-plantuml/-/markdown-it-plantuml-1.1.0.tgz#9ab8bfa09a02d80845e16e60f87a488edb50fdde"
@@ -5887,6 +5890,14 @@ markdown-it-plantuml@^1.1.0:
 markdown-it-smartarrows@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/markdown-it-smartarrows/-/markdown-it-smartarrows-1.0.1.tgz#b570e9c0ff9812e0db6ace19afa5ba12b64bb9a7"
+
+markdown-it-sub@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/markdown-it-sub/-/markdown-it-sub-1.0.0.tgz#375fd6026eae7ddcb012497f6411195ea1e3afe8"
+
+markdown-it-sup@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/markdown-it-sup/-/markdown-it-sup-1.0.0.tgz#cb9c9ff91a5255ac08f3fd3d63286e15df0a1fc3"
 
 markdown-it@^5.0.3:
   version "5.1.0"
@@ -7349,8 +7360,8 @@ rcedit@^1.0.0:
   resolved "https://registry.yarnpkg.com/rcedit/-/rcedit-1.1.0.tgz#ae21c28d4efdd78e95fcab7309a5dd084920b16a"
 
 react-autosuggest@^9.4.0:
-  version "9.4.0"
-  resolved "https://registry.yarnpkg.com/react-autosuggest/-/react-autosuggest-9.4.0.tgz#3146bc9afa4f171bed067c542421edec5ca94294"
+  version "9.4.2"
+  resolved "https://registry.yarnpkg.com/react-autosuggest/-/react-autosuggest-9.4.2.tgz#18cc0bebeebda3d24328e3da301f061a444ae223"
   dependencies:
     prop-types "^15.5.10"
     react-autowhatever "^10.1.2"
@@ -8442,10 +8453,6 @@ string-width@^1.0.1, string-width@^1.0.2:
     is-fullwidth-code-point "^2.0.0"
     strip-ansi "^4.0.0"
 
-string@^3.0.1:
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/string/-/string-3.3.3.tgz#5ea211cd92d228e184294990a6cc97b366a77cb0"
-
 string_decoder@^0.10.25, string_decoder@~0.10.x:
   version "0.10.31"
   resolved "https://registry.yarnpkg.com/string_decoder/-/string_decoder-0.10.31.tgz#62e203bc41766c6c28c9fc84301dab1c5310fa94"
@@ -8885,6 +8892,10 @@ type-is@~1.6.15, type-is@~1.6.16:
 typedarray@^0.0.6:
   version "0.0.6"
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
+
+typo-js@^1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/typo-js/-/typo-js-1.0.3.tgz#54d8ebc7949f1a7810908b6002c6841526c99d5a"
 
 ua-parser-js@^0.7.9:
   version "0.7.18"

@@ -1,7 +1,7 @@
 {
   "name": "boost",
   "productName": "Boostnote",
-  "version": "0.11.10",
+  "version": "0.11.11",
   "main": "index.js",
   "description": "Boostnote",
   "license": "GPL-3.0",
@@ -12,10 +12,11 @@
     "jest": "jest",
     "fix": "eslint . --fix",
     "lint": "eslint .",
-    "dev": "node dev-scripts/dev.js"
+    "dev": "node dev-scripts/dev.js",
+    "watch": "webpack-dev-server --hot"
   },
   "config": {
-    "electron-version": "3.0.3"
+    "electron-version": "3.0.8"
   },
   "repository": {
     "type": "git",
@@ -47,6 +48,7 @@
   },
   "homepage": "https://boostnote.io",
   "dependencies": {
+    "@enyaxu/markdown-it-anchor": "^5.0.2",
     "@rokt33r/markdown-it-math": "^4.0.1",
     "@rokt33r/season": "^5.3.0",
     "@susisu/mte-kernel": "^2.0.0",
@@ -68,19 +70,22 @@
     "iconv-lite": "^0.4.19",
     "immutable": "^3.8.1",
     "js-sequence-diagrams": "^1000000.0.6",
+    "js-yaml": "^3.12.0",
     "katex": "^0.9.0",
     "lodash": "^4.11.1",
     "lodash-move": "^1.1.1",
     "markdown-it": "^6.0.1",
+    "markdown-it-abbr": "^1.0.4",
     "markdown-it-admonition": "^1.0.4",
     "markdown-it-emoji": "^1.1.1",
     "markdown-it-footnote": "^3.0.0",
     "markdown-it-imsize": "^2.0.1",
     "markdown-it-kbd": "^1.1.1",
     "markdown-it-multimd-table": "^2.0.1",
-    "markdown-it-named-headers": "^0.0.4",
     "markdown-it-plantuml": "^1.1.0",
     "markdown-it-smartarrows": "^1.0.1",
+    "markdown-it-sub": "^1.0.0",
+    "markdown-it-sup": "^1.0.0",
     "markdown-toc": "^1.2.0",
     "mdurl": "^1.0.1",
     "mermaid": "^8.0.0-rc.8",
@@ -100,10 +105,11 @@
     "sander": "^0.5.1",
     "sanitize-html": "^1.18.2",
     "striptags": "^2.2.1",
+    "turndown": "^4.0.2",
+    "turndown-plugin-gfm": "^1.0.2",
+    "typo-js": "^1.0.3",
     "unique-slug": "2.0.0",
-    "uuid": "^3.2.1",
-    "turndown":"^4.0.2",
-    "turndown-plugin-gfm":"^1.0.2"
+    "uuid": "^3.2.1"
   },
   "devDependencies": {
     "ava": "^0.25.0",
@@ -125,7 +131,7 @@
     "css-loader": "^0.19.0",
     "devtron": "^1.1.0",
     "dom-storage": "^2.0.2",
-    "electron": "3.0.3",
+    "electron": "3.0.8",
     "electron-packager": "^12.0.0",
     "eslint": "^3.13.1",
     "eslint-config-standard": "^6.2.1",

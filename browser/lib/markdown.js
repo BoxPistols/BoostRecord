@@ -7,7 +7,7 @@ import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
 import { lastFindInArray } from './utils'
-import ee from 'browser/main/lib/eventEmitter'
+import anchor from '@enyaxu/markdown-it-anchor'
 
 function createGutter (str, firstLineNumber) {
   if (Number.isNaN(firstLineNumber)) firstLineNumber = 1
@@ -118,24 +118,32 @@ class Markdown {
     this.md.use(require('markdown-it-imsize'))
     this.md.use(require('markdown-it-footnote'))
     this.md.use(require('markdown-it-multimd-table'))
-    this.md.use(require('markdown-it-named-headers'), {
-      slugify: (header) => {
-        return encodeURI(header.trim()
+    this.md.use(anchor, {
+      slugify: (title) => {
+        var slug = encodeURI(title.trim()
           .replace(/[\]\[\!\"\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~]/g, '')
           .replace(/\s+/g, '-'))
           .replace(/\-+$/, '')
+        return slug
       }
     })
     this.md.use(require('markdown-it-kbd'))
-
     this.md.use(require('markdown-it-admonition'), {types: ['note', 'hint', 'attention', 'caution', 'danger', 'error']})
+    this.md.use(require('markdown-it-abbr'))
+    this.md.use(require('markdown-it-sub'))
+    this.md.use(require('markdown-it-sup'))
+    this.md.use(require('./markdown-it-deflist'))
     this.md.use(require('./markdown-it-frontmatter'))
 
     this.md.use(require('./markdown-it-fence'), {
       chart: token => {
+        if (token.parameters.hasOwnProperty('yaml')) {
+          token.parameters.format = 'yaml'
+        }
+
         return `<pre class="fence" data-line="${token.map[0]}">
           <span class="filename">${token.fileName}</span>
-          <div class="chart" data-height="${token.parameters.height}">${token.content}</div>
+          <div class="chart" data-height="${token.parameters.height}" data-format="${token.parameters.format || 'json'}">${token.content}</div>
         </pre>`
       },
       flowchart: token => {
@@ -264,9 +272,12 @@ class Markdown {
     this.md.renderer.render = (tokens, options, env) => {
       tokens.forEach((token) => {
         switch (token.type) {
-          case 'heading_open':
-          case 'paragraph_open':
           case 'blockquote_open':
+          case 'dd_open':
+          case 'dt_open':
+          case 'heading_open':
+          case 'list_item_open':
+          case 'paragraph_open':
           case 'table_open':
             token.attrPush(['data-line', token.map[0]])
         }

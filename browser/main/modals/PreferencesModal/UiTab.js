@@ -68,6 +68,7 @@ class UiTab extends React.Component {
         theme: this.refs.uiTheme.value,
         language: this.refs.uiLanguage.value,
         defaultNote: this.refs.defaultNote.value,
+        tagNewNoteWithFilteringTags: this.refs.tagNewNoteWithFilteringTags.checked,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
         showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
@@ -97,7 +98,8 @@ class UiTab extends React.Component {
         frontMatterTitleField: this.refs.frontMatterTitleField.value,
         matchingPairs: this.refs.matchingPairs.value,
         matchingTriples: this.refs.matchingTriples.value,
-        explodingPairs: this.refs.explodingPairs.value
+        explodingPairs: this.refs.explodingPairs.value,
+        spellcheck: this.refs.spellcheck.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -270,6 +272,7 @@ class UiTab extends React.Component {
             </div>
             : null
           }
+
           <div styleName='group-header2'>Tags</div>
 
           <div styleName='group-checkBoxSection'>
@@ -313,6 +316,17 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Enable live count of notes')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.tagNewNoteWithFilteringTags}
+                ref='tagNewNoteWithFilteringTags'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('New notes are tagged with the filtering tags')}
             </label>
           </div>
 
@@ -539,6 +553,16 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Enable smart table editor')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.spellcheck}
+                ref='spellcheck'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable spellcheck - Experimental feature!! :)')}
             </label>
           </div>
 

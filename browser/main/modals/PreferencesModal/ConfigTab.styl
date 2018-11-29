@@ -7,9 +7,11 @@
   justify-content: center
   position relative
   margin-bottom: 2em
+  margin-left 2em
 
 .box-minmax
   width 608px
+  height 45px
   display flex
   justify-content space-between
   font-size $tab--button-font-size
@@ -18,6 +20,7 @@
   margin-top 18px
   padding-right 10px
   padding-left  10px
+  padding-top 8px
   position relative
   border $ui-borderColor
   border-radius 5px
@@ -29,6 +32,8 @@ div[id^="secondRow"]
   left 0;
   top 0;
   margin-bottom -42px;
+  .rs-label
+    margin-left -20px
   
 div[id^="firstRow"]
   position absolute;
@@ -36,6 +41,14 @@ div[id^="firstRow"]
   left 0;
   top 0;
   margin-bottom -25px;
+  .rs-range
+      &::-webkit-slider-thumb
+        margin-top: 0px
+        transform: rotate(180deg)
+  .rs-label
+    margin-bottom -85px
+    margin-top 85px
+  
 
 .rs-range
   margin-top: 29px
@@ -51,18 +64,23 @@ div[id^="firstRow"]
     background: $ui-backgroundColor
     border-radius: 0px
     border: 0px solid #010101
+    cursor none
     
   &::-webkit-slider-thumb
     box-shadow: none
-    border: 0px solid $ui-borderColor
+    border: 1px solid $ui-borderColor
     box-shadow: 0px 10px 10px rgba(0, 0, 0, 0.25)
-    height: 42px
-    width: 22px
+    height: 32px
+    width: 32px
     border-radius: 22px
-    background: $ui-backgroundColor
+    background: $ui-text-color
     cursor: pointer
     -webkit-appearance: none
     margin-top: -20px
+    border-color: $ui-text-color
+    height 32px
+    border-top-left-radius: 10%
+    border-top-right-radius: 10%
 
 .rs-label
   position: relative
@@ -76,8 +94,10 @@ div[id^="firstRow"]
   border: none
   margin-bottom: -5px
   margin-top: -10px
-  width: 0px
-  margin-left: 0px
+  clear:both;
+  float:left;
+  height 17px
+  margin-left: -25px
   left: attr(value)
   color: $ui-text-color
   font-style: normal
@@ -256,7 +276,10 @@ body[data-theme="dark"]
 
   .box-minmax, .rs-range, .rs-label
     colorDarkControl()
-
+  .rs-range
+    &::-webkit-slider-thumb
+      colorDarkControl()
+      background $ui-dark-text-color
 
 body[data-theme="solarized-dark"]
   .root
@@ -286,6 +309,10 @@ body[data-theme="solarized-dark"]
       colorSolarizedDarkControl()
   .box-minmax, .rs-range, .rs-label
       colorSolarizedDarkControl()
+  .rs-range
+    &::-webkit-slider-thumb
+      colorSolarizedDarkControl()
+      background $ui-solarized-dark-text-color
 
 body[data-theme="monokai"]
   .root
@@ -315,7 +342,11 @@ body[data-theme="monokai"]
       colorMonokaiControl()
   .box-minmax, .rs-range, .rs-label
       colorMonokaiControl()
-
+  .rs-range
+    &::-webkit-slider-thumb
+      colorMonokaiControl()
+      background $ui-monokai-text-color
+      
 body[data-theme="dracula"]
   .root
     color $ui-dracula-text-color
@@ -344,3 +375,7 @@ body[data-theme="dracula"]
       colorDraculaControl()
   .box-minmax, .rs-range, .rs-label
     colorDraculaControl()
+  .rs-range
+    &::-webkit-slider-thumb
+      colorDraculaControl()
+      background $ui-dracula-text-color

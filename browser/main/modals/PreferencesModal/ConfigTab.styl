@@ -73,11 +73,11 @@ div[id^="firstRow"]
     height: 32px
     width: 32px
     border-radius: 22px
-    background: $ui-text-color
+    background: white
     cursor: pointer
     -webkit-appearance: none
     margin-top: -20px
-    border-color: $ui-text-color
+    border-color: $ui-default-button-backgroundColor
     height 32px
     border-top-left-radius: 10%
     border-top-right-radius: 10%
@@ -276,6 +276,8 @@ body[data-theme="dark"]
 
   .box-minmax, .rs-range, .rs-label
     colorDarkControl()
+  .rs-label
+    background none
   .rs-range
     &::-webkit-slider-thumb
       colorDarkControl()
@@ -309,6 +311,8 @@ body[data-theme="solarized-dark"]
       colorSolarizedDarkControl()
   .box-minmax, .rs-range, .rs-label
       colorSolarizedDarkControl()
+  .rs-label
+    background none
   .rs-range
     &::-webkit-slider-thumb
       colorSolarizedDarkControl()
@@ -342,6 +346,8 @@ body[data-theme="monokai"]
       colorMonokaiControl()
   .box-minmax, .rs-range, .rs-label
       colorMonokaiControl()
+  .rs-label
+    background none
   .rs-range
     &::-webkit-slider-thumb
       colorMonokaiControl()
@@ -375,6 +381,8 @@ body[data-theme="dracula"]
       colorDraculaControl()
   .box-minmax, .rs-range, .rs-label
     colorDraculaControl()
+  .rs-label
+    background none
   .rs-range
     &::-webkit-slider-thumb
       colorDraculaControl()

@@ -1,5 +1,4 @@
-function choose (ui) {
-  console.log(ui.enableScheduleTheme)
+const chooseTheme = (ui) => {
   if (!ui.enableScheduleTheme) {
     return
   }
@@ -10,31 +9,25 @@ function choose (ui) {
   const now = new Date()
   const minutes = now.getHours() * 60 + now.getMinutes()
 
-  console.log(ui.scheduleStart, minutes, ui.scheduleEnd)
+  const isEndAfterStart = end > start
+  const isBetweenStartAndEnd = minutes >= start && minutes <= end
+  const isBetweenEndAndStart = (minutes >= start || minutes <= end)
 
-  if ((end > start && minutes >= start && minutes <= end) ||
-    (start > end && (minutes >= start || minutes <= end))) {
-    console.log('SC', ui.theme, ui.scheduledTheme)
+  if ((isEndAfterStart && isBetweenStartAndEnd) || (!isEndAfterStart && isBetweenEndAndStart)) {
     if (ui.theme !== ui.scheduledTheme) {
       ui.defaultTheme = ui.theme
       ui.theme = ui.scheduledTheme
-      apply(ui.theme)
+      applyTheme(ui.theme)
     }
-
-    console.log(ui.defaultTheme, ui.theme)
   } else {
-    console.log('TH', ui.theme, ui.defaultTheme)
     if (ui.theme !== ui.defaultTheme) {
       ui.theme = ui.defaultTheme
-      apply(ui.theme)
+      applyTheme(ui.theme)
     }
-
-    console.log(ui.theme)
   }
 }
 
-function apply (theme) {
-  console.log('Apply ', theme)
+const applyTheme = (theme) => {
   const supportedThemes = ['dark', 'white', 'solarized-dark', 'monokai', 'dracula']
   if (supportedThemes.indexOf(theme) !== -1) {
     document.body.setAttribute('data-theme', theme)
@@ -43,7 +36,7 @@ function apply (theme) {
   }
 }
 
-export default {
-  choose,
-  apply
+module.exports = {
+  chooseTheme,
+  applyTheme
 }

@@ -196,15 +196,7 @@ class UiTab extends React.Component {
     const rangeSlider = document.getElementById(sliderID)
     const rangeBullet = document.getElementById(bulletID)
 
-    let order
-    if (number === 1) {
-      order = 'Start:'
-    } else {
-      order = 'End:'
-    }
-
     if (rangeSlider && rangeBullet) {
-      rangeBullet.innerHTML = `${order}${this.formatTime(rangeSlider.value)}`
       const bulletPosition = (rangeSlider.value / rangeSlider.max)
       rangeBullet.style.left = (bulletPosition * 574) + 6 * (1 - bulletPosition) + 'px'
     }
@@ -284,13 +276,13 @@ class UiTab extends React.Component {
           <div styleName='group-section'>
             <div styleName='container'>
               <div styleName='range-slider' id='firstRow'>
-                <span id='rs-bullet-1' styleName='rs-label'>{`Start: ${this.formatTime(config.ui.scheduleStart)}`}</span>
-                <input id='rs-range-line-1' styleName='rs-range' type='range' value={config.ui.scheduleStart} min='0' max='1440' step='5' ref='scheduleStart'
+                <span id='rs-bullet-1' styleName='rs-label'>{`End: ${this.formatTime(config.ui.scheduleEnd)}`}</span>
+                <input id='rs-range-line-1' styleName='rs-range' type='range' value={config.ui.scheduleEnd} min='0' max='1440' step='5' ref='scheduleEnd'
                   onChange={(e) => this.handleSlider(e, 1)} />
               </div>
               <div styleName='range-slider' id='secondRow'>
-                <span id='rs-bullet-2' styleName='rs-label'>{`End: ${this.formatTime(config.ui.scheduleEnd)}`}</span>
-                <input id='rs-range-line-2' styleName='rs-range' type='range' value={config.ui.scheduleEnd} min='0' max='1440' step='5' ref='scheduleEnd'
+                <span id='rs-bullet-2' styleName='rs-label'>{`Start: ${this.formatTime(config.ui.scheduleStart)}`}</span>
+                <input id='rs-range-line-2' styleName='rs-range' type='range' value={config.ui.scheduleStart} min='0' max='1440' step='5' ref='scheduleStart'
                   onChange={(e) => this.handleSlider(e, 2)} />
               </div>
               <div styleName='box-minmax'>

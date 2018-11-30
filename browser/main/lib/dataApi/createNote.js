@@ -24,7 +24,7 @@ function validateInput (input) {
           name: '',
           mode: 'text',
           content: '',
-          linesHighlighted:[],
+          linesHighlighted: []
         }]
       }
       break

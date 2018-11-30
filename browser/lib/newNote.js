@@ -57,7 +57,7 @@ export function createSnippetNote (storage, folder, dispatch, location, params, 
           name: '',
           mode: config.editor.snippetDefaultLanguage || 'text',
           content: '',
-          linesHighlighted:[],
+          linesHighlighted: []
         }
       ]
     })

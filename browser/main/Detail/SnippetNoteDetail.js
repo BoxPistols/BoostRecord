@@ -410,7 +410,7 @@ class SnippetNoteDetail extends React.Component {
     return (e) => {
       const snippets = this.state.note.snippets.slice()
       snippets[index].content = this.refs['code-' + index].value
-      snippets[index].linesHighlighted=e.options.linesHighlighted
+      snippets[index].linesHighlighted = e.options.linesHighlighted
 
       this.setState(state => ({note: Object.assign(state.note, {snippets: snippets})}))
       this.setState(state => ({
@@ -605,7 +605,7 @@ class SnippetNoteDetail extends React.Component {
       name: '',
       mode: config.editor.snippetDefaultLanguage || 'text',
       content: '',
-      linesHighlighted:[]
+      linesHighlighted: []
     }])
     const snippetIndex = note.snippets.length - 1
 

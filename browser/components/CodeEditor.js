@@ -209,13 +209,13 @@ export default class CodeEditor extends React.Component {
         }
         return CodeMirror.Pass
       }
-    })   
+    })
 
     this.value = this.props.value
     this.editor = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
       value: this.props.value,
-      linesHighlighted:this.props.linesHighlighted,
+      linesHighlighted: this.props.linesHighlighted,
       lineNumbers: this.props.displayLineNumbers,
       lineWrapping: true,
       theme: this.props.theme,
@@ -242,7 +242,7 @@ export default class CodeEditor extends React.Component {
     this.editor.on('focus', this.focusHandler)
     this.editor.on('blur', this.blurHandler)
     this.editor.on('change', this.changeHandler)
-    this.editor.on("gutterClick",this.highlightHandler)
+    this.editor.on('gutterClick', this.highlightHandler)
     this.editor.on('paste', this.pasteHandler)
     this.editor.on('contextmenu', this.contextMenuHandler)
     eventEmitter.on('top:search', this.searchHandler)
@@ -320,10 +320,10 @@ export default class CodeEditor extends React.Component {
       clientWidth: this.refs.root.clientWidth
     })
 
-    this.initialHighlighting()    
+    this.initialHighlighting()
   }
 
-  expandSnippet (line, cursor, cm, snippets) {    
+  expandSnippet (line, cursor, cm, snippets) {
     const wordBeforeCursor = this.getWordBeforeCursor(
       line,
       cursor.line,
@@ -518,13 +518,13 @@ export default class CodeEditor extends React.Component {
   }
 
   handleHighlight (editor, changeObject) {
-    let lines =editor.options.linesHighlighted 
-    if(!lines.includes(changeObject)){
+    const lines = editor.options.linesHighlighted
+    if (!lines.includes(changeObject)) {
       lines.push(changeObject)
-      editor.addLineClass(changeObject,'text',"CodeMirror-activeline-background")
-    }else{
-      lines.splice(lines.indexOf(changeObject),1)
-      editor.removeLineClass(changeObject,'text',"CodeMirror-activeline-background")
+      editor.addLineClass(changeObject, 'text', 'CodeMirror-activeline-background')
+    } else {
+      lines.splice(lines.indexOf(changeObject), 1)
+      editor.removeLineClass(changeObject, 'text', 'CodeMirror-activeline-background')
     }
     if (this.props.onChange) {
       this.props.onChange(editor)
@@ -566,7 +566,7 @@ export default class CodeEditor extends React.Component {
     this.editor.setCursor(cursor)
   }
 
-  restartHighlighting(){
+  restartHighlighting () {
     this.editor.options.linesHighlighted = this.props.linesHighlighted
     this.initialHighlighting()
   }
@@ -708,11 +708,11 @@ export default class CodeEditor extends React.Component {
     })
   }
 
-  initialHighlighting(){
-    var count = this.editor.lineCount(), i
-    for (i = 0; i < count; i++) {
-      if(this.editor.options.linesHighlighted.includes(i)){
-        this.editor.addLineClass(i,'text',"CodeMirror-activeline-background")
+  initialHighlighting () {
+    const count = this.editor.lineCount()
+    for (let i = 0; i < count; i++) {
+      if (this.editor.options.linesHighlighted.includes(i)) {
+        this.editor.addLineClass(i, 'text', 'CodeMirror-activeline-background')
       }
     }
   }

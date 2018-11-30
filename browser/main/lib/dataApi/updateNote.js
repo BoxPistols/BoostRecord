@@ -52,7 +52,7 @@ function validateInput (input) {
             name: '',
             mode: 'text',
             content: '',
-            linesHighlighted:[],
+            linesHighlighted: []
           }]
         } else {
           validatedInput.snippets = input.snippets
@@ -98,7 +98,7 @@ function updateNote (storageKey, noteKey, input) {
               name: '',
               mode: 'text',
               content: '',
-              linesHighlighted:[],
+              linesHighlighted: []
             }]
           }
           : {

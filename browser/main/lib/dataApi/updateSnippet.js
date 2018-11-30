@@ -12,8 +12,8 @@ function updateSnippet (snippet, snippetFile) {
         if (
           currentSnippet.name === snippet.name &&
           currentSnippet.prefix === snippet.prefix &&
-          currentSnippet.content === snippet.content && 
-          currentSnippet.linesHighlighted===snippet.linesHighlighted 
+          currentSnippet.content === snippet.content &&
+          currentSnippet.linesHighlighted === snippet.linesHighlighted
         ) {
           // if everything is the same then don't write to disk
           resolve(snippets)

@@ -25,7 +25,8 @@ class StorageItem extends React.Component {
     const { storage } = this.props
 
     this.state = {
-      isOpen: !!storage.isOpen
+      isOpen: !!storage.isOpen,
+      draggedOver: null
     }
   }
 
@@ -231,14 +232,18 @@ class StorageItem extends React.Component {
     }
   }
 
-  handleDragEnter (e) {
-    e.dataTransfer.setData('defaultColor', e.target.style.backgroundColor)
-    e.target.style.backgroundColor = 'rgba(129, 130, 131, 0.08)'
+  handleDragEnter (e, key) {
+    if (this.state.draggedOver === key) { return }
+    this.setState({
+      draggedOver: key
+    })
   }
 
   handleDragLeave (e) {
-    e.target.style.opacity = '1'
-    e.target.style.backgroundColor = e.dataTransfer.getData('defaultColor')
+    if (this.state.draggedOver === null) { return }
+    this.setState({
+      draggedOver: null
+    })
   }
 
   dropNote (storage, folder, dispatch, location, noteData) {
@@ -263,8 +268,11 @@ class StorageItem extends React.Component {
   }
 
   handleDrop (e, storage, folder, dispatch, location) {
-    e.target.style.opacity = '1'
-    e.target.style.backgroundColor = e.dataTransfer.getData('defaultColor')
+    if (this.state.draggedOver !== null) {
+      this.setState({
+        draggedOver: null
+      })
+    }
     const noteData = JSON.parse(e.dataTransfer.getData('note'))
     this.dropNote(storage, folder, dispatch, location, noteData)
   }
@@ -274,7 +282,7 @@ class StorageItem extends React.Component {
     const { folderNoteMap, trashedSet } = data
     const SortableStorageItemChild = SortableElement(StorageItemChild)
     const folderList = storage.folders.map((folder, index) => {
-      let folderRegex = new RegExp(escapeStringRegexp(path.sep) + 'storages' + escapeStringRegexp(path.sep) + storage.key + escapeStringRegexp(path.sep) + 'folders' + escapeStringRegexp(path.sep) + folder.key)
+      const folderRegex = new RegExp(escapeStringRegexp(path.sep) + 'storages' + escapeStringRegexp(path.sep) + storage.key + escapeStringRegexp(path.sep) + 'folders' + escapeStringRegexp(path.sep) + folder.key)
       const isActive = !!(location.pathname.match(folderRegex))
       const noteSet = folderNoteMap.get(storage.key + '-' + folder.key)
 
@@ -291,16 +299,25 @@ class StorageItem extends React.Component {
         <SortableStorageItemChild
           key={folder.key}
           index={index}
-          isActive={isActive}
+          isActive={isActive || folder.key === this.state.draggedOver}
           handleButtonClick={(e) => this.handleFolderButtonClick(folder.key)(e)}
           handleContextMenu={(e) => this.handleFolderButtonContextMenu(e, folder)}
           folderName={folder.name}
           folderColor={folder.color}
           isFolded={isFolded}
           noteCount={noteCount}
-          handleDrop={(e) => this.handleDrop(e, storage, folder, dispatch, location)}
-          handleDragEnter={this.handleDragEnter}
-          handleDragLeave={this.handleDragLeave}
+          handleDrop={(e) => {
+            e.preventDefault()
+            this.handleDrop(e, storage, folder, dispatch, location)
+          }}
+          handleDragEnter={(e) => {
+            e.preventDefault()
+            this.handleDragEnter(e, folder.key)
+          }}
+          handleDragLeave={(e) => {
+            e.preventDefault()
+            this.handleDragLeave(e, folder)
+          }}
         />
       )
     })

@@ -51,7 +51,8 @@ function validateInput (input) {
           validatedInput.snippets = [{
             name: '',
             mode: 'text',
-            content: ''
+            content: '',
+            linesHighlighted:[],
           }]
         } else {
           validatedInput.snippets = input.snippets
@@ -96,7 +97,8 @@ function updateNote (storageKey, noteKey, input) {
             snippets: [{
               name: '',
               mode: 'text',
-              content: ''
+              content: '',
+              linesHighlighted:[],
             }]
           }
           : {

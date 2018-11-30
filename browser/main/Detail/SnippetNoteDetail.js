@@ -410,6 +410,8 @@ class SnippetNoteDetail extends React.Component {
     return (e) => {
       const snippets = this.state.note.snippets.slice()
       snippets[index].content = this.refs['code-' + index].value
+      snippets[index].linesHighlighted=e.options.linesHighlighted
+
       this.setState(state => ({note: Object.assign(state.note, {snippets: snippets})}))
       this.setState(state => ({
         note: state.note
@@ -602,7 +604,8 @@ class SnippetNoteDetail extends React.Component {
     note.snippets = note.snippets.concat([{
       name: '',
       mode: config.editor.snippetDefaultLanguage || 'text',
-      content: ''
+      content: '',
+      linesHighlighted:[]
     }])
     const snippetIndex = note.snippets.length - 1
 
@@ -705,6 +708,7 @@ class SnippetNoteDetail extends React.Component {
           : <CodeEditor styleName='tabView-content'
             mode={snippet.mode}
             value={snippet.content}
+            linesHighlighted={snippet.linesHighlighted}
             theme={config.editor.theme}
             fontFamily={config.editor.fontFamily}
             fontSize={editorFontSize}

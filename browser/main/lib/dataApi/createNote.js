@@ -23,7 +23,8 @@ function validateInput (input) {
         input.snippets = [{
           name: '',
           mode: 'text',
-          content: ''
+          content: '',
+          linesHighlighted:[],
         }]
       }
       break

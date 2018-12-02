@@ -277,12 +277,6 @@ class NoteList extends React.Component {
       ee.emit('top:new-note')
     }
 
-    // D key
-    if (e.keyCode === 68) {
-      e.preventDefault()
-      this.deleteNote()
-    }
-
     // E key
     if (e.keyCode === 69) {
       e.preventDefault()

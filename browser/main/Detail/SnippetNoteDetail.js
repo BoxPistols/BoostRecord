@@ -650,6 +650,7 @@ class SnippetNoteDetail extends React.Component {
       'export-txt': 'Text export',
       'export-md': 'Markdown export',
       'export-html': 'HTML export',
+      'export-pdf': 'PDF export',
       'print': 'Print'
     })[msg]
 
@@ -757,6 +758,7 @@ class SnippetNoteDetail extends React.Component {
           exportAsMd={this.showWarning}
           exportAsTxt={this.showWarning}
           exportAsHtml={this.showWarning}
+          exportAsPdf={this.showWarning}
         />
       </div>
     </div>
@@ -808,6 +810,7 @@ class SnippetNoteDetail extends React.Component {
           exportAsMd={this.showWarning}
           exportAsTxt={this.showWarning}
           exportAsHtml={this.showWarning}
+          exportAsPdf={this.showWarning}
           type={note.type}
           print={this.showWarning}
         />

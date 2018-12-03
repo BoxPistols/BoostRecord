@@ -500,6 +500,7 @@ class NoteList extends React.Component {
       'export-txt': 'Text export',
       'export-md': 'Markdown export',
       'export-html': 'HTML export',
+      'export-pdf': 'PDF export',
       'print': 'Print'
     })[msg]
 

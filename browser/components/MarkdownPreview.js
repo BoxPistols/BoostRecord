@@ -355,7 +355,7 @@ export default class MarkdownPreview extends React.Component {
   handleSaveAsPdf () {
     this.exportAsDocument('pdf', (noteContent, exportTasks) => {
       const printout = new remote.BrowserWindow({show: false})
-      printout.loadURL('data:text/html;charset=UTF-8,'+this.htmlContentFormatter(noteContent, exportTasks))
+      printout.loadURL('data:text/html;charset=UTF-8,' + this.htmlContentFormatter(noteContent, exportTasks))
       return new Promise((resolve, reject) => {
         printout.webContents.on('did-finish-load', () => {
           printout.webContents.printToPDF({}, (err, data) => {

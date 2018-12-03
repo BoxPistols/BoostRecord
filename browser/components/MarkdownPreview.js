@@ -23,7 +23,7 @@ import i18n from 'browser/lib/i18n'
 import fs from 'fs'
 import ConfigManager from '../main/lib/ConfigManager'
 
-const { remote, shell, BrowserWindow } = require('electron')
+const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
 
 const { app } = remote
@@ -349,16 +349,21 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsHtml () {
-    this.exportAsDocument('html', (noteContent, exportTasks) => this.htmlContentFormatter(noteContent, exportTasks))
+    this.exportAsDocument('html', (noteContent, exportTasks) => Promise.resolve(this.htmlContentFormatter(noteContent, exportTasks)))
   }
 
   handleSaveAsPdf () {
     this.exportAsDocument('pdf', (noteContent, exportTasks) => {
-      // Return pdf source
-      // const doc = new jsPDF()
-      // doc.fromHTML(this.markdown.render(noteContent), 0, 0)
-      // return doc.output()
-      
+      const printout = new remote.BrowserWindow({show: false})
+      printout.loadURL('data:text/html;charset=UTF-8,'+this.htmlContentFormatter(noteContent, exportTasks))
+      return new Promise((resolve, reject) => {
+        printout.webContents.on('did-finish-load', () => {
+          printout.webContents.printToPDF({}, (err, data) => {
+            if (err) reject(err)
+            else resolve(data)
+          })
+        })
+      })
     })
   }
 

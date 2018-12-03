@@ -23,7 +23,7 @@ import i18n from 'browser/lib/i18n'
 import fs from 'fs'
 import ConfigManager from '../main/lib/ConfigManager'
 
-const { remote, shell } = require('electron')
+const { remote, shell, BrowserWindow } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
 
 const { app } = remote
@@ -295,64 +295,70 @@ export default class MarkdownPreview extends React.Component {
     this.exportAsDocument('md')
   }
 
-  handleSaveAsHtml () {
-    this.exportAsDocument('html', (noteContent, exportTasks) => {
-      const {
-        fontFamily,
-        fontSize,
-        codeBlockFontFamily,
-        lineNumber,
-        codeBlockTheme,
-        scrollPastEnd,
-        theme,
-        allowCustomCSS,
-        customCSS
-      } = this.getStyleParams()
+  htmlContentFormatter (noteContent, exportTasks) {
+    const {
+      fontFamily,
+      fontSize,
+      codeBlockFontFamily,
+      lineNumber,
+      codeBlockTheme,
+      scrollPastEnd,
+      theme,
+      allowCustomCSS,
+      customCSS
+    } = this.getStyleParams()
 
-      const inlineStyles = buildStyle(
-        fontFamily,
-        fontSize,
-        codeBlockFontFamily,
-        lineNumber,
-        scrollPastEnd,
-        theme,
-        allowCustomCSS,
-        customCSS
-      )
-      let body = this.markdown.render(noteContent)
-      const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
-      files.forEach(file => {
-        if (global.process.platform === 'win32') {
-          file = file.replace('file:///', '')
-        } else {
-          file = file.replace('file://', '')
-        }
-        exportTasks.push({
-          src: file,
-          dst: 'css'
-        })
+    const inlineStyles = buildStyle(
+      fontFamily,
+      fontSize,
+      codeBlockFontFamily,
+      lineNumber,
+      scrollPastEnd,
+      theme,
+      allowCustomCSS,
+      customCSS
+    )
+    let body = this.markdown.render(noteContent)
+    const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
+    files.forEach(file => {
+      if (global.process.platform === 'win32') {
+        file = file.replace('file:///', '')
+      } else {
+        file = file.replace('file://', '')
+      }
+      exportTasks.push({
+        src: file,
+        dst: 'css'
       })
-
-      let styles = ''
-      files.forEach(file => {
-        styles += `<link rel="stylesheet" href="css/${path.basename(file)}">`
-      })
-
-      return `<html>
-                 <head>
-                   <meta charset="UTF-8">
-                   <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
-                   <style id="style">${inlineStyles}</style>
-                   ${styles}
-                 </head>
-                 <body>${body}</body>
-              </html>`
     })
+
+    let styles = ''
+    files.forEach(file => {
+      styles += `<link rel="stylesheet" href="css/${path.basename(file)}">`
+    })
+
+    return `<html>
+               <head>
+                 <meta charset="UTF-8">
+                 <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
+                 <style id="style">${inlineStyles}</style>
+                 ${styles}
+               </head>
+               <body>${body}</body>
+            </html>`
+  }
+
+  handleSaveAsHtml () {
+    this.exportAsDocument('html', (noteContent, exportTasks) => this.htmlContentFormatter(noteContent, exportTasks))
   }
 
   handleSaveAsPdf () {
     this.exportAsDocument('pdf', (noteContent, exportTasks) => {
       // Return pdf source
+      // const doc = new jsPDF()
+      // doc.fromHTML(this.markdown.render(noteContent), 0, 0)
+      // return doc.output()
+      
     })
   }
 

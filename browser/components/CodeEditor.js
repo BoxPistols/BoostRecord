@@ -519,6 +519,11 @@ export default class CodeEditor extends React.Component {
 
   handleHighlight (editor, changeObject) {
     const lines = editor.options.linesHighlighted
+
+    if (lines == null) {
+      return
+    }
+
     if (!lines.includes(changeObject)) {
       lines.push(changeObject)
       editor.addLineClass(changeObject, 'text', 'CodeMirror-activeline-background')
@@ -564,11 +569,6 @@ export default class CodeEditor extends React.Component {
     const cursor = this.editor.getCursor()
     this.editor.setValue(value)
     this.editor.setCursor(cursor)
-  }
-
-  restartHighlighting () {
-    this.editor.options.linesHighlighted = this.props.linesHighlighted
-    this.initialHighlighting()
   }
 
   handleDropImage (dropEvent) {
@@ -709,12 +709,21 @@ export default class CodeEditor extends React.Component {
   }
 
   initialHighlighting () {
+    if (this.editor.options.linesHighlighted == null) {
+      return
+    }
+
     const count = this.editor.lineCount()
     for (let i = 0; i < count; i++) {
       if (this.editor.options.linesHighlighted.includes(i)) {
         this.editor.addLineClass(i, 'text', 'CodeMirror-activeline-background')
       }
     }
+  }
+
+  restartHighlighting () {
+    this.editor.options.linesHighlighted = this.props.linesHighlighted
+    this.initialHighlighting()
   }
 
   mapImageResponse (response, pastedTxt) {

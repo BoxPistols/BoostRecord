@@ -713,11 +713,16 @@ export default class CodeEditor extends React.Component {
       return
     }
 
-    const count = this.editor.lineCount()
-    for (let i = 0; i < count; i++) {
-      if (this.editor.options.linesHighlighted.includes(i)) {
-        this.editor.addLineClass(i, 'text', 'CodeMirror-activeline-background')
+    const totalHighlightedLines = this.editor.options.linesHighlighted.length
+    const totalAvailableLines = this.editor.lineCount()
+
+    for (let i = 0; i < totalHighlightedLines; i++) {
+      const lineNumber = this.editor.options.linesHighlighted[i]
+      if (lineNumber > totalAvailableLines) {
+        // make sure that we skip the invalid lines althrough this case should not be happened.
+        continue
       }
+      this.editor.addLineClass(lineNumber, 'text', 'CodeMirror-activeline-background')
     }
   }
 

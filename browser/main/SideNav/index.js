@@ -18,6 +18,12 @@ import TagButton from './TagButton'
 import {SortableContainer} from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
+import { remote } from 'electron'
+import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
+
+function matchActiveTags (tags, activeTags) {
+  return _.every(activeTags, v => tags.indexOf(v) >= 0)
+}
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
@@ -28,6 +34,52 @@ class SideNav extends React.Component {
 
   componentWillUnmount () {
     EventEmitter.off('side:preferences', this.handleMenuButtonClick)
+  }
+
+  deleteTag (tag) {
+    const selectedButton = remote.dialog.showMessageBox(remote.getCurrentWindow(), {
+      ype: 'warning',
+      message: i18n.__('Confirm tag deletion'),
+      detail: i18n.__('This will permanently remove this tag.'),
+      buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
+    })
+
+    if (selectedButton === 0) {
+      const { data, dispatch, location, params } = this.props
+
+      const notes = data.noteMap
+        .map(note => note)
+        .filter(note => note.tags.indexOf(tag) !== -1)
+        .map(note => {
+          note = Object.assign({}, note)
+          note.tags = note.tags.slice()
+
+          note.tags.splice(note.tags.indexOf(tag), 1)
+
+          return note
+        })
+
+      Promise
+        .all(notes.map(note => dataApi.updateNote(note.storage, note.key, note)))
+        .then(updatedNotes => {
+          updatedNotes.forEach(note => {
+            dispatch({
+              type: 'UPDATE_NOTE',
+              note
+            })
+          })
+
+          if (location.pathname.match('/tags')) {
+            const tags = params.tagname.split(' ')
+            const index = tags.indexOf(tag)
+            if (index !== -1) {
+              tags.splice(index, 1)
+
+              this.context.router.push(`/tags/${tags.map(tag => encodeURIComponent(tag)).join(' ')}`)
+            }
+          }
+        })
+    }
   }
 
   handleMenuButtonClick (e) {
@@ -42,6 +94,17 @@ class SideNav extends React.Component {
   handleStarredButtonClick (e) {
     const { router } = this.context
     router.push('/starred')
+  }
+
+  handleTagContextMenu (e, tag) {
+    const menu = []
+
+    menu.push({
+      label: i18n.__('Delete Tag'),
+      click: this.deleteTag.bind(this, tag)
+    })
+
+    context.popup(menu)
   }
 
   handleToggleButtonClick (e) {
@@ -144,12 +207,20 @@ class SideNav extends React.Component {
 
   tagListComponent () {
     const { data, location, config } = this.props
-    const relatedTags = this.getRelatedTags(this.getActiveTags(location.pathname), data.noteMap)
+    const activeTags = this.getActiveTags(location.pathname)
+    const relatedTags = this.getRelatedTags(activeTags, data.noteMap)
     let tagList = _.sortBy(data.tagNoteMap.map(
       (tag, name) => ({ name, size: tag.size, related: relatedTags.has(name) })
-    ), ['name']).filter(
+    ).filter(
       tag => tag.size > 0
-    )
+    ), ['name'])
+    if (config.ui.enableLiveNoteCounts && activeTags.length !== 0) {
+      const notesTags = data.noteMap.map(note => note.tags)
+      tagList = tagList.map(tag => {
+        tag.size = notesTags.filter(tags => tags.includes(tag.name) && matchActiveTags(tags, activeTags)).length
+        return tag
+      })
+    }
     if (config.sortTagsBy === 'COUNTER') {
       tagList = _.sortBy(tagList, item => (0 - item.size))
     }
@@ -165,6 +236,7 @@ class SideNav extends React.Component {
             name={tag.name}
             handleClickTagListItem={this.handleClickTagListItem.bind(this)}
             handleClickNarrowToTag={this.handleClickNarrowToTag.bind(this)}
+            handleContextMenu={this.handleTagContextMenu.bind(this)}
             isActive={this.getTagActive(location.pathname, tag.name)}
             isRelated={tag.related}
             key={tag.name}
@@ -198,7 +270,7 @@ class SideNav extends React.Component {
     const tags = pathSegments[pathSegments.length - 1]
     return (tags === 'alltags')
       ? []
-      : tags.split(' ').map(tag => decodeURIComponent(tag))
+      : decodeURIComponent(tags).split(' ')
   }
 
   handleClickTagListItem (name) {
@@ -230,7 +302,7 @@ class SideNav extends React.Component {
     } else {
       listOfTags.push(tag)
     }
-    router.push(`/tags/${listOfTags.map(tag => encodeURIComponent(tag)).join(' ')}`)
+    router.push(`/tags/${encodeURIComponent(listOfTags.join(' '))}`)
   }
 
   emptyTrash (entries) {
@@ -238,6 +310,8 @@ class SideNav extends React.Component {
     const deletionPromises = entries.map((note) => {
       return dataApi.deleteNote(note.storage, note.key)
     })
+    const { confirmDeletion } = this.props.config.ui
+    if (!confirmDeleteNote(confirmDeletion, true)) return
     Promise.all(deletionPromises)
     .then((arrayOfStorageAndNoteKeys) => {
       arrayOfStorageAndNoteKeys.forEach(({ storageKey, noteKey }) => {
@@ -247,7 +321,6 @@ class SideNav extends React.Component {
     .catch((err) => {
       console.error('Cannot Delete note: ' + err)
     })
-    console.log('Trash emptied')
   }
 
   handleFilterButtonContextMenu (event) {

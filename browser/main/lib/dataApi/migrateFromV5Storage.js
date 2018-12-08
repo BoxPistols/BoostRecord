@@ -87,7 +87,8 @@ function importAll (storage, data) {
             snippets: [{
               name: article.mode,
               mode: article.mode,
-              content: article.content
+              content: article.content,
+              linesHighlighted: article.linesHighlighted,
             }]
           }
           notes.push(newNote)

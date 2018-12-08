@@ -52,6 +52,12 @@ class SnippetNoteDetail extends React.Component {
       })
     }
 
+    this.state.note.snippets.forEach(function (s) {
+      if (s.linesHighlighted === undefined) {
+        s.linesHighlighted = []
+      }
+    })
+
     this.scrollToNextTabThreshold = 0.7
     this.generateToc = () => this.handleGenerateToc()
   }

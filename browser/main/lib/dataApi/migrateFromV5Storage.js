@@ -88,7 +88,7 @@ function importAll (storage, data) {
               name: article.mode,
               mode: article.mode,
               content: article.content,
-              linesHighlighted: article.linesHighlighted,
+              linesHighlighted: article.linesHighlighted
             }]
           }
           notes.push(newNote)

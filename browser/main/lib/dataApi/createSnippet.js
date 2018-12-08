@@ -10,7 +10,7 @@ function createSnippet (snippetFile) {
       name: 'Unnamed snippet',
       prefix: [],
       content: '',
-      linesHighlighted: [],
+      linesHighlighted: []
     }
     fetchSnippet(null, snippetFile).then((snippets) => {
       snippets.push(newSnippet)

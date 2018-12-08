@@ -118,8 +118,6 @@ function updateNote (storageKey, noteKey, input) {
 
       if (noteData.type === 'SNIPPET_NOTE') {
         noteData.title
-        if(noteData.linesHighlighted = null)
-          noteData.linesHighlighted = [];
       }
 
       Object.assign(noteData, input, {

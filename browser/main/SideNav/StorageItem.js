@@ -204,6 +204,20 @@ class StorageItem extends React.Component {
               folderKey: data.folderKey,
               fileType: data.fileType
             })
+            return data
+          })
+          .then(data => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+              type: 'info',
+              message: 'Exported to "' + data.exportDir + '"'
+            })
+          })
+          .catch(err => {
+            dialog.showErrorBox(
+              'Export error',
+              err ? err.message || err : 'Unexpected error during export'
+            )
+            throw err
           })
       }
     })

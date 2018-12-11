@@ -3,19 +3,30 @@
   flex 1
   min-width 70px
   overflow hidden
+  border-left 1px solid $ui-borderColor
+  border-top 1px solid $ui-borderColor
   &:hover
+    background-color alpha($ui-button--active-backgroundColor, 20%)
     .deleteButton
-      color $ui-inactive-text-color
-      &:hover
-        background-color darken($ui-backgroundColor, 15%)
-      &:active
-        color white
-        background-color $ui-active-color
+      color: $ui-text-color
+      visibility visible
+      transition 0.15s
+    .button
+      color: $ui-text-color
+      transition 0.15s
 
 .root--active
   @extend .root
   min-width 100px
-  border-bottom $ui-border
+  background-color alpha($ui-button--active-backgroundColor, 60%)
+  .deleteButton
+    visibility visible
+    color: $ui-text-color
+    transition 0.15s
+  .button
+    font-weight bold
+    color: $ui-text-color
+    transition 0.15s
 
 .button
   width 100%
@@ -27,8 +38,7 @@
   background-color transparent
   transition 0.15s
   border-left 4px solid transparent
-  &:hover
-    background-color $ui-button--hover-backgroundColor
+  color $ui-inactive-text-color
 
 .deleteButton
   position absolute
@@ -42,6 +52,7 @@
   color $ui-inactive-text-color
   background-color transparent
   border-radius 2px
+  visibility hidden
 
 .input
   height 29px
@@ -50,73 +61,68 @@
   width 100%
   outline none
 
+body[data-theme="default"], body[data-theme="white"]  
+  .root--active
+    &:hover
+      background-color alpha($ui-button--active-backgroundColor, 60%)
+
 body[data-theme="dark"]
   .root
-    color $ui-dark-text-color
-    border-color $ui-dark-borderColor
+    border-left 1px solid $ui-dark-borderColor
+    border-top 1px solid $ui-dark-borderColor
     &:hover
-      background-color $ui-dark-button--hover-backgroundColor
+      background-color alpha($ui-dark-button--active-backgroundColor, 20%)
+      transition 0.15s
+      .button
+        color $ui-dark-text-color
+        transition 0.15s
       .deleteButton
-        color $ui-dark-inactive-text-color
-        &:hover
-          background-color darken($ui-dark-button--hover-backgroundColor, 15%)
-        &:active
-          color $ui-dark-text-color
-          background-color $ui-dark-button--active-backgroundColor
+        color $ui-dark-text-color
+        transition 0.15s
 
   .root--active
-    color $ui-dark-text-color
-    border-color $ui-dark-borderColor
-    &:hover
-      background-color $ui-dark-button--hover-backgroundColor
-      .deleteButton
-        color $ui-dark-inactive-text-color
-        &:hover
-          background-color darken($ui-dark-button--hover-backgroundColor, 15%)
-        &:active
-          color $ui-dark-text-color
-          background-color $ui-dark-button--active-backgroundColor
+    background-color $ui-dark-button--active-backgroundColor
+    border-left 1px solid $ui-dark-borderColor
+    border-top 1px solid $ui-dark-borderColor
+    .button
+      color $ui-dark-text-color
+    .deleteButton
+      color $ui-dark-text-color
 
   .button
     border none
-    color $ui-dark-text-color
     background-color transparent
     transition color background-color 0.15s
     border-left 4px solid transparent
-    &:hover
-      color $ui-dark-text-color
-      background-color $ui-dark-button--hover-backgroundColor
 
   .input
-    background-color $ui-dark-button--hover-backgroundColor
+    background-color $ui-dark-button--active-backgroundColor
     color $ui-dark-text-color
-
-  .deleteButton
-    color alpha($ui-dark-text-color, 30%)
+    transition 0.15s
 
 body[data-theme="solarized-dark"]
   .root
     color $ui-solarized-dark-text-color
-    border-color $ui-dark-borderColor
+    border-left 1px solid $ui-solarized-dark-borderColor
+    border-top 1px solid $ui-solarized-dark-borderColor
     &:hover
       background-color $ui-solarized-dark-noteDetail-backgroundColor
       .deleteButton
         color $ui-solarized-dark-text-color
-        &:hover
-          background-color darken($ui-solarized-dark-noteDetail-backgroundColor, 15%)
         &:active
           color $ui-solarized-dark-text-color
           background-color $ui-dark-button--active-backgroundColor
 
   .root--active
     color $ui-solarized-dark-text-color
-    border-color $ui-solarized-dark-borderColor
+    background-color darken($ui-solarized-dark-noteDetail-backgroundColor, 20%)
+    border-left 1px solid $ui-solarized-dark-borderColor
+    border-top 1px solid $ui-solarized-dark-borderColor
     &:hover
-      background-color $ui-solarized-dark-noteDetail-backgroundColor
       .deleteButton
         color $ui-solarized-dark-text-color
         &:hover
-          background-color darken($ui-solarized-dark-noteDetail-backgroundColor, 15%)
+          // background-color darken($ui-dark-button--hover-backgroundColor, 15%)
         &:active
           color $ui-solarized-dark-text-color
           background-color $ui-dark-button--active-backgroundColor
@@ -129,7 +135,6 @@ body[data-theme="solarized-dark"]
     border-left 4px solid transparent
     &:hover
       color $ui-solarized-dark-text-color
-      background-color $ui-solarized-dark-noteDetail-backgroundColor
 
   .input
     background-color $ui-solarized-dark-noteDetail-backgroundColor
@@ -146,21 +151,16 @@ body[data-theme="monokai"]
       background-color $ui-monokai-noteDetail-backgroundColor
       .deleteButton
         color $ui-monokai-text-color
-        &:hover
-          background-color darken($ui-monokai-noteDetail-backgroundColor, 15%)
         &:active
           color $ui-monokai-text-color
           background-color $ui-dark-button--active-backgroundColor
 
   .root--active
     color $ui-monokai-text-color
-    border-color $ui-monokai-borderColor
+    background-color darken($ui-monokai-noteDetail-backgroundColor, 15%)
     &:hover
-      background-color $ui-monokai-noteDetail-backgroundColor
       .deleteButton
         color $ui-monokai-text-color
-        &:hover
-          background-color darken($ui-monokai-noteDetail-backgroundColor, 15%)
         &:active
           color $ui-monokai-text-color
           background-color $ui-dark-button--active-backgroundColor
@@ -173,7 +173,6 @@ body[data-theme="monokai"]
     border-left 4px solid transparent
     &:hover
       color $ui-monokai-text-color
-      background-color $ui-monokai-noteDetail-backgroundColor
 
   .input
     background-color $ui-monokai-noteDetail-backgroundColor
@@ -190,21 +189,16 @@ body[data-theme="dracula"]
       background-color $ui-dracula-noteDetail-backgroundColor
       .deleteButton
         color $ui-dracula-text-color
-        &:hover
-          background-color darken($ui-dracula-noteDetail-backgroundColor, 15%)
         &:active
           color $ui-dracula-text-color
           background-color $ui-dark-button--active-backgroundColor
 
   .root--active
     color $ui-dracula-text-color
-    border-color $ui-dracula-borderColor
+    background-color darken($ui-dracula-noteDetail-backgroundColor, 15%)
     &:hover
-      background-color $ui-dracula-noteDetail-backgroundColor
       .deleteButton
         color $ui-dracula-text-color
-        &:hover
-          background-color darken($ui-dracula-noteDetail-backgroundColor, 15%)
         &:active
           color $ui-dracula-text-color
           background-color $ui-dark-button--active-backgroundColor
@@ -217,7 +211,6 @@ body[data-theme="dracula"]
     border-left 4px solid transparent
     &:hover
       color $ui-dracula-text-color
-      background-color $ui-dracula-noteDetail-backgroundColor
 
   .input
     background-color $ui-dracula-noteDetail-backgroundColor

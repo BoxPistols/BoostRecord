@@ -55,11 +55,12 @@ body
   line-height 1.6
   overflow-x hidden
   background-color $ui-noteDetail-backgroundColor
+  // do not allow display line breaks
+  .katex-display > .katex
+    white-space nowrap
+  // allow inline line breaks
   .katex
-    font 400 1.2em 'KaTeX_Main'
-    line-height 1.2em
     white-space initial
-    text-indent 0
   .katex .mfrac>.vlist>span:nth-child(2)
     top 0 !important
   .katex-error

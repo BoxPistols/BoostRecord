@@ -204,6 +204,20 @@ class StorageItem extends React.Component {
               folderKey: data.folderKey,
               fileType: data.fileType
             })
+            return data
+          })
+          .then(data => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+              type: 'info',
+              message: 'Exported to "' + data.exportDir + '"'
+            })
+          })
+          .catch(err => {
+            dialog.showErrorBox(
+              'Export error',
+              err ? err.message || err : 'Unexpected error during export'
+            )
+            throw err
           })
       }
     })
@@ -274,7 +288,7 @@ class StorageItem extends React.Component {
     const { folderNoteMap, trashedSet } = data
     const SortableStorageItemChild = SortableElement(StorageItemChild)
     const folderList = storage.folders.map((folder, index) => {
-      let folderRegex = new RegExp(escapeStringRegexp(path.sep) + 'storages' + escapeStringRegexp(path.sep) + storage.key + escapeStringRegexp(path.sep) + 'folders' + escapeStringRegexp(path.sep) + folder.key)
+      const folderRegex = new RegExp(escapeStringRegexp(path.sep) + 'storages' + escapeStringRegexp(path.sep) + storage.key + escapeStringRegexp(path.sep) + 'folders' + escapeStringRegexp(path.sep) + folder.key)
       const isActive = !!(location.pathname.match(folderRegex))
       const noteSet = folderNoteMap.get(storage.key + '-' + folder.key)
 

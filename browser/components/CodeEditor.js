@@ -520,10 +520,6 @@ export default class CodeEditor extends React.Component {
   handleHighlight (editor, changeObject) {
     const lines = editor.options.linesHighlighted
 
-    if (lines == null) {
-      return
-    }
-
     if (!lines.includes(changeObject)) {
       lines.push(changeObject)
       editor.addLineClass(changeObject, 'text', 'CodeMirror-activeline-background')

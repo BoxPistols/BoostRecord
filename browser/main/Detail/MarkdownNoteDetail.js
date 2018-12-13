@@ -47,11 +47,6 @@ class MarkdownNoteDetail extends React.Component {
       editorType: props.config.editor.type
     }
 
-    let lines = this.state.note.linesHighlighted
-    if (lines === undefined) {
-      lines = []
-    }
-
     this.dispatchTimer = null
 
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
@@ -78,7 +73,7 @@ class MarkdownNoteDetail extends React.Component {
     if (!this.state.isMovingNote && (isNewNote || hasDeletedTags)) {
       if (this.saveQueue != null) this.saveNow()
       this.setState({
-        note: Object.assign({}, nextProps.note)
+        note: Object.assign({linesHighlighted: []}, nextProps.note)
       }, () => {
         this.refs.content.reload()
         if (this.refs.tags) this.refs.tags.reset()

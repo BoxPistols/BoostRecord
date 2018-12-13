@@ -48,15 +48,9 @@ class SnippetNoteDetail extends React.Component {
       note: Object.assign({
         description: ''
       }, props.note, {
-        snippets: props.note.snippets.map((snippet) => Object.assign({}, snippet))
+        snippets: props.note.snippets.map((snippet) => Object.assign({linesHighlighted: []}, snippet))
       })
     }
-
-    this.state.note.snippets.forEach(function (s) {
-      if (s.linesHighlighted === undefined) {
-        s.linesHighlighted = []
-      }
-    })
 
     this.scrollToNextTabThreshold = 0.7
     this.generateToc = () => this.handleGenerateToc()
@@ -82,8 +76,9 @@ class SnippetNoteDetail extends React.Component {
       const nextNote = Object.assign({
         description: ''
       }, nextProps.note, {
-        snippets: nextProps.note.snippets.map((snippet) => Object.assign({}, snippet))
+        snippets: nextProps.note.snippets.map((snippet) => Object.assign({linesHighlighted: []}, snippet))
       })
+
       this.setState({
         snippetIndex: 0,
         note: nextNote
@@ -694,10 +689,8 @@ class SnippetNoteDetail extends React.Component {
 
     const viewList = note.snippets.map((snippet, index) => {
       const isActive = this.state.snippetIndex === index
-
       let syntax = CodeMirror.findModeByName(convertModeName(snippet.mode))
       if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
-
       return <div styleName='tabView'
         key={index}
         style={{zIndex: isActive ? 5 : 4}}

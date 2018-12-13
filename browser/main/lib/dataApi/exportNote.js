@@ -4,14 +4,16 @@ import { findStorage } from 'browser/lib/findStorage'
 const fs = require('fs')
 const path = require('path')
 
+const attachmentManagement = require('./attachmentManagement')
+
 /**
- * Export note together with images
+ * Export note together with attachments
  *
- * If images is stored in the storage, creates 'images' subfolder in target directory
- * and copies images to it. Changes links to images in the content of the note
+ * If attachments are stored in the storage, creates 'attachments' subfolder in target directory
+ * and copies attachments to it. Changes links to images in the content of the note
  *
  * @param {String} storageKey or storage path
- * @param {String} noteContent Content to export
+ * @param {Object} note Note to export
  * @param {String} targetPath Path to exported file
  * @param {function} outputFormatter
  * @return {Promise.<*[]>}

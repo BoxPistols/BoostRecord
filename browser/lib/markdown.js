@@ -7,7 +7,7 @@ import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
 import { lastFindInArray } from './utils'
-import ee from 'browser/main/lib/eventEmitter'
+import anchor from '@enyaxu/markdown-it-anchor'
 
 function createGutter (str, firstLineNumber) {
   if (Number.isNaN(firstLineNumber)) firstLineNumber = 1
@@ -118,12 +118,13 @@ class Markdown {
     this.md.use(require('markdown-it-imsize'))
     this.md.use(require('markdown-it-footnote'))
     this.md.use(require('markdown-it-multimd-table'))
-    this.md.use(require('markdown-it-named-headers'), {
-      slugify: (header) => {
-        return encodeURI(header.trim()
+    this.md.use(anchor, {
+      slugify: (title) => {
+        var slug = encodeURI(title.trim()
           .replace(/[\]\[\!\"\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~]/g, '')
           .replace(/\s+/g, '-'))
           .replace(/\-+$/, '')
+        return slug
       }
     })
     this.md.use(require('markdown-it-kbd'))

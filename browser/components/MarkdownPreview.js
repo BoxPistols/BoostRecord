@@ -28,6 +28,7 @@ import uri2path from 'file-uri-to-path'
 import { remote, shell } from 'electron'
 import attachmentManagement from '../main/lib/dataApi/attachmentManagement'
 import filenamify from 'filenamify'
+import ConfigManager from '../main/lib/ConfigManager'
 
 const dialog = remote.dialog
 
@@ -125,6 +126,10 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleMouseDown (e) {
+    const config = ConfigManager.get()
+    if (config.editor.switchPreview === 'RIGHTCLICK' && e.buttons === 2 && config.editor.type === 'SPLIT') {
+      eventEmitter.emit('topbar:togglemodebutton', 'CODE')
+    }
     if (e.target != null) {
       switch (e.target.tagName) {
         case 'A':

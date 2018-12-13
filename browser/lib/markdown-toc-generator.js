@@ -5,6 +5,7 @@
 import toc from 'markdown-toc'
 import diacritics from 'diacritics-map'
 import stripColor from 'strip-color'
+import mdlink from 'markdown-link'
 
 const EOL = require('os').EOL
 
@@ -40,6 +41,12 @@ function caseSensitiveSlugify (str) {
   str = str.split(/[。？！，、；：“”【】（）〔〕［］﹃﹄“ ”‘’﹁﹂—…－～《》〈〉「」]/).join('')
   str = replaceDiacritics(str)
   return str
+}
+
+function linkify (tok, text, slug, opts) {
+  var uniqeID = opts.num === 0 ? '' : '-' + opts.num
+  tok.content = mdlink(text, '#' + slug + uniqeID)
+  return tok
 }
 
 const TOC_MARKER_START = '<!-- toc -->'
@@ -84,7 +91,7 @@ export function generateInEditor (editor) {
  * @returns generatedTOC String containing generated TOC
  */
 export function generate (markdownText) {
-  const generatedToc = toc(markdownText, {slugify: caseSensitiveSlugify})
+  const generatedToc = toc(markdownText, {slugify: caseSensitiveSlugify, linkify: linkify})
   return TOC_MARKER_START + EOL + EOL + generatedToc.content + EOL + EOL + TOC_MARKER_END
 }
 

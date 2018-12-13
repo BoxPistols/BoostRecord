@@ -325,8 +325,6 @@ class MarkdownNoteDetail extends React.Component {
       newConfig.editor.type = type
       ConfigManager.set(newConfig)
     })
-
-    console.log(this.state);
   }
 
   handleDeleteNote () {

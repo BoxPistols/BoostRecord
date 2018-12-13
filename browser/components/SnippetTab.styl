@@ -68,7 +68,7 @@ body[data-theme="default"], body[data-theme="white"]
 
 body[data-theme="dark"]
   .root
-    border-left 1px solid $ui-dark-borderColor
+    border-color $ui-dark-borderColor
     border-top 1px solid $ui-dark-borderColor
     &:hover
       background-color alpha($ui-dark-button--active-backgroundColor, 20%)
@@ -102,9 +102,7 @@ body[data-theme="dark"]
 
 body[data-theme="solarized-dark"]
   .root
-    color $ui-solarized-dark-text-color
-    border-left 1px solid $ui-solarized-dark-borderColor
-    border-top 1px solid $ui-solarized-dark-borderColor
+    border-color $ui-solarized-dark-borderColor
     &:hover
       background-color $ui-solarized-dark-noteDetail-backgroundColor
       transition 0.15s
@@ -118,8 +116,7 @@ body[data-theme="solarized-dark"]
   .root--active
     color $ui-solarized-dark-button--active-color
     background-color $ui-solarized-dark-button-backgroundColor
-    border-left 1px solid $ui-solarized-dark-borderColor
-    border-top 1px solid $ui-solarized-dark-borderColor
+    border-color $ui-solarized-dark-borderColor
     .deleteButton
       color $ui-solarized-dark-button--active-color
     .button

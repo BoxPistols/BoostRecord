@@ -232,7 +232,7 @@ class MarkdownEditor extends React.Component {
   }
 
   render () {
-    const {className, value, config, storageKey, noteKey} = this.props
+    const {className, value, config, storageKey, noteKey, linesHighlighted} = this.props
 
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -275,7 +275,8 @@ class MarkdownEditor extends React.Component {
           noteKey={noteKey}
           fetchUrlTitle={config.editor.fetchUrlTitle}
           enableTableEditor={config.editor.enableTableEditor}
-          onChange={(e) => this.handleChange(e)}
+          linesHighlighted={linesHighlighted}
+          onChange={(e) => this.handleChange(e).bind(this)}
           onBlur={(e) => this.handleBlur(e)}
           spellCheck={config.editor.spellcheck}
         />

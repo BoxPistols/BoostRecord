@@ -18,7 +18,8 @@ export function createMarkdownNote (storage, folder, dispatch, location, params,
       folder: folder,
       title: '',
       tags,
-      content: ''
+      content: '',
+      linesHighlighted: []
     })
     .then(note => {
       const noteHash = note.key

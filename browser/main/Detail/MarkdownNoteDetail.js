@@ -39,12 +39,19 @@ class MarkdownNoteDetail extends React.Component {
       isMovingNote: false,
       note: Object.assign({
         title: '',
-        content: ''
+        content: '',
+        linesHighlighted: []
       }, props.note),
       isLockButtonShown: false,
       isLocked: false,
       editorType: props.config.editor.type
     }
+
+    let lines = this.state.note.linesHighlighted
+    if (lines === undefined) {
+      lines = []
+    }
+
     this.dispatchTimer = null
 
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
@@ -361,6 +368,7 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         noteKey={note.key}
+        linesHighlighted={note.linesHighlighted}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
@@ -371,6 +379,7 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         noteKey={note.key}
+        linesHighlighted={note.linesHighlighted}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />

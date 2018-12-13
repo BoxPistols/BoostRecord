@@ -707,7 +707,8 @@ class NoteList extends React.Component {
         type: firstNote.type,
         folder: folder.key,
         title: firstNote.title + ' ' + i18n.__('copy'),
-        content: firstNote.content
+        content: firstNote.content,
+        linesHighlighted: firstNote.linesHighlighted
       })
       .then((note) => {
         attachmentManagement.cloneAttachments(firstNote, note)

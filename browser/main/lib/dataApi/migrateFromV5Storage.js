@@ -69,7 +69,8 @@ function importAll (storage, data) {
             isStarred: false,
             title: article.title,
             content: '# ' + article.title + '\n\n' + article.content,
-            key: noteKey
+            key: noteKey,
+            linesHighlighted: article.linesHighlighted
           }
           notes.push(newNote)
         } else {

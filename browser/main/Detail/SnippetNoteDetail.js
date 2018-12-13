@@ -706,6 +706,7 @@ class SnippetNoteDetail extends React.Component {
           ? <MarkdownEditor styleName='tabView-content'
             value={snippet.content}
             config={config}
+            linesHighlighted={snippet.linesHighlighted}
             onChange={(e) => this.handleCodeChange(index)(e)}
             ref={'code-' + index}
             ignorePreviewPointerEvents={this.props.ignorePreviewPointerEvents}

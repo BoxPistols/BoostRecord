@@ -75,6 +75,7 @@ class MarkdownEditor extends React.Component {
   }
 
   handleContextMenu (e) {
+    if (this.state.isLocked) return
     const { config } = this.props
     if (config.editor.switchPreview === 'RIGHTCLICK') {
       const newStatus = this.state.status === 'PREVIEW' ? 'CODE' : 'PREVIEW'

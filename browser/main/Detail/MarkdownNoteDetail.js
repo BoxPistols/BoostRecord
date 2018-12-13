@@ -292,7 +292,7 @@ class MarkdownNoteDetail extends React.Component {
 
   handleToggleLockButton (event, noteStatus) {
     // first argument event is not used
-    if (this.props.config.editor.switchPreview === 'BLUR' && noteStatus === 'CODE') {
+    if (noteStatus === 'CODE') {
       this.setState({isLockButtonShown: true})
     } else {
       this.setState({isLockButtonShown: false})
@@ -319,13 +319,14 @@ class MarkdownNoteDetail extends React.Component {
 
   handleSwitchMode (type) {
     // If in split mode, hide the lock button
-    if (type === 'SPLIT') this.setState({isLockButtonShown: false})
-    this.setState({ editorType: type }, () => {
+    this.setState({ editorType: type, isLockButtonShown: !(type === 'SPLIT') }, () => {
       this.focus()
       const newConfig = Object.assign({}, this.props.config)
       newConfig.editor.type = type
       ConfigManager.set(newConfig)
     })
+
+    console.log(this.state);
   }
 
   handleDeleteNote () {

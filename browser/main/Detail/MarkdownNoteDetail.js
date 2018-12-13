@@ -41,7 +41,7 @@ class MarkdownNoteDetail extends React.Component {
         title: '',
         content: ''
       }, props.note),
-      isLockButtonShown: true,
+      isLockButtonShown: false,
       isLocked: false,
       editorType: props.config.editor.type
     }

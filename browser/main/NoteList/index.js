@@ -64,13 +64,14 @@ class NoteList extends React.Component {
     this.focusHandler = () => {
       this.refs.list.focus()
     }
-    this.alertIfSnippetHandler = () => {
-      this.alertIfSnippet()
+    this.alertIfSnippetHandler = (event, msg) => {
+      this.alertIfSnippet(msg)
     }
     this.importFromFileHandler = this.importFromFile.bind(this)
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
     this.handleNoteListKeyUp = this.handleNoteListKeyUp.bind(this)
     this.getNoteKeyFromTargetIndex = this.getNoteKeyFromTargetIndex.bind(this)
+    this.cloneNote = this.cloneNote.bind(this)
     this.deleteNote = this.deleteNote.bind(this)
     this.focusNote = this.focusNote.bind(this)
     this.pinToTop = this.pinToTop.bind(this)
@@ -96,6 +97,7 @@ class NoteList extends React.Component {
     this.refreshTimer = setInterval(() => this.forceUpdate(), 60 * 1000)
     ee.on('list:next', this.selectNextNoteHandler)
     ee.on('list:prior', this.selectPriorNoteHandler)
+    ee.on('list:clone', this.cloneNote)
     ee.on('list:focus', this.focusHandler)
     ee.on('list:isMarkdownNote', this.alertIfSnippetHandler)
     ee.on('import:file', this.importFromFileHandler)
@@ -118,6 +120,7 @@ class NoteList extends React.Component {
 
     ee.off('list:next', this.selectNextNoteHandler)
     ee.off('list:prior', this.selectPriorNoteHandler)
+    ee.off('list:clone', this.cloneNote)
     ee.off('list:focus', this.focusHandler)
     ee.off('list:isMarkdownNote', this.alertIfSnippetHandler)
     ee.off('import:file', this.importFromFileHandler)
@@ -173,16 +176,15 @@ class NoteList extends React.Component {
     }
   }
 
-  focusNote (selectedNoteKeys, noteKey) {
+  focusNote (selectedNoteKeys, noteKey, pathname) {
     const { router } = this.context
-    const { location } = this.props
 
     this.setState({
       selectedNoteKeys
     })
 
     router.push({
-      pathname: location.pathname,
+      pathname,
       query: {
         key: noteKey
       }
@@ -201,6 +203,7 @@ class NoteList extends React.Component {
     }
     let { selectedNoteKeys } = this.state
     const { shiftKeyDown } = this.state
+    const { location } = this.props
 
     let targetIndex = this.getTargetIndex()
 
@@ -217,7 +220,7 @@ class NoteList extends React.Component {
       selectedNoteKeys.push(priorNoteKey)
     }
 
-    this.focusNote(selectedNoteKeys, priorNoteKey)
+    this.focusNote(selectedNoteKeys, priorNoteKey, location.pathname)
 
     ee.emit('list:moved')
   }
@@ -228,6 +231,7 @@ class NoteList extends React.Component {
     }
     let { selectedNoteKeys } = this.state
     const { shiftKeyDown } = this.state
+    const { location } = this.props
 
     let targetIndex = this.getTargetIndex()
     const isTargetLastNote = targetIndex === this.notes.length - 1
@@ -250,7 +254,7 @@ class NoteList extends React.Component {
       selectedNoteKeys.push(nextNoteKey)
     }
 
-    this.focusNote(selectedNoteKeys, nextNoteKey)
+    this.focusNote(selectedNoteKeys, nextNoteKey, location.pathname)
 
     ee.emit('list:moved')
   }
@@ -262,7 +266,7 @@ class NoteList extends React.Component {
     }
 
     const selectedNoteKeys = [noteHash]
-    this.focusNote(selectedNoteKeys, noteHash)
+    this.focusNote(selectedNoteKeys, noteHash, '/home')
 
     ee.emit('list:moved')
   }
@@ -274,12 +278,6 @@ class NoteList extends React.Component {
     if (e.keyCode === 65 && !e.shiftKey) {
       e.preventDefault()
       ee.emit('top:new-note')
-    }
-
-    // D key
-    if (e.keyCode === 68) {
-      e.preventDefault()
-      this.deleteNote()
     }
 
     // E key
@@ -494,14 +492,21 @@ class NoteList extends React.Component {
     })
   }
 
-  alertIfSnippet () {
+  alertIfSnippet (msg) {
+    const warningMessage = (msg) => ({
+      'export-txt': 'Text export',
+      'export-md': 'Markdown export',
+      'export-html': 'HTML export',
+      'print': 'Print'
+    })[msg]
+
     const targetIndex = this.getTargetIndex()
     if (this.notes[targetIndex].type === 'SNIPPET_NOTE') {
       dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
         message: i18n.__('Sorry!'),
-        detail: i18n.__('md/text import is available only a markdown note.'),
-        buttons: [i18n.__('OK'), i18n.__('Cancel')]
+        detail: i18n.__(warningMessage(msg) + ' is available only in markdown notes.'),
+        buttons: [i18n.__('OK')]
       })
     }
   }

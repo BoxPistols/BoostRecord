@@ -73,12 +73,16 @@ export default class CodeEditor extends React.Component {
     this.scrollToLineHandeler = this.scrollToLine.bind(this)
 
     this.formatTable = () => this.handleFormatTable()
-    this.contextMenuHandler = function (editor, event) {
-      const menu = buildEditorContextMenu(editor, event)
-      if (menu != null) {
-        setTimeout(() => menu.popup(remote.getCurrentWindow()), 30)
+
+    if (props.switchPreview !== 'RIGHTCLICK') {
+      this.contextMenuHandler = function (editor, event) {
+        const menu = buildEditorContextMenu(editor, event)
+        if (menu != null) {
+          setTimeout(() => menu.popup(remote.getCurrentWindow()), 30)
+        }
       }
     }
+
     this.editorActivityHandler = () => this.handleEditorActivity()
 
     this.turndownService = new TurndownService()
@@ -258,7 +262,9 @@ export default class CodeEditor extends React.Component {
     this.editor.on('blur', this.blurHandler)
     this.editor.on('change', this.changeHandler)
     this.editor.on('paste', this.pasteHandler)
-    this.editor.on('contextmenu', this.contextMenuHandler)
+    if (this.props.switchPreview !== 'RIGHTCLICK') {
+      this.editor.on('contextmenu', this.contextMenuHandler)
+    }
     eventEmitter.on('top:search', this.searchHandler)
 
     eventEmitter.emit('code:init')

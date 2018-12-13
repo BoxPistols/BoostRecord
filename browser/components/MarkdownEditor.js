@@ -280,6 +280,7 @@ class MarkdownEditor extends React.Component {
           spellCheck={config.editor.spellcheck}
           enableSmartPaste={config.editor.enableSmartPaste}
           hotkey={config.hotkey}
+          switchPreview={config.editor.switchPreview}
         />
         <MarkdownPreview styleName={this.state.status === 'PREVIEW'
             ? 'preview'

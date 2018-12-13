@@ -170,38 +170,33 @@ body[data-theme="monokai"]
 
 body[data-theme="dracula"]
   .root
-    color $ui-dracula-text-color
-    border-color $ui-dark-borderColor
+    border-color $ui-dracula-borderColor
     &:hover
       background-color $ui-dracula-noteDetail-backgroundColor
+      transition 0.15s
       .deleteButton
         color $ui-dracula-text-color
-        &:active
-          color $ui-dracula-text-color
-          background-color $ui-dark-button--active-backgroundColor
+        transition 0.15s
+      .button
+        color $ui-dracula-text-color
+        transition 0.15s
 
   .root--active
     color $ui-dracula-text-color
-    background-color darken($ui-dracula-noteDetail-backgroundColor, 15%)
-    &:hover
-      .deleteButton
-        color $ui-dracula-text-color
-        &:active
-          color $ui-dracula-text-color
-          background-color $ui-dark-button--active-backgroundColor
+    background-color $ui-dracula-button-backgroundColor
+    border-color $ui-dracula-borderColor
+    .deleteButton
+      color $ui-dracula-text-color
+    .button
+      color $ui-dracula-active-color
 
   .button
     border none
-    color $ui-dracula-text-color
+    color $ui-inactive-text-color
     background-color transparent
     transition color background-color 0.15s
     border-left 4px solid transparent
-    &:hover
-      color $ui-dracula-text-color
 
   .input
     background-color $ui-dracula-noteDetail-backgroundColor
     color $ui-dracula-text-color
-
-  .deleteButton
-    color alpha($ui-dracula-text-color, 30%)

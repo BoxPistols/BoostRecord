@@ -139,41 +139,37 @@ body[data-theme="solarized-dark"]
 
 body[data-theme="monokai"]
   .root
-    color $ui-monokai-text-color
-    border-color $ui-dark-borderColor
+    border-color $ui-monokai-borderColor
     &:hover
       background-color $ui-monokai-noteDetail-backgroundColor
+      transition 0.15s
       .deleteButton
         color $ui-monokai-text-color
-        &:active
-          color $ui-monokai-text-color
-          background-color $ui-dark-button--active-backgroundColor
+        transition 0.15s
+      .button
+        color $ui-monokai-text-color
+        transition 0.15s
 
   .root--active
-    color $ui-monokai-text-color
-    background-color darken($ui-monokai-noteDetail-backgroundColor, 15%)
-    &:hover
-      .deleteButton
-        color $ui-monokai-text-color
-        &:active
-          color $ui-monokai-text-color
-          background-color $ui-dark-button--active-backgroundColor
-
+    color $ui-monokai-active-color
+    background-color $ui-monokai-button-backgroundColor
+    border-color $ui-monokai-borderColor
+    .deleteButton
+      color $ui-monokai-text-color
+    .button
+      color $ui-monokai-active-color
+        
   .button
     border none
-    color $ui-monokai-text-color
+    color $ui-inactive-text-color
     background-color transparent
     transition color background-color 0.15s
     border-left 4px solid transparent
-    &:hover
-      color $ui-monokai-text-color
 
   .input
     background-color $ui-monokai-noteDetail-backgroundColor
     color $ui-monokai-text-color
-
-  .deleteButton
-    color alpha($ui-monokai-text-color, 30%)
+    transition 0.15s
 
 body[data-theme="dracula"]
   .root

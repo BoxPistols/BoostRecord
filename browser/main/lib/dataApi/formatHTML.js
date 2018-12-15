@@ -102,6 +102,33 @@ export default function formatHTML (props) {
     let inlineScripts = ''
     let scripts = ''
 
+    let decodeEntities = false
+    function addDecodeEntities () {
+      if (decodeEntities) {
+        return
+      }
+
+      decodeEntities = true
+
+      inlineScripts += `
+function decodeEntities (text) {
+  var entities = [
+    ['apos', '\\''],
+    ['amp', '&'],
+    ['lt', '<'],
+    ['gt', '>'],
+    ['#63', '\\?'],
+    ['#36', '\\$']
+  ]
+
+  for (var i = 0, max = entities.length; i < max; ++i) {
+    text = text.replace(new RegExp(\`&\${entities[i][0]};\`, 'g'), entities[i][1])
+  }
+
+  return text
+}`
+    }
+
     let lodash = false
     function addLodash () {
       if (lodash) {
@@ -118,6 +145,87 @@ export default function formatHTML (props) {
       scripts += `<script src="js/lodash.min.js"></script>`
     }
 
+    let raphael = false
+    function addRaphael () {
+      if (raphael) {
+        return
+      }
+
+      raphael = true
+
+      exportTasks.push({
+        src: unprefix(`${appPath}/node_modules/raphael/raphael.min.js`),
+        dst: 'js'
+      })
+
+      scripts += `<script src="js/raphael.min.js"></script>`
+    }
+
+    let yaml = false
+    function addYAML () {
+      if (yaml) {
+        return
+      }
+
+      yaml = true
+
+      exportTasks.push({
+        src: unprefix(`${appPath}/node_modules/js-yaml/dist/js-yaml.min.js`),
+        dst: 'js'
+      })
+
+      scripts += `<script src="js/js-yaml.min.js"></script>`
+    }
+
+    let chart = false
+    function addChart () {
+      if (chart) {
+        return
+      }
+
+      chart = true
+
+      addLodash()
+
+      exportTasks.push({
+        src: unprefix(`${appPath}/node_modules/chart.js/dist/Chart.min.js`),
+        dst: 'js'
+      })
+
+      scripts += `<script src="js/Chart.min.js"></script>`
+
+      inlineScripts += `
+function displayCharts () {
+  _.forEach(
+    document.querySelectorAll('.chart'),
+    el => {
+      try {
+        const format = el.attributes.getNamedItem('data-format').value
+        const chartConfig = format === 'yaml' ? jsyaml.load(el.innerHTML) : JSON.parse(el.innerHTML)
+        el.innerHTML = ''
+
+        const canvas = document.createElement('canvas')
+        el.appendChild(canvas)
+
+        const height = el.attributes.getNamedItem('data-height')
+        if (height && height.value !== 'undefined') {
+          el.style.height = height.value + 'vh'
+          canvas.height = height.value + 'vh'
+        }
+
+        const chart = new Chart(canvas, chartConfig)
+      } catch (e) {
+        el.className = 'chart-error'
+        el.innerHTML = 'chartjs diagram parse error: ' + e.message
+      }
+    }
+  )
+}
+
+document.addEventListener('DOMContentLoaded', displayCharts);
+`
+    }
+
     let codemirror = false
     function addCodeMirror () {
       if (codemirror) {
@@ -126,6 +234,7 @@ export default function formatHTML (props) {
 
       codemirror = true
 
+      addDecodeEntities()
       addLodash()
 
       exportTasks.push({
@@ -158,23 +267,6 @@ export default function formatHTML (props) {
       inlineScripts += `
 CodeMirror.modeURL = 'js/codemirror/mode/%N/%N.js';
 
-function decodeEntities (text) {
-  var entities = [
-    ['apos', '\\''],
-    ['amp', '&'],
-    ['lt', '<'],
-    ['gt', '>'],
-    ['#63', '\\?'],
-    ['#36', '\\$']
-  ]
-
-  for (var i = 0, max = entities.length; i < max; ++i) {
-    text = text.replace(new RegExp(\`&\${entities[i][0]};\`, 'g'), entities[i][1])
-  }
-
-  return text
-}
-
 function displayCodeBlocks () {
   _.forEach(
     document.querySelectorAll('.code code'),
@@ -197,13 +289,140 @@ document.addEventListener('DOMContentLoaded', displayCodeBlocks);
 `
     }
 
+    let flowchart = false
+    function addFlowchart () {
+      if (flowchart) {
+        return
+      }
+
+      flowchart = true
+
+      addDecodeEntities()
+      addLodash()
+      addRaphael()
+
+      exportTasks.push({
+        src: unprefix(`${appPath}/node_modules/flowchart.js/release/flowchart.min.js`),
+        dst: 'js'
+      })
+
+      scripts += `<script src="js/flowchart.min.js"></script>`
+
+      inlineScripts += `
+function displayFlowcharts () {
+  _.forEach(
+    document.querySelectorAll('.flowchart'),
+    el => {
+      try {
+        const diagram = flowchart.parse(
+          decodeEntities(el.innerHTML)
+        )
+        el.innerHTML = ''
+        diagram.drawSVG(el)
+      } catch (e) {
+        el.className = 'flowchart-error'
+        el.innerHTML = 'Flowchart parse error: ' + e.message
+      }
+    }
+  )
+}
+
+document.addEventListener('DOMContentLoaded', displayFlowcharts);
+`
+    }
+
+    let mermaid = false
+    function addMermaid () {
+      if (mermaid) {
+        return
+      }
+
+      mermaid = true
+
+      addLodash()
+
+      exportTasks.push({
+        src: unprefix(`${appPath}/node_modules/mermaid/dist/mermaid.min.js`),
+        dst: 'js'
+      })
+
+      scripts += `<script src="js/mermaid.min.js"></script>`
+
+      const isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai' || theme === 'dracula'
+
+      inlineScripts += `
+function displayMermaids () {
+  _.forEach(
+    document.querySelectorAll('.mermaid'),
+    el => {
+      const height = el.attributes.getNamedItem('data-height')
+      if (height && height.value !== 'undefined') {
+        el.style.height = height.value + 'vh'
+      }
+    }
+  )
+}
+
+document.addEventListener('DOMContentLoaded', displayMermaids);
+`
+    }
+
+    let sequence = false
+    function addSequence () {
+      if (sequence) {
+        return
+      }
+
+      sequence = true
+
+      addDecodeEntities()
+      addLodash()
+      addRaphael()
+
+      exportTasks.push({
+        src: unprefix(`${appPath}/node_modules/js-sequence-diagrams/fucknpm/sequence-diagram-min.js`),
+        dst: 'js'
+      })
+
+      scripts += `<script src="js/sequence-diagram-min.js"></script>`
+
+      inlineScripts += `
+function displaySequences () {
+  _.forEach(
+    document.querySelectorAll('.sequence'),
+    el => {
+       try {
+        const diagram = Diagram.parse(
+          decodeEntities(el.innerHTML)
+        )
+        el.innerHTML = ''
+        diagram.drawSVG(el, { theme: 'simple' })
+      } catch (e) {
+        el.className = 'sequence-error'
+        el.innerHTML = 'Sequence diagram parse error: ' + e.message
+      }
+    }
+  )
+}
+
+document.addEventListener('DOMContentLoaded', displaySequences);
+`
+    }
+
     const modes = {}
     const markdown = new Markdown({
       typographer: smartQuotes,
       sanitize,
       breaks,
       onFence (type, mode) {
-        if (type === 'code') {
+        if (type === 'chart') {
+          addChart()
+
+          if (mode === 'yaml') {
+            addYAML()
+          }
+        }
+        else if (type === 'code') {
           addCodeMirror()
 
           if (mode && modes[mode] !== true) {
@@ -218,6 +437,12 @@ document.addEventListener('DOMContentLoaded', displayCodeBlocks);
               modes[mode] = true
             }
           }
+        } else if (type === 'flowchart') {
+          addFlowchart()
+        } else if (type === 'mermaid') {
+          addMermaid()
+        } else if (type === 'sequence') {
+          addSequence()
         }
       }
     })

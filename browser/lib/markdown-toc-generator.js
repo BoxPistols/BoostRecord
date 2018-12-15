@@ -2,13 +2,12 @@
  * @fileoverview Markdown table of contents generator
  */
 
+import { EOL } from 'os'
 import toc from 'markdown-toc'
 import diacritics from 'diacritics-map'
 import stripColor from 'strip-color'
 import mdlink from 'markdown-link'
 import slugify from './slugify'
-
-const EOL = require('os').EOL
 
 const hasProp = Object.prototype.hasOwnProperty
 
@@ -21,6 +20,11 @@ function uniqueSlug (slug, slugs, opts) {
   while (hasProp.call(slugs, uniq)) uniq = `${slug}-${i++}`
   slugs[uniq] = true
   return uniq
+}
+
+function linkify (token) {
+  token.content = mdlink(token.content, '#' + token.slug)
+  return token
 }
 
 const TOC_MARKER_START = '<!-- toc -->'
@@ -70,14 +74,16 @@ export function generate (markdownText) {
     uniqueSlugStartIndex: 1
   }
 
-  const tokens = toc(markdownText, {
+  const result = toc(markdownText, {
     slugify: title => {
       return uniqueSlug(slugify(title), slugs, opts)
     },
     linkify: false
   })
 
-  const md = tokens.json.map(token => mdlink(token.content, '#' + token.slug)).join(EOL)
+  const md = toc.bullets(result.json.map(linkify), {
+    highest: result.highest
+  })
 
   return TOC_MARKER_START + EOL + EOL + md + EOL + EOL + TOC_MARKER_END
 }

@@ -421,8 +421,7 @@ document.addEventListener('DOMContentLoaded', displaySequences);
           if (mode === 'yaml') {
             addYAML()
           }
-        }
-        else if (type === 'code') {
+        } else if (type === 'code') {
           addCodeMirror()
 
           if (mode && modes[mode] !== true) {

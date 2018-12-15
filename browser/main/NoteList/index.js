@@ -22,6 +22,7 @@ import Markdown from '../../lib/markdown'
 import i18n from 'browser/lib/i18n'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import context from 'browser/lib/context'
+import filenamify from 'filenamify'
 
 const { remote } = require('electron')
 const { dialog } = remote
@@ -527,6 +528,38 @@ class NoteList extends React.Component {
     this.selectNextNote()
   }
 
+  handleExportClick (e, note, fileType) {
+    const options = {
+      defaultPath: filenamify(note.title, {
+        replacement: '_'
+      }),
+      filters: [{ name: 'Documents', extensions: [fileType] }],
+      properties: ['openFile', 'createDirectory']
+    }
+
+    dialog.showSaveDialog(remote.getCurrentWindow(), options, filename => {
+      if (filename) {
+        const { config } = this.props
+
+        dataApi
+          .exportNoteAs(note, filename, fileType, config)
+          .then(res => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+              type: 'info',
+              message: `Exported to ${filename}`
+            })
+          })
+          .catch(err => {
+            dialog.showErrorBox(
+              'Export error',
+              err ? err.message || err : 'Unexpected error during export'
+            )
+            throw err
+          })
+      }
+    })
+  }
+
   handleNoteContextMenu (e, uniqueKey) {
     const { location } = this.props
     const { selectedNoteKeys } = this.state
@@ -572,10 +605,30 @@ class NoteList extends React.Component {
       }, {
         label: copyNoteLink,
         click: this.copyNoteLink.bind(this, note)
+      }, {
+        type: 'separator'
+      }, {
+        label: i18n.__('Export Note'),
+        submenu: [
+          {
+            label: i18n.__('Export as Plain Text (.txt)'),
+            click: e => this.handleExportClick(e, note, 'txt')
+          },
+          {
+            label: i18n.__('Export as Markdown (.md)'),
+            click: e => this.handleExportClick(e, note, 'md')
+          },
+          {
+            label: i18n.__('Export as HTML (.html)'),
+            click: e => this.handleExportClick(e, note, 'html')
+          }
+        ]
       })
       if (note.type === 'MARKDOWN_NOTE') {
         if (note.blog && note.blog.blogLink && note.blog.blogId) {
           templates.push({
+            type: 'separator'
+          }, {
             label: updateLabel,
             click: this.publishMarkdown.bind(this)
           }, {
@@ -584,6 +637,8 @@ class NoteList extends React.Component {
           })
         } else {
           templates.push({
+            type: 'separator'
+          }, {
             label: publishLabel,
             click: this.publishMarkdown.bind(this)
           })

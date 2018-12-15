@@ -1,5 +1,6 @@
 import path from 'path'
 import fileUrl from 'file-url'
+import fs from 'fs'
 import { remote } from 'electron'
 import consts from 'browser/lib/consts'
 import Markdown from 'browser/lib/markdown'
@@ -33,6 +34,14 @@ const defaultCodeBlockFontFamily = [
   'monospace'
 ]
 
+function unprefix (file) {
+  if (global.process.platform === 'win32') {
+    return file.replace('file:///', '')
+  } else {
+    return file.replace('file://', '')
+  }
+}
+
 /**
  * ```
  * {
@@ -49,7 +58,8 @@ const defaultCodeBlockFontFamily = [
  *   sanitize,
  *   breaks,
  *   storagePath,
- *   export
+ *   export,
+ *   indentSize
  * }
  * ```
  */
@@ -76,29 +86,149 @@ export default function formatHTML (props) {
     allowCustomCSS,
     customCSS
   )
+
   const { smartQuotes, sanitize, breaks } = props
 
-  const markdown = new Markdown({
-    typographer: smartQuotes,
-    sanitize,
-    breaks
-  })
+  let indentSize = parseInt(props.indentSize, 10)
+  if (!(indentSize > 0 && indentSize < 132)) {
+    indentSize = 4
+  }
 
   const files = [getCodeThemeLink(codeBlockTheme), ...CSS_FILES]
 
   return function (note, targetPath, exportTasks) {
+    let styles = files.map(file => `<link rel="stylesheet" href="css/${path.basename(file)}">`).join('\n')
+
+    let inlineScripts = ''
+    let scripts = ''
+
+    let lodash = false
+    function addLodash () {
+      if (lodash) {
+        return
+      }
+
+      lodash = true
+
+      exportTasks.push({
+        src: unprefix(`${appPath}/node_modules/lodash/lodash.min.js`),
+        dst: 'js'
+      })
+
+      scripts += `<script src="js/lodash.min.js"></script>`
+    }
+
+    let codemirror = false
+    function addCodeMirror () {
+      if (codemirror) {
+        return
+      }
+
+      codemirror = true
+
+      addLodash()
+
+      exportTasks.push({
+        src: unprefix(`${appPath}/node_modules/codemirror/lib/codemirror.js`),
+        dst: 'js/codemirror'
+      }, {
+        src: unprefix(`${appPath}/node_modules/codemirror/mode/meta.js`),
+        dst: 'js/codemirror/mode'
+      }, {
+        src: unprefix(`${appPath}/node_modules/codemirror/addon/mode/loadmode.js`),
+        dst: 'js/codemirror/addon/mode'
+      }, {
+        src: unprefix(`${appPath}/node_modules/codemirror/addon/runmode/runmode.js`),
+        dst: 'js/codemirror/addon/runmode'
+      })
+
+      scripts += `
+<script src="js/codemirror/codemirror.js"></script>
+<script src="js/codemirror/mode/meta.js"></script>
+<script src="js/codemirror/addon/mode/loadmode.js"></script>
+<script src="js/codemirror/addon/runmode/runmode.js"></script>
+`
+
+      let className = `cm-s-${codeBlockTheme}`
+      if (codeBlockTheme.indexOf('solarized') === 0) {
+        const [refThema, color] = codeBlockTheme.split(' ')
+        className = `cm-s-${refThema} cm-s-${color}`
+      }
+
+      inlineScripts += `
+CodeMirror.modeURL = 'js/codemirror/mode/%N/%N.js';
+
+function decodeEntities (text) {
+  var entities = [
+    ['apos', '\\''],
+    ['amp', '&'],
+    ['lt', '<'],
+    ['gt', '>'],
+    ['#63', '\\?'],
+    ['#36', '\\$']
+  ]
+
+  for (var i = 0, max = entities.length; i < max; ++i) {
+    text = text.replace(new RegExp(\`&\${entities[i][0]};\`, 'g'), entities[i][1])
+  }
+
+  return text
+}
+
+function displayCodeBlocks () {
+  _.forEach(
+    document.querySelectorAll('.code code'),
+    el => {
+      let syntax = CodeMirror.findModeByName(el.className)
+      if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
+      CodeMirror.requireMode(syntax.mode, () => {
+        const content = decodeEntities(el.innerHTML)
+        el.innerHTML = ''
+        el.parentNode.className += ' ${className}'
+        CodeMirror.runMode(content, syntax.mime, el, {
+          tabSize: ${indentSize}
+        })
+      })
+    }
+  )
+}
+
+document.addEventListener('DOMContentLoaded', displayCodeBlocks);
+`
+    }
+
+    const modes = {}
+    const markdown = new Markdown({
+      typographer: smartQuotes,
+      sanitize,
+      breaks,
+      onFence (type, mode) {
+        if (type === 'code') {
+          addCodeMirror()
+
+          if (mode && modes[mode] !== true) {
+            const file = unprefix(`${appPath}/node_modules/codemirror/mode/${mode}/${mode}.js`)
+
+            if (fs.existsSync(file)) {
+              exportTasks.push({
+                src: file,
+                dst: `js/codemirror/mode/${mode}`
+              })
+
+              modes[mode] = true
+            }
+          }
+        }
+      }
+    })
+
     let body = markdown.render(note.content)
 
     const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(note.content, props.storagePath)
 
     files.forEach(file => {
-      if (global.process.platform === 'win32') {
-        file = file.replace('file:///', '')
-      } else {
-        file = file.replace('file://', '')
-      }
       exportTasks.push({
-        src: file,
+        src: unprefix(file),
         dst: 'css'
       })
     })
@@ -114,20 +244,21 @@ export default function formatHTML (props) {
 
     body = attachmentManagement.replaceStorageReferences(body, note.key, destinationFolder)
 
-    let styles = ''
-    files.forEach(file => {
-      styles += `<link rel="stylesheet" href="css/${path.basename(file)}">`
-    })
-
-    return `<html>
-                <head>
-                  <meta charset="UTF-8">
-                  <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
-                  <style id="style">${inlineStyles}</style>
-                  ${styles}
-                </head>
-                <body>${body}</body>
-            </html>`
+    return `
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
+  <style id="style">${inlineStyles}</style>
+  ${styles}
+  ${scripts}
+  <script>${inlineScripts}</script>
+</head>
+<body>
+${body}
+</body>
+</html>
+`
   }
 }
 

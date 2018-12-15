@@ -81,14 +81,14 @@ function rollbackExport (tasks) {
     }
 
     if (fs.existsSync(fullpath)) {
-      fs.unlink(fullpath)
+      fs.unlinkSync(fullpath)
       folders.add(path.dirname(fullpath))
     }
   })
 
   folders.forEach((folder) => {
     if (fs.readdirSync(folder).length === 0) {
-      fs.rmdir(folder)
+      fs.rmdirSync(folder)
     }
   })
 }

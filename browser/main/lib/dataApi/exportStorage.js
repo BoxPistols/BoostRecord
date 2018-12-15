@@ -54,6 +54,7 @@ function exportStorage (storageKey, fileType, exportDir, config) {
           codeBlockTheme: config.preview.codeBlockTheme,
           codeBlockFontFamily: config.editor.fontFamily,
           lineNumber: config.preview.lineNumber,
+          indentSize: config.editor.indentSize,
           scrollPastEnd: config.preview.scrollPastEnd,
           smartQuotes: config.preview.smartQuotes,
           breaks: config.preview.breaks,

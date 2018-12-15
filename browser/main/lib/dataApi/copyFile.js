@@ -1,5 +1,6 @@
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import fx from 'fs-extra'
+import path from 'path'
 
 /**
  * @description Copy a file from source to destination
@@ -14,7 +15,8 @@ function copyFile (srcPath, dstPath) {
 
   return new Promise((resolve, reject) => {
     const dstFolder = path.dirname(dstPath)
-    if (!fs.existsSync(dstFolder)) fs.mkdirSync(dstFolder)
+
+    fx.ensureDirSync(dstFolder)
 
     const input = fs.createReadStream(decodeURI(srcPath))
     const output = fs.createWriteStream(dstPath)

@@ -625,11 +625,16 @@ export default class MarkdownPreview extends React.Component {
       indentSize,
       showCopyNotification,
       storagePath,
-      noteKey
+      noteKey,
+      sanitize
     } = this.props
     let { value, codeBlockTheme } = this.props
 
     this.refs.root.contentWindow.document.body.setAttribute('data-theme', theme)
+    if (sanitize === 'NONE') {
+      const splitWithCodeTag = value.split('```')
+      value = attachmentManagement.escapeHtmlCharactersInCodeTag(splitWithCodeTag)
+    }
     const renderedHTML = this.markdown.render(value)
     attachmentManagement.migrateAttachments(value, storagePath, noteKey)
     this.refs.root.contentWindow.document.body.innerHTML = attachmentManagement.fixLocalURLS(

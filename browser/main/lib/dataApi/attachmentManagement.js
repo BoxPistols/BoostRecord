@@ -599,8 +599,8 @@ function handleAttachmentLinkPaste (storageKey, noteKey, linkText) {
 
 module.exports = {
   copyAttachment,
-  fixLocalURLS,
   escapeHtmlCharactersInCodeTag,
+  fixLocalURLS,
   generateAttachmentMarkdown,
   handleAttachmentDrop,
   handlePastImageEvent,

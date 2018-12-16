@@ -1,9 +1,9 @@
 import diacritics from 'diacritics-map'
 
-function replaceDiacritics(str) {
-  return str.replace(/[À-ž]/g, function(ch) {
-    return diacritics[ch] || ch;
-  });
+function replaceDiacritics (str) {
+  return str.replace(/[À-ž]/g, function (ch) {
+    return diacritics[ch] || ch
+  })
 }
 
 module.exports = function slugify (title) {

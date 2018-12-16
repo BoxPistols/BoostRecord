@@ -4,8 +4,6 @@
 
 import { EOL } from 'os'
 import toc from 'markdown-toc'
-import diacritics from 'diacritics-map'
-import stripColor from 'strip-color'
 import mdlink from 'markdown-link'
 import slugify from './slugify'
 

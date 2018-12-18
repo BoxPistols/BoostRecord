@@ -34,7 +34,7 @@
     color $ui-active-color
   span
     margin-left 5px
-  
+
 .update
   navButtonColor()
   height 24px
@@ -46,6 +46,14 @@
 
 .update-icon
   color $brand-color
+
+body[data-theme="default"]
+  .zoom
+    color $ui-text-color
+
+body[data-theme="white"]
+  .zoom
+    color $ui-text-color
 
 body[data-theme="dark"]
   .root
@@ -80,3 +88,14 @@ body[data-theme="monokai"]
       color $ui-monokai-active-color
     &:active
       color $ui-monokai-active-color
+
+body[data-theme="dracula"]
+   navButtonColor()
+  .zoom
+    border-color $ui-dark-borderColor
+    color $ui-dracula-text-color
+    &:hover
+      transition 0.15s
+      color $ui-dracula-active-color
+    &:active
+      color $ui-dracula-active-color

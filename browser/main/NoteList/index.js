@@ -55,7 +55,6 @@ class NoteList extends React.Component {
     super(props)
 
     this.selectNextNoteHandler = () => {
-      console.log('fired next')
       this.selectNextNote()
     }
     this.selectPriorNoteHandler = () => {
@@ -64,13 +63,14 @@ class NoteList extends React.Component {
     this.focusHandler = () => {
       this.refs.list.focus()
     }
-    this.alertIfSnippetHandler = () => {
-      this.alertIfSnippet()
+    this.alertIfSnippetHandler = (event, msg) => {
+      this.alertIfSnippet(msg)
     }
     this.importFromFileHandler = this.importFromFile.bind(this)
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
     this.handleNoteListKeyUp = this.handleNoteListKeyUp.bind(this)
     this.getNoteKeyFromTargetIndex = this.getNoteKeyFromTargetIndex.bind(this)
+    this.cloneNote = this.cloneNote.bind(this)
     this.deleteNote = this.deleteNote.bind(this)
     this.focusNote = this.focusNote.bind(this)
     this.pinToTop = this.pinToTop.bind(this)
@@ -83,7 +83,9 @@ class NoteList extends React.Component {
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
+      ctrlKeyDown: false,
       shiftKeyDown: false,
+      prevShiftNoteIndex: -1,
       selectedNoteKeys: []
     }
 
@@ -94,6 +96,7 @@ class NoteList extends React.Component {
     this.refreshTimer = setInterval(() => this.forceUpdate(), 60 * 1000)
     ee.on('list:next', this.selectNextNoteHandler)
     ee.on('list:prior', this.selectPriorNoteHandler)
+    ee.on('list:clone', this.cloneNote)
     ee.on('list:focus', this.focusHandler)
     ee.on('list:isMarkdownNote', this.alertIfSnippetHandler)
     ee.on('import:file', this.importFromFileHandler)
@@ -116,6 +119,7 @@ class NoteList extends React.Component {
 
     ee.off('list:next', this.selectNextNoteHandler)
     ee.off('list:prior', this.selectPriorNoteHandler)
+    ee.off('list:clone', this.cloneNote)
     ee.off('list:focus', this.focusHandler)
     ee.off('list:isMarkdownNote', this.alertIfSnippetHandler)
     ee.off('import:file', this.importFromFileHandler)
@@ -171,16 +175,15 @@ class NoteList extends React.Component {
     }
   }
 
-  focusNote (selectedNoteKeys, noteKey) {
+  focusNote (selectedNoteKeys, noteKey, pathname) {
     const { router } = this.context
-    const { location } = this.props
 
     this.setState({
       selectedNoteKeys
     })
 
     router.push({
-      pathname: location.pathname,
+      pathname,
       query: {
         key: noteKey
       }
@@ -199,6 +202,7 @@ class NoteList extends React.Component {
     }
     let { selectedNoteKeys } = this.state
     const { shiftKeyDown } = this.state
+    const { location } = this.props
 
     let targetIndex = this.getTargetIndex()
 
@@ -215,7 +219,7 @@ class NoteList extends React.Component {
       selectedNoteKeys.push(priorNoteKey)
     }
 
-    this.focusNote(selectedNoteKeys, priorNoteKey)
+    this.focusNote(selectedNoteKeys, priorNoteKey, location.pathname)
 
     ee.emit('list:moved')
   }
@@ -226,6 +230,7 @@ class NoteList extends React.Component {
     }
     let { selectedNoteKeys } = this.state
     const { shiftKeyDown } = this.state
+    const { location } = this.props
 
     let targetIndex = this.getTargetIndex()
     const isTargetLastNote = targetIndex === this.notes.length - 1
@@ -248,7 +253,7 @@ class NoteList extends React.Component {
       selectedNoteKeys.push(nextNoteKey)
     }
 
-    this.focusNote(selectedNoteKeys, nextNoteKey)
+    this.focusNote(selectedNoteKeys, nextNoteKey, location.pathname)
 
     ee.emit('list:moved')
   }
@@ -260,24 +265,18 @@ class NoteList extends React.Component {
     }
 
     const selectedNoteKeys = [noteHash]
-    this.focusNote(selectedNoteKeys, noteHash)
+    this.focusNote(selectedNoteKeys, noteHash, '/home')
 
     ee.emit('list:moved')
   }
 
   handleNoteListKeyDown (e) {
-    if (e.metaKey || e.ctrlKey) return true
+    if (e.metaKey) return true
 
     // A key
     if (e.keyCode === 65 && !e.shiftKey) {
       e.preventDefault()
       ee.emit('top:new-note')
-    }
-
-    // D key
-    if (e.keyCode === 68) {
-      e.preventDefault()
-      this.deleteNote()
     }
 
     // E key
@@ -306,12 +305,18 @@ class NoteList extends React.Component {
 
     if (e.shiftKey) {
       this.setState({ shiftKeyDown: true })
+    } else if (e.ctrlKey) {
+      this.setState({ ctrlKeyDown: true })
     }
   }
 
   handleNoteListKeyUp (e) {
     if (!e.shiftKey) {
       this.setState({ shiftKeyDown: false })
+    }
+
+    if (!e.ctrlKey) {
+      this.setState({ ctrlKeyDown: false })
     }
   }
 
@@ -389,25 +394,65 @@ class NoteList extends React.Component {
     return pinnedNotes.concat(unpinnedNotes)
   }
 
+  getNoteIndexByKey (noteKey) {
+    return this.notes.findIndex((note) => {
+      if (!note) return -1
+
+      return note.key === noteKey
+    })
+  }
+
   handleNoteClick (e, uniqueKey) {
     const { router } = this.context
     const { location } = this.props
-    let { selectedNoteKeys } = this.state
-    const { shiftKeyDown } = this.state
+    let { selectedNoteKeys, prevShiftNoteIndex } = this.state
+    const { ctrlKeyDown, shiftKeyDown } = this.state
+    const hasSelectedNoteKey = selectedNoteKeys.length > 0
 
-    if (shiftKeyDown && selectedNoteKeys.includes(uniqueKey)) {
+    if (ctrlKeyDown && selectedNoteKeys.includes(uniqueKey)) {
       const newSelectedNoteKeys = selectedNoteKeys.filter((noteKey) => noteKey !== uniqueKey)
       this.setState({
         selectedNoteKeys: newSelectedNoteKeys
       })
       return
     }
-    if (!shiftKeyDown) {
+    if (!ctrlKeyDown && !shiftKeyDown) {
       selectedNoteKeys = []
     }
+
+    if (!shiftKeyDown) {
+      prevShiftNoteIndex = -1
+    }
+
     selectedNoteKeys.push(uniqueKey)
+
+    if (shiftKeyDown && hasSelectedNoteKey) {
+      let firstShiftNoteIndex = this.getNoteIndexByKey(selectedNoteKeys[0])
+      // Shift selection can either start from first note in the exisiting selectedNoteKeys
+      // or previous first shift note index
+      firstShiftNoteIndex = firstShiftNoteIndex > prevShiftNoteIndex
+        ? firstShiftNoteIndex : prevShiftNoteIndex
+
+      const lastShiftNoteIndex = this.getNoteIndexByKey(uniqueKey)
+
+      const startIndex = firstShiftNoteIndex < lastShiftNoteIndex
+        ? firstShiftNoteIndex : lastShiftNoteIndex
+      const endIndex = firstShiftNoteIndex > lastShiftNoteIndex
+        ? firstShiftNoteIndex : lastShiftNoteIndex
+
+      selectedNoteKeys = []
+      for (let i = startIndex; i <= endIndex; i++) {
+        selectedNoteKeys.push(this.notes[i].key)
+      }
+
+      if (prevShiftNoteIndex < 0) {
+        prevShiftNoteIndex = firstShiftNoteIndex
+      }
+    }
+
     this.setState({
-      selectedNoteKeys
+      selectedNoteKeys,
+      prevShiftNoteIndex
     })
 
     router.push({
@@ -446,14 +491,21 @@ class NoteList extends React.Component {
     })
   }
 
-  alertIfSnippet () {
+  alertIfSnippet (msg) {
+    const warningMessage = (msg) => ({
+      'export-txt': 'Text export',
+      'export-md': 'Markdown export',
+      'export-html': 'HTML export',
+      'print': 'Print'
+    })[msg]
+
     const targetIndex = this.getTargetIndex()
     if (this.notes[targetIndex].type === 'SNIPPET_NOTE') {
       dialog.showMessageBox(remote.getCurrentWindow(), {
         type: 'warning',
         message: i18n.__('Sorry!'),
-        detail: i18n.__('md/text import is available only a markdown note.'),
-        buttons: [i18n.__('OK'), i18n.__('Cancel')]
+        detail: i18n.__(warningMessage(msg) + ' is available only in markdown notes.'),
+        buttons: [i18n.__('OK')]
       })
     }
   }
@@ -615,7 +667,6 @@ class NoteList extends React.Component {
       .catch((err) => {
         console.error('Cannot Delete note: ' + err)
       })
-      console.log('Notes were all deleted')
     } else {
       if (!confirmDeleteNote(confirmDeletion, false)) return
 
@@ -635,7 +686,6 @@ class NoteList extends React.Component {
           })
         })
         AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
-        console.log('Notes went to trash')
       })
       .catch((err) => {
         console.error('Notes could not go to trash: ' + err)
@@ -995,6 +1045,7 @@ class NoteList extends React.Component {
               folderName={this.getNoteFolder(note).name}
               storageName={this.getNoteStorage(note).name}
               viewType={viewType}
+              showTagsAlphabetically={config.ui.showTagsAlphabetically}
             />
           )
         }

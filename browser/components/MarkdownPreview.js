@@ -17,9 +17,11 @@ import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
 import { escapeHtmlCharacters } from 'browser/lib/utils'
+import yaml from 'js-yaml'
 import context from 'browser/lib/context'
 import i18n from 'browser/lib/i18n'
 import fs from 'fs'
+import ConfigManager from '../main/lib/ConfigManager'
 
 const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
@@ -80,13 +82,17 @@ function buildStyle (
        url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
        url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
 }
-${allowCustomCSS ? customCSS : ''}
 ${markdownStyle}
 
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
   ${scrollPastEnd && 'padding-bottom: 90vh;'}
+}
+@media print {
+  body {
+    padding-bottom: initial;
+  }
 }
 code {
   font-family: '${codeBlockFontFamily.join("','")}';
@@ -144,6 +150,8 @@ body p {
     display: none
   }
 }
+
+${allowCustomCSS ? customCSS : ''}
 `
 }
 
@@ -256,6 +264,10 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleMouseDown (e) {
+    const config = ConfigManager.get()
+    if (config.editor.switchPreview === 'RIGHTCLICK' && e.buttons === 2 && config.editor.type === 'SPLIT') {
+      eventEmitter.emit('topbar:togglemodebutton', 'CODE')
+    }
     if (e.target != null) {
       switch (e.target.tagName) {
         case 'A':
@@ -279,26 +291,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsMd () {
-    this.exportAsDocument('md', (noteContent, exportTasks) => {
-      let result = noteContent
-      if (this.props && this.props.storagePath && this.props.noteKey) {
-        const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
-          noteContent,
-          this.props.storagePath
-        )
-        attachmentsAbsolutePaths.forEach(attachment => {
-          exportTasks.push({
-            src: attachment,
-            dst: attachmentManagement.DESTINATION_FOLDER
-          })
-        })
-        result = attachmentManagement.removeStorageAndNoteReferences(
-          noteContent,
-          this.props.noteKey
-        )
-      }
-      return result
-    })
+    this.exportAsDocument('md')
   }
 
   handleSaveAsHtml () {
@@ -325,15 +318,8 @@ export default class MarkdownPreview extends React.Component {
         allowCustomCSS,
         customCSS
       )
-      let body = this.markdown.render(
-        escapeHtmlCharacters(noteContent, { detectCodeBlock: true })
-      )
+      let body = this.markdown.render(noteContent)
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
-      const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
-        noteContent,
-        this.props.storagePath
-      )
-
       files.forEach(file => {
         if (global.process.platform === 'win32') {
           file = file.replace('file:///', '')
@@ -345,16 +331,6 @@ export default class MarkdownPreview extends React.Component {
           dst: 'css'
         })
       })
-      attachmentsAbsolutePaths.forEach(attachment => {
-        exportTasks.push({
-          src: attachment,
-          dst: attachmentManagement.DESTINATION_FOLDER
-        })
-      })
-      body = attachmentManagement.removeStorageAndNoteReferences(
-        body,
-        this.props.noteKey
-      )
 
       let styles = ''
       files.forEach(file => {
@@ -387,8 +363,9 @@ export default class MarkdownPreview extends React.Component {
       if (filename) {
         const content = this.props.value
         const storage = this.props.storagePath
+        const nodeKey = this.props.noteKey
 
-        exportNote(storage, content, filename, contentFormatter)
+        exportNote(nodeKey, storage, content, filename, contentFormatter)
           .then(res => {
             dialog.showMessageBox(remote.getCurrentWindow(), {
               type: 'info',
@@ -425,6 +402,7 @@ export default class MarkdownPreview extends React.Component {
       case 'dark':
       case 'solarized-dark':
       case 'monokai':
+      case 'dracula':
         return scrollBarDarkStyle
       default:
         return scrollBarStyle
@@ -526,7 +504,8 @@ export default class MarkdownPreview extends React.Component {
       prevProps.smartQuotes !== this.props.smartQuotes ||
       prevProps.sanitize !== this.props.sanitize ||
       prevProps.smartArrows !== this.props.smartArrows ||
-      prevProps.breaks !== this.props.breaks
+      prevProps.breaks !== this.props.breaks ||
+      prevProps.lineThroughCheckbox !== this.props.lineThroughCheckbox
     ) {
       this.initMarkdown()
       this.rewriteIframe()
@@ -732,7 +711,6 @@ export default class MarkdownPreview extends React.Component {
             el.addEventListener('click', this.linkClickHandler)
           })
         } catch (e) {
-          console.error(e)
           el.className = 'flowchart-error'
           el.innerHTML = 'Flowchart parse error: ' + e.message
         }
@@ -753,7 +731,6 @@ export default class MarkdownPreview extends React.Component {
             el.addEventListener('click', this.linkClickHandler)
           })
         } catch (e) {
-          console.error(e)
           el.className = 'sequence-error'
           el.innerHTML = 'Sequence diagram parse error: ' + e.message
         }
@@ -764,14 +741,21 @@ export default class MarkdownPreview extends React.Component {
       this.refs.root.contentWindow.document.querySelectorAll('.chart'),
       el => {
         try {
-          const chartConfig = JSON.parse(el.innerHTML)
+          const format = el.attributes.getNamedItem('data-format').value
+          const chartConfig = format === 'yaml' ? yaml.load(el.innerHTML) : JSON.parse(el.innerHTML)
           el.innerHTML = ''
-          var canvas = document.createElement('canvas')
+
+          const canvas = document.createElement('canvas')
           el.appendChild(canvas)
-          /* eslint-disable no-new */
-          new Chart(canvas, chartConfig)
+
+          const height = el.attributes.getNamedItem('data-height')
+          if (height && height.value !== 'undefined') {
+            el.style.height = height.value + 'vh'
+            canvas.height = height.value + 'vh'
+          }
+
+          const chart = new Chart(canvas, chartConfig)
         } catch (e) {
-          console.error(e)
           el.className = 'chart-error'
           el.innerHTML = 'chartjs diagram parse error: ' + e.message
         }
@@ -852,6 +836,15 @@ export default class MarkdownPreview extends React.Component {
     const regexIsNoteLink = /^:note:([a-zA-Z0-9-]{20,36})$/
     if (regexIsNoteLink.test(linkHash)) {
       eventEmitter.emit('list:jump', linkHash.replace(':note:', ''))
+      return
+    }
+
+    const regexIsLine = /^:line:[0-9]/
+    if (regexIsLine.test(linkHash)) {
+      const numberPattern = /\d+/g
+
+      const lineNumber = parseInt(linkHash.match(numberPattern)[0])
+      eventEmitter.emit('line:jump', lineNumber)
       return
     }
 

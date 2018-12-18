@@ -5,8 +5,11 @@
 <h4 align="center">Note-taking app for programmers. </h4>
 <h5 align="center">Apps available for Mac, Windows, Linux, Android, and iOS.</h5>
 <h5 align="center">Built with Electron, React + Redux, Webpack, and CSSModules.</h5>
-
-[![Build Status](https://travis-ci.org/BoostIO/Boostnote.svg?branch=master)](https://travis-ci.org/BoostIO/Boostnote)
+<p align="center">
+  <a href="https://travis-ci.org/BoostIO/Boostnote">
+    <img src="https://travis-ci.org/BoostIO/Boostnote.svg?branch=master" alt="Build Status" />
+  </a>
+ </p>
 
 ## Authors & Maintainers
 - [Rokt33r](https://github.com/rokt33r)
@@ -30,7 +33,7 @@ Issues on Boostnote can be funded by anyone and the money will be distributed to
 - [Facebook Group](https://www.facebook.com/groups/boostnote/)
 - [Twitter](https://twitter.com/boostnoteapp)
 - [Slack Group](https://join.slack.com/t/boostnote-group/shared_invite/enQtMzkxOTk4ODkyNzc0LThkNmMzY2VlZjVhYTNiYjE5YjQyZGVjNTJlYTY1OGMyZTFjNGU5YTUyYjUzOWZhYTU4OTVlNDYyNDFjYWMzNDM)
-- [Blog](https://boostlog.io/tags/boostnote)
+- [Blog](https://medium.com/boostnote)
 - [Reddit](https://www.reddit.com/r/Boostnote/)
 
 

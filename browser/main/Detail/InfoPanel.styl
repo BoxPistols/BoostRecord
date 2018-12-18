@@ -257,3 +257,43 @@ body[data-theme="monokai"]
       color $ui-dark-inactive-text-color
       &:hover
         color $ui-monokai-text-color
+
+body[data-theme="dracula"]
+  .control-infoButton-panel
+    background-color $ui-dracula-noteList-backgroundColor
+
+  .control-infoButton-panel-trash
+    background-color $ui-dracula-noteList-backgroundColor
+
+  .modification-date
+    color $ui-dracula-text-color
+
+  .modification-date-desc
+    color $ui-inactive-text-color
+
+  .infoPanel-defaul-count
+    color $ui-dracula-text-color
+
+  .infoPanel-sub-count
+    color $ui-inactive-text-color
+
+  .infoPanel-default
+    color $ui-dracula-text-color
+
+  .infoPanel-sub
+    color $ui-inactive-text-color
+
+  .infoPanel-noteLink
+    background-color alpha($ui-dracula-borderColor, 20%)
+    color $ui-dracula-text-color
+
+  [id=export-wrap]
+    button
+      color $ui-dark-inactive-text-color
+      &:hover
+        background-color alpha($ui-dracula-borderColor, 20%)
+        color $ui-dracula-text-color
+    p
+      color $ui-dark-inactive-text-color
+      &:hover
+        color $ui-dracula-text-color

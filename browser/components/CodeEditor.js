@@ -511,7 +511,45 @@ export default class CodeEditor extends React.Component {
 
   handleChange (editor, changeObject) {
     spellcheck.handleChange(editor, changeObject)
+
+    this.updateHighlight(editor, changeObject)
+
     this.value = editor.getValue()
+    if (this.props.onChange) {
+      this.props.onChange(editor)
+    }
+  }
+
+  incrementLines (start, linesAdded, linesRemoved, editor) {
+    let highlightedLines = editor.options.linesHighlighted
+
+    const totalHighlightedLines = highlightedLines.length
+
+    let offset = linesAdded - linesRemoved
+
+    // Store new items to be added as we're changing the lines
+    let newLines = []
+
+    let i = totalHighlightedLines
+
+    while (i--) {
+      const lineNumber = highlightedLines[i]
+
+      // Interval that will need to be updated
+      // Between start and (start + offset) remove highlight
+      if (lineNumber >= start) {
+        highlightedLines.splice(highlightedLines.indexOf(lineNumber), 1)
+
+        // Lines that need to be relocated
+        if (lineNumber >= (start + linesRemoved)) {
+          newLines.push(lineNumber + offset)
+        }
+      }
+    }
+
+    // Adding relocated lines
+    highlightedLines.push(...newLines)
+
     if (this.props.onChange) {
       this.props.onChange(editor)
     }
@@ -530,6 +568,37 @@ export default class CodeEditor extends React.Component {
     if (this.props.onChange) {
       this.props.onChange(editor)
     }
+  }
+
+  updateHighlight (editor, changeObject) {
+    const linesAdded = changeObject.text.length - 1
+    const linesRemoved = changeObject.removed.length - 1
+
+    // If no lines added or removed return
+    if (linesAdded === 0 && linesRemoved === 0) {
+      return
+    }
+
+    let start = changeObject.from.line
+
+    switch (changeObject.origin) {
+      case '+insert", "undo':
+        start += 1
+        break
+
+      case 'paste':
+      case '+delete':
+      case '+input':
+        if (changeObject.to.ch !== 0 || changeObject.from.ch !== 0) {
+          start += 1
+        }
+        break
+
+      default:
+        return
+    }
+
+    this.incrementLines(start, linesAdded, linesRemoved, editor)
   }
 
   moveCursorTo (row, col) {}

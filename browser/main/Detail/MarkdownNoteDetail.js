@@ -41,9 +41,10 @@ class MarkdownNoteDetail extends React.Component {
         title: '',
         content: ''
       }, props.note),
-      isLockButtonShown: false,
+      isLockButtonShown: props.config.editor.type !== 'SPLIT',
       isLocked: false,
-      editorType: props.config.editor.type
+      editorType: props.config.editor.type,
+      switchPreview: props.config.editor.switchPreview
     }
     this.dispatchTimer = null
 
@@ -63,6 +64,9 @@ class MarkdownNoteDetail extends React.Component {
     })
     ee.on('hotkey:deletenote', this.handleDeleteNote.bind(this))
     ee.on('code:generate-toc', this.generateToc)
+
+    // Focus content if using blur or double click
+    if (this.state.switchPreview === 'BLUR' || this.state.switchPreview === 'DBL_CLICK') this.focus()
   }
 
   componentWillReceiveProps (nextProps) {

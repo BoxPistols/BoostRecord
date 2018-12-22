@@ -170,7 +170,7 @@ class MarkdownSplitEditor extends React.Component {
           storageKey={storageKey}
           noteKey={noteKey}
           linesHighlighted={linesHighlighted}
-          onChange={(e) => this.handleOnChange.bind(this)(e)}
+          onChange={(e) => this.handleOnChange(e)}
           onScroll={this.handleScroll.bind(this)}
           spellCheck={config.editor.spellcheck}
        />

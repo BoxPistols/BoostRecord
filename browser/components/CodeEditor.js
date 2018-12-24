@@ -13,7 +13,7 @@ import crypto from 'crypto'
 import consts from 'browser/lib/consts'
 import styles from '../components/CodeEditor.styl'
 import fs from 'fs'
-const { ipcRenderer, remote } = require('electron')
+const { ipcRenderer, remote, clipboard } = require('electron')
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 const spellcheck = require('browser/lib/spellcheck')
 const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')
@@ -25,6 +25,10 @@ CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 const buildCMRulers = (rulers, enableRulers) =>
   (enableRulers ? rulers.map(ruler => ({ column: ruler })) : [])
 
+function translateHotkey (hotkey) {
+  return hotkey.replace(/\s*\+\s*/g, '-').replace(/Command/g, 'Cmd').replace(/Control/g, 'Ctrl')
+}
+
 export default class CodeEditor extends React.Component {
   constructor (props) {
     super(props)
@@ -34,6 +38,7 @@ export default class CodeEditor extends React.Component {
       trailing: true
     })
     this.changeHandler = (editor, changeObject) => this.handleChange(editor, changeObject)
+    this.highlightHandler = (editor, changeObject) => this.handleHighlight(editor, changeObject)
     this.focusHandler = () => {
       ipcRenderer.send('editor:focused', true)
     }
@@ -56,7 +61,11 @@ export default class CodeEditor extends React.Component {
         noteKey
       )
     }
-    this.pasteHandler = (editor, e) => this.handlePaste(editor, e)
+    this.pasteHandler = (editor, e) => {
+      e.preventDefault()
+
+      this.handlePaste(editor, false)
+    }
     this.loadStyleHandler = e => {
       this.editor.refresh()
     }
@@ -65,12 +74,16 @@ export default class CodeEditor extends React.Component {
     this.scrollToLineHandeler = this.scrollToLine.bind(this)
 
     this.formatTable = () => this.handleFormatTable()
-    this.contextMenuHandler = function (editor, event) {
-      const menu = buildEditorContextMenu(editor, event)
-      if (menu != null) {
-        setTimeout(() => menu.popup(remote.getCurrentWindow()), 30)
+
+    if (props.switchPreview !== 'RIGHTCLICK') {
+      this.contextMenuHandler = function (editor, event) {
+        const menu = buildEditorContextMenu(editor, event)
+        if (menu != null) {
+          setTimeout(() => menu.popup(remote.getCurrentWindow()), 30)
+        }
       }
     }
+
     this.editorActivityHandler = () => this.handleEditorActivity()
 
     this.turndownService = new TurndownService()
@@ -124,42 +137,9 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  updateTableEditorState () {
-    const active = this.tableEditor.cursorIsInTable(this.tableEditorOptions)
-    if (active) {
-      if (this.extraKeysMode !== 'editor') {
-        this.extraKeysMode = 'editor'
-        this.editor.setOption('extraKeys', this.editorKeyMap)
-      }
-    } else {
-      if (this.extraKeysMode !== 'default') {
-        this.extraKeysMode = 'default'
-        this.editor.setOption('extraKeys', this.defaultKeyMap)
-        this.tableEditor.resetSmartCursor()
-      }
-    }
-  }
-
-  componentDidMount () {
-    const { rulers, enableRulers } = this.props
+  updateDefaultKeyMap () {
+    const { hotkey } = this.props
     const expandSnippet = this.expandSnippet.bind(this)
-    eventEmitter.on('line:jump', this.scrollToLineHandeler)
-
-    const defaultSnippet = [
-      {
-        id: crypto.randomBytes(16).toString('hex'),
-        name: 'Dummy text',
-        prefix: ['lorem', 'ipsum'],
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
-      }
-    ]
-    if (!fs.existsSync(consts.SNIPPET_FILE)) {
-      fs.writeFileSync(
-        consts.SNIPPET_FILE,
-        JSON.stringify(defaultSnippet, null, 4),
-        'utf8'
-      )
-    }
 
     this.defaultKeyMap = CodeMirror.normalizeKeyMap({
       Tab: function (cm) {
@@ -202,6 +182,9 @@ export default class CodeEditor extends React.Component {
           }
         }
       },
+      'Cmd-Left': function (cm) {
+        cm.execCommand('goLineLeft')
+      },
       'Cmd-T': function (cm) {
         // Do nothing
       },
@@ -211,13 +194,56 @@ export default class CodeEditor extends React.Component {
           document.execCommand('copy')
         }
         return CodeMirror.Pass
+      },
+      [translateHotkey(hotkey.pasteSmartly)]: cm => {
+        this.handlePaste(cm, true)
       }
     })
+  }
+
+  updateTableEditorState () {
+    const active = this.tableEditor.cursorIsInTable(this.tableEditorOptions)
+    if (active) {
+      if (this.extraKeysMode !== 'editor') {
+        this.extraKeysMode = 'editor'
+        this.editor.setOption('extraKeys', this.editorKeyMap)
+      }
+    } else {
+      if (this.extraKeysMode !== 'default') {
+        this.extraKeysMode = 'default'
+        this.editor.setOption('extraKeys', this.defaultKeyMap)
+        this.tableEditor.resetSmartCursor()
+      }
+    }
+  }
+
+  componentDidMount () {
+    const { rulers, enableRulers } = this.props
+    eventEmitter.on('line:jump', this.scrollToLineHandeler)
+
+    const defaultSnippet = [
+      {
+        id: crypto.randomBytes(16).toString('hex'),
+        name: 'Dummy text',
+        prefix: ['lorem', 'ipsum'],
+        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'
+      }
+    ]
+    if (!fs.existsSync(consts.SNIPPET_FILE)) {
+      fs.writeFileSync(
+        consts.SNIPPET_FILE,
+        JSON.stringify(defaultSnippet, null, 4),
+        'utf8'
+      )
+    }
+
+    this.updateDefaultKeyMap()
 
     this.value = this.props.value
     this.editor = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
       value: this.props.value,
+      linesHighlighted: this.props.linesHighlighted,
       lineNumbers: this.props.displayLineNumbers,
       lineWrapping: true,
       theme: this.props.theme,
@@ -244,8 +270,11 @@ export default class CodeEditor extends React.Component {
     this.editor.on('focus', this.focusHandler)
     this.editor.on('blur', this.blurHandler)
     this.editor.on('change', this.changeHandler)
+    this.editor.on('gutterClick', this.highlightHandler)
     this.editor.on('paste', this.pasteHandler)
-    this.editor.on('contextmenu', this.contextMenuHandler)
+    if (this.props.switchPreview !== 'RIGHTCLICK') {
+      this.editor.on('contextmenu', this.contextMenuHandler)
+    }
     eventEmitter.on('top:search', this.searchHandler)
 
     eventEmitter.emit('code:init')
@@ -320,6 +349,8 @@ export default class CodeEditor extends React.Component {
     this.setState({
       clientWidth: this.refs.root.clientWidth
     })
+
+    this.initialHighlighting()
   }
 
   expandSnippet (line, cursor, cm, snippets) {
@@ -483,6 +514,14 @@ export default class CodeEditor extends React.Component {
       this.editor.setOption('extraKeys', this.defaultKeyMap)
     }
 
+    if (prevProps.hotkey !== this.props.hotkey) {
+      this.updateDefaultKeyMap()
+
+      if (this.extraKeysMode === 'default') {
+        this.editor.setOption('extraKeys', this.defaultKeyMap)
+      }
+    }
+
     if (this.state.clientWidth !== this.refs.root.clientWidth) {
       this.setState({
         clientWidth: this.refs.root.clientWidth
@@ -516,10 +555,94 @@ export default class CodeEditor extends React.Component {
 
   handleChange (editor, changeObject) {
     spellcheck.handleChange(editor, changeObject)
+
+    this.updateHighlight(editor, changeObject)
+
     this.value = editor.getValue()
     if (this.props.onChange) {
       this.props.onChange(editor)
     }
+  }
+
+  incrementLines (start, linesAdded, linesRemoved, editor) {
+    let highlightedLines = editor.options.linesHighlighted
+
+    const totalHighlightedLines = highlightedLines.length
+
+    let offset = linesAdded - linesRemoved
+
+    // Store new items to be added as we're changing the lines
+    let newLines = []
+
+    let i = totalHighlightedLines
+
+    while (i--) {
+      const lineNumber = highlightedLines[i]
+
+      // Interval that will need to be updated
+      // Between start and (start + offset) remove highlight
+      if (lineNumber >= start) {
+        highlightedLines.splice(highlightedLines.indexOf(lineNumber), 1)
+
+        // Lines that need to be relocated
+        if (lineNumber >= (start + linesRemoved)) {
+          newLines.push(lineNumber + offset)
+        }
+      }
+    }
+
+    // Adding relocated lines
+    highlightedLines.push(...newLines)
+
+    if (this.props.onChange) {
+      this.props.onChange(editor)
+    }
+  }
+
+  handleHighlight (editor, changeObject) {
+    const lines = editor.options.linesHighlighted
+
+    if (!lines.includes(changeObject)) {
+      lines.push(changeObject)
+      editor.addLineClass(changeObject, 'text', 'CodeMirror-activeline-background')
+    } else {
+      lines.splice(lines.indexOf(changeObject), 1)
+      editor.removeLineClass(changeObject, 'text', 'CodeMirror-activeline-background')
+    }
+    if (this.props.onChange) {
+      this.props.onChange(editor)
+    }
+  }
+
+  updateHighlight (editor, changeObject) {
+    const linesAdded = changeObject.text.length - 1
+    const linesRemoved = changeObject.removed.length - 1
+
+    // If no lines added or removed return
+    if (linesAdded === 0 && linesRemoved === 0) {
+      return
+    }
+
+    let start = changeObject.from.line
+
+    switch (changeObject.origin) {
+      case '+insert", "undo':
+        start += 1
+        break
+
+      case 'paste':
+      case '+delete':
+      case '+input':
+        if (changeObject.to.ch !== 0 || changeObject.from.ch !== 0) {
+          start += 1
+        }
+        break
+
+      default:
+        return
+    }
+
+    this.incrementLines(start, linesAdded, linesRemoved, editor)
   }
 
   moveCursorTo (row, col) {}
@@ -546,6 +669,7 @@ export default class CodeEditor extends React.Component {
     this.value = this.props.value
     this.editor.setValue(this.props.value)
     this.editor.clearHistory()
+    this.restartHighlighting()
     this.editor.on('change', this.changeHandler)
     this.editor.refresh()
   }
@@ -571,15 +695,14 @@ export default class CodeEditor extends React.Component {
     this.editor.replaceSelection(imageMd)
   }
 
-  handlePaste (editor, e) {
-    const clipboardData = e.clipboardData
-    const { storageKey, noteKey } = this.props
-    const dataTransferItem = clipboardData.items[0]
-    const pastedTxt = clipboardData.getData('text')
+  handlePaste (editor, forceSmartPaste) {
+    const { storageKey, noteKey, fetchUrlTitle, enableSmartPaste } = this.props
+
     const isURL = str => {
       const matcher = /^(?:\w+:)?\/\/([^\s\.]+\.\S{2}|localhost[\:?\d]*)\S*$/
       return matcher.test(str)
     }
+
     const isInLinkTag = editor => {
       const startCursor = editor.getCursor('start')
       const prevChar = editor.getRange(
@@ -594,30 +717,73 @@ export default class CodeEditor extends React.Component {
       return prevChar === '](' && nextChar === ')'
     }
 
-    const pastedHtml = clipboardData.getData('text/html')
-    if (pastedHtml !== '') {
-      this.handlePasteHtml(e, editor, pastedHtml)
-    } else if (dataTransferItem.type.match('image')) {
-      attachmentManagement.handlePastImageEvent(
-        this,
-        storageKey,
-        noteKey,
-        dataTransferItem
-      )
-    } else if (
-      this.props.fetchUrlTitle &&
-      isURL(pastedTxt) &&
-      !isInLinkTag(editor)
-    ) {
-      this.handlePasteUrl(e, editor, pastedTxt)
+    const isInFencedCodeBlock = editor => {
+      const cursor = editor.getCursor()
+
+      let token = editor.getTokenAt(cursor)
+      if (token.state.fencedState) {
+        return true
+      }
+
+      let line = line = cursor.line - 1
+      while (line >= 0) {
+        token = editor.getTokenAt({
+          ch: 3,
+          line
+        })
+
+        if (token.start === token.end) {
+          --line
+        } else if (token.type === 'comment') {
+          if (line > 0) {
+            token = editor.getTokenAt({
+              ch: 3,
+              line: line - 1
+            })
+
+            return token.type !== 'comment'
+          } else {
+            return true
+          }
+        } else {
+          return false
+        }
+      }
+
+      return false
     }
-    if (attachmentManagement.isAttachmentLink(pastedTxt)) {
+
+    const pastedTxt = clipboard.readText()
+
+    if (isInFencedCodeBlock(editor)) {
+      this.handlePasteText(editor, pastedTxt)
+    } else if (fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
+      this.handlePasteUrl(editor, pastedTxt)
+    } else if (enableSmartPaste || forceSmartPaste) {
+      const image = clipboard.readImage()
+      if (!image.isEmpty()) {
+        attachmentManagement.handlePastNativeImage(
+          this,
+          storageKey,
+          noteKey,
+          image
+        )
+      } else {
+        const pastedHtml = clipboard.readHTML()
+        if (pastedHtml.length > 0) {
+          this.handlePasteHtml(editor, pastedHtml)
+        } else {
+          this.handlePasteText(editor, pastedTxt)
+        }
+      }
+    } else if (attachmentManagement.isAttachmentLink(pastedTxt)) {
       attachmentManagement
         .handleAttachmentLinkPaste(storageKey, noteKey, pastedTxt)
         .then(modifiedText => {
           this.editor.replaceSelection(modifiedText)
         })
-      e.preventDefault()
+    } else {
+      this.handlePasteText(editor, pastedTxt)
     }
   }
 
@@ -627,8 +793,7 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  handlePasteUrl (e, editor, pastedTxt) {
-    e.preventDefault()
+  handlePasteUrl (editor, pastedTxt) {
     const taggedUrl = `<${pastedTxt}>`
     editor.replaceSelection(taggedUrl)
 
@@ -667,10 +832,13 @@ export default class CodeEditor extends React.Component {
       })
   }
 
-  handlePasteHtml (e, editor, pastedHtml) {
-    e.preventDefault()
+  handlePasteHtml (editor, pastedHtml) {
     const markdown = this.turndownService.turndown(pastedHtml)
     editor.replaceSelection(markdown)
+  }
+
+  handlePasteText (editor, pastedTxt) {
+    editor.replaceSelection(pastedTxt)
   }
 
   mapNormalResponse (response, pastedTxt) {
@@ -691,6 +859,29 @@ export default class CodeEditor extends React.Component {
         }
       })
     })
+  }
+
+  initialHighlighting () {
+    if (this.editor.options.linesHighlighted == null) {
+      return
+    }
+
+    const totalHighlightedLines = this.editor.options.linesHighlighted.length
+    const totalAvailableLines = this.editor.lineCount()
+
+    for (let i = 0; i < totalHighlightedLines; i++) {
+      const lineNumber = this.editor.options.linesHighlighted[i]
+      if (lineNumber > totalAvailableLines) {
+        // make sure that we skip the invalid lines althrough this case should not be happened.
+        continue
+      }
+      this.editor.addLineClass(lineNumber, 'text', 'CodeMirror-activeline-background')
+    }
+  }
+
+  restartHighlighting () {
+    this.editor.options.linesHighlighted = this.props.linesHighlighted
+    this.initialHighlighting()
   }
 
   mapImageResponse (response, pastedTxt) {

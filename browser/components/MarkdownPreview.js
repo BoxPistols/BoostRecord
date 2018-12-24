@@ -21,6 +21,8 @@ import yaml from 'js-yaml'
 import context from 'browser/lib/context'
 import i18n from 'browser/lib/i18n'
 import fs from 'fs'
+import { render } from 'react-dom'
+import Carousel from 'react-image-carousel'
 import ConfigManager from '../main/lib/ConfigManager'
 
 const { remote, shell } = require('electron')
@@ -40,7 +42,8 @@ const appPath = fileUrl(
 )
 const CSS_FILES = [
   `${appPath}/node_modules/katex/dist/katex.min.css`,
-  `${appPath}/node_modules/codemirror/lib/codemirror.css`
+  `${appPath}/node_modules/codemirror/lib/codemirror.css`,
+  `${appPath}/node_modules/react-image-carousel/lib/css/main.min.css`
 ]
 
 function buildStyle (
@@ -207,7 +210,7 @@ export default class MarkdownPreview extends React.Component {
     this.saveAsHtmlHandler = () => this.handleSaveAsHtml()
     this.printHandler = () => this.handlePrint()
 
-    this.linkClickHandler = this.handlelinkClick.bind(this)
+    this.linkClickHandler = this.handleLinkClick.bind(this)
     this.initMarkdown = this.initMarkdown.bind(this)
     this.initMarkdown()
   }
@@ -291,26 +294,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsMd () {
-    this.exportAsDocument('md', (noteContent, exportTasks) => {
-      let result = noteContent
-      if (this.props && this.props.storagePath && this.props.noteKey) {
-        const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
-          noteContent,
-          this.props.storagePath
-        )
-        attachmentsAbsolutePaths.forEach(attachment => {
-          exportTasks.push({
-            src: attachment,
-            dst: attachmentManagement.DESTINATION_FOLDER
-          })
-        })
-        result = attachmentManagement.removeStorageAndNoteReferences(
-          noteContent,
-          this.props.noteKey
-        )
-      }
-      return result
-    })
+    this.exportAsDocument('md')
   }
 
   handleSaveAsHtml () {
@@ -339,11 +323,6 @@ export default class MarkdownPreview extends React.Component {
       )
       let body = this.markdown.render(noteContent)
       const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
-      const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
-        noteContent,
-        this.props.storagePath
-      )
-
       files.forEach(file => {
         if (global.process.platform === 'win32') {
           file = file.replace('file:///', '')
@@ -355,16 +334,6 @@ export default class MarkdownPreview extends React.Component {
           dst: 'css'
         })
       })
-      attachmentsAbsolutePaths.forEach(attachment => {
-        exportTasks.push({
-          src: attachment,
-          dst: attachmentManagement.DESTINATION_FOLDER
-        })
-      })
-      body = attachmentManagement.removeStorageAndNoteReferences(
-        body,
-        this.props.noteKey
-      )
 
       let styles = ''
       files.forEach(file => {
@@ -397,8 +366,9 @@ export default class MarkdownPreview extends React.Component {
       if (filename) {
         const content = this.props.value
         const storage = this.props.storagePath
+        const nodeKey = this.props.noteKey
 
-        exportNote(storage, content, filename, contentFormatter)
+        exportNote(nodeKey, storage, content, filename, contentFormatter)
           .then(res => {
             dialog.showMessageBox(remote.getCurrentWindow(), {
               type: 'info',
@@ -443,6 +413,8 @@ export default class MarkdownPreview extends React.Component {
   }
 
   componentDidMount () {
+    const { onDrop } = this.props
+
     this.refs.root.setAttribute('sandbox', 'allow-scripts')
     this.refs.root.contentWindow.document.body.addEventListener(
       'contextmenu',
@@ -480,7 +452,7 @@ export default class MarkdownPreview extends React.Component {
     )
     this.refs.root.contentWindow.document.addEventListener(
       'drop',
-      this.preventImageDroppedHandler
+      onDrop || this.preventImageDroppedHandler
     )
     this.refs.root.contentWindow.document.addEventListener(
       'dragover',
@@ -497,6 +469,8 @@ export default class MarkdownPreview extends React.Component {
   }
 
   componentWillUnmount () {
+    const { onDrop } = this.props
+
     this.refs.root.contentWindow.document.body.removeEventListener(
       'contextmenu',
       this.contextMenuHandler
@@ -515,7 +489,7 @@ export default class MarkdownPreview extends React.Component {
     )
     this.refs.root.contentWindow.document.removeEventListener(
       'drop',
-      this.preventImageDroppedHandler
+      onDrop || this.preventImageDroppedHandler
     )
     this.refs.root.contentWindow.document.removeEventListener(
       'dragover',
@@ -800,6 +774,34 @@ export default class MarkdownPreview extends React.Component {
         mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML), theme)
       }
     )
+
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('.gallery'),
+      el => {
+        const images = el.innerHTML.split(/\n/g).filter(i => i.length > 0)
+        el.innerHTML = ''
+
+        const height = el.attributes.getNamedItem('data-height')
+        if (height && height.value !== 'undefined') {
+          el.style.height = height.value + 'vh'
+        }
+
+        let autoplay = el.attributes.getNamedItem('data-autoplay')
+        if (autoplay && autoplay.value !== 'undefined') {
+          autoplay = parseInt(autoplay.value, 10) || 0
+        } else {
+          autoplay = 0
+        }
+
+        render(
+          <Carousel
+            images={images}
+            autoplay={autoplay}
+          />,
+          el
+        )
+      }
+    )
   }
 
   focus () {
@@ -842,7 +844,7 @@ export default class MarkdownPreview extends React.Component {
     return new window.Notification(title, options)
   }
 
-  handlelinkClick (e) {
+  handleLinkClick (e) {
     e.preventDefault()
     e.stopPropagation()
 

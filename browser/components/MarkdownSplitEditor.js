@@ -64,9 +64,9 @@ class MarkdownSplitEditor extends React.Component {
     }
   }
 
-  handleOnChange () {
+  handleOnChange (e) {
     this.value = this.refs.code.value
-    this.props.onChange()
+    this.props.onChange(e)
   }
 
   handleEditorScroll (e) {
@@ -249,7 +249,7 @@ class MarkdownSplitEditor extends React.Component {
   }
 
   render () {
-    const {config, value, storageKey, noteKey} = this.props
+    const {config, value, storageKey, noteKey, linesHighlighted} = this.props
     const storage = findStorage(storageKey)
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -282,10 +282,14 @@ class MarkdownSplitEditor extends React.Component {
           enableTableEditor={config.editor.enableTableEditor}
           storageKey={storageKey}
           noteKey={noteKey}
-          onChange={this.handleOnChange.bind(this)}
-          onScroll={this.handleEditorScroll.bind(this)}
-          onCursorActivity={this.handleCursorActivity.bind(this)}
+          linesHighlighted={linesHighlighted}
+          onChange={(e) => this.handleOnChange(e)}
+          onScroll={(e) => this.handleEditorScroll(e)}
+          onCursorActivity={(e) => this.handleCursorActivity(e)}
           spellCheck={config.editor.spellcheck}
+          enableSmartPaste={config.editor.enableSmartPaste}
+          hotkey={config.hotkey}
+          switchPreview={config.editor.switchPreview}
        />
         <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
           <div styleName='slider-hitbox' />
@@ -309,7 +313,7 @@ class MarkdownSplitEditor extends React.Component {
           tabInde='0'
           value={value}
           onCheckboxClick={(e) => this.handleCheckboxClick(e)}
-          onScroll={this.handlePreviewScroll.bind(this)}
+          onScroll={(e) => this.handlePreviewScroll(e)}
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
           noteKey={noteKey}

@@ -74,6 +74,11 @@ class InfoTab extends React.Component {
         <div styleName='top'>
           <ul styleName='list'>
             <li>
+              <a href='https://issuehunt.io/repos/53266139'
+                onClick={(e) => this.handleLinkClick(e)}
+              >{i18n.__('Bounty on IssueHunt')}</a>
+            </li>
+            <li>
               <a href='https://boostnote.io/#subscribe'
                 onClick={(e) => this.handleLinkClick(e)}
               >{i18n.__('Subscribe to Newsletter')}</a>

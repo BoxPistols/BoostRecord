@@ -26,7 +26,7 @@ function render (element, content, theme) {
     if (isPredefined) {
       element.style.height = height.value + 'vh'
     }
-    let isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai' || theme === 'dracula'
+    const isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai' || theme === 'dracula'
     mermaidAPI.initialize({
       theme: isDarkTheme ? 'dark' : 'default',
       themeCSS: isDarkTheme ? darkThemeStyling : '',

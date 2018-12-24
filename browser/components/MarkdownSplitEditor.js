@@ -24,9 +24,9 @@ class MarkdownSplitEditor extends React.Component {
     this.refs.code.setValue(value)
   }
 
-  handleOnChange () {
+  handleOnChange (e) {
     this.value = this.refs.code.value
-    this.props.onChange()
+    this.props.onChange(e)
   }
 
   handleScroll (e) {
@@ -78,8 +78,10 @@ class MarkdownSplitEditor extends React.Component {
     e.preventDefault()
     e.stopPropagation()
     const idMatch = /checkbox-([0-9]+)/
-    const checkedMatch = /\[x\]/i
-    const uncheckedMatch = /\[ \]/
+    const checkedMatch = /^\s*[\+\-\*] \[x\]/i
+    const uncheckedMatch = /^\s*[\+\-\*] \[ \]/
+    const checkReplace = /\[x\]/i
+    const uncheckReplace = /\[ \]/
     if (idMatch.test(e.target.getAttribute('id'))) {
       const lineIndex = parseInt(e.target.getAttribute('id').match(idMatch)[1], 10) - 1
       const lines = this.refs.code.value
@@ -88,10 +90,10 @@ class MarkdownSplitEditor extends React.Component {
       const targetLine = lines[lineIndex]
 
       if (targetLine.match(checkedMatch)) {
-        lines[lineIndex] = targetLine.replace(checkedMatch, '[ ]')
+        lines[lineIndex] = targetLine.replace(checkReplace, '[ ]')
       }
       if (targetLine.match(uncheckedMatch)) {
-        lines[lineIndex] = targetLine.replace(uncheckedMatch, '[x]')
+        lines[lineIndex] = targetLine.replace(uncheckReplace, '[x]')
       }
       this.refs.code.setValue(lines.join('\n'))
     }
@@ -134,7 +136,7 @@ class MarkdownSplitEditor extends React.Component {
   }
 
   render () {
-    const {config, value, storageKey, noteKey} = this.props
+    const {config, value, storageKey, noteKey, linesHighlighted} = this.props
     const storage = findStorage(storageKey)
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -167,8 +169,13 @@ class MarkdownSplitEditor extends React.Component {
           enableTableEditor={config.editor.enableTableEditor}
           storageKey={storageKey}
           noteKey={noteKey}
-          onChange={this.handleOnChange.bind(this)}
+          linesHighlighted={linesHighlighted}
+          onChange={(e) => this.handleOnChange(e)}
           onScroll={this.handleScroll.bind(this)}
+          spellCheck={config.editor.spellcheck}
+          enableSmartPaste={config.editor.enableSmartPaste}
+          hotkey={config.hotkey}
+          switchPreview={config.editor.switchPreview}
        />
         <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
           <div styleName='slider-hitbox' />

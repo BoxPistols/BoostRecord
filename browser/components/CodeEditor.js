@@ -623,7 +623,7 @@ export default class CodeEditor extends React.Component {
     if (prevProps.spellCheck !== this.props.spellCheck) {
       if (this.props.spellCheck === false) {
         spellcheck.setLanguage(this.editor, spellcheck.SPELLCHECK_DISABLED)
-        let elem = document.getElementById('editor-bottom-panel')
+        const elem = document.getElementById('editor-bottom-panel')
         elem.parentNode.removeChild(elem)
       } else {
         this.editor.addPanel(this.createSpellCheckPanel(), {position: 'bottom'})
@@ -703,10 +703,9 @@ export default class CodeEditor extends React.Component {
     this.editor.replaceSelection(imageMd)
   }
 
-
   handlePaste (editor, forceSmartPaste) {
     const { storageKey, noteKey, fetchUrlTitle, enableSmartPaste } = this.props
-    
+
     const isURL = str => {
       const matcher = /^(?:\w+:)?\/\/([^\s\.]+\.\S{2}|localhost[\:?\d]*)\S*$/
       return matcher.test(str)

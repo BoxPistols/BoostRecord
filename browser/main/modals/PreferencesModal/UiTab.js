@@ -100,7 +100,6 @@ class UiTab extends React.Component {
         matchingTriples: this.refs.matchingTriples.value,
         explodingPairs: this.refs.explodingPairs.value,
         spellcheck: this.refs.spellcheck.checked,
-        spellcheck: this.refs.spellcheck.checked,
         enableSmartPaste: this.refs.enableSmartPaste.checked
       },
       preview: {

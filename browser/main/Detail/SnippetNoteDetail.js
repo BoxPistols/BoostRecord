@@ -48,7 +48,7 @@ class SnippetNoteDetail extends React.Component {
       note: Object.assign({
         description: ''
       }, props.note, {
-        snippets: props.note.snippets.map((snippet) => Object.assign({}, snippet))
+        snippets: props.note.snippets.map((snippet) => Object.assign({linesHighlighted: []}, snippet))
       })
     }
 
@@ -76,8 +76,9 @@ class SnippetNoteDetail extends React.Component {
       const nextNote = Object.assign({
         description: ''
       }, nextProps.note, {
-        snippets: nextProps.note.snippets.map((snippet) => Object.assign({}, snippet))
+        snippets: nextProps.note.snippets.map((snippet) => Object.assign({linesHighlighted: []}, snippet))
       })
+
       this.setState({
         snippetIndex: 0,
         note: nextNote
@@ -410,6 +411,8 @@ class SnippetNoteDetail extends React.Component {
     return (e) => {
       const snippets = this.state.note.snippets.slice()
       snippets[index].content = this.refs['code-' + index].value
+      snippets[index].linesHighlighted = e.options.linesHighlighted
+
       this.setState(state => ({note: Object.assign(state.note, {snippets: snippets})}))
       this.setState(state => ({
         note: state.note
@@ -602,7 +605,8 @@ class SnippetNoteDetail extends React.Component {
     note.snippets = note.snippets.concat([{
       name: '',
       mode: config.editor.snippetDefaultLanguage || 'text',
-      content: ''
+      content: '',
+      linesHighlighted: []
     }])
     const snippetIndex = note.snippets.length - 1
 
@@ -692,10 +696,8 @@ class SnippetNoteDetail extends React.Component {
 
     const viewList = note.snippets.map((snippet, index) => {
       const isActive = this.state.snippetIndex === index
-
       let syntax = CodeMirror.findModeByName(convertModeName(snippet.mode))
       if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
-
       return <div styleName='tabView'
         key={index}
         style={{zIndex: isActive ? 5 : 4}}
@@ -704,6 +706,7 @@ class SnippetNoteDetail extends React.Component {
           ? <MarkdownEditor styleName='tabView-content'
             value={snippet.content}
             config={config}
+            linesHighlighted={snippet.linesHighlighted}
             onChange={(e) => this.handleCodeChange(index)(e)}
             ref={'code-' + index}
             ignorePreviewPointerEvents={this.props.ignorePreviewPointerEvents}
@@ -712,6 +715,7 @@ class SnippetNoteDetail extends React.Component {
           : <CodeEditor styleName='tabView-content'
             mode={snippet.mode}
             value={snippet.content}
+            linesHighlighted={snippet.linesHighlighted}
             theme={config.editor.theme}
             fontFamily={config.editor.fontFamily}
             fontSize={editorFontSize}

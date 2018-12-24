@@ -866,7 +866,13 @@ export default class CodeEditor extends React.Component {
       this.handlePasteText(editor, pastedTxt)
     } else if (fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
       this.handlePasteUrl(editor, pastedTxt)
-    } else if (enableSmartPaste || forceSmartPaste) {
+    } else if (attachmentManagement.isAttachmentLink(pastedTxt)) {
+      attachmentManagement
+        .handleAttachmentLinkPaste(storageKey, noteKey, pastedTxt)
+        .then(modifiedText => {
+          this.editor.replaceSelection(modifiedText)
+        })
+    } else {
       const image = clipboard.readImage()
       if (!image.isEmpty()) {
         attachmentManagement.handlePastNativeImage(
@@ -875,22 +881,16 @@ export default class CodeEditor extends React.Component {
           noteKey,
           image
         )
-      } else {
+      } else if (enableSmartPaste || forceSmartPaste) {
         const pastedHtml = clipboard.readHTML()
         if (pastedHtml.length > 0) {
           this.handlePasteHtml(editor, pastedHtml)
         } else {
           this.handlePasteText(editor, pastedTxt)
         }
+      } else {
+        this.handlePasteText(editor, pastedTxt)
       }
-    } else if (attachmentManagement.isAttachmentLink(pastedTxt)) {
-      attachmentManagement
-        .handleAttachmentLinkPaste(storageKey, noteKey, pastedTxt)
-        .then(modifiedText => {
-          this.editor.replaceSelection(modifiedText)
-        })
-    } else {
-      this.handlePasteText(editor, pastedTxt)
     }
   }
 

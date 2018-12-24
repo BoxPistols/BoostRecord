@@ -13,10 +13,16 @@ class MarkdownSplitEditor extends React.Component {
     this.value = props.value
     this.focus = () => this.refs.code.focus()
     this.reload = () => this.refs.code.reload()
-    this.userScroll = true
+    this.userScroll = props.config.preview.scrollSync
     this.state = {
       isSliderFocused: false,
       codeEditorWidthInPercent: 50
+    }
+  }
+
+  componentDidUpdate (prevProps) {
+    if (this.props.config.preview.scrollSync !== prevProps.config.preview.scrollSync) {
+      this.userScroll = this.props.config.preview.scrollSync
     }
   }
 
@@ -31,7 +37,7 @@ class MarkdownSplitEditor extends React.Component {
         top = 0
       } else {
         const blocks = []
-        for (const block of previewDoc.querySelectorAll('body>[data-line]')) {
+        for (const block of previewDoc.querySelectorAll('body [data-line]')) {
           const l = parseInt(block.getAttribute('data-line'))
 
           blocks.push({
@@ -87,7 +93,7 @@ class MarkdownSplitEditor extends React.Component {
         const line = from + Math.floor((to - from) / 3)
 
         const blocks = []
-        for (const block of previewDoc.querySelectorAll('body>[data-line]')) {
+        for (const block of previewDoc.querySelectorAll('body [data-line]')) {
           const l = parseInt(block.getAttribute('data-line'))
 
           blocks.push({
@@ -127,7 +133,7 @@ class MarkdownSplitEditor extends React.Component {
         const previewTop = srcTop + delta
 
         const blocks = []
-        for (const block of previewDoc.querySelectorAll('body>[data-line]')) {
+        for (const block of previewDoc.querySelectorAll('body [data-line]')) {
           const top = block.offsetTop
 
           blocks.push({

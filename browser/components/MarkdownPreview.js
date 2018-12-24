@@ -813,9 +813,7 @@ export default class MarkdownPreview extends React.Component {
   }
 
   scrollTo (targetRow) {
-    const blocks = this.getWindow().document.querySelectorAll(
-      'body>[data-line]'
-    )
+    const blocks = this.getWindow().document.querySelectorAll('body [data-line]')
 
     for (let index = 0; index < blocks.length; index++) {
       let block = blocks[index]

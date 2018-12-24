@@ -234,8 +234,8 @@ class Main extends React.Component {
     if (this.state.isRightSliderFocused) {
       const offset = this.refs.body.getBoundingClientRect().left
       let newListWidth = e.pageX - offset
-      if (newListWidth < 10) {
-        newListWidth = 10
+      if (newListWidth < 180) {
+        newListWidth = 180
       } else if (newListWidth > 600) {
         newListWidth = 600
       }

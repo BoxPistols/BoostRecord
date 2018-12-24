@@ -561,7 +561,7 @@ class UiTab extends React.Component {
                 ref='enableSmartPaste'
                 type='checkbox'
               />&nbsp;
-              {i18n.__('Enable smart paste')}
+              {i18n.__('Enable HTML paste')}
             </label>
           </div>
 

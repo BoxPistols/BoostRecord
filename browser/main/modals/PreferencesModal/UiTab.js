@@ -75,6 +75,7 @@ class UiTab extends React.Component {
         showTagsAlphabetically: this.refs.showTagsAlphabetically.checked,
         saveTagsAlphabetically: this.refs.saveTagsAlphabetically.checked,
         enableLiveNoteCounts: this.refs.enableLiveNoteCounts.checked,
+        showMenuBar: this.refs.showMenuBar.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
           : false
@@ -238,6 +239,16 @@ class UiTab extends React.Component {
             </div>
           </div>
 
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showMenuBar}
+                ref='showMenuBar'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Show menu bar')}
+            </label>
+          </div>
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}

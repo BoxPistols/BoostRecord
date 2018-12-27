@@ -172,10 +172,21 @@ class Main extends React.Component {
     delete CodeMirror.keyMap.emacs['Ctrl-V']
 
     eventEmitter.on('editor:fullscreen', this.toggleFullScreen)
+    eventEmitter.on('menubar:togglemenubar', this.toggleMenuBarVisible.bind(this))
   }
 
   componentWillUnmount () {
     eventEmitter.off('editor:fullscreen', this.toggleFullScreen)
+    eventEmitter.off('menubar:togglemenubar', this.toggleMenuBarVisible.bind(this))
+  }
+
+  toggleMenuBarVisible () {
+    const { config } = this.props
+    const { ui } = config
+
+    const newUI = Object.assign(ui, {showMenuBar: !ui.showMenuBar})
+    const newConfig = Object.assign(config, newUI)
+    ConfigManager.set(newConfig)
   }
 
   handleLeftSlideMouseDown (e) {

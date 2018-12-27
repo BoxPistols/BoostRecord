@@ -20,6 +20,7 @@ import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
 import { remote } from 'electron'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
+import ColorPicker from 'browser/components/ColorPicker'
 
 function matchActiveTags (tags, activeTags) {
   return _.every(activeTags, v => tags.indexOf(v) >= 0)
@@ -27,6 +28,22 @@ function matchActiveTags (tags, activeTags) {
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      colorPickerState: {
+        show: false,
+        color: null,
+        tagName: null,
+        targetRect: null
+      }
+    }
+
+    this.dismissColorPicker = this.dismissColorPicker.bind(this)
+    this.handleColorPickerConfirm = this.handleColorPickerConfirm.bind(this)
+    this.handleColorPickerReset = this.handleColorPickerReset.bind(this)
+  }
 
   componentDidMount () {
     EventEmitter.on('side:preferences', this.handleMenuButtonClick)
@@ -104,7 +121,61 @@ class SideNav extends React.Component {
       click: this.deleteTag.bind(this, tag)
     })
 
+    menu.push({
+      label: i18n.__('Customize Color'),
+      click: this.displayColorPicker.bind(this, tag, e.target.getBoundingClientRect())
+    })
+
     context.popup(menu)
+  }
+
+  dismissColorPicker () {
+    this.setState({
+      colorPickerState: {
+        show: false
+      }
+    })
+  }
+
+  displayColorPicker (tagName, rect) {
+    const { config } = this.props
+    this.setState({
+      colorPickerState: {
+        show: true,
+        color: config.tag && config.tag[tagName],
+        tagName,
+        targetRect: rect
+      }
+    })
+  }
+
+  handleColorPickerConfirm (color) {
+    const { dispatch, config: {tag} } = this.props
+    const { colorPickerState: { tagName } } = this.state
+    const tagConfig = Object.assign({}, tag, {[tagName]: color.hex})
+
+    const config = {tag: tagConfig}
+    ConfigManager.set(config)
+    dispatch({
+      type: 'SET_CONFIG',
+      config
+    })
+    this.dismissColorPicker()
+  }
+
+  handleColorPickerReset () {
+    const { dispatch, config: {tag} } = this.props
+    const { colorPickerState: { tagName } } = this.state
+    const tagConfig = Object.assign({}, tag)
+    delete tagConfig[tagName]
+
+    const config = {tag: tagConfig}
+    ConfigManager.set(config)
+    dispatch({
+      type: 'SET_CONFIG',
+      config
+    })
+    this.dismissColorPicker()
   }
 
   handleToggleButtonClick (e) {
@@ -241,6 +312,7 @@ class SideNav extends React.Component {
             isRelated={tag.related}
             key={tag.name}
             count={tag.size}
+            color={config.tag[tag.name]}
           />
         )
       })
@@ -333,6 +405,7 @@ class SideNav extends React.Component {
 
   render () {
     const { data, location, config, dispatch } = this.props
+    const { colorPickerState } = this.state
 
     const isFolded = config.isSideNavFolded
 
@@ -349,6 +422,20 @@ class SideNav extends React.Component {
         useDragHandle
       />
     })
+
+    let colorPicker
+    if (colorPickerState.show) {
+      colorPicker = (
+        <ColorPicker
+          color={colorPickerState.color}
+          targetRect={colorPickerState.targetRect}
+          onConfirm={this.handleColorPickerConfirm}
+          onCancel={this.dismissColorPicker}
+          onReset={this.handleColorPickerReset}
+        />
+      )
+    }
+
     const style = {}
     if (!isFolded) style.width = this.props.width
     const isTagActive = location.pathname.match(/tag/)
@@ -368,6 +455,7 @@ class SideNav extends React.Component {
           </div>
         </div>
         {this.SideNavComponent(isFolded, storageList)}
+        {colorPicker}
       </div>
     )
   }

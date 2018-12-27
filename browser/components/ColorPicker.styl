@@ -1,0 +1,25 @@
+.colorPicker
+  position fixed
+  z-index 10000
+  display flex
+  flex-direction column
+.footer
+  display flex
+  justify-content center
+  align-items center
+  padding 5px
+  & > button + button
+    margin-left 10px
+
+.btn-cancel,
+.btn-confirm,
+.btn-reset
+  height 1.6em
+  border 1px solid #888888
+  background-color #fff
+  font-size 16px
+  border-radius 4px
+.btn-confirm
+  background-color $ui-button-default--active-backgroundColor
+
+

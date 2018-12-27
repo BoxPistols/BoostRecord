@@ -15,8 +15,8 @@ import i18n from 'browser/lib/i18n'
  * @param {string} tagName
  * @return {React.Component}
  */
-const TagElement = ({ tagName }) => (
-  <span styleName='item-bottom-tagList-item' key={tagName}>
+const TagElement = ({ tagName, color }) => (
+  <span styleName='item-bottom-tagList-item' key={tagName} style={{backgroundColor: color}}>
     #{tagName}
   </span>
 )
@@ -27,7 +27,7 @@ const TagElement = ({ tagName }) => (
  * @param {boolean} showTagsAlphabetically
  * @return {React.Component}
  */
-const TagElementList = (tags, showTagsAlphabetically) => {
+const TagElementList = (tags, showTagsAlphabetically, tagConfig) => {
   if (!isArray(tags)) {
     return []
   }
@@ -35,7 +35,7 @@ const TagElementList = (tags, showTagsAlphabetically) => {
   if (showTagsAlphabetically) {
     return _.sortBy(tags).map(tag => TagElement({ tagName: tag }))
   } else {
-    return tags.map(tag => TagElement({ tagName: tag }))
+    return tags.map(tag => TagElement({ tagName: tag, color: tagConfig[tag] }))
   }
 }
 
@@ -59,7 +59,8 @@ const NoteItem = ({
   storageName,
   folderName,
   viewType,
-  showTagsAlphabetically
+  showTagsAlphabetically,
+  tagConfig
 }) => (
   <div
     styleName={isActive ? 'item--active' : 'item'}
@@ -97,7 +98,7 @@ const NoteItem = ({
       <div styleName='item-bottom'>
         <div styleName='item-bottom-tagList'>
           {note.tags.length > 0
-            ? TagElementList(note.tags, showTagsAlphabetically)
+            ? TagElementList(note.tags, showTagsAlphabetically, tagConfig)
             : <span
               style={{ fontStyle: 'italic', opacity: 0.5 }}
               styleName='item-bottom-tagList-empty'
@@ -127,6 +128,7 @@ const NoteItem = ({
 NoteItem.propTypes = {
   isActive: PropTypes.bool.isRequired,
   dateDisplay: PropTypes.string.isRequired,
+  tagConfig: PropTypes.object,
   note: PropTypes.shape({
     storage: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired,

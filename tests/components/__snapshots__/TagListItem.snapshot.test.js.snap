@@ -14,6 +14,11 @@ exports[`TagListItem renders correctly 1`] = `
   >
     <span
       className="tagList-item-name"
+      style={
+        Object {
+          "color": "#000",
+        }
+      }
     >
       # Test
       <span

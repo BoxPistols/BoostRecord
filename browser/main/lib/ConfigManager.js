@@ -25,7 +25,8 @@ export const DEFAULT_CONFIG = {
   hotkey: {
     toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
     toggleMode: OSX ? 'Command + Alt + M' : 'Ctrl + M',
-    deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace'
+    deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace',
+    pasteSmartly: OSX ? 'Command + Shift + V' : 'Ctrl + Shift + V'
   },
   ui: {
     language: 'en',
@@ -44,6 +45,12 @@ export const DEFAULT_CONFIG = {
     enableRulers: false,
     rulers: [80, 120],
     displayLineNumbers: true,
+    matchingPairs: '()[]{}\'\'""$$**``',
+    matchingTriples: '```"""\'\'\'',
+    explodingPairs: '[]{}``$$',
+    codeBlockMatchingPairs: '()[]{}\'\'""``',
+    codeBlockMatchingTriples: '',
+    codeBlockExplodingPairs: '[]{}``',
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
     delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,
@@ -51,7 +58,9 @@ export const DEFAULT_CONFIG = {
     fetchUrlTitle: true,
     enableTableEditor: false,
     enableFrontMatterTitle: true,
-    frontMatterTitleField: 'title'
+    frontMatterTitleField: 'title',
+    spellcheck: false,
+    enableSmartPaste: false
   },
   preview: {
     fontSize: '14',

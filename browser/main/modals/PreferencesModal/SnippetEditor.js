@@ -29,14 +29,14 @@ class SnippetEditor extends React.Component {
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
       autoCloseBrackets: {
         codeBlock: {
-          pairs: '()[]{}\'\'""``',
-          triples: '',
-          explode: '[]{}``'
+          pairs: this.props.codeBlockMatchingPairs,
+          triples: this.props.codeBlockMatchingTriples,
+          explode: this.props.codeBlockExplodingPairs
         },
         markdown: {
-          pairs: '()[]{}\'\'""$$**``',
-          triples: '```"""\'\'\'',
-          explode: '[]{}``$$'
+          pairs: this.props.matchingPairs,
+          triples: this.props.matchingTriples,
+          explode: this.props.explodingPairs
         }
       },
       mode: 'null'

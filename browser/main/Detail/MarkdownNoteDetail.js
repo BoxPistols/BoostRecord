@@ -39,12 +39,14 @@ class MarkdownNoteDetail extends React.Component {
       isMovingNote: false,
       note: Object.assign({
         title: '',
-        content: ''
+        content: '',
+        linesHighlighted: []
       }, props.note),
       isLockButtonShown: false,
       isLocked: false,
       editorType: props.config.editor.type
     }
+
     this.dispatchTimer = null
 
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
@@ -71,7 +73,7 @@ class MarkdownNoteDetail extends React.Component {
     if (!this.state.isMovingNote && (isNewNote || hasDeletedTags)) {
       if (this.saveQueue != null) this.saveNow()
       this.setState({
-        note: Object.assign({}, nextProps.note)
+        note: Object.assign({linesHighlighted: []}, nextProps.note)
       }, () => {
         this.refs.content.reload()
         if (this.refs.tags) this.refs.tags.reset()
@@ -188,6 +190,36 @@ class MarkdownNoteDetail extends React.Component {
 
   exportAsHtml () {
     ee.emit('export:save-html')
+  }
+
+  handleKeyDown (e) {
+    switch (e.keyCode) {
+      // tab key
+      case 9:
+        if (e.ctrlKey && !e.shiftKey) {
+          e.preventDefault()
+          this.jumpNextTab()
+        } else if (e.ctrlKey && e.shiftKey) {
+          e.preventDefault()
+          this.jumpPrevTab()
+        } else if (!e.ctrlKey && !e.shiftKey && e.target === this.refs.description) {
+          e.preventDefault()
+          this.focusEditor()
+        }
+        break
+      // I key
+      case 73:
+        {
+          const isSuper = global.process.platform === 'darwin'
+            ? e.metaKey
+            : e.ctrlKey
+          if (isSuper) {
+            e.preventDefault()
+            this.handleInfoButtonClick(e)
+          }
+        }
+        break
+    }
   }
 
   handleTrashButtonClick (e) {
@@ -331,6 +363,7 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         noteKey={note.key}
+        linesHighlighted={note.linesHighlighted}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
@@ -341,6 +374,7 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         noteKey={note.key}
+        linesHighlighted={note.linesHighlighted}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
@@ -458,6 +492,7 @@ class MarkdownNoteDetail extends React.Component {
       <div className='NoteDetail'
         style={this.props.style}
         styleName='root'
+        onKeyDown={(e) => this.handleKeyDown(e)}
       >
 
         {location.pathname === '/trashed' ? trashTopBar : detailTopBar}

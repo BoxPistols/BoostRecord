@@ -51,7 +51,7 @@
   function getConfig(cm) {
     var cursor = cm.getCursor();
     var token = cm.getTokenAt(cursor);
-    var inCodeBlock = !!token.state.fencedState;
+    var inCodeBlock = !!token.state.fencedEndRE;
 
     if (inCodeBlock) {
       return cm.state.closeBrackets.codeBlock

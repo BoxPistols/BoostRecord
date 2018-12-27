@@ -20,6 +20,8 @@ Sometimes it is useful to allow dangerous HTML tags to add interactivity to your
 </details>
 ```
 
+</details>
+
 # Other questions
 
 You can ask [here][ISSUES]

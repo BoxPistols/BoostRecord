@@ -20,12 +20,8 @@ Sometimes it is useful to allow dangerous HTML tags to add interactivity to your
 </details>
 ```
 
-</details>
-
-<details><summary>Other questions</summary>
+# Other questions
 
 You can ask [here][ISSUES]
-
-</details>
 
 [ISSUES]: https://github.com/BoostIO/Boostnote/issues

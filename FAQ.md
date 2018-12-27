@@ -22,7 +22,7 @@ Sometimes it is useful to allow dangerous HTML tags to add interactivity to your
 
 </details>
 
-# Other questions
+## Other questions
 
 You can ask [here][ISSUES]
 

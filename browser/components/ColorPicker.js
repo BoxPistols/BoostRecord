@@ -4,18 +4,22 @@ import { SketchPicker } from 'react-color'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './ColorPicker.styl'
 
-const componentHeight = 333
+const componentHeight = 330
 
 class ColorPicker extends React.Component {
   constructor (props) {
     super(props)
 
     this.state = {
-      color: this.props.color || '#888888'
+      color: this.props.color || '#939395'
     }
 
     this.onColorChange = this.onColorChange.bind(this)
     this.handleConfirm = this.handleConfirm.bind(this)
+  }
+
+  componentWillReceiveProps (nextProps) {
+    this.onColorChange(nextProps.color)
   }
 
   onColorChange (color) {
@@ -41,6 +45,7 @@ class ColorPicker extends React.Component {
 
     return (
       <div styleName='colorPicker' style={{top: `${alignY}px`, left: `${alignX}px`}}>
+        <div styleName='cover' onClick={onCancel} />
         <SketchPicker color={color} onChange={this.onColorChange} />
         <div styleName='footer'>
           <button styleName='btn-reset' onClick={onReset}>Reset</button>

@@ -10,8 +10,8 @@ import CSSModules from 'browser/lib/CSSModules'
 * @param {string} name
 * @param {Function} handleClickTagListItem
 * @param {Function} handleClickNarrowToTag
-* @param {bool} isActive
-* @param {bool} isRelated
+* @param {boolean} isActive
+* @param {boolean} isRelated
 * @param {string} bgColor tab backgroundColor
 */
 
@@ -24,7 +24,8 @@ const TagListItem = ({name, handleClickTagListItem, handleClickNarrowToTag, hand
       : <div styleName={isActive ? 'tagList-itemNarrow-active' : 'tagList-itemNarrow'} />
     }
     <button styleName={isActive ? 'tagList-item-active' : 'tagList-item'} onClick={() => handleClickTagListItem(name)}>
-      <span styleName='tagList-item-name' style={{color}}>
+      <span styleName='tagList-item-color' style={{backgroundColor: color || 'transparent'}} />
+      <span styleName='tagList-item-name'>
         {`# ${name}`}
         <span styleName='tagList-item-count'>{count !== 0 ? count : ''}</span>
       </span>

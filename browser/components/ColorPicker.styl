@@ -1,25 +1,37 @@
 .colorPicker
   position fixed
-  z-index 10000
+  z-index 2
   display flex
   flex-direction column
+
+.cover
+  position fixed
+  top 0
+  right 0
+  bottom 0
+  left 0
+
 .footer
   display flex
   justify-content center
+  z-index 2
   align-items center
-  padding 5px
   & > button + button
     margin-left 10px
 
 .btn-cancel,
 .btn-confirm,
 .btn-reset
-  height 1.6em
-  border 1px solid #888888
-  background-color #fff
-  font-size 15px
+  vertical-align middle
+  height 25px
+  margin-top 2.5px
+  colorDefaultButton()
   border-radius 2px
+  border $ui-border
+  padding 0 5px
 .btn-confirm
   background-color #1EC38B
+  &:hover
+    background-color darken(#1EC38B, 25%)
 
 

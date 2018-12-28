@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
+import invertColor from 'invert-color'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './TagSelect.styl'
 import _ from 'lodash'
@@ -183,12 +184,19 @@ class TagSelect extends React.Component {
 
     const tagList = _.isArray(value)
       ? (showTagsAlphabetically ? _.sortBy(value) : value).map((tag) => {
+        const wrapperStyle = {}
+        const textStyle = {}
+        const color = coloredTags[tag]
+        if (color) {
+          wrapperStyle.backgroundColor = color
+          textStyle.color = invertColor(color, { black: '#222', white: '#f1f1f1' })
+        }
         return (
           <span styleName='tag'
             key={tag}
-            style={{backgroundColor: coloredTags[tag]}}
+            style={wrapperStyle}
           >
-            <span styleName='tag-label' onClick={(e) => this.handleTagLabelClick(tag)}>#{tag}</span>
+            <span styleName='tag-label' style={textStyle} onClick={(e) => this.handleTagLabelClick(tag)}>#{tag}</span>
             <button styleName='tag-removeButton'
               onClick={(e) => this.handleTagRemoveButtonClick(tag)}
             >

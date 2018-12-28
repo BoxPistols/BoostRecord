@@ -4,6 +4,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { isArray } from 'lodash'
+import invertColor from 'invert-color'
 import CSSModules from 'browser/lib/CSSModules'
 import { getTodoStatus } from 'browser/lib/getTodoStatus'
 import styles from './NoteItem.styl'
@@ -16,11 +17,18 @@ import i18n from 'browser/lib/i18n'
  * @param {string} color
  * @return {React.Component}
  */
-const TagElement = ({ tagName, color }) => (
-  <span styleName='item-bottom-tagList-item' key={tagName} style={{backgroundColor: color}}>
-    #{tagName}
-  </span>
-)
+const TagElement = ({ tagName, color }) => {
+  const style = {}
+  if (color) {
+    style.backgroundColor = color
+    style.color = invertColor(color, { black: '#222', white: '#f1f1f1', threshold: 0.3 })
+  }
+  return (
+    <span styleName='item-bottom-tagList-item' key={tagName} style={style}>
+      #{tagName}
+    </span>
+  )
+}
 
 /**
  * @description Tag element list component.

@@ -90,7 +90,7 @@
     "mdurl": "^1.0.1",
     "mermaid": "^8.0.0-rc.8",
     "moment": "^2.10.3",
-    "mousetrap": "^1.6.1",
+    "mousetrap": "^1.6.2",
     "mousetrap-global-bind": "^1.1.0",
     "node-ipc": "^8.1.0",
     "raphael": "^2.2.7",

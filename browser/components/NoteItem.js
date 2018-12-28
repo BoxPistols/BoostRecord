@@ -13,6 +13,7 @@ import i18n from 'browser/lib/i18n'
 /**
  * @description Tag element component.
  * @param {string} tagName
+ * @param {string} color
  * @return {React.Component}
  */
 const TagElement = ({ tagName, color }) => (
@@ -25,9 +26,10 @@ const TagElement = ({ tagName, color }) => (
  * @description Tag element list component.
  * @param {Array|null} tags
  * @param {boolean} showTagsAlphabetically
+ * @param {Object} coloredTags
  * @return {React.Component}
  */
-const TagElementList = (tags, showTagsAlphabetically, tagConfig) => {
+const TagElementList = (tags, showTagsAlphabetically, coloredTags) => {
   if (!isArray(tags)) {
     return []
   }
@@ -35,7 +37,7 @@ const TagElementList = (tags, showTagsAlphabetically, tagConfig) => {
   if (showTagsAlphabetically) {
     return _.sortBy(tags).map(tag => TagElement({ tagName: tag }))
   } else {
-    return tags.map(tag => TagElement({ tagName: tag, color: tagConfig[tag] }))
+    return tags.map(tag => TagElement({ tagName: tag, color: coloredTags[tag] }))
   }
 }
 
@@ -46,6 +48,7 @@ const TagElementList = (tags, showTagsAlphabetically, tagConfig) => {
  * @param {Function} handleNoteClick
  * @param {Function} handleNoteContextMenu
  * @param {Function} handleDragStart
+ * @param {Object} coloredTags
  * @param {string} dateDisplay
  */
 const NoteItem = ({
@@ -60,7 +63,7 @@ const NoteItem = ({
   folderName,
   viewType,
   showTagsAlphabetically,
-  tagConfig
+  coloredTags
 }) => (
   <div
     styleName={isActive ? 'item--active' : 'item'}
@@ -98,7 +101,7 @@ const NoteItem = ({
       <div styleName='item-bottom'>
         <div styleName='item-bottom-tagList'>
           {note.tags.length > 0
-            ? TagElementList(note.tags, showTagsAlphabetically, tagConfig)
+            ? TagElementList(note.tags, showTagsAlphabetically, coloredTags)
             : <span
               style={{ fontStyle: 'italic', opacity: 0.5 }}
               styleName='item-bottom-tagList-empty'
@@ -128,7 +131,7 @@ const NoteItem = ({
 NoteItem.propTypes = {
   isActive: PropTypes.bool.isRequired,
   dateDisplay: PropTypes.string.isRequired,
-  tagConfig: PropTypes.object,
+  coloredTags: PropTypes.object,
   note: PropTypes.shape({
     storage: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired,

@@ -32,7 +32,7 @@ class SideNav extends React.Component {
     super(props)
 
     this.state = {
-      colorPickerState: {
+      colorPicker: {
         show: false,
         color: null,
         tagName: null,
@@ -131,7 +131,7 @@ class SideNav extends React.Component {
 
   dismissColorPicker () {
     this.setState({
-      colorPickerState: {
+      colorPicker: {
         show: false
       }
     })
@@ -140,9 +140,9 @@ class SideNav extends React.Component {
   displayColorPicker (tagName, rect) {
     const { config } = this.props
     this.setState({
-      colorPickerState: {
+      colorPicker: {
         show: true,
-        color: config.tag && config.tag[tagName],
+        color: config.coloredTags[tagName],
         tagName,
         targetRect: rect
       }
@@ -150,11 +150,11 @@ class SideNav extends React.Component {
   }
 
   handleColorPickerConfirm (color) {
-    const { dispatch, config: {tag} } = this.props
-    const { colorPickerState: { tagName } } = this.state
-    const tagConfig = Object.assign({}, tag, {[tagName]: color.hex})
+    const { dispatch, config: {coloredTags} } = this.props
+    const { colorPicker: { tagName } } = this.state
+    const newColoredTags = Object.assign({}, coloredTags, {[tagName]: color.hex})
 
-    const config = {tag: tagConfig}
+    const config = { coloredTags: newColoredTags }
     ConfigManager.set(config)
     dispatch({
       type: 'SET_CONFIG',
@@ -164,12 +164,13 @@ class SideNav extends React.Component {
   }
 
   handleColorPickerReset () {
-    const { dispatch, config: {tag} } = this.props
-    const { colorPickerState: { tagName } } = this.state
-    const tagConfig = Object.assign({}, tag)
-    delete tagConfig[tagName]
+    const { dispatch, config: {coloredTags} } = this.props
+    const { colorPicker: { tagName } } = this.state
+    const newColoredTags = Object.assign({}, coloredTags)
 
-    const config = {tag: tagConfig}
+    delete newColoredTags[tagName]
+
+    const config = { coloredTags: newColoredTags }
     ConfigManager.set(config)
     dispatch({
       type: 'SET_CONFIG',
@@ -278,6 +279,7 @@ class SideNav extends React.Component {
 
   tagListComponent () {
     const { data, location, config } = this.props
+    const { colorPicker } = this.state
     const activeTags = this.getActiveTags(location.pathname)
     const relatedTags = this.getRelatedTags(activeTags, data.noteMap)
     let tagList = _.sortBy(data.tagNoteMap.map(
@@ -308,11 +310,11 @@ class SideNav extends React.Component {
             handleClickTagListItem={this.handleClickTagListItem.bind(this)}
             handleClickNarrowToTag={this.handleClickNarrowToTag.bind(this)}
             handleContextMenu={this.handleTagContextMenu.bind(this)}
-            isActive={this.getTagActive(location.pathname, tag.name)}
+            isActive={this.getTagActive(location.pathname, tag.name) || (colorPicker.tagName === tag.name)}
             isRelated={tag.related}
             key={tag.name}
             count={tag.size}
-            color={config.tag[tag.name]}
+            color={config.coloredTags[tag.name]}
           />
         )
       })
@@ -405,7 +407,7 @@ class SideNav extends React.Component {
 
   render () {
     const { data, location, config, dispatch } = this.props
-    const { colorPickerState } = this.state
+    const { colorPicker: colorPickerState } = this.state
 
     const isFolded = config.isSideNavFolded
 

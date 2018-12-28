@@ -1047,7 +1047,7 @@ class NoteList extends React.Component {
               storageName={this.getNoteStorage(note).name}
               viewType={viewType}
               showTagsAlphabetically={config.ui.showTagsAlphabetically}
-              tagConfig={config.tag}
+              coloredTags={config.coloredTags}
             />
           )
         }

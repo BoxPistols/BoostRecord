@@ -179,14 +179,14 @@ class TagSelect extends React.Component {
   }
 
   render () {
-    const { value, className, showTagsAlphabetically, tagConfig } = this.props
+    const { value, className, showTagsAlphabetically, coloredTags } = this.props
 
     const tagList = _.isArray(value)
       ? (showTagsAlphabetically ? _.sortBy(value) : value).map((tag) => {
         return (
           <span styleName='tag'
             key={tag}
-            style={{backgroundColor: tagConfig[tag]}}
+            style={{backgroundColor: coloredTags[tag]}}
           >
             <span styleName='tag-label' onClick={(e) => this.handleTagLabelClick(tag)}>#{tag}</span>
             <button styleName='tag-removeButton'
@@ -242,7 +242,7 @@ TagSelect.propTypes = {
   className: PropTypes.string,
   value: PropTypes.arrayOf(PropTypes.string),
   onChange: PropTypes.func,
-  tagConfig: PropTypes.object
+  coloredTags: PropTypes.object
 }
 
 export default CSSModules(TagSelect, styles)

@@ -10,7 +10,7 @@ Esta página também está disponível em [Japônes](https://github.com/BoostIO/
 ## Desenvolvimento
 
 Nós usamos o Webpack HMR para desenvolver o Boostnote.
-Executando os seguintes comandos, no diretório raiz do projeto, irá iniciar o Boostnote com as configurações padrão.
+Ao executar os seguintes comandos no diretório raiz do projeto, o Boostnote será iniciado com as configurações padrão.
 
 Instala os pacotes necessários usando o yarn.
 
@@ -42,7 +42,7 @@ Então nós preparamos um _script_ separado, o qual somente cria um executável.
 grunt pre-build
 ```
 
-Você irá encontrar o executável na pasta `dist`. Nota: o atualizador automático não funciona por que o app não está certificado.
+Você irá encontrar o executável na pasta `dist`. Nota: o atualizador automático não funciona porque o app não está certificado.
 
 Se você achar isto necessário, você pode usar o _codesign_ ou o _authenticode_ com esse executável.
 

@@ -186,10 +186,17 @@ class TagSelect extends React.Component {
       ? (showTagsAlphabetically ? _.sortBy(value) : value).map((tag) => {
         const wrapperStyle = {}
         const textStyle = {}
+        const BLACK = '#333333'
+        const WHITE = '#f1f1f1'
         const color = coloredTags[tag]
+        const invertedColor = color && invertColor(color, { black: BLACK, white: WHITE })
+        let iconRemove = '../resources/icon/icon-x.svg'
         if (color) {
           wrapperStyle.backgroundColor = color
-          textStyle.color = invertColor(color, { black: '#222', white: '#f1f1f1' })
+          textStyle.color = invertedColor
+        }
+        if (invertedColor === WHITE) {
+          iconRemove = '../resources/icon/icon-x-light.svg'
         }
         return (
           <span styleName='tag'
@@ -200,7 +207,7 @@ class TagSelect extends React.Component {
             <button styleName='tag-removeButton'
               onClick={(e) => this.handleTagRemoveButtonClick(tag)}
             >
-              <img className='tag-removeButton-icon' src='../resources/icon/icon-x.svg' width='8px' />
+              <img className='tag-removeButton-icon' src={iconRemove} width='8px' />
             </button>
           </span>
         )

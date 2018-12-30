@@ -7,7 +7,6 @@ const fse = require('fs-extra')
 const escapeStringRegexp = require('escape-string-regexp')
 const sander = require('sander')
 import i18n from 'browser/lib/i18n'
-import { escapeHtmlCharacters } from '../../../lib/utils'
 
 const STORAGE_FOLDER_PLACEHOLDER = ':storage'
 const DESTINATION_FOLDER = 'attachments'
@@ -219,31 +218,6 @@ function migrateAttachments (markdownContent, storagePath, noteKey) {
       }
     }
   }
-}
-
-/**
- * @description Convert special characters between ```
- * @param {string[]} splitWithCodeTag Array of HTML strings separated by ```
- * @returns {string} HTML in which special characters between ``` have been converted
- */
-function escapeHtmlCharactersInCodeTag (splitWithCodeTag) {
-  for (let index = 0; index < splitWithCodeTag.length; index++) {
-    const codeTagRequired = (splitWithCodeTag[index] !== '\`\`\`' && index < splitWithCodeTag.length - 1)
-    if (codeTagRequired) {
-      splitWithCodeTag.splice((index + 1), 0, '\`\`\`')
-    }
-  }
-  let inCodeTag = false
-  let result = ''
-  for (let content of splitWithCodeTag) {
-    if (content === '\`\`\`') {
-      inCodeTag = !inCodeTag
-    } else if (inCodeTag) {
-      content = escapeHtmlCharacters(content)
-    }
-    result += content
-  }
-  return result
 }
 
 /**
@@ -607,7 +581,6 @@ function handleAttachmentLinkPaste (storageKey, noteKey, linkText) {
 
 module.exports = {
   copyAttachment,
-  escapeHtmlCharactersInCodeTag,
   fixLocalURLS,
   generateAttachmentMarkdown,
   handleAttachmentDrop,

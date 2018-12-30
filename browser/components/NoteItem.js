@@ -43,7 +43,7 @@ const TagElementList = (tags, showTagsAlphabetically, coloredTags) => {
   }
 
   if (showTagsAlphabetically) {
-    return _.sortBy(tags).map(tag => TagElement({ tagName: tag }))
+    return _.sortBy(tags).map(tag => TagElement({ tagName: tag, color: coloredTags[tag] }))
   } else {
     return tags.map(tag => TagElement({ tagName: tag, color: coloredTags[tag] }))
   }

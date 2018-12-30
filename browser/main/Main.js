@@ -96,12 +96,14 @@ class Main extends React.Component {
               {
                 name: 'example.html',
                 mode: 'html',
-                content: "<html>\n<body>\n<h1 id='hello'>Enjoy Boostnote!</h1>\n</body>\n</html>"
+                content: "<html>\n<body>\n<h1 id='hello'>Enjoy Boostnote!</h1>\n</body>\n</html>",
+                linesHighlighted: []
               },
               {
                 name: 'example.js',
                 mode: 'javascript',
-                content: "var boostnote = document.getElementById('enjoy').innerHTML\n\nconsole.log(boostnote)"
+                content: "var boostnote = document.getElementById('enjoy').innerHTML\n\nconsole.log(boostnote)",
+                linesHighlighted: []
               }
             ]
           })
@@ -234,8 +236,8 @@ class Main extends React.Component {
     if (this.state.isRightSliderFocused) {
       const offset = this.refs.body.getBoundingClientRect().left
       let newListWidth = e.pageX - offset
-      if (newListWidth < 10) {
-        newListWidth = 10
+      if (newListWidth < 180) {
+        newListWidth = 180
       } else if (newListWidth > 600) {
         newListWidth = 600
       }

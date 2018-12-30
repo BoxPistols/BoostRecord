@@ -24,9 +24,9 @@ class MarkdownSplitEditor extends React.Component {
     this.refs.code.setValue(value)
   }
 
-  handleOnChange () {
+  handleOnChange (e) {
     this.value = this.refs.code.value
-    this.props.onChange()
+    this.props.onChange(e)
   }
 
   handleScroll (e) {
@@ -136,7 +136,7 @@ class MarkdownSplitEditor extends React.Component {
   }
 
   render () {
-    const {config, value, storageKey, noteKey} = this.props
+    const {config, value, storageKey, noteKey, linesHighlighted} = this.props
     const storage = findStorage(storageKey)
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -169,7 +169,8 @@ class MarkdownSplitEditor extends React.Component {
           enableTableEditor={config.editor.enableTableEditor}
           storageKey={storageKey}
           noteKey={noteKey}
-          onChange={this.handleOnChange.bind(this)}
+          linesHighlighted={linesHighlighted}
+          onChange={(e) => this.handleOnChange(e)}
           onScroll={this.handleScroll.bind(this)}
           spellCheck={config.editor.spellcheck}
           enableSmartPaste={config.editor.enableSmartPaste}

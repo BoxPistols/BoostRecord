@@ -599,12 +599,14 @@ class SnippetNoteDetail extends React.Component {
   }
 
   addSnippet () {
-    const { config } = this.props
+    const { config: { editor: { snippetDefaultLanguage } } } = this.props
     const { note } = this.state
+
+    const defaultLanguage = snippetDefaultLanguage === 'Auto Detect' ? null : snippetDefaultLanguage
 
     note.snippets = note.snippets.concat([{
       name: '',
-      mode: config.editor.snippetDefaultLanguage || 'text',
+      mode: defaultLanguage,
       content: '',
       linesHighlighted: []
     }])
@@ -696,8 +698,6 @@ class SnippetNoteDetail extends React.Component {
 
     const viewList = note.snippets.map((snippet, index) => {
       const isActive = this.state.snippetIndex === index
-      let syntax = CodeMirror.findModeByName(convertModeName(snippet.mode))
-      if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
       return <div styleName='tabView'
         key={index}
         style={{zIndex: isActive ? 5 : 4}}

@@ -11,7 +11,7 @@ const FullscreenButton = ({
 }) => (
   <button styleName='control-fullScreenButton' title={i18n.__('Fullscreen')} onMouseDown={(e) => onClick(e)}>
     <img styleName='iconInfo' src='../resources/icon/icon-full.svg' />
-    <span styleName='tooltip'>{i18n.__('Fullscreen')}({hotkey})</span>
+    <span lang={i18n.locale} styleName='tooltip'>{i18n.__('Fullscreen')}({hotkey})</span>
   </button>
 )
 

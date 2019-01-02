@@ -208,7 +208,7 @@ function assignConfigValues (originalConfig, rcConfig) {
 function rewriteHotkey (config) {
   const keys = [...Object.keys(config.hotkey)]
   keys.forEach(key => {
-    config.hotkey[key] = config.hotkey[key].replace(/Cmd/g, 'Command')
+    config.hotkey[key] = config.hotkey[key].replace(/Cmd\s/g, 'Command ')
     config.hotkey[key] = config.hotkey[key].replace(/Opt\s/g, 'Option ')
   })
   return config

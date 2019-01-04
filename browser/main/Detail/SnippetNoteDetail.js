@@ -674,6 +674,8 @@ class SnippetNoteDetail extends React.Component {
     const storageKey = note.storage
     const folderKey = note.folder
 
+    const autoDetect = config.editor.snippetDefaultLanguage === 'Auto Detect'
+
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
     let editorIndentSize = parseInt(config.editor.indentSize, 10)
@@ -713,7 +715,7 @@ class SnippetNoteDetail extends React.Component {
             storageKey={storageKey}
           />
           : <CodeEditor styleName='tabView-content'
-            mode={snippet.mode}
+            mode={snippet.mode || (autoDetect ? null : config.editor.snippetDefaultLanguage)}
             value={snippet.content}
             linesHighlighted={snippet.linesHighlighted}
             theme={config.editor.theme}
@@ -733,6 +735,7 @@ class SnippetNoteDetail extends React.Component {
             ref={'code-' + index}
             enableSmartPaste={config.editor.enableSmartPaste}
             hotkey={config.hotkey}
+            autoDetect={autoDetect}
           />
         }
       </div>

@@ -354,7 +354,7 @@ export default class CodeEditor extends React.Component {
       extraKeys: this.defaultKeyMap
     })
 
-    if (!this.props.mode && this.props.value) {
+    if (!this.props.mode && this.props.value && this.props.autoDetect) {
       this.autoDetectLanguage(this.props.value)
     } else {
       this.setMode(this.props.mode)
@@ -982,7 +982,7 @@ export default class CodeEditor extends React.Component {
       }
     }
 
-    if (!this.props.mode) {
+    if (!this.props.mode && this.props.autoDetect) {
       this.autoDetectLanguage(editor.doc.getValue())
     }
   }
@@ -1184,6 +1184,7 @@ CodeEditor.propTypes = {
   onBlur: PropTypes.func,
   onChange: PropTypes.func,
   readOnly: PropTypes.bool,
+  autoDetect: PropTypes.bool,
   spellCheck: PropTypes.bool
 }
 
@@ -1195,5 +1196,6 @@ CodeEditor.defaultProps = {
   fontFamily: 'Monaco, Consolas',
   indentSize: 4,
   indentType: 'space',
+  autoDetect: false,
   spellCheck: false
 }

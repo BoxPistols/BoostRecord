@@ -96,6 +96,9 @@ class UiTab extends React.Component {
         enableTableEditor: this.refs.enableTableEditor.checked,
         enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
         frontMatterTitleField: this.refs.frontMatterTitleField.value,
+        matchingPairs: this.refs.matchingPairs.value,
+        matchingTriples: this.refs.matchingTriples.value,
+        explodingPairs: this.refs.explodingPairs.value,
         spellcheck: this.refs.spellcheck.checked,
         enableSmartPaste: this.refs.enableSmartPaste.checked
       },
@@ -478,6 +481,7 @@ class UiTab extends React.Component {
                 ref='editorSnippetDefaultLanguage'
                 onChange={(e) => this.handleUIChange(e)}
               >
+                <option key='Auto Detect' value='Auto Detect'>Auto Detect</option>
                 {
                   _.sortBy(CodeMirror.modeInfo.map(mode => mode.name)).map(name => (<option key={name} value={name}>{name}</option>))
                 }
@@ -561,7 +565,7 @@ class UiTab extends React.Component {
                 ref='enableSmartPaste'
                 type='checkbox'
               />&nbsp;
-              {i18n.__('Enable smart paste')}
+              {i18n.__('Enable HTML paste')}
             </label>
           </div>
 
@@ -574,6 +578,48 @@ class UiTab extends React.Component {
               />&nbsp;
               {i18n.__('Enable spellcheck - Experimental feature!! :)')}
             </label>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Matching character pairs')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                value={this.state.config.editor.matchingPairs}
+                ref='matchingPairs'
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Matching character triples')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                value={this.state.config.editor.matchingTriples}
+                ref='matchingTriples'
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Exploding character pairs')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                value={this.state.config.editor.explodingPairs}
+                ref='explodingPairs'
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
           </div>
 
           <div styleName='group-header2'>{i18n.__('Preview')}</div>
@@ -603,6 +649,7 @@ class UiTab extends React.Component {
               />
             </div>
           </div>
+
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Code Block Theme')}</div>
             <div styleName='group-section-control'>

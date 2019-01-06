@@ -2,6 +2,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
+import hljs from 'highlight.js'
 import 'codemirror-mode-elixir'
 import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import convertModeName from 'browser/lib/convertModeName'
@@ -35,6 +36,85 @@ const buildCMRulers = (rulers, enableRulers) =>
 
 function translateHotkey (hotkey) {
   return hotkey.replace(/\s*\+\s*/g, '-').replace(/Command/g, 'Cmd').replace(/Control/g, 'Ctrl')
+}
+
+const languageMaps = {
+  brainfuck: 'Brainfuck',
+  cpp: 'C++',
+  cs: 'C#',
+  clojure: 'Clojure',
+  'clojure-repl': 'ClojureScript',
+  cmake: 'CMake',
+  coffeescript: 'CoffeeScript',
+  crystal: 'Crystal',
+  css: 'CSS',
+  d: 'D',
+  dart: 'Dart',
+  delphi: 'Pascal',
+  diff: 'Diff',
+  django: 'Django',
+  dockerfile: 'Dockerfile',
+  ebnf: 'EBNF',
+  elm: 'Elm',
+  erlang: 'Erlang',
+  'erlang-repl': 'Erlang',
+  fortran: 'Fortran',
+  fsharp: 'F#',
+  gherkin: 'Gherkin',
+  go: 'Go',
+  groovy: 'Groovy',
+  haml: 'HAML',
+  haskell: 'Haskell',
+  haxe: 'Haxe',
+  http: 'HTTP',
+  ini: 'toml',
+  java: 'Java',
+  javascript: 'JavaScript',
+  json: 'JSON',
+  julia: 'Julia',
+  kotlin: 'Kotlin',
+  less: 'LESS',
+  livescript: 'LiveScript',
+  lua: 'Lua',
+  markdown: 'Markdown',
+  mathematica: 'Mathematica',
+  nginx: 'Nginx',
+  nsis: 'NSIS',
+  objectivec: 'Objective-C',
+  ocaml: 'Ocaml',
+  perl: 'Perl',
+  php: 'PHP',
+  powershell: 'PowerShell',
+  properties: 'Properties files',
+  protobuf: 'ProtoBuf',
+  python: 'Python',
+  puppet: 'Puppet',
+  q: 'Q',
+  r: 'R',
+  ruby: 'Ruby',
+  rust: 'Rust',
+  sas: 'SAS',
+  scala: 'Scala',
+  scheme: 'Scheme',
+  scss: 'SCSS',
+  shell: 'Shell',
+  smalltalk: 'Smalltalk',
+  sml: 'SML',
+  sql: 'SQL',
+  stylus: 'Stylus',
+  swift: 'Swift',
+  tcl: 'Tcl',
+  tex: 'LaTex',
+  typescript: 'TypeScript',
+  twig: 'Twig',
+  vbnet: 'VB.NET',
+  vbscript: 'VBScript',
+  verilog: 'Verilog',
+  vhdl: 'VHDL',
+  xml: 'HTML',
+  xquery: 'XQuery',
+  yaml: 'YAML',
+  elixir: 'Elixir'
 }
 
 export default class CodeEditor extends React.Component {
@@ -274,7 +354,11 @@ export default class CodeEditor extends React.Component {
       extraKeys: this.defaultKeyMap
     })
 
-    this.setMode(this.props.mode)
+    if (!this.props.mode && this.props.value && this.props.autoDetect) {
+      this.autoDetectLanguage(this.props.value)
+    } else {
+      this.setMode(this.props.mode)
+    }
 
     this.editor.on('focus', this.focusHandler)
     this.editor.on('blur', this.blurHandler)
@@ -644,7 +728,7 @@ export default class CodeEditor extends React.Component {
   }
 
   setMode (mode) {
-    let syntax = CodeMirror.findModeByName(convertModeName(mode))
+    let syntax = CodeMirror.findModeByName(convertModeName(mode || 'text'))
     if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
 
     this.editor.setOption('mode', syntax.mime)
@@ -796,6 +880,11 @@ export default class CodeEditor extends React.Component {
     this.editor.replaceSelection(imageMd)
   }
 
+  autoDetectLanguage (content) {
+    const res = hljs.highlightAuto(content, Object.keys(languageMaps))
+    this.setMode(languageMaps[res.language])
+  }
+
   handlePaste (editor, forceSmartPaste) {
     const { storageKey, noteKey, fetchUrlTitle, enableSmartPaste } = this.props
 
@@ -891,6 +980,10 @@ export default class CodeEditor extends React.Component {
       } else {
         this.handlePasteText(editor, pastedTxt)
       }
+    }
+
+    if (!this.props.mode && this.props.autoDetect) {
+      this.autoDetectLanguage(editor.doc.getValue())
     }
   }
 
@@ -1091,6 +1184,7 @@ CodeEditor.propTypes = {
   onBlur: PropTypes.func,
   onChange: PropTypes.func,
   readOnly: PropTypes.bool,
+  autoDetect: PropTypes.bool,
   spellCheck: PropTypes.bool
 }
 
@@ -1102,5 +1196,6 @@ CodeEditor.defaultProps = {
   fontFamily: 'Monaco, Consolas',
   indentSize: 4,
   indentType: 'space',
+  autoDetect: false,
   spellCheck: false
 }

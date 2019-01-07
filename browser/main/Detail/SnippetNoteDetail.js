@@ -20,6 +20,7 @@ import _ from 'lodash'
 import {findNoteTitle} from 'browser/lib/findNoteTitle'
 import convertModeName from 'browser/lib/convertModeName'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
+import FullscreenButton from './FullscreenButton'
 import TrashButton from './TrashButton'
 import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
@@ -799,11 +800,7 @@ class SnippetNoteDetail extends React.Component {
           isActive={note.isStarred}
         />
 
-        <button styleName='control-fullScreenButton' title={i18n.__('Fullscreen')}
-          onMouseDown={(e) => this.handleFullScreenButton(e)}>
-          <img styleName='iconInfo' src='../resources/icon/icon-full.svg' />
-          <span styleName='tooltip'>{i18n.__('Fullscreen')}</span>
-        </button>
+        <FullscreenButton onClick={(e) => this.handleFullScreenButton(e)} />
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
 

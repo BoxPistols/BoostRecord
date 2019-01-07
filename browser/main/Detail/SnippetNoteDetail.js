@@ -792,6 +792,7 @@ class SnippetNoteDetail extends React.Component {
           showTagsAlphabetically={config.ui.showTagsAlphabetically}
           data={data}
           onChange={(e) => this.handleChange(e)}
+          coloredTags={config.coloredTags}
         />
       </div>
       <div styleName='info-right'>

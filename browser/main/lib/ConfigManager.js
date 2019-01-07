@@ -86,7 +86,8 @@ export const DEFAULT_CONFIG = {
     token: '',
     username: '',
     password: ''
-  }
+  },
+  coloredTags: {}
 }
 
 function validate (config) {

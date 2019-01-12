@@ -56,7 +56,7 @@ git checkout <PR>
 _To compile and run the code_
 ```
 yarn
-yarn build
+yarn run dev
 ```
 
 ## Deploy

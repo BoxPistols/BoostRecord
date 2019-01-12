@@ -36,8 +36,8 @@ Visit the page for the pull request and look at the end of the url for the PR nu
 <pre>
 https://github.com/BoostIO/Boostnote/pull/2794
 </pre>
-In the following, replace <PR> with that number (no brackets).
-For the above url, you would replace <PR> with 2794
+In the following, replace \<PR> with that number (no brackets).
+For the above url, you would replace \<PR> with 2794
 
 _If you do not have a local copy the master branch yet_
 ```

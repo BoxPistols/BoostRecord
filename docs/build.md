@@ -39,7 +39,7 @@ https://github.com/BoostIO/Boostnote/pull/2794
 In the following, replace \<PR> with that number (no brackets).
 For the above url, you would replace \<PR> with 2794
 
-_If you do not have a local copy the master branch yet_
+_If you do not have a local copy of the master branch yet_
 ```
 git clone https://github.com/BoostIO/Boostnote.git
 cd Boostnote

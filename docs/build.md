@@ -31,6 +31,34 @@ $ yarn run dev
 > 1. When editing a constructor method of a component
 > 2. When adding a new css class (similar to 1: the CSS class is re-written by each component. This process occurs at the Constructor method.)
 
+## Accessing code used in Pull Requests
+Visit the page for the pull request and look at the end of the url for the PR number
+<pre>
+https://github.com/BoostIO/Boostnote/pull/2794
+</pre>
+In the following, replace <PR> with that number (no brackets).
+For the above url, you would replace <PR> with 2794
+
+_If you do not have a local copy the master branch yet_
+```
+git clone https://github.com/BoostIO/Boostnote.git
+cd Boostnote
+git fetch origin pull/2612/head:<PR>
+git checkout <PR>
+```
+
+_If you already have the master branch_
+```
+git fetch origin pull/2612/head:<PR>
+git checkout <PR>
+```
+
+_To compile and run the code_
+```
+yarn
+yarn build
+```
+
 ## Deploy
 
 We use Grunt to automate deployment.

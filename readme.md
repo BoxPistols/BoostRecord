@@ -41,7 +41,7 @@ Issues on Boostnote can be funded by anyone and the money will be distributed to
 * Website: https://boostnote.io
 * Newsletters: https://boostnote.io/#subscribe
 * [Development](https://github.com/BoostIO/Boostnote/blob/master/docs/build.md): Development configurations for Boostnote.
-* Copyright (C) 2016 - 2018 BoostIO, Inc.
+* Copyright (C) 2016 - 2019 BoostIO, Inc.
 
 
 #### License

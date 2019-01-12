@@ -43,13 +43,13 @@ _If you do not have a local copy the master branch yet_
 ```
 git clone https://github.com/BoostIO/Boostnote.git
 cd Boostnote
-git fetch origin pull/2612/head:<PR>
+git fetch origin pull/<PR>/head:<PR>
 git checkout <PR>
 ```
 
 _If you already have the master branch_
 ```
-git fetch origin pull/2612/head:<PR>
+git fetch origin pull/<PR>/head:<PR>
 git checkout <PR>
 ```
 

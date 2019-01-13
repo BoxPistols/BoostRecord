@@ -59,6 +59,7 @@
     "codemirror-mode-elixir": "^1.1.1",
     "electron-config": "^1.0.0",
     "electron-gh-releases": "^2.0.4",
+    "electron-is-dev": "^1.0.1",
     "escape-string-regexp": "^1.0.5",
     "file-uri-to-path": "^1.0.0",
     "file-url": "^2.0.2",

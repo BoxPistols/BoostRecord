@@ -40,6 +40,7 @@ function init () {
 
   const fetchNotes = function (storages) {
     const findNotesFromEachStorage = storages
+    .filter(storage => fs.existsSync(storage.path))
       .map((storage) => {
         return resolveStorageNotes(storage)
           .then((notes) => {
@@ -54,7 +55,7 @@ function init () {
                 })
               }
             })
-            if (unknownCount > 0) {
+            if (unknownCount > 0 && fs.existsSync(storage.path)) {
               CSON.writeFileSync(path.join(storage.path, 'boostnote.json'), _.pick(storage, ['folders', 'version']))
             }
             return notes

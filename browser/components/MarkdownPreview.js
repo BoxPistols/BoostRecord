@@ -832,6 +832,80 @@ export default class MarkdownPreview extends React.Component {
         )
       }
     )
+
+    document.querySelectorAll('iframe').forEach(item => {
+      const rect = item.getBoundingClientRect()
+      const imgList = item.contentWindow.document.body.querySelectorAll('img')
+      for (const img of imgList) {
+        img.onclick = function () {
+          const zoomImg = document.createElement('img')
+          const magnification = document.body.clientWidth / img.width
+          const top = document.body.clientHeight / 2 - img.height * magnification / 2
+          // TODO: DRY and const animationSpeed
+          zoomImg.src = img.src
+          zoomImg.style = `
+            position: absolute;
+            top: ${top}px;
+            left: 0;
+            width: 100%;
+            height: ${img.height * magnification}px;
+            `
+          zoomImg.animate([
+            {
+              top: `${img.y + rect.top}px`,
+              left: `${img.x + rect.left}px`,
+              width: `${img.width}px`,
+              height: `${img.height}px`
+            },
+            {
+              top: `${top}px`,
+              left: 0,
+              width: `100%`,
+              height: `${img.height * magnification}px`
+            }
+          ], 300)
+
+          const overlay = document.createElement('div')
+          overlay.style = `
+            background-color: rgba(0,0,0,0.5);
+            cursor: zoom-out;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: ${document.body.clientHeight}px;
+            z-index: 100;
+          `
+          overlay.onclick = function () {
+            zoomImg.style = `
+              position: absolute;
+              top: ${img.y + rect.top}px;
+              left: ${img.x + rect.left}px;
+              width: ${img.width}px;
+              height: ${img.height}px;
+              `
+            const zoomOutImgAnimation = zoomImg.animate([
+              {
+                top: `${top}px`,
+                left: 0,
+                width: `100%`,
+                height: `${img.height * magnification}px`
+              },
+              {
+                top: `${img.y + rect.top}px`,
+                left: `${img.x + rect.left}px`,
+                width: `${img.width}px`,
+                height: `${img.height}px`
+              }
+            ], 300)
+            zoomOutImgAnimation.onfinish = () => overlay.remove()
+          }
+
+          overlay.appendChild(zoomImg)
+          document.body.appendChild(overlay)
+        }
+      }
+    })
   }
 
   focus () {

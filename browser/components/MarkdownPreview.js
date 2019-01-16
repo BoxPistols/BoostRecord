@@ -838,30 +838,39 @@ export default class MarkdownPreview extends React.Component {
       const imgList = item.contentWindow.document.body.querySelectorAll('img')
       for (const img of imgList) {
         img.onclick = () => {
-          const magnification = document.body.clientWidth / img.width
-          const top = document.body.clientHeight / 2 - img.height * magnification / 2
-          const animationSpeed = 300
+          const widthMagnification = document.body.clientWidth / img.width
+          const heightMagnification = document.body.clientHeight / img.height
+          const baseOnWidth = widthMagnification < heightMagnification
+          const magnification = baseOnWidth ? widthMagnification : heightMagnification
+
+          const zoomImgWidth = img.width * magnification
+          const zoomImgHeight = img.height * magnification
+          const zoomInImgTop = document.body.clientHeight / 2 - zoomImgHeight / 2
+          const zoomInImgLeft = document.body.clientWidth / 2 - zoomImgWidth / 2
+          const originalImgTop = img.y + rect.top
+          const originalImgLeft = img.x + rect.left
           const originalImgRect = {
-            top: `${img.y + rect.top}px`,
-            left: `${img.x + rect.left}px`,
+            top: `${originalImgTop}px`,
+            left: `${originalImgLeft}px`,
             width: `${img.width}px`,
             height: `${img.height}px`
           }
           const zoomInImgRect = {
-            top: `${top}px`,
-            left: 0,
-            width: `100%`,
-            height: `${img.height * magnification}px`
+            top: `${baseOnWidth ? zoomInImgTop : 0}px`,
+            left: `${baseOnWidth ? 0 : zoomInImgLeft}px`,
+            width: `${zoomImgWidth}px`,
+            height: `${zoomImgHeight}px`
           }
+          const animationSpeed = 300
 
           const zoomImg = document.createElement('img')
           zoomImg.src = img.src
           zoomImg.style = `
             position: absolute;
-            top: ${top}px;
-            left: 0;
-            width: 100%;
-            height: ${img.height * magnification}px;
+            top: ${baseOnWidth ? zoomInImgTop : 0}px;
+            left: ${baseOnWidth ? 0 : zoomInImgLeft}px;
+            width: ${zoomImgWidth};
+            height: ${zoomImgHeight}px;
             `
           zoomImg.animate([
             originalImgRect,
@@ -882,8 +891,8 @@ export default class MarkdownPreview extends React.Component {
           overlay.onclick = () => {
             zoomImg.style = `
               position: absolute;
-              top: ${img.y + rect.top}px;
-              left: ${img.x + rect.left}px;
+              top: ${originalImgTop}px;
+              left: ${originalImgLeft}px;
               width: ${img.width}px;
               height: ${img.height}px;
               `

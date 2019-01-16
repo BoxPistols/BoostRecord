@@ -837,11 +837,24 @@ export default class MarkdownPreview extends React.Component {
       const rect = item.getBoundingClientRect()
       const imgList = item.contentWindow.document.body.querySelectorAll('img')
       for (const img of imgList) {
-        img.onclick = function () {
-          const zoomImg = document.createElement('img')
+        img.onclick = () => {
           const magnification = document.body.clientWidth / img.width
           const top = document.body.clientHeight / 2 - img.height * magnification / 2
-          // TODO: DRY and const animationSpeed
+          const animationSpeed = 300
+          const originalImgRect = {
+            top: `${img.y + rect.top}px`,
+            left: `${img.x + rect.left}px`,
+            width: `${img.width}px`,
+            height: `${img.height}px`
+          }
+          const zoomInImgRect = {
+            top: `${top}px`,
+            left: 0,
+            width: `100%`,
+            height: `${img.height * magnification}px`
+          }
+
+          const zoomImg = document.createElement('img')
           zoomImg.src = img.src
           zoomImg.style = `
             position: absolute;
@@ -851,19 +864,9 @@ export default class MarkdownPreview extends React.Component {
             height: ${img.height * magnification}px;
             `
           zoomImg.animate([
-            {
-              top: `${img.y + rect.top}px`,
-              left: `${img.x + rect.left}px`,
-              width: `${img.width}px`,
-              height: `${img.height}px`
-            },
-            {
-              top: `${top}px`,
-              left: 0,
-              width: `100%`,
-              height: `${img.height * magnification}px`
-            }
-          ], 300)
+            originalImgRect,
+            zoomInImgRect
+          ], animationSpeed)
 
           const overlay = document.createElement('div')
           overlay.style = `
@@ -876,7 +879,7 @@ export default class MarkdownPreview extends React.Component {
             height: ${document.body.clientHeight}px;
             z-index: 100;
           `
-          overlay.onclick = function () {
+          overlay.onclick = () => {
             zoomImg.style = `
               position: absolute;
               top: ${img.y + rect.top}px;
@@ -885,19 +888,9 @@ export default class MarkdownPreview extends React.Component {
               height: ${img.height}px;
               `
             const zoomOutImgAnimation = zoomImg.animate([
-              {
-                top: `${top}px`,
-                left: 0,
-                width: `100%`,
-                height: `${img.height * magnification}px`
-              },
-              {
-                top: `${img.y + rect.top}px`,
-                left: `${img.x + rect.left}px`,
-                width: `${img.width}px`,
-                height: `${img.height}px`
-              }
-            ], 300)
+              zoomInImgRect,
+              originalImgRect
+            ], animationSpeed)
             zoomOutImgAnimation.onfinish = () => overlay.remove()
           }
 

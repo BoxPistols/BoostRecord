@@ -845,8 +845,8 @@ export default class MarkdownPreview extends React.Component {
 
           const zoomImgWidth = img.width * magnification
           const zoomImgHeight = img.height * magnification
-          const zoomInImgTop = document.body.clientHeight / 2 - zoomImgHeight / 2
-          const zoomInImgLeft = document.body.clientWidth / 2 - zoomImgWidth / 2
+          const zoomImgTop = document.body.clientHeight / 2 - zoomImgHeight / 2
+          const zoomImgLeft = document.body.clientWidth / 2 - zoomImgWidth / 2
           const originalImgTop = img.y + rect.top
           const originalImgLeft = img.x + rect.left
           const originalImgRect = {
@@ -856,8 +856,8 @@ export default class MarkdownPreview extends React.Component {
             height: `${img.height}px`
           }
           const zoomInImgRect = {
-            top: `${baseOnWidth ? zoomInImgTop : 0}px`,
-            left: `${baseOnWidth ? 0 : zoomInImgLeft}px`,
+            top: `${baseOnWidth ? zoomImgTop : 0}px`,
+            left: `${baseOnWidth ? 0 : zoomImgLeft}px`,
             width: `${zoomImgWidth}px`,
             height: `${zoomImgHeight}px`
           }
@@ -867,8 +867,8 @@ export default class MarkdownPreview extends React.Component {
           zoomImg.src = img.src
           zoomImg.style = `
             position: absolute;
-            top: ${baseOnWidth ? zoomInImgTop : 0}px;
-            left: ${baseOnWidth ? 0 : zoomInImgLeft}px;
+            top: ${baseOnWidth ? zoomImgTop : 0}px;
+            left: ${baseOnWidth ? 0 : zoomImgLeft}px;
             width: ${zoomImgWidth};
             height: ${zoomImgHeight}px;
             `

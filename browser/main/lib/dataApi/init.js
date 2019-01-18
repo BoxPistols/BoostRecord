@@ -55,8 +55,12 @@ function init () {
                 })
               }
             })
-            if (unknownCount > 0 && fs.existsSync(storage.path)) {
-              CSON.writeFileSync(path.join(storage.path, 'boostnote.json'), _.pick(storage, ['folders', 'version']))
+            if (unknownCount > 0) {
+              try {
+                CSON.writeFileSync(path.join(storage.path, 'boostnote.json'), _.pick(storage, ['folders', 'version']))
+              } catch (e) {
+                console.log('Error writting boostnote.json: ' + e + ' from init.js')
+              }
             }
             return notes
           })

@@ -192,6 +192,19 @@ const defaultCodeBlockFontFamily = [
   'source-code-pro',
   'monospace'
 ]
+
+// return the line number of the line that used to generate the specified element
+// return -1 if the line is not found
+function getSourceLineNumberByElement (element) {
+  let isHasLineNumber = element.dataset.line !== undefined
+  let parent = element
+  while (!isHasLineNumber && parent.parentElement !== null) {
+    parent = parent.parentElement
+    isHasLineNumber = parent.dataset.line !== undefined
+  }
+  return parent.dataset.line !== undefined ? parseInt(parent.dataset.line) : -1
+}
+
 export default class MarkdownPreview extends React.Component {
   constructor (props) {
     super(props)
@@ -270,6 +283,22 @@ export default class MarkdownPreview extends React.Component {
     const config = ConfigManager.get()
     if (config.editor.switchPreview === 'RIGHTCLICK' && e.buttons === 2 && config.editor.type === 'SPLIT') {
       eventEmitter.emit('topbar:togglemodebutton', 'CODE')
+    }
+    if (e.ctrlKey) {
+      if (config.editor.type === 'SPLIT') {
+        const clickElement = e.target
+        const lineNumber = getSourceLineNumberByElement(clickElement)
+        if (lineNumber !== -1) {
+          eventEmitter.emit('line:jump', lineNumber)
+        }
+      } else {
+        const clickElement = e.target
+        const lineNumber = getSourceLineNumberByElement(clickElement)
+        if (lineNumber !== -1) {
+          eventEmitter.emit('editor:focus')
+          eventEmitter.emit('line:jump', lineNumber)
+        }
+      }
     }
     if (e.target != null) {
       switch (e.target.tagName) {

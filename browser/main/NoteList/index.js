@@ -656,14 +656,18 @@ class NoteList extends React.Component {
         })
       )
       .then((data) => {
-        data.forEach((item) => {
-          dispatch({
-            type: 'DELETE_NOTE',
-            storageKey: item.storageKey,
-            noteKey: item.noteKey
+        const dispatchHandler = () => {
+          data.forEach((item) => {
+            dispatch({
+              type: 'DELETE_NOTE',
+              storageKey: item.storageKey,
+              noteKey: item.noteKey
+            })
           })
-        })
+        }
+        ee.once('list:next', dispatchHandler)
       })
+      .then(() => ee.emit('list:next'))
       .catch((err) => {
         console.error('Cannot Delete note: ' + err)
       })
@@ -687,6 +691,7 @@ class NoteList extends React.Component {
         })
         AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
       })
+      .then(() => ee.emit('list:next'))
       .catch((err) => {
         console.error('Notes could not go to trash: ' + err)
       })

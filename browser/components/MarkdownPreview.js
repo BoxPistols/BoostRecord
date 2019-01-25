@@ -845,8 +845,8 @@ export default class MarkdownPreview extends React.Component {
 
           const zoomImgWidth = img.width * magnification
           const zoomImgHeight = img.height * magnification
-          const zoomImgTop = document.body.clientHeight / 2 - zoomImgHeight / 2
-          const zoomImgLeft = document.body.clientWidth / 2 - zoomImgWidth / 2
+        const zoomImgTop = (document.body.clientHeight - zoomImgHeight) / 2
+        const zoomImgLeft = (document.body.clientWidth - zoomImgWidth) / 2
           const originalImgTop = img.y + rect.top
           const originalImgLeft = img.x + rect.left
           const originalImgRect = {

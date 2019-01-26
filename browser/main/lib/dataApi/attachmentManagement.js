@@ -423,8 +423,8 @@ function replaceNoteKeyWithNewNoteKey (noteContent, oldNoteKey, newNoteKey) {
 function removeStorageAndNoteReferences (input, noteKey) {
   return input.replace(new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '.*?("|])', 'g'), function (match) {
     var encodedPathSeparators = new RegExp(mdurl.encode(path.win32.sep) + '|' + mdurl.encode(path.posix.sep), 'g')
-    return match.replace(encodedPathSeparators, path.sep)
-  }).replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + noteKey + ')?', 'g'), DESTINATION_FOLDER)
+    return match.replace(encodedPathSeparators, path.sep).replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + noteKey + ')?', 'g'), DESTINATION_FOLDER)
+  })
 }
 
 /**

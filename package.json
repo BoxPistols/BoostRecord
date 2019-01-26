@@ -31,7 +31,7 @@
     "storage",
     "electron"
   ],
-  "author": "Dick Choi <fluke8259@gmail.com> (https://github.com/Rokt33r)",
+  "author": "Junyoung Choi <fluke8259@gmail.com> (https://github.com/Rokt33r)",
   "contributors": [
     "Kazu Yokomizo (https://github.com/kazup01)",
     "dojineko (https://github.com/dojineko)",
@@ -41,7 +41,8 @@
     "Yoshihisa Mochihara (https://github.com/yosmoc)",
     "Mike Resoli (https://github.com/mikeres0)",
     "tjado (https://github.com/tejado)",
-    "Sota Sugiura (https://github.com/sota1235)"
+    "Sota Sugiura (https://github.com/sota1235)",
+    "Milo Todt (https://github.com/MiloTodt)"
   ],
   "bugs": {
     "url": "https://github.com/BoostIO/Boostnote/issues"

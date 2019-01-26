@@ -12,6 +12,7 @@
  </p>
 
 ## Authors & Maintainers
+
 - [Rokt33r](https://github.com/rokt33r)
 - [Sosuke](https://github.com/sosukesuzuki)
 - [Kazz](https://github.com/kazup01)
@@ -23,7 +24,7 @@ Thank you to all the people who have contributed to Boostnote!
 <a href="https://github.com/BoostIO/Boostnote/graphs/contributors"><img src="https://opencollective.com/boostnoteio/contributors.svg?width=890" /></a>
 
 ## Supporting Boostnote
-Boostnote is an open source project. It's an independent project with its ongoing development made possible thanks to the support by our amazing backers. 
+Boostnote is an open source project. It's an independent project with its ongoing development made possible thanks to the support by our amazing backers.
 
 Issues on Boostnote can be funded by anyone and the money will be distributed to contributors and maintainers. If you use Boostnote please consider becoming a backer:
 

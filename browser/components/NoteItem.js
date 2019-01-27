@@ -4,6 +4,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { isArray } from 'lodash'
+import invertColor from 'invert-color'
 import CSSModules from 'browser/lib/CSSModules'
 import { getTodoStatus } from 'browser/lib/getTodoStatus'
 import styles from './NoteItem.styl'
@@ -13,27 +14,39 @@ import i18n from 'browser/lib/i18n'
 /**
  * @description Tag element component.
  * @param {string} tagName
+ * @param {string} color
  * @return {React.Component}
  */
-const TagElement = ({ tagName }) => (
-  <span styleName='item-bottom-tagList-item' key={tagName}>
-    #{tagName}
-  </span>
-)
+const TagElement = ({ tagName, color }) => {
+  const style = {}
+  if (color) {
+    style.backgroundColor = color
+    style.color = invertColor(color, { black: '#222', white: '#f1f1f1', threshold: 0.3 })
+  }
+  return (
+    <span styleName='item-bottom-tagList-item' key={tagName} style={style}>
+      #{tagName}
+    </span>
+  )
+}
 
 /**
  * @description Tag element list component.
  * @param {Array|null} tags
+ * @param {boolean} showTagsAlphabetically
+ * @param {Object} coloredTags
  * @return {React.Component}
  */
-const TagElementList = tags => {
+const TagElementList = (tags, showTagsAlphabetically, coloredTags) => {
   if (!isArray(tags)) {
     return []
   }
 
-  const tagElements = tags.map(tag => TagElement({ tagName: tag }))
-
-  return tagElements
+  if (showTagsAlphabetically) {
+    return _.sortBy(tags).map(tag => TagElement({ tagName: tag, color: coloredTags[tag] }))
+  } else {
+    return tags.map(tag => TagElement({ tagName: tag, color: coloredTags[tag] }))
+  }
 }
 
 /**
@@ -43,6 +56,7 @@ const TagElementList = tags => {
  * @param {Function} handleNoteClick
  * @param {Function} handleNoteContextMenu
  * @param {Function} handleDragStart
+ * @param {Object} coloredTags
  * @param {string} dateDisplay
  */
 const NoteItem = ({
@@ -55,7 +69,9 @@ const NoteItem = ({
   pathname,
   storageName,
   folderName,
-  viewType
+  viewType,
+  showTagsAlphabetically,
+  coloredTags
 }) => (
   <div
     styleName={isActive ? 'item--active' : 'item'}
@@ -93,7 +109,7 @@ const NoteItem = ({
       <div styleName='item-bottom'>
         <div styleName='item-bottom-tagList'>
           {note.tags.length > 0
-            ? TagElementList(note.tags)
+            ? TagElementList(note.tags, showTagsAlphabetically, coloredTags)
             : <span
               style={{ fontStyle: 'italic', opacity: 0.5 }}
               styleName='item-bottom-tagList-empty'
@@ -123,6 +139,7 @@ const NoteItem = ({
 NoteItem.propTypes = {
   isActive: PropTypes.bool.isRequired,
   dateDisplay: PropTypes.string.isRequired,
+  coloredTags: PropTypes.object,
   note: PropTypes.shape({
     storage: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired,

@@ -3,6 +3,7 @@
 exports[`TagListItem renders correctly 1`] = `
 <div
   className="tagList-itemContainer"
+  onContextMenu={[Function]}
 >
   <div
     className="tagList-itemNarrow"
@@ -11,6 +12,14 @@ exports[`TagListItem renders correctly 1`] = `
     className="tagList-item"
     onClick={[Function]}
   >
+    <span
+      className="tagList-item-color"
+      style={
+        Object {
+          "backgroundColor": "#000",
+        }
+      }
+    />
     <span
       className="tagList-item-name"
     >

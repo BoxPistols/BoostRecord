@@ -26,6 +26,7 @@ import TurndownService from 'turndown'
 import {
   gfm
 } from 'turndown-plugin-gfm'
+import markdownlint from 'markdownlint'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -118,7 +119,6 @@ const languageMaps = {
 }
 
 const validatorOfMarkdown = (text, updateLinting) => {
-  const markdownlint = require('markdownlint')
   const lintOptions = {
     'strings': {
       'content': text

@@ -117,6 +117,39 @@ const languageMaps = {
   elixir: 'Elixir'
 }
 
+const validator = (text, updateLinting) => {
+  const markdownlint = require('markdownlint')
+  const lintOptions = {
+    'strings': {
+      'content': text
+    }
+  }
+
+  return markdownlint(lintOptions, (err, result) => {
+    if (!err) {
+      const foundIssues = []
+      result.content.map(item => {
+        let ruleNames = ''
+        item.ruleNames.map((ruleName, index) => {
+          ruleNames += ruleName
+          if (index === item.ruleNames.length - 1) {
+            ruleNames += ': '
+          } else {
+            ruleNames += '/'
+          }
+        })
+        foundIssues.push({
+          from: CodeMirror.Pos(item.lineNumber, 0),
+          to: CodeMirror.Pos(item.lineNumber, 1),
+          message: ruleNames + item.ruleDescription,
+          severity: 'warning'
+        })
+      })
+      updateLinting(foundIssues)
+    }
+  })
+}
+
 export default class CodeEditor extends React.Component {
   constructor (props) {
     super(props)
@@ -344,7 +377,12 @@ export default class CodeEditor extends React.Component {
       inputStyle: 'textarea',
       dragDrop: false,
       foldGutter: true,
-      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+      lint: {
+        'getAnnotations': validator,
+        'async': true
+      },
+      mode: 'markdown',
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
       autoCloseBrackets: {
         pairs: this.props.matchingPairs,
         triples: this.props.matchingTriples,

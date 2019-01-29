@@ -964,7 +964,7 @@ export default class CodeEditor extends React.Component {
     } else {
       const image = clipboard.readImage()
       if (!image.isEmpty()) {
-        attachmentManagement.handlePastNativeImage(
+        attachmentManagement.handlePasteNativeImage(
           this,
           storageKey,
           noteKey,

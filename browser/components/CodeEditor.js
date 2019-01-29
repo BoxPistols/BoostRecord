@@ -117,7 +117,7 @@ const languageMaps = {
   elixir: 'Elixir'
 }
 
-const validator = (text, updateLinting) => {
+const validatorOfMarkdown = (text, updateLinting) => {
   const markdownlint = require('markdownlint')
   const lintOptions = {
     'strings': {
@@ -378,7 +378,7 @@ export default class CodeEditor extends React.Component {
       dragDrop: false,
       foldGutter: true,
       lint: {
-        'getAnnotations': validator,
+        'getAnnotations': validatorOfMarkdown,
         'async': true
       },
       mode: 'markdown',

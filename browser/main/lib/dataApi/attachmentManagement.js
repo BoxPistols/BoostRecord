@@ -231,11 +231,11 @@ function fixLocalURLS (renderedHTML, storagePath) {
     A :storage reference is like `:storage/3b6f8bd6-4edd-4b15-96e0-eadc4475b564/f939b2c3.jpg`.
 
     - `STORAGE_FOLDER_PLACEHOLDER` will match `:storage`
-    - `(?:(?:\\\/|%5C)[\\w.]+)+` will match `/3b6f8bd6-4edd-4b15-96e0-eadc4475b564/f939b2c3.jpg`
-    - `(?:\\\/|%5C)[\\w.]+` will either match `/3b6f8bd6-4edd-4b15-96e0-eadc4475b564` or `/f939b2c3.jpg`
+    - `(?:(?:\\\/|%5C)[-.\\w]+)+` will match `/3b6f8bd6-4edd-4b15-96e0-eadc4475b564/f939b2c3.jpg`
+    - `(?:\\\/|%5C)[-.\\w]+` will either match `/3b6f8bd6-4edd-4b15-96e0-eadc4475b564` or `/f939b2c3.jpg`
     - `(?:\\\/|%5C)` match the path seperator. `\\\/` for posix systems and `%5C` for windows.
   */
-  return renderedHTML.replace(new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '(?:(?:\\\/|%5C)[\\w.]+)+', 'g'), function (match) {
+  return renderedHTML.replace(new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '(?:(?:\\\/|%5C)[-.\\w]+)+', 'g'), function (match) {
     var encodedPathSeparators = new RegExp(mdurl.encode(path.win32.sep) + '|' + mdurl.encode(path.posix.sep), 'g')
     return match.replace(encodedPathSeparators, path.sep).replace(new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER, 'g'), 'file:///' + path.join(storagePath, DESTINATION_FOLDER))
   })
@@ -287,7 +287,7 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
  * @param {String} noteKey Key of the current note
  * @param {DataTransferItem} dataTransferItem Part of the past-event
  */
-function handlePastImageEvent (codeEditor, storageKey, noteKey, dataTransferItem) {
+function handlePasteImageEvent (codeEditor, storageKey, noteKey, dataTransferItem) {
   if (!codeEditor) {
     throw new Error('codeEditor has to be given')
   }
@@ -331,7 +331,7 @@ function handlePastImageEvent (codeEditor, storageKey, noteKey, dataTransferItem
  * @param {String} noteKey Key of the current note
  * @param {NativeImage} image The native image
  */
-function handlePastNativeImage (codeEditor, storageKey, noteKey, image) {
+function handlePasteNativeImage (codeEditor, storageKey, noteKey, image) {
   if (!codeEditor) {
     throw new Error('codeEditor has to be given')
   }
@@ -429,7 +429,14 @@ function replaceNoteKeyWithNewNoteKey (noteContent, oldNoteKey, newNoteKey) {
  * @returns {String} Input without the references
  */
 function removeStorageAndNoteReferences (input, noteKey) {
-  return input.replace(new RegExp(mdurl.encode(path.sep), 'g'), path.sep).replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + noteKey + ')?', 'g'), DESTINATION_FOLDER)
+  return input.replace(new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '.*?("|])', 'g'), function (match) {
+    const temp = match
+      .replace(new RegExp(mdurl.encode(path.win32.sep), 'g'), path.sep)
+      .replace(new RegExp(mdurl.encode(path.posix.sep), 'g'), path.sep)
+      .replace(new RegExp(escapeStringRegexp(path.win32.sep), 'g'), path.sep)
+      .replace(new RegExp(escapeStringRegexp(path.posix.sep), 'g'), path.sep)
+    return temp.replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + '(' + escapeStringRegexp(path.sep) + noteKey + ')?', 'g'), DESTINATION_FOLDER)
+  })
 }
 
 /**
@@ -584,8 +591,8 @@ module.exports = {
   fixLocalURLS,
   generateAttachmentMarkdown,
   handleAttachmentDrop,
-  handlePastImageEvent,
-  handlePastNativeImage,
+  handlePasteImageEvent,
+  handlePasteNativeImage,
   getAttachmentsInMarkdownContent,
   getAbsolutePathsOfAttachmentsInContent,
   removeStorageAndNoteReferences,

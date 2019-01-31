@@ -128,6 +128,7 @@ it('should test that copyAttachment don\'t uses a random file name if not intend
 
 it('should replace the all ":storage" path with the actual storage path', function () {
   const storageFolder = systemUnderTest.DESTINATION_FOLDER
+  const noteKey = '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c'
   const testInput =
     '<html>\n' +
     '    <head>\n' +
@@ -136,14 +137,18 @@ it('should replace the all ":storage" path with the actual storage path', functi
     '    <body data-theme="default">\n' +
     '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
     '        <p data-line="2">\n' +
-    '            <img src=":storage' + mdurl.encode(path.sep) + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
+    '            <img src=":storage' + mdurl.encode(path.sep) + noteKey + mdurl.encode(path.sep) + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
     '        </p>\n' +
     '        <p data-line="4">\n' +
-    '            <a href=":storage' + mdurl.encode(path.sep) + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
+    '            <a href=":storage' + mdurl.encode(path.sep) + noteKey + mdurl.encode(path.sep) + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
     '        </p>\n' +
     '        <p data-line="6">\n' +
-    '            <img src=":storage' + mdurl.encode(path.sep) + 'd6c5ee92.jpg" alt="dummyImage2.jpg">\n' +
+    '            <img src=":storage' + mdurl.encode(path.sep) + noteKey + mdurl.encode(path.sep) + 'd6c5ee92.jpg" alt="dummyImage2.jpg">\n' +
     '        </p>\n' +
+    '        <pre class="fence" data-line="8">\n' +
+    '            <span class="filename"></span>\n' +
+    '            <div class="gallery" data-autoplay="undefined" data-height="undefined">:storage' + mdurl.encode(path.sep) + noteKey + mdurl.encode(path.sep) + 'f939b2c3.jpg</div>\n' +
+    '        </pre>\n' +
     '    </body>\n' +
     '</html>'
   const storagePath = '<<dummyStoragePath>>'
@@ -155,14 +160,18 @@ it('should replace the all ":storage" path with the actual storage path', functi
     '    <body data-theme="default">\n' +
     '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
     '        <p data-line="2">\n' +
-    '            <img src="file:///' + storagePath + path.sep + storageFolder + path.sep + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
+    '            <img src="file:///' + storagePath + path.sep + storageFolder + path.sep + noteKey + path.sep + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
     '        </p>\n' +
     '        <p data-line="4">\n' +
-    '            <a href="file:///' + storagePath + path.sep + storageFolder + path.sep + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
+    '            <a href="file:///' + storagePath + path.sep + storageFolder + path.sep + noteKey + path.sep + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
     '        </p>\n' +
     '        <p data-line="6">\n' +
-    '            <img src="file:///' + storagePath + path.sep + storageFolder + path.sep + 'd6c5ee92.jpg" alt="dummyImage2.jpg">\n' +
+    '            <img src="file:///' + storagePath + path.sep + storageFolder + path.sep + noteKey + path.sep + 'd6c5ee92.jpg" alt="dummyImage2.jpg">\n' +
     '        </p>\n' +
+    '        <pre class="fence" data-line="8">\n' +
+    '            <span class="filename"></span>\n' +
+    '            <div class="gallery" data-autoplay="undefined" data-height="undefined">file:///' + storagePath + path.sep + storageFolder + path.sep + noteKey + path.sep + 'f939b2c3.jpg</div>\n' +
+    '        </pre>\n' +
     '    </body>\n' +
     '</html>'
   const actual = systemUnderTest.fixLocalURLS(testInput, storagePath)
@@ -171,6 +180,7 @@ it('should replace the all ":storage" path with the actual storage path', functi
 
 it('should replace the ":storage" path with the actual storage path when they have different path separators', function () {
   const storageFolder = systemUnderTest.DESTINATION_FOLDER
+  const noteKey = '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c'
   const testInput =
     '<html>\n' +
     '    <head>\n' +
@@ -179,10 +189,10 @@ it('should replace the ":storage" path with the actual storage path when they ha
     '    <body data-theme="default">\n' +
     '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
     '        <p data-line="2">\n' +
-    '            <img src=":storage' + mdurl.encode(path.win32.sep) + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
+    '            <img src=":storage' + mdurl.encode(path.win32.sep) + noteKey + mdurl.encode(path.win32.sep) + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
     '        </p>\n' +
     '        <p data-line="4">\n' +
-    '            <a href=":storage' + mdurl.encode(path.posix.sep) + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
+    '            <a href=":storage' + mdurl.encode(path.posix.sep) + noteKey + mdurl.encode(path.posix.sep) + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
@@ -195,10 +205,10 @@ it('should replace the ":storage" path with the actual storage path when they ha
     '    <body data-theme="default">\n' +
     '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
     '        <p data-line="2">\n' +
-    '            <img src="file:///' + storagePath + path.sep + storageFolder + path.sep + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
+    '            <img src="file:///' + storagePath + path.sep + storageFolder + path.sep + noteKey + path.sep + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
     '        </p>\n' +
     '        <p data-line="4">\n' +
-    '            <a href="file:///' + storagePath + path.sep + storageFolder + path.sep + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
+    '            <a href="file:///' + storagePath + path.sep + storageFolder + path.sep + noteKey + path.sep + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
@@ -251,28 +261,17 @@ it('should test that getAttachmentsInMarkdownContent finds all attachments when 
 
 it('should test that getAbsolutePathsOfAttachmentsInContent returns all absolute paths', function () {
   const dummyStoragePath = 'dummyStoragePath'
-  const testInput =
-    '<html>\n' +
-    '    <head>\n' +
-    '        //header\n' +
-    '    </head>\n' +
-    '    <body data-theme="default">\n' +
-    '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
-    '        <p data-line="2">\n' +
-    '            <img src=":storage' + mdurl.encode(path.sep) + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + mdurl.encode(path.sep) + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
-    '        </p>\n' +
-    '        <p data-line="4">\n' +
-    '            <a href=":storage' + mdurl.encode(path.sep) + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + mdurl.encode(path.sep) + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
-    '        </p>\n' +
-    '        <p data-line="6">\n' +
-    '            <img src=":storage' + mdurl.encode(path.sep) + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + mdurl.encode(path.sep) + 'd6c5ee92.jpg" alt="dummyImage2.jpg">\n' +
-    '        </p>\n' +
-    '    </body>\n' +
-    '</html>'
+  const noteKey = '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c'
+  const testInput = '"# Test\n' +
+    '\n' +
+    '![Screenshot1](:storage' + path.win32.sep + noteKey + path.win32.sep + '0.6r4zdgc22xp.png)\n' +
+    '![Screenshot2](:storage' + path.posix.sep + noteKey + path.posix.sep + '0.q2i4iw0fyx.pdf)\n' +
+    '![Screenshot3](:storage' + path.win32.sep + noteKey + path.posix.sep + 'd6c5ee92.jpg)"'
+
   const actual = systemUnderTest.getAbsolutePathsOfAttachmentsInContent(testInput, dummyStoragePath)
-  const expected = [dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.6r4zdgc22xp.png',
-    dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + '0.q2i4iw0fyx.pdf',
-    dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c' + path.sep + 'd6c5ee92.jpg']
+  const expected = [dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + noteKey + path.sep + '0.6r4zdgc22xp.png',
+    dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + noteKey + path.sep + '0.q2i4iw0fyx.pdf',
+    dummyStoragePath + path.sep + systemUnderTest.DESTINATION_FOLDER + path.sep + noteKey + path.sep + 'd6c5ee92.jpg']
   expect(actual).toEqual(expect.arrayContaining(expected))
 })
 
@@ -287,13 +286,13 @@ it('should remove the all ":storage" and noteKey references', function () {
     '    <body data-theme="default">\n' +
     '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
     '        <p data-line="2">\n' +
-    '            <img src=":storage' + mdurl.encode(path.sep) + noteKey + mdurl.encode(path.sep) + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
+    '            <img src=":storage' + mdurl.encode(path.win32.sep) + noteKey + mdurl.encode(path.win32.sep) + '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
     '        </p>\n' +
     '        <p data-line="4">\n' +
-    '            <a href=":storage' + mdurl.encode(path.sep) + noteKey + mdurl.encode(path.sep) + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
+    '            <a href=":storage' + mdurl.encode(path.posix.sep) + noteKey + mdurl.encode(path.posix.sep) + '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
     '        </p>\n' +
     '        <p data-line="6">\n' +
-    '            <img src=":storage' + mdurl.encode(path.sep) + noteKey + mdurl.encode(path.sep) + 'd6c5ee92.jpg" alt="dummyImage2.jpg">\n' +
+    '            <img src=":storage' + mdurl.encode(path.win32.sep) + noteKey + mdurl.encode(path.posix.sep) + 'd6c5ee92.jpg" alt="dummyImage2.jpg">\n' +
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
@@ -323,8 +322,8 @@ it('should make sure that "removeStorageAndNoteReferences" works with markdown c
   const noteKey = 'noteKey'
   const testInput =
     'Test input' +
-    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + noteKey + path.sep + 'image.jpg](imageName}) \n' +
-    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + noteKey + path.sep + 'pdf.pdf](pdf})'
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + noteKey + path.win32.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + noteKey + path.posix.sep + 'pdf.pdf](pdf})'
 
   const expectedOutput =
     'Test input' +
@@ -476,8 +475,8 @@ it('should test that moveAttachments returns a correct modified content version'
   const newNoteKey = 'newNoteKey'
   const testInput =
     'Test input' +
-    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNoteKey + path.sep + 'image.jpg](imageName}) \n' +
-    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNoteKey + path.sep + 'pdf.pdf](pdf})'
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + oldNoteKey + path.win32.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + oldNoteKey + path.posix.sep + 'pdf.pdf](pdf})'
   const expectedOutput =
     'Test input' +
     '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNoteKey + path.sep + 'image.jpg](imageName}) \n' +
@@ -492,8 +491,8 @@ it('should test that cloneAttachments modifies the content of the new note corre
   const newNote = {key: 'newNoteKey', content: 'oldNoteContent', storage: 'storageKey', type: 'MARKDOWN_NOTE'}
   const testInput =
     'Test input' +
-    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'image.jpg](imageName}) \n' +
-    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'pdf.pdf](pdf})'
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + oldNote.key + path.win32.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + oldNote.key + path.posix.sep + 'pdf.pdf](pdf})'
   newNote.content = testInput
   findStorage.findStorage = jest.fn()
   findStorage.findStorage.mockReturnValue({path: 'dummyStoragePath'})
@@ -516,8 +515,8 @@ it('should test that cloneAttachments finds all attachments and copies them to t
   const newNote = {key: 'newNoteKey', content: 'oldNoteContent', storage: 'storageKeyNewNote', type: 'MARKDOWN_NOTE'}
   const testInput =
     'Test input' +
-    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'image.jpg](imageName}) \n' +
-    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + oldNote.key + path.sep + 'pdf.pdf](pdf})'
+    '![' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + oldNote.key + path.win32.sep + 'image.jpg](imageName}) \n' +
+    '[' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + oldNote.key + path.posix.sep + 'pdf.pdf](pdf})'
   oldNote.content = testInput
   newNote.content = testInput
 
@@ -566,14 +565,22 @@ it('should test that isAttachmentLink works correctly', function () {
   expect(systemUnderTest.isAttachmentLink('text')).toBe(false)
   expect(systemUnderTest.isAttachmentLink('text [linkText](link)')).toBe(false)
   expect(systemUnderTest.isAttachmentLink('text ![linkText](link)')).toBe(false)
-  expect(systemUnderTest.isAttachmentLink('[linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + 'noteKey' + path.sep + 'pdf.pdf)')).toBe(true)
-  expect(systemUnderTest.isAttachmentLink('![linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + 'noteKey' + path.sep + 'pdf.pdf )')).toBe(true)
-  expect(systemUnderTest.isAttachmentLink('text [ linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + 'noteKey' + path.sep + 'pdf.pdf)')).toBe(true)
-  expect(systemUnderTest.isAttachmentLink('text ![linkText ](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + 'noteKey' + path.sep + 'pdf.pdf)')).toBe(true)
-  expect(systemUnderTest.isAttachmentLink('[linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + 'noteKey' + path.sep + 'pdf.pdf) test')).toBe(true)
-  expect(systemUnderTest.isAttachmentLink('![linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + 'noteKey' + path.sep + 'pdf.pdf) test')).toBe(true)
-  expect(systemUnderTest.isAttachmentLink('text [linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + 'noteKey' + path.sep + 'pdf.pdf) test')).toBe(true)
-  expect(systemUnderTest.isAttachmentLink('text ![linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + 'noteKey' + path.sep + 'pdf.pdf) test')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('[linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + 'noteKey' + path.win32.sep + 'pdf.pdf)')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('![linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + 'noteKey' + path.win32.sep + 'pdf.pdf )')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('text [ linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + 'noteKey' + path.win32.sep + 'pdf.pdf)')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('text ![linkText ](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + 'noteKey' + path.win32.sep + 'pdf.pdf)')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('[linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + 'noteKey' + path.win32.sep + 'pdf.pdf) test')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('![linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + 'noteKey' + path.win32.sep + 'pdf.pdf) test')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('text [linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + 'noteKey' + path.win32.sep + 'pdf.pdf) test')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('text ![linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + 'noteKey' + path.win32.sep + 'pdf.pdf) test')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('[linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + 'noteKey' + path.posix.sep + 'pdf.pdf)')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('![linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + 'noteKey' + path.posix.sep + 'pdf.pdf )')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('text [ linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + 'noteKey' + path.posix.sep + 'pdf.pdf)')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('text ![linkText ](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + 'noteKey' + path.posix.sep + 'pdf.pdf)')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('[linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + 'noteKey' + path.posix.sep + 'pdf.pdf) test')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('![linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + 'noteKey' + path.posix.sep + 'pdf.pdf) test')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('text [linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + 'noteKey' + path.posix.sep + 'pdf.pdf) test')).toBe(true)
+  expect(systemUnderTest.isAttachmentLink('text ![linkText](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + 'noteKey' + path.posix.sep + 'pdf.pdf) test')).toBe(true)
 })
 
 it('should test that handleAttachmentLinkPaste copies the attachments to the new location', function () {
@@ -581,7 +588,7 @@ it('should test that handleAttachmentLinkPaste copies the attachments to the new
   findStorage.findStorage = jest.fn(() => dummyStorage)
   const pastedNoteKey = 'b1e06f81-8266-49b9-b438-084003c2e723'
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
-  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf)'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + pastedNoteKey + path.posix.sep + 'pdf.pdf)'
   const storageKey = 'storageKey'
   const expectedSourceFilePath = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, pastedNoteKey, 'pdf.pdf')
 
@@ -596,12 +603,53 @@ it('should test that handleAttachmentLinkPaste copies the attachments to the new
     })
 })
 
-it('should test that handleAttachmentLinkPaste don\'t try to copy the file if it does not exist', function () {
+it('should test that handleAttachmentLinkPaste copies the attachments to the new location - win32 path', function () {
   const dummyStorage = {path: 'dummyStoragePath'}
   findStorage.findStorage = jest.fn(() => dummyStorage)
   const pastedNoteKey = 'b1e06f81-8266-49b9-b438-084003c2e723'
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
-  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf)'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + pastedNoteKey + path.win32.sep + 'pdf.pdf)'
+  const storageKey = 'storageKey'
+  const expectedSourceFilePath = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, pastedNoteKey, 'pdf.pdf')
+
+  sander.exists = jest.fn(() => Promise.resolve(true))
+  systemUnderTest.copyAttachment = jest.fn(() => Promise.resolve('dummyNewFileName'))
+
+  return systemUnderTest.handleAttachmentLinkPaste(storageKey, newNoteKey, pasteText)
+    .then(() => {
+      expect(findStorage.findStorage).toHaveBeenCalledWith(storageKey)
+      expect(sander.exists).toHaveBeenCalledWith(expectedSourceFilePath)
+      expect(systemUnderTest.copyAttachment).toHaveBeenCalledWith(expectedSourceFilePath, storageKey, newNoteKey)
+    })
+})
+
+it('should test that handleAttachmentLinkPaste don\'t try to copy the file if it does not exist - win32 path', function () {
+  const dummyStorage = {path: 'dummyStoragePath'}
+  findStorage.findStorage = jest.fn(() => dummyStorage)
+  const pastedNoteKey = 'b1e06f81-8266-49b9-b438-084003c2e723'
+  const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + pastedNoteKey + path.win32.sep + 'pdf.pdf)'
+  const storageKey = 'storageKey'
+  const expectedSourceFilePath = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, pastedNoteKey, 'pdf.pdf')
+
+  sander.exists = jest.fn(() => Promise.resolve(false))
+  systemUnderTest.copyAttachment = jest.fn()
+  systemUnderTest.generateFileNotFoundMarkdown = jest.fn()
+
+  return systemUnderTest.handleAttachmentLinkPaste(storageKey, newNoteKey, pasteText)
+    .then(() => {
+      expect(findStorage.findStorage).toHaveBeenCalledWith(storageKey)
+      expect(sander.exists).toHaveBeenCalledWith(expectedSourceFilePath)
+      expect(systemUnderTest.copyAttachment).not.toHaveBeenCalled()
+    })
+})
+
+it('should test that handleAttachmentLinkPaste don\'t try to copy the file if it does not exist -- posix', function () {
+  const dummyStorage = {path: 'dummyStoragePath'}
+  findStorage.findStorage = jest.fn(() => dummyStorage)
+  const pastedNoteKey = 'b1e06f81-8266-49b9-b438-084003c2e723'
+  const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + pastedNoteKey + path.posix.sep + 'pdf.pdf)'
   const storageKey = 'storageKey'
   const expectedSourceFilePath = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, pastedNoteKey, 'pdf.pdf')
 
@@ -622,8 +670,8 @@ it('should test that handleAttachmentLinkPaste copies multiple attachments if mu
   findStorage.findStorage = jest.fn(() => dummyStorage)
   const pastedNoteKey = 'b1e06f81-8266-49b9-b438-084003c2e723'
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
-  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf) ..' +
-    '![secondAttachment](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'img.jpg)'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + pastedNoteKey + path.posix.sep + 'pdf.pdf) ..' +
+    '![secondAttachment](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + pastedNoteKey + path.win32.sep + 'img.jpg)'
   const storageKey = 'storageKey'
   const expectedSourceFilePathOne = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, pastedNoteKey, 'pdf.pdf')
   const expectedSourceFilePathTwo = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, pastedNoteKey, 'img.jpg')
@@ -647,7 +695,7 @@ it('should test that handleAttachmentLinkPaste returns the correct modified past
   const pastedNoteKey = 'b1e06f81-8266-49b9-b438-084003c2e723'
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
   const dummyNewFileName = 'dummyNewFileName'
-  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf)'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + pastedNoteKey + path.win32.sep + 'pdf.pdf)'
   const expectedText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNoteKey + path.sep + dummyNewFileName + ')'
   const storageKey = 'storageKey'
 
@@ -667,8 +715,8 @@ it('should test that handleAttachmentLinkPaste returns the correct modified past
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
   const dummyNewFileNameOne = 'dummyNewFileName'
   const dummyNewFileNameTwo = 'dummyNewFileNameTwo'
-  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf) ' +
-    '![secondImage](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'img.jpg)'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + pastedNoteKey + path.win32.sep + 'pdf.pdf) ' +
+    '![secondImage](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + pastedNoteKey + path.posix.sep + 'img.jpg)'
   const expectedText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNoteKey + path.sep + dummyNewFileNameOne + ') ' +
     '![secondImage](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNoteKey + path.sep + dummyNewFileNameTwo + ')'
   const storageKey = 'storageKey'
@@ -689,8 +737,8 @@ it('should test that handleAttachmentLinkPaste calls the copy method correct if 
   findStorage.findStorage = jest.fn(() => dummyStorage)
   const pastedNoteKey = 'b1e06f81-8266-49b9-b438-084003c2e723'
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
-  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf) ..' +
-    '![secondAttachment](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'img.jpg)'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + pastedNoteKey + path.posix.sep + 'pdf.pdf) ..' +
+    '![secondAttachment](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + pastedNoteKey + path.win32.sep + 'img.jpg)'
   const storageKey = 'storageKey'
   const expectedSourceFilePathOne = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, pastedNoteKey, 'pdf.pdf')
   const expectedSourceFilePathTwo = path.join(dummyStorage.path, systemUnderTest.DESTINATION_FOLDER, pastedNoteKey, 'img.jpg')
@@ -716,7 +764,7 @@ it('should test that handleAttachmentLinkPaste returns the correct modified past
   findStorage.findStorage = jest.fn(() => dummyStorage)
   const pastedNoteKey = 'b1e06f81-8266-49b9-b438-084003c2e723'
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
-  const pasteText = 'text ![alt.png](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf)'
+  const pasteText = 'text ![alt.png](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + pastedNoteKey + path.posix.sep + 'pdf.pdf)'
   const storageKey = 'storageKey'
   const fileNotFoundMD = 'file not found'
   const expectedPastText = 'text ' + fileNotFoundMD
@@ -735,8 +783,8 @@ it('should test that handleAttachmentLinkPaste returns the correct modified past
   findStorage.findStorage = jest.fn(() => dummyStorage)
   const pastedNoteKey = 'b1e06f81-8266-49b9-b438-084003c2e723'
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
-  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf) ' +
-    '![secondImage](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'img.jpg)'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + pastedNoteKey + path.win32.sep + 'pdf.pdf) ' +
+    '![secondImage](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + pastedNoteKey + path.posix.sep + 'img.jpg)'
   const storageKey = 'storageKey'
   const fileNotFoundMD = 'file not found'
   const expectedPastText = 'text ' + fileNotFoundMD + ' ' + fileNotFoundMD
@@ -757,8 +805,8 @@ it('should test that handleAttachmentLinkPaste returns the correct modified past
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
   const dummyFoundFileName = 'dummyFileName'
   const fileNotFoundMD = 'file not found'
-  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf) .. ' +
-    '![secondAttachment](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'img.jpg)'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + pastedNoteKey + path.win32.sep + 'pdf.pdf) .. ' +
+    '![secondAttachment](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + pastedNoteKey + path.posix.sep + 'img.jpg)'
   const storageKey = 'storageKey'
   const expectedPastText = 'text ' + fileNotFoundMD + ' .. ![secondAttachment](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNoteKey + path.sep + dummyFoundFileName + ')'
 
@@ -781,8 +829,8 @@ it('should test that handleAttachmentLinkPaste returns the correct modified past
   const newNoteKey = 'abc234-8266-49b9-b438-084003c2e723'
   const dummyFoundFileName = 'dummyFileName'
   const fileNotFoundMD = 'file not found'
-  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'pdf.pdf) .. ' +
-    '![secondAttachment](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + pastedNoteKey + path.sep + 'img.jpg)'
+  const pasteText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.posix.sep + pastedNoteKey + path.posix.sep + 'pdf.pdf) .. ' +
+    '![secondAttachment](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.win32.sep + pastedNoteKey + path.win32.sep + 'img.jpg)'
   const storageKey = 'storageKey'
   const expectedPastText = 'text ![alt](' + systemUnderTest.STORAGE_FOLDER_PLACEHOLDER + path.sep + newNoteKey + path.sep + dummyFoundFileName + ') .. ' + fileNotFoundMD
 

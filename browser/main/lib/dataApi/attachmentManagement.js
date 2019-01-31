@@ -6,6 +6,7 @@ const mdurl = require('mdurl')
 const fse = require('fs-extra')
 const escapeStringRegexp = require('escape-string-regexp')
 const sander = require('sander')
+const url = require('url')
 import i18n from 'browser/lib/i18n'
 
 const STORAGE_FOLDER_PLACEHOLDER = ':storage'
@@ -159,16 +160,21 @@ function copyAttachment (sourceFilePath, storageKey, noteKey, useRandomName = tr
 
     try {
       const isBase64 = typeof sourceFilePath === 'object' && sourceFilePath.type === 'base64'
-      if (!fs.existsSync(sourceFilePath) && !isBase64) {
+      if (!isBase64 && !fs.existsSync(sourceFilePath)) {
         return reject('source file does not exist')
       }
-      const targetStorage = findStorage.findStorage(storageKey)
+
+      const sourcePath = sourceFilePath.sourceFilePath || sourceFilePath
+      const sourceURL = url.parse(/^\w+:\/\//.test(sourcePath) ? sourcePath : 'file:///' + sourcePath)
+
       let destinationName
       if (useRandomName) {
-        destinationName = `${uniqueSlug()}${path.extname(sourceFilePath.sourceFilePath || sourceFilePath)}`
+        destinationName = `${uniqueSlug()}${path.extname(sourceURL.pathname) || '.png'}`
       } else {
-        destinationName = path.basename(sourceFilePath.sourceFilePath || sourceFilePath)
+        destinationName = path.basename(sourceURL.pathname)
       }
+
+      const targetStorage = findStorage.findStorage(storageKey)
       const destinationDir = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey)
       createAttachmentDestinationFolder(targetStorage.path, noteKey)
       const outputFile = fs.createWriteStream(path.join(destinationDir, destinationName))

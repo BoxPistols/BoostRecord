@@ -888,10 +888,7 @@ export default class CodeEditor extends React.Component {
   handlePaste (editor, forceSmartPaste) {
     const { storageKey, noteKey, fetchUrlTitle, enableSmartPaste } = this.props
 
-    const isURL = str => {
-      const matcher = /^(?:\w+:)?\/\/([^\s\.]+\.\S{2}|localhost[\:?\d]*)\S*$/
-      return matcher.test(str)
-    }
+    const isURL = str => /(?:^\w+:|^)\/\/(?:[^\s\.]+\.\S{2}|localhost[\:?\d]*)/.test(str)
 
     const isInLinkTag = editor => {
       const startCursor = editor.getCursor('start')
@@ -964,7 +961,7 @@ export default class CodeEditor extends React.Component {
     } else {
       const image = clipboard.readImage()
       if (!image.isEmpty()) {
-        attachmentManagement.handlePastNativeImage(
+        attachmentManagement.handlePasteNativeImage(
           this,
           storageKey,
           noteKey,
@@ -1109,7 +1106,7 @@ export default class CodeEditor extends React.Component {
             iconv.encodingExists(_charset)
             ? _charset
             : 'utf-8'
-          resolve(iconv.decode(new Buffer(buff), charset).toString())
+          resolve(iconv.decode(Buffer.from(buff), charset).toString())
         } catch (e) {
           reject(e)
         }

@@ -381,7 +381,6 @@ export default class CodeEditor extends React.Component {
         'getAnnotations': validatorOfMarkdown,
         'async': true
       },
-      mode: 'markdown',
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
       autoCloseBrackets: {
         pairs: this.props.matchingPairs,

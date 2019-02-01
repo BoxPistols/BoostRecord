@@ -34,7 +34,7 @@ class Crowdfunding extends React.Component {
         <p>{i18n.__('We thought that it will be nice if we can pay reward for our contributors.')}</p>
         <br />
         <p>{i18n.__('### We believe Meritocracy')}</p>
-        <p>{i18n.__('We think developers who has skill and did great things must be rewarded properly.')}</p>
+        <p>{i18n.__('We think developers who have skills and do great things must be rewarded properly.')}</p>
         <p>{i18n.__('OSS projects are used in everywhere on the internet, but no matter how they great, most of owners of those projects need to have another job to sustain their living.')}</p>
         <p>{i18n.__('It sometimes looks like exploitation.')}</p>
         <p>{i18n.__('We’ve realized IssueHunt could enhance sustainability of open-source ecosystem.')}</p>

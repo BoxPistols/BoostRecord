@@ -181,7 +181,7 @@ function copyAttachment (sourceFilePath, storageKey, noteKey, useRandomName = tr
 
       if (isBase64) {
         const base64Data = sourceFilePath.data.replace(/^data:image\/\w+;base64,/, '')
-        const dataBuffer = new Buffer(base64Data, 'base64')
+        const dataBuffer = Buffer.from(base64Data, 'base64')
         outputFile.write(dataBuffer, () => {
           resolve(destinationName)
         })

@@ -361,6 +361,7 @@ export default class CodeEditor extends React.Component {
 
     this.updateDefaultKeyMap()
 
+    const checkMarkdownNoteIsOpening = this.props.mode === 'Boost Flavored Markdown'
     this.value = this.props.value
     this.editor = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
@@ -377,10 +378,10 @@ export default class CodeEditor extends React.Component {
       inputStyle: 'textarea',
       dragDrop: false,
       foldGutter: true,
-      lint: {
+      lint: checkMarkdownNoteIsOpening ? {
         'getAnnotations': validatorOfMarkdown,
         'async': true
-      },
+      } : false,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
       autoCloseBrackets: {
         pairs: this.props.matchingPairs,

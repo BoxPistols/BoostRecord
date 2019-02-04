@@ -279,7 +279,7 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
   if (dropEvent.dataTransfer.files.length > 0) {
     promise = Promise.all(Array.from(dropEvent.dataTransfer.files).map(file => {
       if (file.type.startsWith('image')) {
-        if (file.type.endsWith('gif')) {
+        if (file.type === 'image/gif' || file.type === 'image/svg+xml') {
           return copyAttachment(file.path, storageKey, noteKey).then(fileName => ({
             fileName,
             title: path.basename(file.path),

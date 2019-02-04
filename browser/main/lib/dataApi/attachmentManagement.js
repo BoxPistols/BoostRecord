@@ -266,8 +266,9 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
   const originalFileName = path.basename(filePath)
   const fileType = file['type']
   const isImage = fileType.startsWith('image')
+  const isGif = fileType.endsWith('gif')
   let promise
-  if (isImage) {
+  if (isImage && !isGif) {
     promise = fixRotate(file).then(base64data => {
       return copyAttachment({type: 'base64', data: base64data, sourceFilePath: filePath}, storageKey, noteKey)
     })

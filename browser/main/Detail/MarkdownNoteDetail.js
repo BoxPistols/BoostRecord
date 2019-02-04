@@ -39,12 +39,15 @@ class MarkdownNoteDetail extends React.Component {
       isMovingNote: false,
       note: Object.assign({
         title: '',
-        content: ''
+        content: '',
+        linesHighlighted: []
       }, props.note),
-      isLockButtonShown: false,
+      isLockButtonShown: props.config.editor.type !== 'SPLIT',
       isLocked: false,
-      editorType: props.config.editor.type
+      editorType: props.config.editor.type,
+      switchPreview: props.config.editor.switchPreview
     }
+
     this.dispatchTimer = null
 
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
@@ -63,6 +66,9 @@ class MarkdownNoteDetail extends React.Component {
     })
     ee.on('hotkey:deletenote', this.handleDeleteNote.bind(this))
     ee.on('code:generate-toc', this.generateToc)
+
+    // Focus content if using blur or double click
+    if (this.state.switchPreview === 'BLUR' || this.state.switchPreview === 'DBL_CLICK') this.focus()
   }
 
   componentWillReceiveProps (nextProps) {
@@ -71,7 +77,7 @@ class MarkdownNoteDetail extends React.Component {
     if (!this.state.isMovingNote && (isNewNote || hasDeletedTags)) {
       if (this.saveQueue != null) this.saveNow()
       this.setState({
-        note: Object.assign({}, nextProps.note)
+        note: Object.assign({linesHighlighted: []}, nextProps.note)
       }, () => {
         this.refs.content.reload()
         if (this.refs.tags) this.refs.tags.reset()
@@ -292,7 +298,7 @@ class MarkdownNoteDetail extends React.Component {
 
   handleToggleLockButton (event, noteStatus) {
     // first argument event is not used
-    if (this.props.config.editor.switchPreview === 'BLUR' && noteStatus === 'CODE') {
+    if (noteStatus === 'CODE') {
       this.setState({isLockButtonShown: true})
     } else {
       this.setState({isLockButtonShown: false})
@@ -318,7 +324,8 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleSwitchMode (type) {
-    this.setState({ editorType: type }, () => {
+    // If in split mode, hide the lock button
+    this.setState({ editorType: type, isLockButtonShown: !(type === 'SPLIT') }, () => {
       this.focus()
       const newConfig = Object.assign({}, this.props.config)
       newConfig.editor.type = type
@@ -361,7 +368,9 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         noteKey={note.key}
+        linesHighlighted={note.linesHighlighted}
         onChange={this.handleUpdateContent.bind(this)}
+        isLocked={this.state.isLocked}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
     } else {
@@ -371,6 +380,7 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         noteKey={note.key}
+        linesHighlighted={note.linesHighlighted}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
@@ -433,6 +443,7 @@ class MarkdownNoteDetail extends React.Component {
           showTagsAlphabetically={config.ui.showTagsAlphabetically}
           data={data}
           onChange={this.handleUpdateTag.bind(this)}
+          coloredTags={config.coloredTags}
         />
         <TodoListPercentage onClearCheckboxClick={(e) => this.handleClearTodo(e)} percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>

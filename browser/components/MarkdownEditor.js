@@ -7,6 +7,7 @@ import MarkdownPreview from 'browser/components/MarkdownPreview'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import { findStorage } from 'browser/lib/findStorage'
 import ConfigManager from 'browser/main/lib/ConfigManager'
+import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 
 class MarkdownEditor extends React.Component {
   constructor (props) {
@@ -19,10 +20,10 @@ class MarkdownEditor extends React.Component {
     this.supportMdSelectionBold = [16, 17, 186]
 
     this.state = {
-      status: props.config.editor.switchPreview === 'RIGHTCLICK' ? props.config.editor.delfaultStatus : 'PREVIEW',
+      status: props.config.editor.switchPreview === 'RIGHTCLICK' ? props.config.editor.delfaultStatus : 'CODE',
       renderValue: props.value,
       keyPressed: new Set(),
-      isLocked: false
+      isLocked: props.isLocked
     }
 
     this.lockEditorCode = () => this.handleLockEditor()
@@ -75,6 +76,7 @@ class MarkdownEditor extends React.Component {
   }
 
   handleContextMenu (e) {
+    if (this.state.isLocked) return
     const { config } = this.props
     if (config.editor.switchPreview === 'RIGHTCLICK') {
       const newStatus = this.state.status === 'PREVIEW' ? 'CODE' : 'PREVIEW'
@@ -221,6 +223,28 @@ class MarkdownEditor extends React.Component {
     this.refs.code.editor.replaceSelection(`${mdElement}${this.refs.code.editor.getSelection()}${mdElement}`)
   }
 
+  handleDropImage (dropEvent) {
+    dropEvent.preventDefault()
+    const { storageKey, noteKey } = this.props
+
+    this.setState({
+      status: 'CODE'
+    }, () => {
+      this.refs.code.focus()
+
+      this.refs.code.editor.execCommand('goDocEnd')
+      this.refs.code.editor.execCommand('goLineEnd')
+      this.refs.code.editor.execCommand('newlineAndIndent')
+
+      attachmentManagement.handleAttachmentDrop(
+        this.refs.code,
+        storageKey,
+        noteKey,
+        dropEvent
+      )
+    })
+  }
+
   handleKeyUp (e) {
     const keyPressed = this.state.keyPressed
     keyPressed.delete(e.keyCode)
@@ -232,7 +256,7 @@ class MarkdownEditor extends React.Component {
   }
 
   render () {
-    const {className, value, config, storageKey, noteKey} = this.props
+    const {className, value, config, storageKey, noteKey, linesHighlighted} = this.props
 
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -270,14 +294,21 @@ class MarkdownEditor extends React.Component {
           enableRulers={config.editor.enableRulers}
           rulers={config.editor.rulers}
           displayLineNumbers={config.editor.displayLineNumbers}
+          matchingPairs={config.editor.matchingPairs}
+          matchingTriples={config.editor.matchingTriples}
+          explodingPairs={config.editor.explodingPairs}
           scrollPastEnd={config.editor.scrollPastEnd}
           storageKey={storageKey}
           noteKey={noteKey}
           fetchUrlTitle={config.editor.fetchUrlTitle}
           enableTableEditor={config.editor.enableTableEditor}
+          linesHighlighted={linesHighlighted}
           onChange={(e) => this.handleChange(e)}
           onBlur={(e) => this.handleBlur(e)}
           spellCheck={config.editor.spellcheck}
+          enableSmartPaste={config.editor.enableSmartPaste}
+          hotkey={config.hotkey}
+          switchPreview={config.editor.switchPreview}
         />
         <MarkdownPreview styleName={this.state.status === 'PREVIEW'
             ? 'preview'
@@ -311,6 +342,7 @@ class MarkdownEditor extends React.Component {
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
           lineThroughCheckbox={config.preview.lineThroughCheckbox}
+          onDrop={(e) => this.handleDropImage(e)}
         />
       </div>
     )

@@ -25,25 +25,31 @@ export const DEFAULT_CONFIG = {
   hotkey: {
     toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
     toggleMode: OSX ? 'Command + Alt + M' : 'Ctrl + M',
-    deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace'
+    deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace',
+    pasteSmartly: OSX ? 'Command + Shift + V' : 'Ctrl + Shift + V',
+    toggleMenuBar: 'Alt'
   },
   ui: {
     language: 'en',
     theme: 'default',
     showCopyNotification: true,
     disableDirectWrite: false,
-    defaultNote: 'ALWAYS_ASK' // 'ALWAYS_ASK', 'SNIPPET_NOTE', 'MARKDOWN_NOTE'
+    defaultNote: 'ALWAYS_ASK', // 'ALWAYS_ASK', 'SNIPPET_NOTE', 'MARKDOWN_NOTE'
+    showMenuBar: false
   },
   editor: {
     theme: 'base16-light',
     keyMap: 'sublime',
     fontSize: '14',
-    fontFamily: win ? 'Segoe UI' : 'Monaco, Consolas',
+    fontFamily: win ? 'Consolas' : 'Monaco',
     indentType: 'space',
     indentSize: '2',
     enableRulers: false,
     rulers: [80, 120],
     displayLineNumbers: true,
+    matchingPairs: '()[]{}\'\'""$$**``',
+    matchingTriples: '```"""\'\'\'',
+    explodingPairs: '[]{}``$$',
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
     delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,
@@ -52,7 +58,8 @@ export const DEFAULT_CONFIG = {
     enableTableEditor: false,
     enableFrontMatterTitle: true,
     frontMatterTitleField: 'title',
-    spellcheck: false
+    spellcheck: false,
+    enableSmartPaste: false
   },
   preview: {
     fontSize: '14',
@@ -81,7 +88,8 @@ export const DEFAULT_CONFIG = {
     token: '',
     username: '',
     password: ''
-  }
+  },
+  coloredTags: {}
 }
 
 function validate (config) {
@@ -203,7 +211,7 @@ function assignConfigValues (originalConfig, rcConfig) {
 function rewriteHotkey (config) {
   const keys = [...Object.keys(config.hotkey)]
   keys.forEach(key => {
-    config.hotkey[key] = config.hotkey[key].replace(/Cmd/g, 'Command')
+    config.hotkey[key] = config.hotkey[key].replace(/Cmd\s/g, 'Command ')
     config.hotkey[key] = config.hotkey[key].replace(/Opt\s/g, 'Option ')
   })
   return config

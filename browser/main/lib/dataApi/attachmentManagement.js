@@ -304,32 +304,34 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
       }
     }))
   } else {
-    promise = Promise.all(Array.from(dropEvent.dataTransfer.items).map(item => {
-      if (item.type === 'text/html') {
-        const html = dropEvent.dataTransfer.getData('text/html')
+    let imageURL = dropEvent.dataTransfer.getData('text/plain')
 
-        const match = /<img[^>]*[\s"']src="([^"]+)"/.exec(html)
-        if (match) {
-          const imageURL = match[1]
-
-          return getImage(imageURL)
-            .then(image => {
-              const canvas = document.createElement('canvas')
-              const context = canvas.getContext('2d')
-              canvas.width = image.width
-              canvas.height = image.height
-              context.drawImage(image, 0, 0)
-
-              return copyAttachment({type: 'base64', data: canvas.toDataURL(), sourceFilePath: imageURL}, storageKey, noteKey)
-            })
-            .then(fileName => ({
-              fileName,
-              title: imageURL,
-              isImage: true
-            }))
-        }
+    if (!imageURL) {
+      const match = /<img[^>]*[\s"']src="([^"]+)"/.exec(dropEvent.dataTransfer.getData('text/html'))
+      if (match) {
+        imageURL = match[1]
       }
-    }))
+    }
+
+    if (!imageURL) {
+      return
+    }
+
+    promise = Promise.all([getImage(imageURL)
+      .then(image => {
+        const canvas = document.createElement('canvas')
+        const context = canvas.getContext('2d')
+        canvas.width = image.width
+        canvas.height = image.height
+        context.drawImage(image, 0, 0)
+
+        return copyAttachment({type: 'base64', data: canvas.toDataURL(), sourceFilePath: imageURL}, storageKey, noteKey)
+      })
+      .then(fileName => ({
+        fileName,
+        title: imageURL,
+        isImage: true
+      }))])
   }
 
   promise.then(files => {

@@ -278,15 +278,23 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
   let promise
   if (dropEvent.dataTransfer.files.length > 0) {
     promise = Promise.all(Array.from(dropEvent.dataTransfer.files).map(file => {
-      if (file['type'].startsWith('image') && !file['type'].endsWith('gif')) {
-        return fixRotate(file)
-          .then(data => copyAttachment({type: 'base64', data: data, sourceFilePath: file.path}, storageKey, noteKey)
-            .then(fileName => ({
-              fileName,
-              title: path.basename(file.path),
-              isImage: true
-            }))
-          )
+      if (file.type.startsWith('image')) {
+        if (file.type.endsWith('gif')) {
+          return copyAttachment(file.path, storageKey, noteKey).then(fileName => ({
+            fileName,
+            title: path.basename(file.path),
+            isImage: true
+          }))
+        } else {
+          return fixRotate(file)
+            .then(data => copyAttachment({type: 'base64', data: data, sourceFilePath: file.path}, storageKey, noteKey)
+              .then(fileName => ({
+                fileName,
+                title: path.basename(file.path),
+                isImage: true
+              }))
+            )
+        }
       } else {
         return copyAttachment(file.path, storageKey, noteKey).then(fileName => ({
           fileName,

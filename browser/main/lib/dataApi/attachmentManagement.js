@@ -6,6 +6,7 @@ const mdurl = require('mdurl')
 const fse = require('fs-extra')
 const escapeStringRegexp = require('escape-string-regexp')
 const sander = require('sander')
+const url = require('url')
 import i18n from 'browser/lib/i18n'
 
 const STORAGE_FOLDER_PLACEHOLDER = ':storage'
@@ -18,15 +19,23 @@ const PATH_SEPARATORS = escapeStringRegexp(path.posix.sep) + escapeStringRegexp(
  * @returns {Promise<Image>} Image element created
  */
 function getImage (file) {
-  return new Promise((resolve) => {
-    const reader = new FileReader()
-    const img = new Image()
-    img.onload = () => resolve(img)
-    reader.onload = e => {
-      img.src = e.target.result
-    }
-    reader.readAsDataURL(file)
-  })
+  if (_.isString(file)) {
+    return new Promise(resolve => {
+      const img = new Image()
+      img.onload = () => resolve(img)
+      img.src = file
+    })
+  } else {
+    return new Promise(resolve => {
+      const reader = new FileReader()
+      const img = new Image()
+      img.onload = () => resolve(img)
+      reader.onload = e => {
+        img.src = e.target.result
+      }
+      reader.readAsDataURL(file)
+    })
+  }
 }
 
 /**
@@ -151,23 +160,28 @@ function copyAttachment (sourceFilePath, storageKey, noteKey, useRandomName = tr
 
     try {
       const isBase64 = typeof sourceFilePath === 'object' && sourceFilePath.type === 'base64'
-      if (!fs.existsSync(sourceFilePath) && !isBase64) {
+      if (!isBase64 && !fs.existsSync(sourceFilePath)) {
         return reject('source file does not exist')
       }
-      const targetStorage = findStorage.findStorage(storageKey)
+
+      const sourcePath = sourceFilePath.sourceFilePath || sourceFilePath
+      const sourceURL = url.parse(/^\w+:\/\//.test(sourcePath) ? sourcePath : 'file:///' + sourcePath)
+
       let destinationName
       if (useRandomName) {
-        destinationName = `${uniqueSlug()}${path.extname(sourceFilePath.sourceFilePath || sourceFilePath)}`
+        destinationName = `${uniqueSlug()}${path.extname(sourceURL.pathname) || '.png'}`
       } else {
-        destinationName = path.basename(sourceFilePath.sourceFilePath || sourceFilePath)
+        destinationName = path.basename(sourceURL.pathname)
       }
+
+      const targetStorage = findStorage.findStorage(storageKey)
       const destinationDir = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey)
       createAttachmentDestinationFolder(targetStorage.path, noteKey)
       const outputFile = fs.createWriteStream(path.join(destinationDir, destinationName))
 
       if (isBase64) {
         const base64Data = sourceFilePath.data.replace(/^data:image\/\w+;base64,/, '')
-        const dataBuffer = new Buffer(base64Data, 'base64')
+        const dataBuffer = Buffer.from(base64Data, 'base64')
         outputFile.write(dataBuffer, () => {
           resolve(destinationName)
         })
@@ -261,23 +275,69 @@ function generateAttachmentMarkdown (fileName, path, showPreview) {
  * @param {Event} dropEvent DropEvent
  */
 function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
-  const file = dropEvent.dataTransfer.files[0]
-  const filePath = file.path
-  const originalFileName = path.basename(filePath)
-  const fileType = file['type']
-  const isImage = fileType.startsWith('image')
-  const isGif = fileType.endsWith('gif')
   let promise
-  if (isImage && !isGif) {
-    promise = fixRotate(file).then(base64data => {
-      return copyAttachment({type: 'base64', data: base64data, sourceFilePath: filePath}, storageKey, noteKey)
-    })
+  if (dropEvent.dataTransfer.files.length > 0) {
+    promise = Promise.all(Array.from(dropEvent.dataTransfer.files).map(file => {
+      if (file.type.startsWith('image')) {
+        if (file.type === 'image/gif' || file.type === 'image/svg+xml') {
+          return copyAttachment(file.path, storageKey, noteKey).then(fileName => ({
+            fileName,
+            title: path.basename(file.path),
+            isImage: true
+          }))
+        } else {
+          return fixRotate(file)
+            .then(data => copyAttachment({type: 'base64', data: data, sourceFilePath: file.path}, storageKey, noteKey)
+              .then(fileName => ({
+                fileName,
+                title: path.basename(file.path),
+                isImage: true
+              }))
+            )
+        }
+      } else {
+        return copyAttachment(file.path, storageKey, noteKey).then(fileName => ({
+          fileName,
+          title: path.basename(file.path),
+          isImage: false
+        }))
+      }
+    }))
   } else {
-    promise = copyAttachment(filePath, storageKey, noteKey)
+    let imageURL = dropEvent.dataTransfer.getData('text/plain')
+
+    if (!imageURL) {
+      const match = /<img[^>]*[\s"']src="([^"]+)"/.exec(dropEvent.dataTransfer.getData('text/html'))
+      if (match) {
+        imageURL = match[1]
+      }
+    }
+
+    if (!imageURL) {
+      return
+    }
+
+    promise = Promise.all([getImage(imageURL)
+      .then(image => {
+        const canvas = document.createElement('canvas')
+        const context = canvas.getContext('2d')
+        canvas.width = image.width
+        canvas.height = image.height
+        context.drawImage(image, 0, 0)
+
+        return copyAttachment({type: 'base64', data: canvas.toDataURL(), sourceFilePath: imageURL}, storageKey, noteKey)
+      })
+      .then(fileName => ({
+        fileName,
+        title: imageURL,
+        isImage: true
+      }))])
   }
-  promise.then((fileName) => {
-    const imageMd = generateAttachmentMarkdown(originalFileName, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, fileName), isImage)
-    codeEditor.insertAttachmentMd(imageMd)
+
+  promise.then(files => {
+    const attachments = files.filter(file => !!file).map(file => generateAttachmentMarkdown(file.title, path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, file.fileName), file.isImage))
+
+    codeEditor.insertAttachmentMd(attachments.join('\n'))
   })
 }
 

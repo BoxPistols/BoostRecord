@@ -38,7 +38,7 @@ it('should test that copyAttachment should throw an error if sourcePath dosen\'t
   fs.existsSync = jest.fn()
   fs.existsSync.mockReturnValue(false)
 
-  systemUnderTest.copyAttachment('path', 'storageKey', 'noteKey').then(() => {}, error => {
+  return systemUnderTest.copyAttachment('path', 'storageKey', 'noteKey').then(() => {}, error => {
     expect(error).toBe('source file does not exist')
     expect(fs.existsSync).toHaveBeenCalledWith('path')
   })
@@ -64,7 +64,7 @@ it('should test that copyAttachment works correctly assuming correct working of 
   findStorage.findStorage.mockReturnValue(dummyStorage)
   uniqueSlug.mockReturnValue(dummyUniquePath)
 
-  systemUnderTest.copyAttachment(sourcePath, storageKey, noteKey).then(
+  return systemUnderTest.copyAttachment(sourcePath, storageKey, noteKey).then(
     function (newFileName) {
       expect(findStorage.findStorage).toHaveBeenCalledWith(storageKey)
       expect(fs.createReadStream).toHaveBeenCalledWith(sourcePath)
@@ -83,7 +83,7 @@ it('should test that copyAttachment creates a new folder if the attachment folde
   const dummyReadStream = {}
 
   dummyReadStream.pipe = jest.fn()
-  dummyReadStream.on = jest.fn()
+  dummyReadStream.on = jest.fn((event, callback) => { callback() })
   fs.createReadStream = jest.fn(() => dummyReadStream)
   fs.existsSync = jest.fn()
   fs.existsSync.mockReturnValueOnce(true)
@@ -95,7 +95,7 @@ it('should test that copyAttachment creates a new folder if the attachment folde
   findStorage.findStorage.mockReturnValue(dummyStorage)
   uniqueSlug.mockReturnValue('dummyPath')
 
-  systemUnderTest.copyAttachment('path', 'storageKey', 'noteKey').then(
+  return systemUnderTest.copyAttachment('path', 'storageKey', 'noteKey').then(
     function () {
       expect(fs.existsSync).toHaveBeenCalledWith(attachmentFolderPath)
       expect(fs.mkdirSync).toHaveBeenCalledWith(attachmentFolderPath)
@@ -109,7 +109,7 @@ it('should test that copyAttachment don\'t uses a random file name if not intend
   const dummyReadStream = {}
 
   dummyReadStream.pipe = jest.fn()
-  dummyReadStream.on = jest.fn()
+  dummyReadStream.on = jest.fn((event, callback) => { callback() })
   fs.createReadStream = jest.fn(() => dummyReadStream)
   fs.existsSync = jest.fn()
   fs.existsSync.mockReturnValueOnce(true)
@@ -120,9 +120,149 @@ it('should test that copyAttachment don\'t uses a random file name if not intend
   findStorage.findStorage.mockReturnValue(dummyStorage)
   uniqueSlug.mockReturnValue('dummyPath')
 
-  systemUnderTest.copyAttachment('path', 'storageKey', 'noteKey', false).then(
+  return systemUnderTest.copyAttachment('path', 'storageKey', 'noteKey', false).then(
     function (newFileName) {
       expect(newFileName).toBe('path')
+    })
+})
+
+it('should test that copyAttachment with url (with extension, without query)', function () {
+  const dummyStorage = {path: 'dummyStoragePath'}
+
+  const dummyReadStream = {
+    pipe: jest.fn(),
+    on: jest.fn((event, callback) => { callback() })
+  }
+  fs.createReadStream = jest.fn(() => dummyReadStream)
+
+  const dummyWriteStream = {
+    write: jest.fn((data, callback) => { callback() })
+  }
+  fs.createWriteStream = jest.fn(() => dummyWriteStream)
+
+  fs.existsSync = jest.fn()
+  fs.existsSync.mockReturnValueOnce(true)
+  fs.existsSync.mockReturnValueOnce(false)
+  fs.mkdirSync = jest.fn()
+
+  findStorage.findStorage = jest.fn()
+  findStorage.findStorage.mockReturnValue(dummyStorage)
+  uniqueSlug.mockReturnValue('dummyPath')
+
+  const sourcePath = {
+    sourceFilePath: 'http://www.foo.bar/baz/qux.jpg',
+    type: 'base64',
+    data: 'data:image/jpeg;base64,Ym9vc3Rub3Rl'
+  }
+
+  return systemUnderTest.copyAttachment(sourcePath, 'storageKey', 'noteKey').then(
+    function (newFileName) {
+      expect(newFileName).toBe('dummyPath.jpg')
+    })
+})
+
+it('should test that copyAttachment with url (with extension, with query)', function () {
+  const dummyStorage = {path: 'dummyStoragePath'}
+
+  const dummyReadStream = {
+    pipe: jest.fn(),
+    on: jest.fn((event, callback) => { callback() })
+  }
+  fs.createReadStream = jest.fn(() => dummyReadStream)
+
+  const dummyWriteStream = {
+    write: jest.fn((data, callback) => { callback() })
+  }
+  fs.createWriteStream = jest.fn(() => dummyWriteStream)
+
+  fs.existsSync = jest.fn()
+  fs.existsSync.mockReturnValueOnce(true)
+  fs.existsSync.mockReturnValueOnce(false)
+  fs.mkdirSync = jest.fn()
+
+  findStorage.findStorage = jest.fn()
+  findStorage.findStorage.mockReturnValue(dummyStorage)
+  uniqueSlug.mockReturnValue('dummyPath')
+
+  const sourcePath = {
+    sourceFilePath: 'http://www.foo.bar/baz/qux.jpg?h=1080',
+    type: 'base64',
+    data: 'data:image/jpeg;base64,Ym9vc3Rub3Rl'
+  }
+
+  return systemUnderTest.copyAttachment(sourcePath, 'storageKey', 'noteKey').then(
+    function (newFileName) {
+      expect(newFileName).toBe('dummyPath.jpg')
+    })
+})
+
+it('should test that copyAttachment with url (without extension, without query)', function () {
+  const dummyStorage = {path: 'dummyStoragePath'}
+
+  const dummyReadStream = {
+    pipe: jest.fn(),
+    on: jest.fn((event, callback) => { callback() })
+  }
+  fs.createReadStream = jest.fn(() => dummyReadStream)
+
+  const dummyWriteStream = {
+    write: jest.fn((data, callback) => { callback() })
+  }
+  fs.createWriteStream = jest.fn(() => dummyWriteStream)
+
+  fs.existsSync = jest.fn()
+  fs.existsSync.mockReturnValueOnce(true)
+  fs.existsSync.mockReturnValueOnce(false)
+  fs.mkdirSync = jest.fn()
+
+  findStorage.findStorage = jest.fn()
+  findStorage.findStorage.mockReturnValue(dummyStorage)
+  uniqueSlug.mockReturnValue('dummyPath')
+
+  const sourcePath = {
+    sourceFilePath: 'http://www.foo.bar/baz/qux',
+    type: 'base64',
+    data: 'data:image/jpeg;base64,Ym9vc3Rub3Rl'
+  }
+
+  return systemUnderTest.copyAttachment(sourcePath, 'storageKey', 'noteKey').then(
+    function (newFileName) {
+      expect(newFileName).toBe('dummyPath.png')
+    })
+})
+
+it('should test that copyAttachment with url (without extension, with query)', function () {
+  const dummyStorage = {path: 'dummyStoragePath'}
+
+  const dummyReadStream = {
+    pipe: jest.fn(),
+    on: jest.fn((event, callback) => { callback() })
+  }
+  fs.createReadStream = jest.fn(() => dummyReadStream)
+
+  const dummyWriteStream = {
+    write: jest.fn((data, callback) => { callback() })
+  }
+  fs.createWriteStream = jest.fn(() => dummyWriteStream)
+
+  fs.existsSync = jest.fn()
+  fs.existsSync.mockReturnValueOnce(true)
+  fs.existsSync.mockReturnValueOnce(false)
+  fs.mkdirSync = jest.fn()
+
+  findStorage.findStorage = jest.fn()
+  findStorage.findStorage.mockReturnValue(dummyStorage)
+  uniqueSlug.mockReturnValue('dummyPath')
+
+  const sourcePath = {
+    sourceFilePath: 'http://www.foo.bar/baz/qux?h=1080',
+    type: 'base64',
+    data: 'data:image/jpeg;base64,Ym9vc3Rub3Rl'
+  }
+
+  return systemUnderTest.copyAttachment(sourcePath, 'storageKey', 'noteKey').then(
+    function (newFileName) {
+      expect(newFileName).toBe('dummyPath.png')
     })
 })
 

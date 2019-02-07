@@ -12,6 +12,7 @@ import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
 import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
+import uiThemes from 'browser/lib/ui-themes'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -197,12 +198,20 @@ class UiTab extends React.Component {
                 onChange={(e) => this.handleUIChange(e)}
                 ref='uiTheme'
               >
-                <option value='default'>{i18n.__('Default')}</option>
-                <option value='white'>{i18n.__('White')}</option>
-                <option value='solarized-dark'>{i18n.__('Solarized Dark')}</option>
-                <option value='monokai'>{i18n.__('Monokai')}</option>
-                <option value='dracula'>{i18n.__('Dracula')}</option>
-                <option value='dark'>{i18n.__('Dark')}</option>
+                <optgroup label='Light Themes'>
+                  {
+                    uiThemes.filter(theme => !theme.isDark).sort((a, b) => a.label.localeCompare(b.label)).map(theme => {
+                      return (<option value={theme.name} key={theme.name}>{theme.label}</option>)
+                    })
+                  }
+                </optgroup>
+                <optgroup label='Dark Themes'>
+                  {
+                    uiThemes.filter(theme => theme.isDark).sort((a, b) => a.label.localeCompare(b.label)).map(theme => {
+                      return (<option value={theme.name} key={theme.name}>{theme.label}</option>)
+                    })
+                  }
+                </optgroup>
               </select>
             </div>
           </div>

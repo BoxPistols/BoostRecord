@@ -24,6 +24,7 @@ import fs from 'fs'
 import { render } from 'react-dom'
 import Carousel from 'react-image-carousel'
 import ConfigManager from '../main/lib/ConfigManager'
+import uiThemes from 'browser/lib/ui-themes'
 
 const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
@@ -426,15 +427,7 @@ export default class MarkdownPreview extends React.Component {
   getScrollBarStyle () {
     const { theme } = this.props
 
-    switch (theme) {
-      case 'dark':
-      case 'solarized-dark':
-      case 'monokai':
-      case 'dracula':
-        return scrollBarDarkStyle
-      default:
-        return scrollBarStyle
-    }
+    return uiThemes.some(item => item.name === theme && item.isDark) ? scrollBarDarkStyle : scrollBarStyle
   }
 
   componentDidMount () {

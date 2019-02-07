@@ -113,17 +113,14 @@ body[data-theme="dark"]
   .top
     border-color $ui-dark-borderColor
 
-body[data-theme="solarized-dark"]
-  .root, .root--folded
-    background-color $ui-solarized-dark-backgroundColor
-    border-right 1px solid $ui-solarized-dark-borderColor
+apply-theme(theme)
+  body[data-theme={theme}]
+    .root, .root--folded
+      background-color get-theme-var(theme, 'backgroundColor')
+      border-right 1px solid get-theme-var(theme, 'borderColor')
 
-body[data-theme="monokai"]
-  .root, .root--folded
-    background-color $ui-monokai-backgroundColor
-    border-right 1px solid $ui-monokai-borderColor
+for theme in 'solarized-dark' 'dracula'
+  apply-theme(theme)
 
-body[data-theme="dracula"]
-  .root, .root--folded
-    background-color $ui-dracula-backgroundColor
-    border-right 1px solid $ui-dracula-borderColor
+for theme in $themes
+  apply-theme(theme)

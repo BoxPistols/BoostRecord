@@ -61,24 +61,16 @@ body[data-theme="dark"]
   .root
     color alpha($tab--dark-text-color, 80%)
 
+apply-theme(theme)
+  body[data-theme={theme}]
+    .root
+      color get-theme-var(theme, 'text-color')
+    .list
+      a
+        color get-theme-var(theme, 'active-color')
 
-body[data-theme="solarized-dark"]
-  .root
-    color $ui-solarized-dark-text-color
-.list
-  a
-    color $ui-solarized-dark-active-color
+for theme in 'solarized-dark' 'dracula'
+  apply-theme(theme)
 
-body[data-theme="monokai"]
-  .root
-    color $ui-monokai-text-color
-.list
-  a
-    color $ui-monokai-active-color
-
-body[data-theme="dracula"]
-  .root
-    color $ui-dracula-text-color
-.list
-  a
-    color $ui-dracula-active-color
+for theme in $themes
+  apply-theme(theme)

@@ -361,6 +361,7 @@ export default class MarkdownPreview extends React.Component {
           printout.webContents.printToPDF({}, (err, data) => {
             if (err) reject(err)
             else resolve(data)
+            printout.destroy()
           })
         })
       })

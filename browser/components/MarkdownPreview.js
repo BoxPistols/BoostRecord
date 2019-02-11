@@ -295,7 +295,7 @@ export default class MarkdownPreview extends React.Component {
     this.exportAsDocument('md')
   }
 
-  htmlContentFormatter (noteContent, exportTasks) {
+  htmlContentFormatter (noteContent, exportTasks, targetDir) {
     const {
       fontFamily,
       fontSize,
@@ -339,6 +339,7 @@ export default class MarkdownPreview extends React.Component {
 
     return `<html>
                <head>
+                 <base href="file://${targetDir}/">
                  <meta charset="UTF-8">
                  <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
                  <style id="style">${inlineStyles}</style>
@@ -349,13 +350,13 @@ export default class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsHtml () {
-    this.exportAsDocument('html', (noteContent, exportTasks) => Promise.resolve(this.htmlContentFormatter(noteContent, exportTasks)))
+    this.exportAsDocument('html', (noteContent, exportTasks, targetDir) => Promise.resolve(this.htmlContentFormatter(noteContent, exportTasks, targetDir)))
   }
 
   handleSaveAsPdf () {
-    this.exportAsDocument('pdf', (noteContent, exportTasks) => {
-      const printout = new remote.BrowserWindow({show: false})
-      printout.loadURL('data:text/html;charset=UTF-8,' + this.htmlContentFormatter(noteContent, exportTasks))
+    this.exportAsDocument('pdf', (noteContent, exportTasks, targetDir) => {
+      const printout = new remote.BrowserWindow({show: true})
+      printout.loadURL('data:text/html;charset=UTF-8,' + this.htmlContentFormatter(noteContent, exportTasks, targetDir))
       return new Promise((resolve, reject) => {
         printout.webContents.on('did-finish-load', () => {
           printout.webContents.printToPDF({}, (err, data) => {

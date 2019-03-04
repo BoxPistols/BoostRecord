@@ -19,9 +19,31 @@ import {SortableContainer} from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
 import { remote } from 'electron'
+import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
+import ColorPicker from 'browser/components/ColorPicker'
+
+function matchActiveTags (tags, activeTags) {
+  return _.every(activeTags, v => tags.indexOf(v) >= 0)
+}
 
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      colorPicker: {
+        show: false,
+        color: null,
+        tagName: null,
+        targetRect: null
+      }
+    }
+
+    this.dismissColorPicker = this.dismissColorPicker.bind(this)
+    this.handleColorPickerConfirm = this.handleColorPickerConfirm.bind(this)
+    this.handleColorPickerReset = this.handleColorPickerReset.bind(this)
+  }
 
   componentDidMount () {
     EventEmitter.on('side:preferences', this.handleMenuButtonClick)
@@ -99,7 +121,62 @@ class SideNav extends React.Component {
       click: this.deleteTag.bind(this, tag)
     })
 
+    menu.push({
+      label: i18n.__('Customize Color'),
+      click: this.displayColorPicker.bind(this, tag, e.target.getBoundingClientRect())
+    })
+
     context.popup(menu)
+  }
+
+  dismissColorPicker () {
+    this.setState({
+      colorPicker: {
+        show: false
+      }
+    })
+  }
+
+  displayColorPicker (tagName, rect) {
+    const { config } = this.props
+    this.setState({
+      colorPicker: {
+        show: true,
+        color: config.coloredTags[tagName],
+        tagName,
+        targetRect: rect
+      }
+    })
+  }
+
+  handleColorPickerConfirm (color) {
+    const { dispatch, config: {coloredTags} } = this.props
+    const { colorPicker: { tagName } } = this.state
+    const newColoredTags = Object.assign({}, coloredTags, {[tagName]: color.hex})
+
+    const config = { coloredTags: newColoredTags }
+    ConfigManager.set(config)
+    dispatch({
+      type: 'SET_CONFIG',
+      config
+    })
+    this.dismissColorPicker()
+  }
+
+  handleColorPickerReset () {
+    const { dispatch, config: {coloredTags} } = this.props
+    const { colorPicker: { tagName } } = this.state
+    const newColoredTags = Object.assign({}, coloredTags)
+
+    delete newColoredTags[tagName]
+
+    const config = { coloredTags: newColoredTags }
+    ConfigManager.set(config)
+    dispatch({
+      type: 'SET_CONFIG',
+      config
+    })
+    this.dismissColorPicker()
   }
 
   handleToggleButtonClick (e) {
@@ -202,12 +279,21 @@ class SideNav extends React.Component {
 
   tagListComponent () {
     const { data, location, config } = this.props
-    const relatedTags = this.getRelatedTags(this.getActiveTags(location.pathname), data.noteMap)
+    const { colorPicker } = this.state
+    const activeTags = this.getActiveTags(location.pathname)
+    const relatedTags = this.getRelatedTags(activeTags, data.noteMap)
     let tagList = _.sortBy(data.tagNoteMap.map(
       (tag, name) => ({ name, size: tag.size, related: relatedTags.has(name) })
-    ), ['name']).filter(
+    ).filter(
       tag => tag.size > 0
-    )
+    ), ['name'])
+    if (config.ui.enableLiveNoteCounts && activeTags.length !== 0) {
+      const notesTags = data.noteMap.map(note => note.tags)
+      tagList = tagList.map(tag => {
+        tag.size = notesTags.filter(tags => tags.includes(tag.name) && matchActiveTags(tags, activeTags)).length
+        return tag
+      })
+    }
     if (config.sortTagsBy === 'COUNTER') {
       tagList = _.sortBy(tagList, item => (0 - item.size))
     }
@@ -224,10 +310,11 @@ class SideNav extends React.Component {
             handleClickTagListItem={this.handleClickTagListItem.bind(this)}
             handleClickNarrowToTag={this.handleClickNarrowToTag.bind(this)}
             handleContextMenu={this.handleTagContextMenu.bind(this)}
-            isActive={this.getTagActive(location.pathname, tag.name)}
+            isActive={this.getTagActive(location.pathname, tag.name) || (colorPicker.tagName === tag.name)}
             isRelated={tag.related}
             key={tag.name}
             count={tag.size}
+            color={config.coloredTags[tag.name]}
           />
         )
       })
@@ -257,7 +344,7 @@ class SideNav extends React.Component {
     const tags = pathSegments[pathSegments.length - 1]
     return (tags === 'alltags')
       ? []
-      : tags.split(' ').map(tag => decodeURIComponent(tag))
+      : decodeURIComponent(tags).split(' ')
   }
 
   handleClickTagListItem (name) {
@@ -289,7 +376,7 @@ class SideNav extends React.Component {
     } else {
       listOfTags.push(tag)
     }
-    router.push(`/tags/${listOfTags.map(tag => encodeURIComponent(tag)).join(' ')}`)
+    router.push(`/tags/${encodeURIComponent(listOfTags.join(' '))}`)
   }
 
   emptyTrash (entries) {
@@ -297,6 +384,8 @@ class SideNav extends React.Component {
     const deletionPromises = entries.map((note) => {
       return dataApi.deleteNote(note.storage, note.key)
     })
+    const { confirmDeletion } = this.props.config.ui
+    if (!confirmDeleteNote(confirmDeletion, true)) return
     Promise.all(deletionPromises)
     .then((arrayOfStorageAndNoteKeys) => {
       arrayOfStorageAndNoteKeys.forEach(({ storageKey, noteKey }) => {
@@ -306,7 +395,6 @@ class SideNav extends React.Component {
     .catch((err) => {
       console.error('Cannot Delete note: ' + err)
     })
-    console.log('Trash emptied')
   }
 
   handleFilterButtonContextMenu (event) {
@@ -319,6 +407,7 @@ class SideNav extends React.Component {
 
   render () {
     const { data, location, config, dispatch } = this.props
+    const { colorPicker: colorPickerState } = this.state
 
     const isFolded = config.isSideNavFolded
 
@@ -335,6 +424,20 @@ class SideNav extends React.Component {
         useDragHandle
       />
     })
+
+    let colorPicker
+    if (colorPickerState.show) {
+      colorPicker = (
+        <ColorPicker
+          color={colorPickerState.color}
+          targetRect={colorPickerState.targetRect}
+          onConfirm={this.handleColorPickerConfirm}
+          onCancel={this.dismissColorPicker}
+          onReset={this.handleColorPickerReset}
+        />
+      )
+    }
+
     const style = {}
     if (!isFolded) style.width = this.props.width
     const isTagActive = location.pathname.match(/tag/)
@@ -354,6 +457,7 @@ class SideNav extends React.Component {
           </div>
         </div>
         {this.SideNavComponent(isFolded, storageList)}
+        {colorPicker}
       </div>
     )
   }

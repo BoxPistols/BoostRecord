@@ -24,32 +24,42 @@ export const DEFAULT_CONFIG = {
   amaEnabled: true,
   hotkey: {
     toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
-    toggleMode: OSX ? 'Command + Option + M' : 'Ctrl + M'
+    toggleMode: OSX ? 'Command + Alt + M' : 'Ctrl + M',
+    deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace',
+    pasteSmartly: OSX ? 'Command + Shift + V' : 'Ctrl + Shift + V',
+    toggleMenuBar: 'Alt'
   },
   ui: {
     language: 'en',
     theme: 'default',
     showCopyNotification: true,
     disableDirectWrite: false,
-    defaultNote: 'ALWAYS_ASK' // 'ALWAYS_ASK', 'SNIPPET_NOTE', 'MARKDOWN_NOTE'
+    defaultNote: 'ALWAYS_ASK', // 'ALWAYS_ASK', 'SNIPPET_NOTE', 'MARKDOWN_NOTE'
+    showMenuBar: false
   },
   editor: {
     theme: 'base16-light',
     keyMap: 'sublime',
     fontSize: '14',
-    fontFamily: win ? 'Segoe UI' : 'Monaco, Consolas',
+    fontFamily: win ? 'Consolas' : 'Monaco',
     indentType: 'space',
     indentSize: '2',
     enableRulers: false,
     rulers: [80, 120],
     displayLineNumbers: true,
-    switchPreview: 'BLUR', // Available value: RIGHTCLICK, BLUR
+    matchingPairs: '()[]{}\'\'""$$**``',
+    matchingTriples: '```"""\'\'\'',
+    explodingPairs: '[]{}``$$',
+    switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
+    delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,
-    type: 'SPLIT',
+    type: 'SPLIT', // 'SPLIT', 'EDITOR_PREVIEW'
     fetchUrlTitle: true,
     enableTableEditor: false,
     enableFrontMatterTitle: true,
-    frontMatterTitleField: 'title'
+    frontMatterTitleField: 'title',
+    spellcheck: false,
+    enableSmartPaste: false
   },
   preview: {
     fontSize: '14',
@@ -62,6 +72,7 @@ export const DEFAULT_CONFIG = {
     latexBlockClose: '$$',
     plantUMLServerAddress: 'http://www.plantuml.com/plantuml',
     scrollPastEnd: false,
+    scrollSync: true,
     smartQuotes: true,
     breaks: true,
     smartArrows: false,
@@ -77,7 +88,8 @@ export const DEFAULT_CONFIG = {
     token: '',
     username: '',
     password: ''
-  }
+  },
+  coloredTags: {}
 }
 
 function validate (config) {
@@ -199,8 +211,8 @@ function assignConfigValues (originalConfig, rcConfig) {
 function rewriteHotkey (config) {
   const keys = [...Object.keys(config.hotkey)]
   keys.forEach(key => {
-    config.hotkey[key] = config.hotkey[key].replace(/Cmd/g, 'Command')
-    config.hotkey[key] = config.hotkey[key].replace(/Opt/g, 'Alt')
+    config.hotkey[key] = config.hotkey[key].replace(/Cmd\s/g, 'Command ')
+    config.hotkey[key] = config.hotkey[key].replace(/Opt\s/g, 'Option ')
   })
   return config
 }

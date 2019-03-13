@@ -11,12 +11,12 @@ function sendWakatimeHeartBeat (storagePath, noteKey, storageName, isWrite, hasF
       return
     }
 
+    lastHeartbeat = new Date()
     // TODO: add --key sdasdsa-sdsad-asdasd-asdsa-asdasdadas from configuration UI or use ~/.wakatime.conf
     exec(`wakatime --file ${notePath} --project ${storageName} --plugin Boostnote-wakatime`, (error, stdOut, stdErr) => {
       if (error) {
         console.log(error)
       } else {
-        lastHeartbeat = new Date()
         console.log('wakatime', 'isWrite', isWrite, 'hasChanges', hasFileChanges)
       }
     })

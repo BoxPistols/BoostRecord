@@ -180,6 +180,11 @@ export default class CodeEditor extends React.Component {
     this.editorActivityHandler = () => this.handleEditorActivity()
 
     this.turndownService = new TurndownService()
+
+    // wakatime
+    const { storageKey, noteKey } = this.props
+    const storage = findStorage(storageKey)
+    if (storage) sendWakatimeHeartBeat(storage.path, noteKey, storage.name, false, false, true)
   }
 
   handleSearch (msg) {

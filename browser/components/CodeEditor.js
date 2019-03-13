@@ -26,6 +26,8 @@ import TurndownService from 'turndown'
 import {
   gfm
 } from 'turndown-plugin-gfm'
+import { findStorage } from 'browser/lib/findStorage'
+import { sendWakatimeHeartBeat } from 'browser/lib/wakatime-plugin'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -741,8 +743,14 @@ export default class CodeEditor extends React.Component {
     this.updateHighlight(editor, changeObject)
 
     this.value = editor.getValue()
+
+    const { storageKey, noteKey } = this.props
+    const storage = findStorage(storageKey)
     if (this.props.onChange) {
       this.props.onChange(editor)
+      if (storage) sendWakatimeHeartBeat(storage.path, noteKey, storage.name, true, true, false)
+    } else {
+      if (storage) sendWakatimeHeartBeat(storage.path, noteKey, storage.name, false, false, false)
     }
   }
 
@@ -846,6 +854,11 @@ export default class CodeEditor extends React.Component {
   }
 
   reload () {
+    // wakatime
+    const { storageKey, noteKey } = this.props
+    const storage = findStorage(storageKey)
+    if (storage) sendWakatimeHeartBeat(storage.path, noteKey, storage.name, false, false, true)
+
     // Change event shouldn't be fired when switch note
     this.editor.off('change', this.changeHandler)
     this.value = this.props.value

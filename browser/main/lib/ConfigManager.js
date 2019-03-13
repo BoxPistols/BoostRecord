@@ -89,7 +89,10 @@ export const DEFAULT_CONFIG = {
     username: '',
     password: ''
   },
-  coloredTags: {}
+  coloredTags: {},
+  wakatime: {
+    key: null
+  }
 }
 
 function validate (config) {
@@ -198,6 +201,7 @@ function set (updates) {
 function assignConfigValues (originalConfig, rcConfig) {
   const config = Object.assign({}, DEFAULT_CONFIG, originalConfig, rcConfig)
   config.hotkey = Object.assign({}, DEFAULT_CONFIG.hotkey, originalConfig.hotkey, rcConfig.hotkey)
+  config.wakatime = Object.assign({}, DEFAULT_CONFIG.wakatime, originalConfig.wakatime, rcConfig.wakatime)
   config.blog = Object.assign({}, DEFAULT_CONFIG.blog, originalConfig.blog, rcConfig.blog)
   config.ui = Object.assign({}, DEFAULT_CONFIG.ui, originalConfig.ui, rcConfig.ui)
   config.editor = Object.assign({}, DEFAULT_CONFIG.editor, originalConfig.editor, rcConfig.editor)

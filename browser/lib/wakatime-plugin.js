@@ -1,9 +1,9 @@
+import config from 'browser/main/lib/ConfigManager'
 const exec = require('child_process').exec
 const path = require('path')
 let lastHeartbeat = 0
 
 function sendWakatimeHeartBeat (storagePath, noteKey, storageName, isWrite, hasFileChanges, isFileChange) {
-
   if (new Date().getTime() - lastHeartbeat > 120000 || isFileChange) {
     const notePath = path.join(storagePath, 'notes', noteKey + '.cson')
 
@@ -12,14 +12,19 @@ function sendWakatimeHeartBeat (storagePath, noteKey, storageName, isWrite, hasF
     }
 
     lastHeartbeat = new Date()
-    // TODO: add --key sdasdsa-sdsad-asdasd-asdsa-asdasdadas from configuration UI or use ~/.wakatime.conf
-    exec(`wakatime --file ${notePath} --project ${storageName} --plugin Boostnote-wakatime`, (error, stdOut, stdErr) => {
-      if (error) {
-        console.log(error)
-      } else {
-        console.log('wakatime', 'isWrite', isWrite, 'hasChanges', hasFileChanges)
-      }
-    })
+    const wakatimeKey = config.get().wakatime.key
+    if (wakatimeKey) {
+      exec(`wakatime --file ${notePath} --project '${storageName}' --key ${wakatimeKey}  --plugin Boostnote-wakatime`, (error, stdOut, stdErr) => {
+        if (error) {
+          console.log(error)
+          lastHeartbeat = 0
+        } else {
+          console.log('wakatime', 'isWrite', isWrite, 'hasChanges', hasFileChanges, 'isFileChange', isFileChange)
+        }
+      })
+    }
+  } else {
+    console.log('nada :(')
   }
 }
 

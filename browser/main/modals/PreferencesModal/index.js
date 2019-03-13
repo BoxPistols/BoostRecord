@@ -7,6 +7,7 @@ import InfoTab from './InfoTab'
 import Crowdfunding from './Crowdfunding'
 import StoragesTab from './StoragesTab'
 import SnippetTab from './SnippetTab'
+import PluginsTab from './PluginsTab'
 import Blog from './Blog'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import CSSModules from 'browser/lib/CSSModules'
@@ -95,6 +96,14 @@ class Preferences extends React.Component {
             data={data}
           />
         )
+      case 'PLUGINS':
+        return (
+          <PluginsTab
+            dispatch={dispatch}
+            config={config}
+            haveToSave={alert => this.setState({PluginsAlert: alert})}
+          />
+        )
       case 'STORAGES':
       default:
         return (
@@ -133,7 +142,8 @@ class Preferences extends React.Component {
       {target: 'INFO', label: i18n.__('About')},
       {target: 'CROWDFUNDING', label: i18n.__('Crowdfunding')},
       {target: 'BLOG', label: i18n.__('Blog'), Blog: this.state.BlogAlert},
-      {target: 'SNIPPET', label: i18n.__('Snippets')}
+      {target: 'SNIPPET', label: i18n.__('Snippets')},
+      {target: 'PLUGINS', label: i18n.__('Plugins')}
     ]
 
     const navButtons = tabs.map((tab) => {

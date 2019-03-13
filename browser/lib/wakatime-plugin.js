@@ -23,8 +23,6 @@ function sendWakatimeHeartBeat (storagePath, noteKey, storageName, isWrite, hasF
         }
       })
     }
-  } else {
-    console.log('nada :(')
   }
 }
 

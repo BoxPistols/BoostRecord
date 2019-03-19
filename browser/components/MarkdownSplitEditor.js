@@ -16,7 +16,8 @@ class MarkdownSplitEditor extends React.Component {
     this.userScroll = true
     this.state = {
       isSliderFocused: false,
-      codeEditorWidthInPercent: 50
+      codeEditorWidthInPercent: 50,
+      codeEditorHeightInPercent: 50
     }
   }
 
@@ -102,22 +103,41 @@ class MarkdownSplitEditor extends React.Component {
   handleMouseMove (e) {
     if (this.state.isSliderFocused) {
       const rootRect = this.refs.root.getBoundingClientRect()
-      const rootWidth = rootRect.width
-      const offset = rootRect.left
-      let newCodeEditorWidthInPercent = (e.pageX - offset) / rootWidth * 100
+      if (this.props.isStacking) {
+        const rootHeight = rootRect.height
+        const offset = rootRect.top
+        let newCodeEditorHeightInPercent = (e.pageY - offset) / rootHeight * 100
 
-      // limit minSize to 10%, maxSize to 90%
-      if (newCodeEditorWidthInPercent <= 10) {
-        newCodeEditorWidthInPercent = 10
+        // limit minSize to 10%, maxSize to 90%
+        if (newCodeEditorHeightInPercent <= 10) {
+          newCodeEditorHeightInPercent = 10
+        }
+
+        if (newCodeEditorHeightInPercent >= 90) {
+          newCodeEditorHeightInPercent = 90
+        }
+
+        this.setState({
+          codeEditorHeightInPercent: newCodeEditorHeightInPercent
+        })
+      } else {
+        const rootWidth = rootRect.width
+        const offset = rootRect.left
+        let newCodeEditorWidthInPercent = (e.pageX - offset) / rootWidth * 100
+
+        // limit minSize to 10%, maxSize to 90%
+        if (newCodeEditorWidthInPercent <= 10) {
+          newCodeEditorWidthInPercent = 10
+        }
+
+        if (newCodeEditorWidthInPercent >= 90) {
+          newCodeEditorWidthInPercent = 90
+        }
+
+        this.setState({
+          codeEditorWidthInPercent: newCodeEditorWidthInPercent
+        })
       }
-
-      if (newCodeEditorWidthInPercent >= 90) {
-        newCodeEditorWidthInPercent = 90
-      }
-
-      this.setState({
-        codeEditorWidthInPercent: newCodeEditorWidthInPercent
-      })
     }
   }
 
@@ -136,15 +156,39 @@ class MarkdownSplitEditor extends React.Component {
   }
 
   render () {
-    const {config, value, storageKey, noteKey, linesHighlighted} = this.props
+    const {config, value, storageKey, noteKey, linesHighlighted, isStacking} = this.props
     const storage = findStorage(storageKey)
+
+    const editorStyle = {}
+    const previewStyle = {}
+    const sliderStyle = {}
+
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
+    editorStyle.fontSize = editorFontSize
+
     let editorIndentSize = parseInt(config.editor.indentSize, 10)
-    if (!(editorFontSize > 0 && editorFontSize < 132)) editorIndentSize = 4
-    const previewStyle = {}
-    previewStyle.width = (100 - this.state.codeEditorWidthInPercent) + '%'
+    if (!(editorStyle.fontSize > 0 && editorStyle.fontSize < 132)) editorIndentSize = 4
+    editorStyle.indentSize = editorIndentSize
+
+    if (isStacking) {
+      editorStyle.width = 100 + '%'
+      editorStyle.height = this.state.codeEditorHeightInPercent + '%'
+      previewStyle.width = 100 + '%'
+      previewStyle.height = (100 - this.state.codeEditorHeightInPercent) + '%'
+      sliderStyle.left = 0
+      sliderStyle.top = this.state.codeEditorHeightInPercent + '%'
+    } else {
+      editorStyle.width = this.state.codeEditorWidthInPercent + '%'
+      editorStyle.height = 100 + '%'
+      previewStyle.width = (100 - this.state.codeEditorWidthInPercent) + '%'
+      previewStyle.height = 100 + '%'
+      sliderStyle.left = this.state.codeEditorWidthInPercent + '%'
+      sliderStyle.top = 0
+    }
+
     if (this.props.ignorePreviewPointerEvents || this.state.isSliderFocused) previewStyle.pointerEvents = 'none'
+
     return (
       <div styleName='root' ref='root'
         onMouseMove={e => this.handleMouseMove(e)}
@@ -152,19 +196,20 @@ class MarkdownSplitEditor extends React.Component {
         <CodeEditor
           styleName='codeEditor'
           ref='code'
-          width={this.state.codeEditorWidthInPercent + '%'}
+          width={editorStyle.width}
+          height={editorStyle.height}
           mode='Boost Flavored Markdown'
           value={value}
           theme={config.editor.theme}
           keyMap={config.editor.keyMap}
           fontFamily={config.editor.fontFamily}
-          fontSize={editorFontSize}
+          fontSize={editorStyle.fontSize}
           displayLineNumbers={config.editor.displayLineNumbers}
           matchingPairs={config.editor.matchingPairs}
           matchingTriples={config.editor.matchingTriples}
           explodingPairs={config.editor.explodingPairs}
           indentType={config.editor.indentType}
-          indentSize={editorIndentSize}
+          indentSize={editorStyle.indentSize}
           enableRulers={config.editor.enableRulers}
           rulers={config.editor.rulers}
           scrollPastEnd={config.editor.scrollPastEnd}
@@ -180,7 +225,7 @@ class MarkdownSplitEditor extends React.Component {
           hotkey={config.hotkey}
           switchPreview={config.editor.switchPreview}
        />
-        <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
+        <div styleName={isStacking ? 'slider-hoz' : 'slider'} style={{left: sliderStyle.left, top: sliderStyle.top}} onMouseDown={e => this.handleMouseDown(e)} >
           <div styleName='slider-hitbox' />
         </div>
         <MarkdownPreview

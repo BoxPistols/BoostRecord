@@ -747,14 +747,14 @@ export default class CodeEditor extends React.Component {
   }
 
   incrementLines (start, linesAdded, linesRemoved, editor) {
-    let highlightedLines = editor.options.linesHighlighted
+    const highlightedLines = editor.options.linesHighlighted
 
     const totalHighlightedLines = highlightedLines.length
 
-    let offset = linesAdded - linesRemoved
+    const offset = linesAdded - linesRemoved
 
     // Store new items to be added as we're changing the lines
-    let newLines = []
+    const newLines = []
 
     let i = totalHighlightedLines
 
@@ -1128,10 +1128,12 @@ export default class CodeEditor extends React.Component {
   render () {
     const {
       className,
-      fontSize
+      fontSize,
+      width,
+      height
     } = this.props
     const fontFamily = normalizeEditorFontFamily(this.props.fontFamily)
-    const width = this.props.width
+
     return (<
       div className={
         className == null ? 'CodeEditor' : `CodeEditor ${className}`
@@ -1142,7 +1144,8 @@ export default class CodeEditor extends React.Component {
       {
         fontFamily,
         fontSize: fontSize,
-        width: width
+        width: width,
+        height: height
       }
       }
       onDrop={

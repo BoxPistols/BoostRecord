@@ -54,6 +54,7 @@ export const DEFAULT_CONFIG = {
     delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,
     type: 'SPLIT', // 'SPLIT', 'EDITOR_PREVIEW'
+    isStacking: false,
     fetchUrlTitle: true,
     enableTableEditor: false,
     enableFrontMatterTitle: true,

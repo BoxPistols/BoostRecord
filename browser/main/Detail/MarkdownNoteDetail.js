@@ -23,6 +23,7 @@ import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import ToggleModeButton from './ToggleModeButton'
+import ToggleStackDirectionButton from './ToggleStackDirectionButton'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
@@ -45,6 +46,7 @@ class MarkdownNoteDetail extends React.Component {
       isLockButtonShown: props.config.editor.type !== 'SPLIT',
       isLocked: false,
       editorType: props.config.editor.type,
+      isStacking: props.config.editor.isStacking,
       switchPreview: props.config.editor.switchPreview
     }
 
@@ -338,6 +340,15 @@ class MarkdownNoteDetail extends React.Component {
     })
   }
 
+  handleSwitchStackDirection (type) {
+    this.setState({ isStacking: type }, () => {
+      this.focus()
+      const newConfig = Object.assign({}, this.props.config)
+      newConfig.editor.isStacking = type
+      ConfigManager.set(newConfig)
+    })
+  }
+
   handleDeleteNote () {
     this.handleTrashButtonClick()
   }
@@ -363,7 +374,7 @@ class MarkdownNoteDetail extends React.Component {
 
   renderEditor () {
     const { config, ignorePreviewPointerEvents } = this.props
-    const { note } = this.state
+    const { note, isStacking } = this.state
 
     if (this.state.editorType === 'EDITOR_PREVIEW') {
       return <MarkdownEditor
@@ -385,6 +396,7 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         noteKey={note.key}
+        isStacking={isStacking}
         linesHighlighted={note.linesHighlighted}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
@@ -394,7 +406,7 @@ class MarkdownNoteDetail extends React.Component {
 
   render () {
     const { data, location, config } = this.props
-    const { note, editorType } = this.state
+    const { note, editorType, isStacking } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -453,6 +465,11 @@ class MarkdownNoteDetail extends React.Component {
         <TodoListPercentage onClearCheckboxClick={(e) => this.handleClearTodo(e)} percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
+        {editorType === 'SPLIT'
+          ? <ToggleStackDirectionButton onClick={(e) => this.handleSwitchStackDirection(e)} isStacking={isStacking} />
+          : null
+        }
+
         <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
         <StarButton
           onClick={(e) => this.handleStarButtonClick(e)}

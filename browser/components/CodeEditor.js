@@ -835,6 +835,9 @@ export default class CodeEditor extends React.Component {
       ch: 1
     }
     this.editor.setCursor(cursor)
+    const top = this.editor.charCoords({line: num, ch: 0}, 'local').top
+    const middleHeight = this.editor.getScrollerElement().offsetHeight / 2
+    this.editor.scrollTo(null, top - middleHeight - 5)
   }
 
   focus () {

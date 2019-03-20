@@ -18,6 +18,7 @@
 	".md": ".md",
 	".txt": ".txt",
 	".html": ".html",
+	".pdf": ".pdf",
 	"Print": "列印",
 	"Your preferences for Boostnote": "Boostnote 偏好設定",
 	"Storage Locations": "儲存空間",

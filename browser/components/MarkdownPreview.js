@@ -208,6 +208,7 @@ export default class MarkdownPreview extends React.Component {
     this.saveAsTextHandler = () => this.handleSaveAsText()
     this.saveAsMdHandler = () => this.handleSaveAsMd()
     this.saveAsHtmlHandler = () => this.handleSaveAsHtml()
+    this.saveAsPdfHandler = () => this.handleSaveAsPdf()
     this.printHandler = () => this.handlePrint()
 
     this.linkClickHandler = this.handleLinkClick.bind(this)
@@ -297,58 +298,77 @@ export default class MarkdownPreview extends React.Component {
     this.exportAsDocument('md')
   }
 
-  handleSaveAsHtml () {
-    this.exportAsDocument('html', (noteContent, exportTasks) => {
-      const {
-        fontFamily,
-        fontSize,
-        codeBlockFontFamily,
-        lineNumber,
-        codeBlockTheme,
-        scrollPastEnd,
-        theme,
-        allowCustomCSS,
-        customCSS
-      } = this.getStyleParams()
+  htmlContentFormatter (noteContent, exportTasks, targetDir) {
+    const {
+      fontFamily,
+      fontSize,
+      codeBlockFontFamily,
+      lineNumber,
+      codeBlockTheme,
+      scrollPastEnd,
+      theme,
+      allowCustomCSS,
+      customCSS
+    } = this.getStyleParams()
 
-      const inlineStyles = buildStyle(
-        fontFamily,
-        fontSize,
-        codeBlockFontFamily,
-        lineNumber,
-        scrollPastEnd,
-        theme,
-        allowCustomCSS,
-        customCSS
-      )
-      let body = this.markdown.render(noteContent)
-      const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
-      files.forEach(file => {
-        if (global.process.platform === 'win32') {
-          file = file.replace('file:///', '')
-        } else {
-          file = file.replace('file://', '')
-        }
-        exportTasks.push({
-          src: file,
-          dst: 'css'
+    const inlineStyles = buildStyle(
+      fontFamily,
+      fontSize,
+      codeBlockFontFamily,
+      lineNumber,
+      scrollPastEnd,
+      theme,
+      allowCustomCSS,
+      customCSS
+    )
+    let body = this.markdown.render(noteContent)
+    const files = [this.GetCodeThemeLink(codeBlockTheme), ...CSS_FILES]
+    files.forEach(file => {
+      if (global.process.platform === 'win32') {
+        file = file.replace('file:///', '')
+      } else {
+        file = file.replace('file://', '')
+      }
+      exportTasks.push({
+        src: file,
+        dst: 'css'
+      })
+    })
+
+    let styles = ''
+    files.forEach(file => {
+      styles += `<link rel="stylesheet" href="css/${path.basename(file)}">`
+    })
+
+    return `<html>
+               <head>
+                 <base href="file://${targetDir}/">
+                 <meta charset="UTF-8">
+                 <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
+                 <style id="style">${inlineStyles}</style>
+                 ${styles}
+               </head>
+               <body>${body}</body>
+            </html>`
+  }
+
+  handleSaveAsHtml () {
+    this.exportAsDocument('html', (noteContent, exportTasks, targetDir) => Promise.resolve(this.htmlContentFormatter(noteContent, exportTasks, targetDir)))
+  }
+
+  handleSaveAsPdf () {
+    this.exportAsDocument('pdf', (noteContent, exportTasks, targetDir) => {
+      const printout = new remote.BrowserWindow({show: false, webPreferences: {webSecurity: false}})
+      printout.loadURL('data:text/html;charset=UTF-8,' + this.htmlContentFormatter(noteContent, exportTasks, targetDir))
+      return new Promise((resolve, reject) => {
+        printout.webContents.on('did-finish-load', () => {
+          printout.webContents.printToPDF({}, (err, data) => {
+            if (err) reject(err)
+            else resolve(data)
+            printout.destroy()
+          })
         })
       })
-
-      let styles = ''
-      files.forEach(file => {
-        styles += `<link rel="stylesheet" href="css/${path.basename(file)}">`
-      })
-
-      return `<html>
-                 <head>
-                   <meta charset="UTF-8">
-                   <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
-                   <style id="style">${inlineStyles}</style>
-                   ${styles}
-                 </head>
-                 <body>${body}</body>
-              </html>`
     })
   }
 
@@ -490,6 +510,7 @@ export default class MarkdownPreview extends React.Component {
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
+    eventEmitter.on('export:save-pdf', this.saveAsPdfHandler)
     eventEmitter.on('print', this.printHandler)
   }
 
@@ -527,6 +548,7 @@ export default class MarkdownPreview extends React.Component {
     eventEmitter.off('export:save-text', this.saveAsTextHandler)
     eventEmitter.off('export:save-md', this.saveAsMdHandler)
     eventEmitter.off('export:save-html', this.saveAsHtmlHandler)
+    eventEmitter.off('export:save-pdf', this.saveAsPdfHandler)
     eventEmitter.off('print', this.printHandler)
   }
 

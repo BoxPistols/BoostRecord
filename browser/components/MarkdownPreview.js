@@ -1000,7 +1000,7 @@ export default class MarkdownPreview extends React.Component {
     e.preventDefault()
     e.stopPropagation()
 
-    const href = e.target.href
+    const href = e.target.getAttribute('href')
     const linkHash = href.split('/').pop()
 
     const regexNoteInternalLink = /main.html#(.+)/

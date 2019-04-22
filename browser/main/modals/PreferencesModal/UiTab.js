@@ -68,9 +68,14 @@ class UiTab extends React.Component {
         theme: this.refs.uiTheme.value,
         language: this.refs.uiLanguage.value,
         defaultNote: this.refs.defaultNote.value,
+        tagNewNoteWithFilteringTags: this.refs.tagNewNoteWithFilteringTags.checked,
         showCopyNotification: this.refs.showCopyNotification.checked,
         confirmDeletion: this.refs.confirmDeletion.checked,
         showOnlyRelatedTags: this.refs.showOnlyRelatedTags.checked,
+        showTagsAlphabetically: this.refs.showTagsAlphabetically.checked,
+        saveTagsAlphabetically: this.refs.saveTagsAlphabetically.checked,
+        enableLiveNoteCounts: this.refs.enableLiveNoteCounts.checked,
+        showMenuBar: this.refs.showMenuBar.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
           : false
@@ -89,7 +94,14 @@ class UiTab extends React.Component {
         snippetDefaultLanguage: this.refs.editorSnippetDefaultLanguage.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked,
         fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
-        enableTableEditor: this.refs.enableTableEditor.checked
+        enableTableEditor: this.refs.enableTableEditor.checked,
+        enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
+        frontMatterTitleField: this.refs.frontMatterTitleField.value,
+        matchingPairs: this.refs.matchingPairs.value,
+        matchingTriples: this.refs.matchingTriples.value,
+        explodingPairs: this.refs.explodingPairs.value,
+        spellcheck: this.refs.spellcheck.checked,
+        enableSmartPaste: this.refs.enableSmartPaste.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -102,6 +114,7 @@ class UiTab extends React.Component {
         latexBlockClose: this.refs.previewLatexBlockClose.value,
         plantUMLServerAddress: this.refs.previewPlantUMLServerAddress.value,
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
+        scrollSync: this.refs.previewScrollSync.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
         breaks: this.refs.previewBreaks.checked,
         smartArrows: this.refs.previewSmartArrows.checked,
@@ -229,6 +242,16 @@ class UiTab extends React.Component {
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showMenuBar}
+                ref='showMenuBar'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Show menu bar')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
                 checked={this.state.config.ui.showCopyNotification}
                 ref='showCopyNotification'
                 type='checkbox'
@@ -246,16 +269,6 @@ class UiTab extends React.Component {
               {i18n.__('Show a confirmation dialog when deleting notes')}
             </label>
           </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input onChange={(e) => this.handleUIChange(e)}
-                checked={this.state.config.ui.showOnlyRelatedTags}
-                ref='showOnlyRelatedTags'
-                type='checkbox'
-              />&nbsp;
-              {i18n.__('Show only related tags')}
-            </label>
-          </div>
           {
             global.process.platform === 'win32'
             ? <div styleName='group-checkBoxSection'>
@@ -271,6 +284,64 @@ class UiTab extends React.Component {
             </div>
             : null
           }
+
+          <div styleName='group-header2'>Tags</div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.saveTagsAlphabetically}
+                ref='saveTagsAlphabetically'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Save tags of a note in alphabetical order')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showTagsAlphabetically}
+                ref='showTagsAlphabetically'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Show tags of a note in alphabetical order')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.showOnlyRelatedTags}
+                ref='showOnlyRelatedTags'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Show only related tags')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.enableLiveNoteCounts}
+                ref='enableLiveNoteCounts'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable live count of notes')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.ui.tagNewNoteWithFilteringTags}
+                ref='tagNewNoteWithFilteringTags'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('New notes are tagged with the filtering tags')}
+            </label>
+          </div>
+
           <div styleName='group-header2'>Editor</div>
 
           <div styleName='group-section'>
@@ -421,11 +492,37 @@ class UiTab extends React.Component {
                 ref='editorSnippetDefaultLanguage'
                 onChange={(e) => this.handleUIChange(e)}
               >
+                <option key='Auto Detect' value='Auto Detect'>{i18n.__('Auto Detect')}</option>
                 {
                   _.sortBy(CodeMirror.modeInfo.map(mode => mode.name)).map(name => (<option key={name} value={name}>{name}</option>))
                 }
               </select>
             </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Front matter title field')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                ref='frontMatterTitleField'
+                value={config.editor.frontMatterTitleField}
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.enableFrontMatterTitle}
+                ref='enableFrontMatterTitle'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Extract title from front matter')}
+            </label>
           </div>
 
           <div styleName='group-checkBoxSection'>
@@ -472,6 +569,70 @@ class UiTab extends React.Component {
             </label>
           </div>
 
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.enableSmartPaste}
+                ref='enableSmartPaste'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable HTML paste')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.spellcheck}
+                ref='spellcheck'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable spellcheck - Experimental feature!! :)')}
+            </label>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Matching character pairs')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                value={this.state.config.editor.matchingPairs}
+                ref='matchingPairs'
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Matching character triples')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                value={this.state.config.editor.matchingTriples}
+                ref='matchingTriples'
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Exploding character pairs')}
+            </div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                value={this.state.config.editor.explodingPairs}
+                ref='explodingPairs'
+                onChange={(e) => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
           <div styleName='group-header2'>{i18n.__('Preview')}</div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
@@ -499,6 +660,7 @@ class UiTab extends React.Component {
               />
             </div>
           </div>
+
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Code Block Theme')}</div>
             <div styleName='group-section-control'>
@@ -532,6 +694,16 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Allow preview to scroll past the last line')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.scrollSync}
+                ref='previewScrollSync'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('When scrolling, synchronize preview with editor')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>

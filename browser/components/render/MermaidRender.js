@@ -11,9 +11,9 @@ function getRandomInt (min, max) {
 }
 
 function getId () {
-  var pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
-  var id = 'm-'
-  for (var i = 0; i < 7; i++) {
+  const pool = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  let id = 'm-'
+  for (let i = 0; i < 7; i++) {
     id += pool[getRandomInt(0, 16)]
   }
   return id
@@ -21,16 +21,20 @@ function getId () {
 
 function render (element, content, theme) {
   try {
-    let isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai' || theme === 'dracula'
+    const height = element.attributes.getNamedItem('data-height')
+    if (height && height.value !== 'undefined') {
+      element.style.height = height.value + 'vh'
+    }
+    const isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai' || theme === 'dracula'
     mermaidAPI.initialize({
       theme: isDarkTheme ? 'dark' : 'default',
-      themeCSS: isDarkTheme ? darkThemeStyling : ''
+      themeCSS: isDarkTheme ? darkThemeStyling : '',
+      useMaxWidth: false
     })
     mermaidAPI.render(getId(), content, (svgGraph) => {
       element.innerHTML = svgGraph
     })
   } catch (e) {
-    console.error(e)
     element.className = 'mermaid-error'
     element.innerHTML = 'mermaid diagram parse error: ' + e.message
   }

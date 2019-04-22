@@ -34,7 +34,6 @@
 .cm-s-rubyblue.CodeMirror .cm-table-row-even { background-color: rgb(41, 58, 73); }
 .cm-s-seti.CodeMirror .cm-table-row-even { background-color: rgb(40, 42, 43); }
 .cm-s-shadowfox.CodeMirror .cm-table-row-even { background-color: rgb(56, 56, 59); }
-.cm-s-solarized.CodeMirror .cm-table-row-even { background-color: rgb(242, 242, 242); }
 .cm-s-the-matrix.CodeMirror .cm-table-row-even { background-color: rgb(0, 26, 0); }
 .cm-s-tomorrow-night-bright.CodeMirror .cm-table-row-even { background-color: rgb(23, 23, 23); }
 .cm-s-tomorrow-night-eighties.CodeMirror .cm-table-row-even { background-color: rgb(20, 20, 20); }
@@ -42,3 +41,5 @@
 .cm-s-vibrant-ink.CodeMirror .cm-table-row-even { background-color: rgb(26, 26, 26); }
 .cm-s-xq-dark.CodeMirror .cm-table-row-even { background-color: rgb(34, 25, 53); }
 .cm-s-yeti.CodeMirror .cm-table-row-even { background-color: rgb(235, 232, 230); }
+.cm-s-solarized.cm-s-dark .cm-table-row-even { background-color: rgb(13, 54, 64); }
+.cm-s-solarized.cm-s-light .cm-table-row-even { background-color: rgb(245, 240, 222); }

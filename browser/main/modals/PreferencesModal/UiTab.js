@@ -30,7 +30,7 @@ class UiTab extends React.Component {
   componentDidMount () {
     CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
-    CodeMirror.autoLoadMode(this.customMarkdownLintConfigCM.getCodeMirror(), 'json')
+    CodeMirror.autoLoadMode(this.customMarkdownLintConfigCM.getCodeMirror(), 'javascript')
     this.customCSSCM.getCodeMirror().setSize('400px', '400px')
     this.customMarkdownLintConfigCM.getCodeMirror().setSize('400px', '400px')
     this.handleSettingDone = () => {
@@ -649,7 +649,10 @@ class UiTab extends React.Component {
                   value={config.editor.customMarkdownLintConfig}
                   options={{
                     lineNumbers: true,
-                    theme: codemirrorTheme
+                    mode: 'application/json',
+                    theme: codemirrorTheme,
+                    lint: true,
+                    gutters: ['CodeMirror-lint-markers']
                   }} />
               </div>
             </div>

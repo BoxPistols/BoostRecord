@@ -25,8 +25,9 @@ import TurndownService from 'turndown'
 import {languageMaps} from '../lib/CMLanguageList'
 import snippetManager from '../lib/SnippetManager'
 import {generateInEditor, tocExistsInEditor} from 'browser/lib/markdown-toc-generator'
+import Jsonlint from 'jsonlint-mod'
 import markdownlint from 'markdownlint'
-import ConfigManager from '../main/lib/ConfigManager'
+import ConfigManager, {DEFAULT_CONFIG} from '../main/lib/ConfigManager'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -41,13 +42,19 @@ function translateHotkey (hotkey) {
 
 const validatorOfMarkdown = (text, updateLinting) => {
   const config = ConfigManager.get()
+  let markdownlintRules = config.editor.customMarkdownLintConfig
+  try {
+    Jsonlint.parse(markdownlintRules)
+  } catch (error) {
+    markdownlintRules = DEFAULT_CONFIG.editor.customMarkdownLintConfig
+  }
+
   const lintOptions = {
     'strings': {
       'content': text
     },
-    'config': JSON.parse(config.editor.customMarkdownLintConfig)
+    'config': JSON.parse(markdownlintRules)
   }
-  console.log(config.editor.customMarkdownLintConfig)
 
   return markdownlint(lintOptions, (err, result) => {
     if (!err) {

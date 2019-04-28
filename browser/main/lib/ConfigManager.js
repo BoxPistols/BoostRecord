@@ -60,7 +60,9 @@ export const DEFAULT_CONFIG = {
     frontMatterTitleField: 'title',
     spellcheck: false,
     enableSmartPaste: false,
-    customMarkdownLintConfig: ''
+    customMarkdownLintConfig: `{
+      "default": true
+    }`
   },
   preview: {
     fontSize: '14',

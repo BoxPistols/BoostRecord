@@ -100,7 +100,12 @@ class MarkdownNoteDetail extends React.Component {
   handleUpdateContent () {
     const { note } = this.state
     note.content = this.refs.content.value
-    note.title = markdown.strip(striptags(findNoteTitle(note.content, this.props.config.editor.enableFrontMatterTitle, this.props.config.editor.frontMatterTitleField)))
+
+    let title = findNoteTitle(note.content, this.props.config.editor.enableFrontMatterTitle, this.props.config.editor.frontMatterTitleField)
+    title = striptags(title)
+    title = markdown.strip(title)
+    note.title = title
+
     this.updateNote(note)
   }
 
@@ -194,6 +199,10 @@ class MarkdownNoteDetail extends React.Component {
 
   exportAsHtml () {
     ee.emit('export:save-html')
+  }
+
+  exportAsPdf () {
+    ee.emit('export:save-pdf')
   }
 
   handleKeyDown (e) {
@@ -421,6 +430,7 @@ class MarkdownNoteDetail extends React.Component {
           exportAsHtml={this.exportAsHtml}
           exportAsMd={this.exportAsMd}
           exportAsTxt={this.exportAsTxt}
+          exportAsPdf={this.exportAsPdf}
         />
       </div>
     </div>
@@ -487,6 +497,7 @@ class MarkdownNoteDetail extends React.Component {
           exportAsMd={this.exportAsMd}
           exportAsTxt={this.exportAsTxt}
           exportAsHtml={this.exportAsHtml}
+          exportAsPdf={this.exportAsPdf}
           wordCount={note.content.split(' ').length}
           letterCount={note.content.replace(/\r?\n/g, '').length}
           type={note.type}

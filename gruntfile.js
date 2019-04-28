@@ -149,6 +149,7 @@ module.exports = function (grunt) {
       case 'osx':
         Object.assign(opts, {
           platform: 'darwin',
+          darwinDarkModeSupport: true,
           icon: path.join(__dirname, 'resources/app.icns'),
           'app-category-type': 'public.app-category.developer-tools'
         })

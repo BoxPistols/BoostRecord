@@ -255,7 +255,7 @@ export default class MarkdownPreview extends React.Component {
       return
     }
     // No contextMenu was passed to us -> execute our own link-opener
-    if (event.target.tagName.toLowerCase() === 'a') {
+    if (event.target.tagName.toLowerCase() === 'a' && event.target.getAttribute('href')) {
       const href = event.target.href
       const isLocalFile = href.startsWith('file:')
       if (isLocalFile) {

@@ -25,6 +25,7 @@ import TurndownService from 'turndown'
 import {languageMaps} from '../lib/CMLanguageList'
 import snippetManager from '../lib/SnippetManager'
 import {generateInEditor, tocExistsInEditor} from 'browser/lib/markdown-toc-generator'
+import markdownlint from 'markdownlint'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -35,6 +36,38 @@ const buildCMRulers = (rulers, enableRulers) =>
 
 function translateHotkey (hotkey) {
   return hotkey.replace(/\s*\+\s*/g, '-').replace(/Command/g, 'Cmd').replace(/Control/g, 'Ctrl')
+}
+
+const validatorOfMarkdown = (text, updateLinting) => {
+  const lintOptions = {
+    'strings': {
+      'content': text
+    }
+  }
+
+  return markdownlint(lintOptions, (err, result) => {
+    if (!err) {
+      const foundIssues = []
+      result.content.map(item => {
+        let ruleNames = ''
+        item.ruleNames.map((ruleName, index) => {
+          ruleNames += ruleName
+          if (index === item.ruleNames.length - 1) {
+            ruleNames += ': '
+          } else {
+            ruleNames += '/'
+          }
+        })
+        foundIssues.push({
+          from: CodeMirror.Pos(item.lineNumber, 0),
+          to: CodeMirror.Pos(item.lineNumber, 1),
+          message: ruleNames + item.ruleDescription,
+          severity: 'warning'
+        })
+      })
+      updateLinting(foundIssues)
+    }
+  })
 }
 
 export default class CodeEditor extends React.Component {
@@ -256,6 +289,7 @@ export default class CodeEditor extends React.Component {
     snippetManager.init()
     this.updateDefaultKeyMap()
 
+    const checkMarkdownNoteIsOpening = this.props.mode === 'Boost Flavored Markdown'
     this.value = this.props.value
     this.editor = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
@@ -272,7 +306,11 @@ export default class CodeEditor extends React.Component {
       inputStyle: 'textarea',
       dragDrop: false,
       foldGutter: true,
-      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
+      lint: checkMarkdownNoteIsOpening ? {
+        'getAnnotations': validatorOfMarkdown,
+        'async': true
+      } : false,
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
       autoCloseBrackets: {
         pairs: this.props.matchingPairs,
         triples: this.props.matchingTriples,

@@ -25,9 +25,9 @@ import TurndownService from 'turndown'
 import {languageMaps} from '../lib/CMLanguageList'
 import snippetManager from '../lib/SnippetManager'
 import {generateInEditor, tocExistsInEditor} from 'browser/lib/markdown-toc-generator'
-import Jsonlint from 'jsonlint-mod'
 import markdownlint from 'markdownlint'
-import ConfigManager, {DEFAULT_CONFIG} from '../main/lib/ConfigManager'
+import Jsonlint from 'jsonlint-mod'
+import { DEFAULT_CONFIG } from '../main/lib/ConfigManager'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -38,47 +38,6 @@ const buildCMRulers = (rulers, enableRulers) =>
 
 function translateHotkey (hotkey) {
   return hotkey.replace(/\s*\+\s*/g, '-').replace(/Command/g, 'Cmd').replace(/Control/g, 'Ctrl')
-}
-
-const validatorOfMarkdown = (text, updateLinting) => {
-  const config = ConfigManager.get()
-  let markdownlintRules = config.editor.customMarkdownLintConfig
-  try {
-    Jsonlint.parse(markdownlintRules)
-  } catch (error) {
-    markdownlintRules = DEFAULT_CONFIG.editor.customMarkdownLintConfig
-  }
-
-  const lintOptions = {
-    'strings': {
-      'content': text
-    },
-    'config': JSON.parse(markdownlintRules)
-  }
-
-  return markdownlint(lintOptions, (err, result) => {
-    if (!err) {
-      const foundIssues = []
-      result.content.map(item => {
-        let ruleNames = ''
-        item.ruleNames.map((ruleName, index) => {
-          ruleNames += ruleName
-          if (index === item.ruleNames.length - 1) {
-            ruleNames += ': '
-          } else {
-            ruleNames += '/'
-          }
-        })
-        foundIssues.push({
-          from: CodeMirror.Pos(item.lineNumber, 0),
-          to: CodeMirror.Pos(item.lineNumber, 1),
-          message: ruleNames + item.ruleDescription,
-          severity: 'warning'
-        })
-      })
-      updateLinting(foundIssues)
-    }
-  })
 }
 
 export default class CodeEditor extends React.Component {
@@ -127,6 +86,8 @@ export default class CodeEditor extends React.Component {
     this.searchHandler = (e, msg) => this.handleSearch(msg)
     this.searchState = null
     this.scrollToLineHandeler = this.scrollToLine.bind(this)
+    this.setCodeEditorLintConfig = this.setCodeEditorLintConfig.bind(this)
+    this.validatorOfMarkdown = this.validatorOfMarkdown.bind(this)
 
     this.formatTable = () => this.handleFormatTable()
 
@@ -300,7 +261,6 @@ export default class CodeEditor extends React.Component {
     snippetManager.init()
     this.updateDefaultKeyMap()
 
-    const checkMarkdownNoteIsOpening = this.props.mode === 'Boost Flavored Markdown'
     this.value = this.props.value
     this.editor = CodeMirror(this.refs.root, {
       rulers: buildCMRulers(rulers, enableRulers),
@@ -317,10 +277,7 @@ export default class CodeEditor extends React.Component {
       inputStyle: 'textarea',
       dragDrop: false,
       foldGutter: true,
-      lint: checkMarkdownNoteIsOpening ? {
-        'getAnnotations': validatorOfMarkdown,
-        'async': true
-      } : false,
+      lint: this.setCodeEditorLintConfig(),
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
       autoCloseBrackets: {
         pairs: this.props.matchingPairs,
@@ -557,7 +514,8 @@ export default class CodeEditor extends React.Component {
     let needRefresh = false
     const {
       rulers,
-      enableRulers
+      enableRulers,
+      customMarkdownLintConfig
     } = this.props
     if (prevProps.mode !== this.props.mode) {
       this.setMode(this.props.mode)
@@ -573,6 +531,11 @@ export default class CodeEditor extends React.Component {
       needRefresh = true
     }
     if (prevProps.keyMap !== this.props.keyMap) {
+      needRefresh = true
+    }
+    if (!needRefresh && prevProps.customMarkdownLintConfig !== customMarkdownLintConfig) {
+      this.setCodeEditorLintConfig()
+
       needRefresh = true
     }
 
@@ -653,6 +616,57 @@ export default class CodeEditor extends React.Component {
     if (needRefresh) {
       this.editor.refresh()
     }
+  }
+
+  setCodeEditorLintConfig () {
+    const { mode } = this.props
+    const checkMarkdownNoteIsOpening = mode === 'Boost Flavored Markdown'
+
+    return checkMarkdownNoteIsOpening ? {
+      'getAnnotations': this.validatorOfMarkdown,
+      'async': true
+    } : false
+  }
+
+  validatorOfMarkdown (text, updateLinting) {
+    const { customMarkdownLintConfig } = this.props
+    let lintConfigJson
+    try {
+      Jsonlint.parse(customMarkdownLintConfig)
+      lintConfigJson = JSON.parse(customMarkdownLintConfig)
+    } catch (err) {
+      throw err
+    }
+    const lintOptions = {
+      'strings': {
+        'content': text
+      },
+      'config': lintConfigJson
+    }
+
+    return markdownlint(lintOptions, (err, result) => {
+      if (!err) {
+        const foundIssues = []
+        result.content.map(item => {
+          let ruleNames = ''
+          item.ruleNames.map((ruleName, index) => {
+            ruleNames += ruleName
+            if (index === item.ruleNames.length - 1) {
+              ruleNames += ': '
+            } else {
+              ruleNames += '/'
+            }
+          })
+          foundIssues.push({
+            from: CodeMirror.Pos(item.lineNumber, 0),
+            to: CodeMirror.Pos(item.lineNumber, 1),
+            message: ruleNames + item.ruleDescription,
+            severity: 'warning'
+          })
+        })
+        updateLinting(foundIssues)
+      }
+    })
   }
 
   setMode (mode) {
@@ -1160,7 +1174,8 @@ CodeEditor.propTypes = {
   onChange: PropTypes.func,
   readOnly: PropTypes.bool,
   autoDetect: PropTypes.bool,
-  spellCheck: PropTypes.bool
+  spellCheck: PropTypes.bool,
+  customMarkdownLintConfig: PropTypes.string
 }
 
 CodeEditor.defaultProps = {
@@ -1172,5 +1187,6 @@ CodeEditor.defaultProps = {
   indentSize: 4,
   indentType: 'space',
   autoDetect: false,
-  spellCheck: false
+  spellCheck: false,
+  customMarkdownLintConfig: DEFAULT_CONFIG.editor.customMarkdownLintConfig
 }

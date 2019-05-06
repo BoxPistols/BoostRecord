@@ -657,7 +657,7 @@ class UiTab extends React.Component {
                     mode: 'application/json',
                     theme: codemirrorTheme,
                     lint: true,
-                    gutters: ['CodeMirror-lint-markers']
+                    gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers']
                   }} />
               </div>
             </div>

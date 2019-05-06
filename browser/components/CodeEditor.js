@@ -533,8 +533,8 @@ export default class CodeEditor extends React.Component {
     if (prevProps.keyMap !== this.props.keyMap) {
       needRefresh = true
     }
-    if (!needRefresh && prevProps.customMarkdownLintConfig !== customMarkdownLintConfig) {
-      this.setCodeEditorLintConfig()
+    if (prevProps.customMarkdownLintConfig !== customMarkdownLintConfig) {
+      this.editor.setOption('lint', this.setCodeEditorLintConfig())
 
       needRefresh = true
     }

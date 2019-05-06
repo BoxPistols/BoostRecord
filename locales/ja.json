@@ -80,7 +80,6 @@
 	"Matching character triples": "自動補完する３文字括弧の列記",
 	"Exploding character pairs": "改行時に空行を挿入する括弧ペアの列記",
 	"Custom MarkdownLint Rules": "カスタムMarkdownLintルール",
-	"⚠️ Please reload boostnote after you change the Custom MarkdownLint rules": "⚠️ カスタムMarkdownLintルール変更後は Boostnote をリロードしてください",
 	"Preview": "プレビュー",
 	"Preview Font Size": "プレビュー時フォントサイズ",
 	"Preview Font Family": "プレビュー時フォント",

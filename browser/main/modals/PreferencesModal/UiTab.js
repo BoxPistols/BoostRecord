@@ -659,7 +659,6 @@ class UiTab extends React.Component {
                     lint: true,
                     gutters: ['CodeMirror-lint-markers']
                   }} />
-                <p styleName='note-for-markdownlint-rules'>{i18n.__(`⚠️ Please reload boostnote after you change the Custom MarkdownLint rules`)}</p>
               </div>
             </div>
           </div>

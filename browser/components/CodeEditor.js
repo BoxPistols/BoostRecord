@@ -620,9 +620,9 @@ export default class CodeEditor extends React.Component {
 
   setCodeEditorLintConfig () {
     const { mode } = this.props
-    const checkMarkdownNoteIsOpening = mode === 'Boost Flavored Markdown'
+    const checkMarkdownNoteIsOpen = mode === 'Boost Flavored Markdown'
 
-    return checkMarkdownNoteIsOpening ? {
+    return checkMarkdownNoteIsOpen ? {
       'getAnnotations': this.validatorOfMarkdown,
       'async': true
     } : false

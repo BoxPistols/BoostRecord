@@ -10,6 +10,7 @@ const { ipcRenderer } = electron
 const consts = require('browser/lib/consts')
 
 let isInitialized = false
+
 const DEFAULT_MARKDOWN_LINT_CONFIG = `{
   "default": true
 }`

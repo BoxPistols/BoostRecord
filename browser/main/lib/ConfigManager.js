@@ -10,6 +10,9 @@ const { ipcRenderer } = electron
 const consts = require('browser/lib/consts')
 
 let isInitialized = false
+const DEFAULT_MARKDOWN_LINT_CONFIG = `{
+  "default": true
+}`
 
 export const DEFAULT_CONFIG = {
   zoom: 1,
@@ -60,9 +63,7 @@ export const DEFAULT_CONFIG = {
     frontMatterTitleField: 'title',
     spellcheck: false,
     enableSmartPaste: false,
-    customMarkdownLintConfig: `{
-      "default": true
-    }`
+    customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG
   },
   preview: {
     fontSize: '14',
@@ -138,7 +139,7 @@ function get () {
     const theme = consts.THEMES.find(theme => theme.name === config.editor.theme)
 
     if (theme) {
-      editorTheme.setAttribute('href', `../${theme.path}`)
+      editorTheme.setAttribute('href', `${theme.path}`)
     } else {
       config.editor.theme = 'default'
     }
@@ -180,7 +181,7 @@ function set (updates) {
   const newTheme = consts.THEMES.find(theme => theme.name === newConfig.editor.theme)
 
   if (newTheme) {
-    editorTheme.setAttribute('href', `../${newTheme.path}`)
+    editorTheme.setAttribute('href', `${newTheme.path}`)
   }
 
   ipcRenderer.send('config-renew', {

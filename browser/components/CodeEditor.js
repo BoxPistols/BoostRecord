@@ -651,11 +651,7 @@ export default class CodeEditor extends React.Component {
           let ruleNames = ''
           item.ruleNames.map((ruleName, index) => {
             ruleNames += ruleName
-            if (index === item.ruleNames.length - 1) {
-              ruleNames += ': '
-            } else {
-              ruleNames += '/'
-            }
+            ruleNames += (index === item.ruleNames.length - 1) ? ': ' : '/'
           })
           foundIssues.push({
             from: CodeMirror.Pos(item.lineNumber, 0),

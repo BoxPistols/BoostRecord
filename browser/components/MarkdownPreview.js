@@ -8,7 +8,7 @@ import consts from 'browser/lib/consts'
 import Raphael from 'raphael'
 import flowchart from 'flowchart'
 import mermaidRender from './render/MermaidRender'
-import SequenceDiagram from 'js-sequence-diagrams'
+import SequenceDiagram from '@rokt33r/js-sequence-diagrams'
 import Chart from 'chart.js'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import htmlTextHelper from 'browser/lib/htmlTextHelper'
@@ -255,7 +255,7 @@ export default class MarkdownPreview extends React.Component {
       return
     }
     // No contextMenu was passed to us -> execute our own link-opener
-    if (event.target.tagName.toLowerCase() === 'a') {
+    if (event.target.tagName.toLowerCase() === 'a' && event.target.getAttribute('href')) {
       const href = event.target.href
       const isLocalFile = href.startsWith('file:')
       if (isLocalFile) {
@@ -282,33 +282,27 @@ export default class MarkdownPreview extends React.Component {
 
   handleMouseDown (e) {
     const config = ConfigManager.get()
+    const clickElement = e.target
+    const targetTag = clickElement.tagName // The direct parent HTML of where was clicked ie "BODY" or "DIV"
+    const lineNumber = getSourceLineNumberByElement(clickElement) // Line location of element clicked.
+
     if (config.editor.switchPreview === 'RIGHTCLICK' && e.buttons === 2 && config.editor.type === 'SPLIT') {
       eventEmitter.emit('topbar:togglemodebutton', 'CODE')
     }
     if (e.ctrlKey) {
       if (config.editor.type === 'SPLIT') {
-        const clickElement = e.target
-        const lineNumber = getSourceLineNumberByElement(clickElement)
         if (lineNumber !== -1) {
           eventEmitter.emit('line:jump', lineNumber)
         }
       } else {
-        const clickElement = e.target
-        const lineNumber = getSourceLineNumberByElement(clickElement)
         if (lineNumber !== -1) {
           eventEmitter.emit('editor:focus')
           eventEmitter.emit('line:jump', lineNumber)
         }
       }
     }
-    if (e.target != null) {
-      switch (e.target.tagName) {
-        case 'A':
-        case 'INPUT':
-          return null
-      }
-    }
-    if (this.props.onMouseDown != null) this.props.onMouseDown(e)
+
+    if (this.props.onMouseDown != null && targetTag === 'BODY') this.props.onMouseDown(e)
   }
 
   handleMouseUp (e) {
@@ -676,14 +670,14 @@ export default class MarkdownPreview extends React.Component {
     )
   }
 
-  GetCodeThemeLink (theme) {
-    theme = consts.THEMES.some(_theme => _theme === theme) &&
-      theme !== 'default'
-      ? theme
-      : 'elegant'
-    return theme.startsWith('solarized')
-      ? `${appPath}/node_modules/codemirror/theme/solarized.css`
-      : `${appPath}/node_modules/codemirror/theme/${theme}.css`
+  GetCodeThemeLink (name) {
+    const theme = consts.THEMES.find(theme => theme.name === name)
+
+    if (theme) {
+      return `${appPath}/${theme.path}`
+    } else {
+      return `${appPath}/node_modules/codemirror/theme/elegant.css`
+    }
   }
 
   rewriteIframe () {
@@ -741,9 +735,9 @@ export default class MarkdownPreview extends React.Component {
       }
     )
 
-    codeBlockTheme = consts.THEMES.some(_theme => _theme === codeBlockTheme)
-      ? codeBlockTheme
-      : 'default'
+    codeBlockTheme = consts.THEMES.find(theme => theme.name === codeBlockTheme)
+
+    const codeBlockThemeClassName = codeBlockTheme ? codeBlockTheme.className : 'cm-s-default'
 
     _.forEach(
       this.refs.root.contentWindow.document.querySelectorAll('.code code'),
@@ -766,14 +760,11 @@ export default class MarkdownPreview extends React.Component {
               })
             }
           }
+
           el.parentNode.appendChild(copyIcon)
           el.innerHTML = ''
-          if (codeBlockTheme.indexOf('solarized') === 0) {
-            const [refThema, color] = codeBlockTheme.split(' ')
-            el.parentNode.className += ` cm-s-${refThema} cm-s-${color}`
-          } else {
-            el.parentNode.className += ` cm-s-${codeBlockTheme}`
-          }
+          el.parentNode.className += ` ${codeBlockThemeClassName}`
+
           CodeMirror.runMode(content, syntax.mime, el, {
             tabSize: indentSize
           })
@@ -888,78 +879,96 @@ export default class MarkdownPreview extends React.Component {
 
     const markdownPreviewIframe = document.querySelector('.MarkdownPreview')
     const rect = markdownPreviewIframe.getBoundingClientRect()
+    const config = { attributes: true, subtree: true }
+    const imgObserver = new MutationObserver((mutationList) => {
+      for (const mu of mutationList) {
+        if (mu.target.className === 'carouselContent-enter-done') {
+          this.setImgOnClickEventHelper(mu.target, rect)
+          break
+        }
+      }
+    })
+
     const imgList = markdownPreviewIframe.contentWindow.document.body.querySelectorAll('img')
     for (const img of imgList) {
-      img.onclick = () => {
-        const widthMagnification = document.body.clientWidth / img.width
-        const heightMagnification = document.body.clientHeight / img.height
-        const baseOnWidth = widthMagnification < heightMagnification
-        const magnification = baseOnWidth ? widthMagnification : heightMagnification
+      const parentEl = img.parentElement
+      this.setImgOnClickEventHelper(img, rect)
+      imgObserver.observe(parentEl, config)
+    }
+  }
 
-        const zoomImgWidth = img.width * magnification
-        const zoomImgHeight = img.height * magnification
-        const zoomImgTop = (document.body.clientHeight - zoomImgHeight) / 2
-        const zoomImgLeft = (document.body.clientWidth - zoomImgWidth) / 2
-        const originalImgTop = img.y + rect.top
-        const originalImgLeft = img.x + rect.left
-        const originalImgRect = {
-          top: `${originalImgTop}px`,
-          left: `${originalImgLeft}px`,
-          width: `${img.width}px`,
-          height: `${img.height}px`
-        }
-        const zoomInImgRect = {
-          top: `${baseOnWidth ? zoomImgTop : 0}px`,
-          left: `${baseOnWidth ? 0 : zoomImgLeft}px`,
-          width: `${zoomImgWidth}px`,
-          height: `${zoomImgHeight}px`
-        }
-        const animationSpeed = 300
+  setImgOnClickEventHelper (img, rect) {
+    img.onclick = () => {
+      const widthMagnification = document.body.clientWidth / img.width
+      const heightMagnification = document.body.clientHeight / img.height
+      const baseOnWidth = widthMagnification < heightMagnification
+      const magnification = baseOnWidth ? widthMagnification : heightMagnification
 
-        const zoomImg = document.createElement('img')
-        zoomImg.src = img.src
+      const zoomImgWidth = img.width * magnification
+      const zoomImgHeight = img.height * magnification
+      const zoomImgTop = (document.body.clientHeight - zoomImgHeight) / 2
+      const zoomImgLeft = (document.body.clientWidth - zoomImgWidth) / 2
+      const originalImgTop = img.y + rect.top
+      const originalImgLeft = img.x + rect.left
+      const originalImgRect = {
+        top: `${originalImgTop}px`,
+        left: `${originalImgLeft}px`,
+        width: `${img.width}px`,
+        height: `${img.height}px`
+      }
+      const zoomInImgRect = {
+        top: `${baseOnWidth ? zoomImgTop : 0}px`,
+        left: `${baseOnWidth ? 0 : zoomImgLeft}px`,
+        width: `${zoomImgWidth}px`,
+        height: `${zoomImgHeight}px`
+      }
+      const animationSpeed = 300
+
+      const zoomImg = document.createElement('img')
+      zoomImg.src = img.src
+      zoomImg.style = `
+        position: absolute;
+        top: ${baseOnWidth ? zoomImgTop : 0}px;
+        left: ${baseOnWidth ? 0 : zoomImgLeft}px;
+        width: ${zoomImgWidth};
+        height: ${zoomImgHeight}px;
+        `
+      zoomImg.animate([
+        originalImgRect,
+        zoomInImgRect
+      ], animationSpeed)
+
+      const overlay = document.createElement('div')
+      overlay.style = `
+        background-color: rgba(0,0,0,0.5);
+        cursor: zoom-out;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: ${document.body.clientHeight}px;
+        z-index: 100;
+      `
+      overlay.onclick = () => {
         zoomImg.style = `
           position: absolute;
-          top: ${baseOnWidth ? zoomImgTop : 0}px;
-          left: ${baseOnWidth ? 0 : zoomImgLeft}px;
-          width: ${zoomImgWidth};
-          height: ${zoomImgHeight}px;
+          top: ${originalImgTop}px;
+          left: ${originalImgLeft}px;
+          width: ${img.width}px;
+          height: ${img.height}px;
           `
-        zoomImg.animate([
-          originalImgRect,
-          zoomInImgRect
+        const zoomOutImgAnimation = zoomImg.animate([
+          zoomInImgRect,
+          originalImgRect
         ], animationSpeed)
-
-        const overlay = document.createElement('div')
-        overlay.style = `
-          background-color: rgba(0,0,0,0.5);
-          cursor: zoom-out;
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: ${document.body.clientHeight}px;
-          z-index: 100;
-        `
-        overlay.onclick = () => {
-          zoomImg.style = `
-            position: absolute;
-            top: ${originalImgTop}px;
-            left: ${originalImgLeft}px;
-            width: ${img.width}px;
-            height: ${img.height}px;
-            `
-          const zoomOutImgAnimation = zoomImg.animate([
-            zoomInImgRect,
-            originalImgRect
-          ], animationSpeed)
-          zoomOutImgAnimation.onfinish = () => overlay.remove()
-        }
-
-        overlay.appendChild(zoomImg)
-        document.body.appendChild(overlay)
+        zoomOutImgAnimation.onfinish = () => overlay.remove()
       }
+
+      overlay.appendChild(zoomImg)
+      document.body.appendChild(overlay)
     }
+
+    this.getWindow().scrollTo(0, 0)
   }
 
   focus () {
@@ -1006,8 +1015,10 @@ export default class MarkdownPreview extends React.Component {
     e.preventDefault()
     e.stopPropagation()
 
-    const href = e.target.href
+    const href = e.target.getAttribute('href')
     const linkHash = href.split('/').pop()
+
+    if (!href) return
 
     const regexNoteInternalLink = /main.html#(.+)/
     if (regexNoteInternalLink.test(linkHash)) {

@@ -895,7 +895,7 @@ class NoteList extends React.Component {
     if (!location.pathname.match(/\/trashed/)) this.addNotesFromFiles(filepaths)
   }
 
-  // Add notes to the current folder
+ // Add notes to the current folder
   addNotesFromFiles (filepaths) {
     const { dispatch, location } = this.props
     const { storage, folder } = this.resolveTargetFolder()
@@ -919,13 +919,20 @@ class NoteList extends React.Component {
           }
           dataApi.createNote(storage.key, newNote)
           .then((note) => {
-            dispatch({
-              type: 'UPDATE_NOTE',
-              note: note
-            })
-            hashHistory.push({
-              pathname: location.pathname,
-              query: {key: getNoteKey(note)}
+            attachmentManagement.importAttachments(note.content, filepath, storage.key, note.key)
+            .then((newcontent) => {
+              note.content = newcontent
+
+              dataApi.updateNote(storage.key, note.key, note)
+
+              dispatch({
+                type: 'UPDATE_NOTE',
+                note: note
+              })
+              hashHistory.push({
+                pathname: location.pathname,
+                query: {key: getNoteKey(note)}
+              })
             })
           })
         })

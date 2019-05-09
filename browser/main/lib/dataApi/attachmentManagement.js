@@ -85,7 +85,7 @@ function getOrientation (file) {
             return view.getUint16(offset + (i * 12) + 8, little)
           }
         }
-      } else if ((marker & 0xFF00) !== 0xFF00) { // If not start with 0xFF, not a Marker
+      } else if ((marker & 0xFF00) !== 0xFF00) { // If not start with 0xFF, not a Marker.
         break
       } else {
         offset += view.getUint16(offset, false)
@@ -278,27 +278,40 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
   let promise
   if (dropEvent.dataTransfer.files.length > 0) {
     promise = Promise.all(Array.from(dropEvent.dataTransfer.files).map(file => {
-      if (file.type.startsWith('image')) {
-        if (file.type === 'image/gif' || file.type === 'image/svg+xml') {
-          return copyAttachment(file.path, storageKey, noteKey).then(fileName => ({
+      const filePath = file.path
+      const fileType = file.type // EX) 'image/gif' or 'text/html'
+      if (fileType.startsWith('image')) {
+        if (fileType === 'image/gif' || fileType === 'image/svg+xml') {
+          return copyAttachment(filePath, storageKey, noteKey).then(fileName => ({
             fileName,
-            title: path.basename(file.path),
+            title: path.basename(filePath),
             isImage: true
           }))
         } else {
-          return fixRotate(file)
-            .then(data => copyAttachment({type: 'base64', data: data, sourceFilePath: file.path}, storageKey, noteKey)
-              .then(fileName => ({
+          return getOrientation(file)
+            .then((orientation) => {
+              if (orientation === -1) { // The image rotation is correct and does not need adjustment
+                return copyAttachment(filePath, storageKey, noteKey)
+              } else {
+                return fixRotate(file).then(data => copyAttachment({
+                  type: 'base64',
+                  data: data,
+                  sourceFilePath: filePath
+                }, storageKey, noteKey))
+              }
+            })
+            .then(fileName =>
+              ({
                 fileName,
-                title: path.basename(file.path),
+                title: path.basename(filePath),
                 isImage: true
-              }))
+              })
             )
         }
       } else {
-        return copyAttachment(file.path, storageKey, noteKey).then(fileName => ({
+        return copyAttachment(filePath, storageKey, noteKey).then(fileName => ({
           fileName,
-          title: path.basename(file.path),
+          title: path.basename(filePath),
           isImage: false
         }))
       }
@@ -325,13 +338,18 @@ function handleAttachmentDrop (codeEditor, storageKey, noteKey, dropEvent) {
         canvas.height = image.height
         context.drawImage(image, 0, 0)
 
-        return copyAttachment({type: 'base64', data: canvas.toDataURL(), sourceFilePath: imageURL}, storageKey, noteKey)
+        return copyAttachment({
+          type: 'base64',
+          data: canvas.toDataURL(),
+          sourceFilePath: imageURL
+        }, storageKey, noteKey)
       })
       .then(fileName => ({
         fileName,
         title: imageURL,
         isImage: true
-      }))])
+      }))
+    ])
   }
 
   promise.then(files => {
@@ -447,6 +465,54 @@ function getAbsolutePathsOfAttachmentsInContent (markdownContent, storagePath) {
     result.push(relativePath.replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER, 'g'), path.join(storagePath, DESTINATION_FOLDER)))
   }
   return result
+}
+
+/**
+ * @description Copies the attachments to the storage folder and returns the mardown content it should be replaced with
+ * @param {String} markDownContent content in which the attachment paths should be found
+ * @param {String} filepath The path of the file with attachments to import
+ * @param {String} storageKey Storage key of the destination storage
+ * @param {String} noteKey Key of the current note. Will be used as subfolder in :storage
+ */
+function importAttachments (markDownContent, filepath, storageKey, noteKey) {
+  return new Promise((resolve, reject) => {
+    const nameRegex = /(!\[.*?]\()(.+?\..+?)(\))/g
+    let attachPath = nameRegex.exec(markDownContent)
+    const promiseArray = []
+    const attachmentPaths = []
+    const groupIndex = 2
+
+    while (attachPath) {
+      let attachmentPath = attachPath[groupIndex]
+      attachmentPaths.push(attachmentPath)
+      attachmentPath = path.isAbsolute(attachmentPath) ? attachmentPath : path.join(path.dirname(filepath), attachmentPath)
+      promiseArray.push(this.copyAttachment(attachmentPath, storageKey, noteKey))
+      attachPath = nameRegex.exec(markDownContent)
+    }
+
+    let numResolvedPromises = 0
+
+    if (promiseArray.length === 0) {
+      resolve(markDownContent)
+    }
+
+    for (let j = 0; j < promiseArray.length; j++) {
+      promiseArray[j]
+      .then((fileName) => {
+        const newPath = path.join(STORAGE_FOLDER_PLACEHOLDER, noteKey, fileName)
+        markDownContent = markDownContent.replace(attachmentPaths[j], newPath)
+      })
+      .catch((e) => {
+        console.error('File does not exist in path: ' + attachmentPaths[j])
+      })
+      .finally(() => {
+        numResolvedPromises++
+        if (numResolvedPromises === promiseArray.length) {
+          resolve(markDownContent)
+        }
+      })
+    }
+  })
 }
 
 /**
@@ -656,6 +722,7 @@ module.exports = {
   handlePasteNativeImage,
   getAttachmentsInMarkdownContent,
   getAbsolutePathsOfAttachmentsInContent,
+  importAttachments,
   removeStorageAndNoteReferences,
   deleteAttachmentFolder,
   deleteAttachmentsNotPresentInNote,

@@ -16,7 +16,7 @@
   const modifier = macOS ? 'metaKey' : 'ctrlKey'
 
   class HyperLink {
-    constructor(cm) {
+    constructor (cm) {
       this.cm = cm
       this.lineDiv = cm.display.lineDiv
 
@@ -47,7 +47,7 @@
         passive: true
       })
     }
-    getUrl(el) {
+    getUrl (el) {
       const className = el.className.split(' ')
 
       if (className.indexOf('cm-url') !== -1) {
@@ -60,7 +60,7 @@
 
       return null
     }
-    onMouseDown(e) {
+    onMouseDown (e) {
       const { target } = e
       if (!e[modifier]) {
         return
@@ -73,39 +73,37 @@
         shell.openExternal(url)
       }
     }
-    onMouseEnter(e) {
+    onMouseEnter (e) {
       const { target } = e
 
       const url = this.getUrl(target)
       if (url) {
         if (e[modifier]) {
           target.classList.add('CodeMirror-activeline-background', 'CodeMirror-hyperlink')
-        }
-        else {
+        } else {
           target.classList.add('CodeMirror-activeline-background')
         }
 
         this.showInfo(target)
       }
     }
-    onMouseLeave(e) {
+    onMouseLeave (e) {
       if (this.tooltip.parentElement === this.lineDiv) {
         e.target.classList.remove('CodeMirror-activeline-background', 'CodeMirror-hyperlink')
 
         this.lineDiv.removeChild(this.tooltip)
       }
     }
-    onMouseMove(e) {
+    onMouseMove (e) {
       if (this.tooltip.parentElement === this.lineDiv) {
         if (e[modifier]) {
           e.target.classList.add('CodeMirror-hyperlink')
-        }
-        else {
+        } else {
           e.target.classList.remove('CodeMirror-hyperlink')
         }
       }
     }
-    showInfo(relatedTo) {
+    showInfo (relatedTo) {
       const b1 = relatedTo.getBoundingClientRect()
       const b2 = this.lineDiv.getBoundingClientRect()
       const tdiv = this.tooltip
@@ -117,8 +115,7 @@
       const top = b1.top - b2.top - b3.height - yOffset
       if (top < 0) {
         tdiv.style.top = (b1.top - b2.top + b1.height + yOffset) + 'px'
-      }
-      else {
+      } else {
         tdiv.style.top = top + 'px'
       }
     }

@@ -23,6 +23,7 @@ import i18n from 'browser/lib/i18n'
 import fs from 'fs'
 import { render } from 'react-dom'
 import Carousel from 'react-image-carousel'
+import { hashHistory } from 'react-router'
 import ConfigManager from '../main/lib/ConfigManager'
 
 const { remote, shell } = require('electron')
@@ -1015,15 +1016,19 @@ export default class MarkdownPreview extends React.Component {
     e.preventDefault()
     e.stopPropagation()
 
-    const href = e.target.getAttribute('href')
-    const linkHash = href.split('/').pop()
+    const rawHref = e.target.getAttribute('href')
+    const parser = document.createElement('a')
+    parser.href = e.target.getAttribute('href')
+    const { href, hash } = parser
+    const linkHash = hash === '' ? rawHref : hash // needed because we're having special link formats that are removed by parser e.g. :line:10
 
-    if (!href) return
+    if (!rawHref) return // not checked href because parser will create file://... string for [empty link]()
 
-    const regexNoteInternalLink = /main.html#(.+)/
-    if (regexNoteInternalLink.test(linkHash)) {
-      const targetId = mdurl.encode(linkHash.match(regexNoteInternalLink)[1])
-      const targetElement = this.refs.root.contentWindow.document.getElementById(
+    const regexNoteInternalLink = /.*[main.\w]*.html#/
+
+    if (regexNoteInternalLink.test(href)) {
+      const targetId = mdurl.encode(linkHash)
+      const targetElement = this.refs.root.contentWindow.document.querySelector(
         targetId
       )
 
@@ -1058,6 +1063,13 @@ export default class MarkdownPreview extends React.Component {
     const regexIsLegacyNoteLink = /^(.{20})-(.{20})$/
     if (regexIsLegacyNoteLink.test(linkHash)) {
       eventEmitter.emit('list:jump', linkHash.split('-')[1])
+      return
+    }
+
+    const regexIsTagLink = /^:tag:#([\w]+)$/
+    if (regexIsTagLink.test(rawHref)) {
+      const tag = rawHref.match(regexIsTagLink)[1]
+      hashHistory.push(`/tags/${encodeURIComponent(tag)}`)
       return
     }
 

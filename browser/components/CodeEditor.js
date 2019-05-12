@@ -647,15 +647,17 @@ export default class CodeEditor extends React.Component {
     return markdownlint(lintOptions, (err, result) => {
       if (!err) {
         const foundIssues = []
+        const splitText = text.split('\n')
         result.content.map(item => {
           let ruleNames = ''
           item.ruleNames.map((ruleName, index) => {
             ruleNames += ruleName
             ruleNames += (index === item.ruleNames.length - 1) ? ': ' : '/'
           })
+          const lineNumber = item.lineNumber - 1
           foundIssues.push({
-            from: CodeMirror.Pos(item.lineNumber, 0),
-            to: CodeMirror.Pos(item.lineNumber, 1),
+            from: CodeMirror.Pos(lineNumber, 0),
+            to: CodeMirror.Pos(lineNumber, splitText[lineNumber].length),
             message: ruleNames + item.ruleDescription,
             severity: 'warning'
           })

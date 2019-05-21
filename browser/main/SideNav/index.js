@@ -493,6 +493,7 @@ class SideNav extends React.Component {
           type='text'
           onChange={this.handleSearchInputChange}
           value={searchText}
+          placeholder={i18n.__('Filter tags/folders...')}
         />
         <img styleName='search-clear' src='../resources/icon/icon-x.svg' onClick={this.handleSearchInputClear} />
         {isFolded && <img styleName='search-folded' src='../resources/icon/icon-search-active.svg' onClick={this.handleSearchButtonClick} />}

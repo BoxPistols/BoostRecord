@@ -158,5 +158,6 @@
 	"Spellcheck disabled": "Spellcheck disabled",
 	"Show menu bar": "Show menu bar",
 	"Auto Detect": "Auto Detect",
-	"Snippet Default Language": "Lenguaje por defecto de los fragmentos de código"
+	"Snippet Default Language": "Lenguaje por defecto de los fragmentos de código",
+	"Filter tags/folders...": "filter etiquetas/carpeta..."
 }

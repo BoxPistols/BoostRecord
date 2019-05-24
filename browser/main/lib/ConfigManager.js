@@ -64,6 +64,7 @@ export const DEFAULT_CONFIG = {
     frontMatterTitleField: 'title',
     spellcheck: false,
     enableSmartPaste: false,
+    enableMarkdownLint: false,
     customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG
   },
   preview: {

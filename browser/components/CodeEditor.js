@@ -40,6 +40,8 @@ function translateHotkey (hotkey) {
   return hotkey.replace(/\s*\+\s*/g, '-').replace(/Command/g, 'Cmd').replace(/Control/g, 'Ctrl')
 }
 
+const DEFAULT_GUTTERS = ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']
+
 export default class CodeEditor extends React.Component {
   constructor (props) {
     super(props)
@@ -255,7 +257,7 @@ export default class CodeEditor extends React.Component {
   }
 
   componentDidMount () {
-    const { rulers, enableRulers } = this.props
+    const { rulers, enableRulers, enableMarkdownLint } = this.props
     eventEmitter.on('line:jump', this.scrollToLineHandeler)
 
     snippetManager.init()
@@ -277,8 +279,8 @@ export default class CodeEditor extends React.Component {
       inputStyle: 'textarea',
       dragDrop: false,
       foldGutter: true,
-      lint: this.setCodeEditorLintConfig(),
-      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
+      lint: enableMarkdownLint ? this.setCodeEditorLintConfig() : false,
+      gutters: [...DEFAULT_GUTTERS, enableMarkdownLint && 'CodeMirror-lint-markers'],
       autoCloseBrackets: {
         pairs: this.props.matchingPairs,
         triples: this.props.matchingTriples,
@@ -515,6 +517,7 @@ export default class CodeEditor extends React.Component {
     const {
       rulers,
       enableRulers,
+      enableMarkdownLint,
       customMarkdownLintConfig
     } = this.props
     if (prevProps.mode !== this.props.mode) {
@@ -533,8 +536,14 @@ export default class CodeEditor extends React.Component {
     if (prevProps.keyMap !== this.props.keyMap) {
       needRefresh = true
     }
-    if (prevProps.customMarkdownLintConfig !== customMarkdownLintConfig) {
-      this.editor.setOption('lint', this.setCodeEditorLintConfig())
+    if (prevProps.enableMarkdownLint !== enableMarkdownLint || prevProps.customMarkdownLintConfig !== customMarkdownLintConfig) {
+      if (!enableMarkdownLint) {
+        this.editor.setOption('lint', {default: false})
+        this.editor.setOption('gutters', DEFAULT_GUTTERS)
+      } else {
+        this.editor.setOption('lint', this.setCodeEditorLintConfig())
+        this.editor.setOption('gutters', [...DEFAULT_GUTTERS, 'CodeMirror-lint-markers'])
+      }
 
       needRefresh = true
     }
@@ -1128,13 +1137,11 @@ export default class CodeEditor extends React.Component {
       }
       ref='root'
       tabIndex='-1'
-      style={
-      {
+      style={{
         fontFamily,
         fontSize: fontSize,
         width: width
-      }
-      }
+      }}
       onDrop={
         e => this.handleDropImage(e)
       }
@@ -1173,6 +1180,7 @@ CodeEditor.propTypes = {
   readOnly: PropTypes.bool,
   autoDetect: PropTypes.bool,
   spellCheck: PropTypes.bool,
+  enableMarkdownLint: PropTypes.bool,
   customMarkdownLintConfig: PropTypes.string
 }
 
@@ -1186,5 +1194,6 @@ CodeEditor.defaultProps = {
   indentType: 'space',
   autoDetect: false,
   spellCheck: false,
+  enableMarkdownLint: DEFAULT_CONFIG.editor.enableMarkdownLint,
   customMarkdownLintConfig: DEFAULT_CONFIG.editor.customMarkdownLintConfig
 }

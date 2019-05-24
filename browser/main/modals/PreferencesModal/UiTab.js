@@ -104,6 +104,7 @@ class UiTab extends React.Component {
         explodingPairs: this.refs.explodingPairs.value,
         spellcheck: this.refs.spellcheck.checked,
         enableSmartPaste: this.refs.enableSmartPaste.checked,
+        enableMarkdownLint: this.refs.enableMarkdownLint.checked,
         customMarkdownLintConfig: this.customMarkdownLintConfigCM.getCodeMirror().getValue()
       },
       preview: {
@@ -596,6 +597,17 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Enable spellcheck - Experimental feature!! :)')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.enableMarkdownLint}
+                ref='enableMarkdownLint'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable MarkdownLint')}
             </label>
           </div>
 

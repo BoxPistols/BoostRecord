@@ -86,7 +86,7 @@ export default class CodeEditor extends React.Component {
     this.searchHandler = (e, msg) => this.handleSearch(msg)
     this.searchState = null
     this.scrollToLineHandeler = this.scrollToLine.bind(this)
-    this.setCodeEditorLintConfig = this.getCodeEditorLintConfig.bind(this)
+    this.getCodeEditorLintConfig = this.getCodeEditorLintConfig.bind(this)
     this.validatorOfMarkdown = this.validatorOfMarkdown.bind(this)
 
     this.formatTable = () => this.handleFormatTable()

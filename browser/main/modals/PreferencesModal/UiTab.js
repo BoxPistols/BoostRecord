@@ -600,17 +600,6 @@ class UiTab extends React.Component {
             </label>
           </div>
 
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input onChange={(e) => this.handleUIChange(e)}
-                checked={this.state.config.editor.enableMarkdownLint}
-                ref='enableMarkdownLint'
-                type='checkbox'
-              />&nbsp;
-              {i18n.__('Enable MarkdownLint')}
-            </label>
-          </div>
-
           <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('Matching character pairs')}
@@ -657,6 +646,12 @@ class UiTab extends React.Component {
               {i18n.__('Custom MarkdownLint Rules')}
             </div>
             <div styleName='group-section-control'>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.enableMarkdownLint}
+                ref='enableMarkdownLint'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable MarkdownLint')}
               <div style={{fontFamily}}>
                 <ReactCodeMirror
                   width='400px'

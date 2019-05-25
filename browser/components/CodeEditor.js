@@ -40,8 +40,6 @@ function translateHotkey (hotkey) {
   return hotkey.replace(/\s*\+\s*/g, '-').replace(/Command/g, 'Cmd').replace(/Control/g, 'Ctrl')
 }
 
-const DEFAULT_GUTTERS = ['CodeMirror-linenumbers', 'CodeMirror-foldgutter']
-
 export default class CodeEditor extends React.Component {
   constructor (props) {
     super(props)
@@ -280,7 +278,7 @@ export default class CodeEditor extends React.Component {
       dragDrop: false,
       foldGutter: true,
       lint: enableMarkdownLint ? this.setCodeEditorLintConfig() : false,
-      gutters: [...DEFAULT_GUTTERS, enableMarkdownLint && 'CodeMirror-lint-markers'],
+      gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
       autoCloseBrackets: {
         pairs: this.props.matchingPairs,
         triples: this.props.matchingTriples,
@@ -289,6 +287,8 @@ export default class CodeEditor extends React.Component {
       },
       extraKeys: this.defaultKeyMap
     })
+
+    document.querySelector('.CodeMirror-lint-markers').style.display = enableMarkdownLint ? 'inline-block' : 'none'
 
     if (!this.props.mode && this.props.value && this.props.autoDetect) {
       this.autoDetectLanguage(this.props.value)
@@ -539,12 +539,11 @@ export default class CodeEditor extends React.Component {
     if (prevProps.enableMarkdownLint !== enableMarkdownLint || prevProps.customMarkdownLintConfig !== customMarkdownLintConfig) {
       if (!enableMarkdownLint) {
         this.editor.setOption('lint', {default: false})
-        this.editor.setOption('gutters', DEFAULT_GUTTERS)
+        document.querySelector('.CodeMirror-lint-markers').style.display = 'none'
       } else {
         this.editor.setOption('lint', this.setCodeEditorLintConfig())
-        this.editor.setOption('gutters', [...DEFAULT_GUTTERS, 'CodeMirror-lint-markers'])
+        document.querySelector('.CodeMirror-lint-markers').style.display = 'inline-block'
       }
-
       needRefresh = true
     }
 

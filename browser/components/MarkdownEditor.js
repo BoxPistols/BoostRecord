@@ -194,6 +194,7 @@ class MarkdownEditor extends React.Component {
   }
 
   reload () {
+    console.log('reloading editor...')
     this.refs.code.reload()
     this.cancelQueue()
     this.renderPreview(this.props.value)
@@ -277,7 +278,7 @@ class MarkdownEditor extends React.Component {
     if (this.props.ignorePreviewPointerEvents) previewStyle.pointerEvents = 'none'
 
     const storage = findStorage(storageKey)
-
+    console.log('render editor', config)
     return (
       <div className={className == null
           ? 'MarkdownEditor'

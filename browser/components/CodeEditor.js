@@ -86,7 +86,7 @@ export default class CodeEditor extends React.Component {
     this.searchHandler = (e, msg) => this.handleSearch(msg)
     this.searchState = null
     this.scrollToLineHandeler = this.scrollToLine.bind(this)
-    this.setCodeEditorLintConfig = this.setCodeEditorLintConfig.bind(this)
+    this.getCodeEditorLintConfig = this.getCodeEditorLintConfig.bind(this)
     this.validatorOfMarkdown = this.validatorOfMarkdown.bind(this)
 
     this.formatTable = () => this.handleFormatTable()
@@ -277,7 +277,7 @@ export default class CodeEditor extends React.Component {
       inputStyle: 'textarea',
       dragDrop: false,
       foldGutter: true,
-      lint: enableMarkdownLint ? this.setCodeEditorLintConfig() : false,
+      lint: enableMarkdownLint ? this.getCodeEditorLintConfig() : false,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
       autoCloseBrackets: {
         pairs: this.props.matchingPairs,
@@ -541,7 +541,7 @@ export default class CodeEditor extends React.Component {
         this.editor.setOption('lint', {default: false})
         document.querySelector('.CodeMirror-lint-markers').style.display = 'none'
       } else {
-        this.editor.setOption('lint', this.setCodeEditorLintConfig())
+        this.editor.setOption('lint', this.getCodeEditorLintConfig())
         document.querySelector('.CodeMirror-lint-markers').style.display = 'inline-block'
       }
       needRefresh = true
@@ -626,7 +626,7 @@ export default class CodeEditor extends React.Component {
     }
   }
 
-  setCodeEditorLintConfig () {
+  getCodeEditorLintConfig () {
     const { mode } = this.props
     const checkMarkdownNoteIsOpen = mode === 'Boost Flavored Markdown'
 

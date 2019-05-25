@@ -32,7 +32,7 @@ class UiTab extends React.Component {
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
     CodeMirror.autoLoadMode(this.customMarkdownLintConfigCM.getCodeMirror(), 'javascript')
     this.customCSSCM.getCodeMirror().setSize('400px', '400px')
-    this.customMarkdownLintConfigCM.getCodeMirror().setSize('400px', '400px')
+    this.customMarkdownLintConfigCM.getCodeMirror().setSize('400px', '200px')
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
@@ -660,7 +660,7 @@ class UiTab extends React.Component {
               <div style={{fontFamily}}>
                 <ReactCodeMirror
                   width='400px'
-                  height='400px'
+                  height='200px'
                   onChange={e => this.handleUIChange(e)}
                   ref={e => (this.customMarkdownLintConfigCM = e)}
                   value={config.editor.customMarkdownLintConfig}

@@ -26,8 +26,18 @@ class TopBar extends React.Component {
     }
 
     this.codeInitHandler = this.handleCodeInit.bind(this)
+    this.handleKeyDown = this.handleKeyDown.bind(this)
+    this.handleSearchFocus = this.handleSearchFocus.bind(this)
+    this.handleSearchBlur = this.handleSearchBlur.bind(this)
+    this.handleSearchChange = this.handleSearchChange.bind(this)
 
-    this.updateKeyword = debounce(this.updateKeyword, 1000 / 60, {
+    this.debouncedUpdateKeyword = debounce((keyword) => {
+      this.context.router.push(`/searched/${encodeURIComponent(keyword)}`)
+      this.setState({
+        search: keyword
+      })
+      ee.emit('top:search', keyword)
+    }, 1000 / 60, {
       maxWait: 1000 / 8
     })
   }
@@ -62,12 +72,6 @@ class TopBar extends React.Component {
   }
 
   handleKeyDown (e) {
-    // reset states
-    this.setState({
-      isAlphabet: false,
-      isIME: false
-    })
-
     // Clear search on ESC
     if (e.keyCode === 27) {
       return this.handleSearchClearButton(e)
@@ -84,51 +88,11 @@ class TopBar extends React.Component {
       ee.emit('list:prior')
       e.preventDefault()
     }
-
-    // When the key is an alphabet, del, enter or ctr
-    if (e.keyCode <= 90 || e.keyCode >= 186 && e.keyCode <= 222) {
-      this.setState({
-        isAlphabet: true
-      })
-    // When the key is an IME input (Japanese, Chinese)
-    } else if (e.keyCode === 229) {
-      this.setState({
-        isIME: true
-      })
-    }
-  }
-
-  handleKeyUp (e) {
-    // reset states
-    this.setState({
-      isConfirmTranslation: false
-    })
-
-    // When the key is translation confirmation (Enter, Space)
-    if (this.state.isIME && (e.keyCode === 32 || e.keyCode === 13)) {
-      this.setState({
-        isConfirmTranslation: true
-      })
-      const keyword = this.refs.searchInput.value
-      this.updateKeyword(keyword)
-    }
   }
 
   handleSearchChange (e) {
-    if (this.state.isAlphabet || this.state.isConfirmTranslation) {
-      const keyword = this.refs.searchInput.value
-      this.updateKeyword(keyword)
-    } else {
-      e.preventDefault()
-    }
-  }
-
-  updateKeyword (keyword) {
-    this.context.router.push(`/searched/${encodeURIComponent(keyword)}`)
-    this.setState({
-      search: keyword
-    })
-    ee.emit('top:search', keyword)
+    const keyword = this.refs.searchInput.value
+    this.debouncedUpdateKeyword(keyword)
   }
 
   handleSearchFocus (e) {
@@ -136,6 +100,7 @@ class TopBar extends React.Component {
       isSearching: true
     })
   }
+
   handleSearchBlur (e) {
     e.stopPropagation()
 
@@ -178,24 +143,23 @@ class TopBar extends React.Component {
         <div styleName='control'>
           <div styleName='control-search'>
             <div styleName='control-search-input'
-              onFocus={(e) => this.handleSearchFocus(e)}
-              onBlur={(e) => this.handleSearchBlur(e)}
+              onFocus={this.handleSearchFocus}
+              onBlur={this.handleSearchBlur}
               tabIndex='-1'
               ref='search'
             >
               <input
                 ref='searchInput'
                 value={this.state.search}
-                onChange={(e) => this.handleSearchChange(e)}
-                onKeyDown={(e) => this.handleKeyDown(e)}
-                onKeyUp={(e) => this.handleKeyUp(e)}
+                onChange={(e) => this.debouncedUpdateKeyword(this.refs.searchInput.value)}
+                onKeyDown={this.handleKeyDown}
                 placeholder={i18n.__('Search')}
                 type='text'
                 className='searchInput'
               />
               {this.state.search !== '' &&
                 <button styleName='control-search-input-clear'
-                  onClick={(e) => this.handleSearchClearButton(e)}
+                  onClick={this.handleSearchChange}
                 >
                   <i className='fa fa-fw fa-times' />
                   <span styleName='control-search-input-clear-tooltip'>{i18n.__('Clear Search')}</span>

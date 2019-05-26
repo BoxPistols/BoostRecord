@@ -652,7 +652,7 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Enable MarkdownLint')}
-              <div style={{fontFamily}}>
+              <div style={{fontFamily, display: this.state.config.editor.enableMarkdownLint ? 'block' : 'none'}}>
                 <ReactCodeMirror
                   width='400px'
                   height='200px'

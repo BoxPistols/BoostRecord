@@ -40,7 +40,6 @@ class UiTab extends React.Component {
       }})
     }
     this.handleSettingError = (err) => {
-      console.log('handle err', err)
       this.setState({UiAlert: {
         type: 'error',
         message: err.message != null ? err.message : i18n.__('An error occurred!')

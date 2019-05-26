@@ -642,7 +642,6 @@ export default class CodeEditor extends React.Component {
     try {
       Jsonlint.parse(customMarkdownLintConfig)
       lintConfigJson = JSON.parse(customMarkdownLintConfig)
-      console.log(customMarkdownLintConfig, lintConfigJson)
     } catch (err) {
       eventEmitter.emit('APP_SETTING_ERROR')
       return

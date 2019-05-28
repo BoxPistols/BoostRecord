@@ -7,6 +7,7 @@ import ee from 'browser/main/lib/eventEmitter'
 import NewNoteButton from 'browser/main/NewNoteButton'
 import i18n from 'browser/lib/i18n'
 import debounce from 'lodash/debounce'
+import CInput from 'react-composition-input'
 
 class TopBar extends React.Component {
   constructor (props) {
@@ -15,10 +16,7 @@ class TopBar extends React.Component {
     this.state = {
       search: '',
       searchOptions: [],
-      isSearching: false,
-      isAlphabet: false,
-      isIME: false,
-      isConfirmTranslation: false
+      isSearching: false
     }
 
     this.focusSearchHandler = () => {
@@ -30,6 +28,7 @@ class TopBar extends React.Component {
     this.handleSearchFocus = this.handleSearchFocus.bind(this)
     this.handleSearchBlur = this.handleSearchBlur.bind(this)
     this.handleSearchChange = this.handleSearchChange.bind(this)
+    this.handleSearchClearButton = this.handleSearchClearButton.bind(this)
 
     this.debouncedUpdateKeyword = debounce((keyword) => {
       this.context.router.push(`/searched/${encodeURIComponent(keyword)}`)
@@ -91,7 +90,7 @@ class TopBar extends React.Component {
   }
 
   handleSearchChange (e) {
-    const keyword = this.refs.searchInput.value
+    const keyword = e.target.value
     this.debouncedUpdateKeyword(keyword)
   }
 
@@ -130,7 +129,7 @@ class TopBar extends React.Component {
   }
 
   handleCodeInit () {
-    ee.emit('top:search', this.refs.searchInput.value)
+    ee.emit('top:search', this.refs.searchInput.value || '')
   }
 
   render () {
@@ -148,10 +147,10 @@ class TopBar extends React.Component {
               tabIndex='-1'
               ref='search'
             >
-              <input
+              <CInput
                 ref='searchInput'
                 value={this.state.search}
-                onChange={(e) => this.debouncedUpdateKeyword(this.refs.searchInput.value)}
+                onInputChange={this.handleSearchChange}
                 onKeyDown={this.handleKeyDown}
                 placeholder={i18n.__('Search')}
                 type='text'
@@ -159,7 +158,7 @@ class TopBar extends React.Component {
               />
               {this.state.search !== '' &&
                 <button styleName='control-search-input-clear'
-                  onClick={this.handleSearchChange}
+                  onClick={this.handleSearchClearButton}
                 >
                   <i className='fa fa-fw fa-times' />
                   <span styleName='control-search-input-clear-tooltip'>{i18n.__('Clear Search')}</span>

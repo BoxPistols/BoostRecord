@@ -85,11 +85,15 @@ class MarkdownNoteDetail extends React.Component {
     // Focus content if using blur or double click
     // --> Moved here from componentDidMount so a re-render during search won't set focus to the editor
     const {switchPreview} = nextProps.config.editor
-    this.setState({
-      switchPreview
-    })
-    if (switchPreview === 'BLUR' || switchPreview === 'DBL_CLICK') {
-      this.focus()
+
+    if (this.state.switchPreview !== switchPreview) {
+      this.setState({
+        switchPreview
+      })
+      if (switchPreview === 'BLUR' || switchPreview === 'DBL_CLICK') {
+        console.log('setting focus', switchPreview)
+        this.focus()
+      }
     }
   }
 

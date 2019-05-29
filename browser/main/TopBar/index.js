@@ -8,6 +8,7 @@ import NewNoteButton from 'browser/main/NewNoteButton'
 import i18n from 'browser/lib/i18n'
 import debounce from 'lodash/debounce'
 import CInput from 'react-composition-input'
+import { push } from 'connected-react-router'
 
 class TopBar extends React.Component {
   constructor (props) {
@@ -18,6 +19,8 @@ class TopBar extends React.Component {
       searchOptions: [],
       isSearching: false
     }
+
+    const { dispatch } = this.props
 
     this.focusSearchHandler = () => {
       this.handleOnSearchFocus()
@@ -31,7 +34,7 @@ class TopBar extends React.Component {
     this.handleSearchClearButton = this.handleSearchClearButton.bind(this)
 
     this.debouncedUpdateKeyword = debounce((keyword) => {
-      this.context.router.push(`/searched/${encodeURIComponent(keyword)}`)
+      dispatch(push(`/searched/${encodeURIComponent(keyword)}`))
       this.setState({
         search: keyword
       })
@@ -42,8 +45,8 @@ class TopBar extends React.Component {
   }
 
   componentDidMount () {
-    const { params } = this.props
-    const searchWord = params.searchword
+    const { match: { params } } = this.props
+    const searchWord = params && params.searchword
     if (searchWord !== undefined) {
       this.setState({
         search: searchWord,
@@ -60,13 +63,13 @@ class TopBar extends React.Component {
   }
 
   handleSearchClearButton (e) {
-    const { router } = this.context
+    const { dispatch } = this.props
     this.setState({
       search: '',
       isSearching: false
     })
     this.refs.search.childNodes[0].blur
-    router.push('/searched')
+    dispatch(push('/searched'))
     e.preventDefault()
   }
 
@@ -173,8 +176,8 @@ class TopBar extends React.Component {
             'dispatch',
             'data',
             'config',
-            'params',
-            'location'
+            'location',
+            'match'
           ])}
         />}
       </div>

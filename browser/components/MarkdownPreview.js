@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
+import { connect } from 'react-redux'
 import Markdown from 'browser/lib/markdown'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
@@ -23,7 +24,7 @@ import i18n from 'browser/lib/i18n'
 import fs from 'fs'
 import { render } from 'react-dom'
 import Carousel from 'react-image-carousel'
-import { hashHistory } from 'react-router'
+import { push } from 'connected-react-router'
 import ConfigManager from '../main/lib/ConfigManager'
 
 const { remote, shell } = require('electron')
@@ -206,7 +207,7 @@ function getSourceLineNumberByElement (element) {
   return parent.dataset.line !== undefined ? parseInt(parent.dataset.line) : -1
 }
 
-export default class MarkdownPreview extends React.Component {
+class MarkdownPreview extends React.Component {
   constructor (props) {
     super(props)
 
@@ -1021,6 +1022,7 @@ export default class MarkdownPreview extends React.Component {
     parser.href = e.target.getAttribute('href')
     const { href, hash } = parser
     const linkHash = hash === '' ? rawHref : hash // needed because we're having special link formats that are removed by parser e.g. :line:10
+    const { dispatch } = this.props
 
     if (!rawHref) return // not checked href because parser will create file://... string for [empty link]()
 
@@ -1069,7 +1071,7 @@ export default class MarkdownPreview extends React.Component {
     const regexIsTagLink = /^:tag:#([\w]+)$/
     if (regexIsTagLink.test(rawHref)) {
       const tag = rawHref.match(regexIsTagLink)[1]
-      hashHistory.push(`/tags/${encodeURIComponent(tag)}`)
+      dispatch(push(`/tags/${encodeURIComponent(tag)}`))
       return
     }
 
@@ -1106,3 +1108,5 @@ MarkdownPreview.propTypes = {
   smartArrows: PropTypes.bool,
   breaks: PropTypes.bool
 }
+
+export default connect()(MarkdownPreview)

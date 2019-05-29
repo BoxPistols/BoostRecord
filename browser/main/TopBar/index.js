@@ -74,6 +74,11 @@ class TopBar extends React.Component {
   }
 
   handleKeyDown (e) {
+    // Re-apply search field on ENTER key
+    if (e.keyCode === 13) {
+      this.debouncedUpdateKeyword(e.target.value)
+    }
+
     // Clear search on ESC
     if (e.keyCode === 27) {
       return this.handleSearchClearButton(e)

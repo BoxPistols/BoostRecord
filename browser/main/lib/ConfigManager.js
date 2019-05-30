@@ -110,7 +110,6 @@ function validate (config) {
 }
 
 function _save (config) {
-  console.log(config)
   window.localStorage.setItem('config', JSON.stringify(config))
 }
 
@@ -143,7 +142,7 @@ function get () {
     const theme = consts.THEMES.find(theme => theme.name === config.editor.theme)
 
     if (theme) {
-      editorTheme.setAttribute('href', `../${theme.path}`)
+      editorTheme.setAttribute('href', theme.path)
     } else {
       config.editor.theme = 'default'
     }
@@ -191,7 +190,7 @@ function set (updates) {
   const newTheme = consts.THEMES.find(theme => theme.name === newConfig.editor.theme)
 
   if (newTheme) {
-    editorTheme.setAttribute('href', `../${newTheme.path}`)
+    editorTheme.setAttribute('href', newTheme.path)
   }
 
   ipcRenderer.send('config-renew', {

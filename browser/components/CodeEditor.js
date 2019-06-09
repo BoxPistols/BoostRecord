@@ -20,7 +20,7 @@ import styles from '../components/CodeEditor.styl'
 const { ipcRenderer, remote, clipboard } = require('electron')
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 const spellcheck = require('browser/lib/spellcheck')
-const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')
+const buildEditorContextMenu = require('browser/lib/contextMenuBuilder').buildEditorContextMenu
 import TurndownService from 'turndown'
 import {languageMaps} from '../lib/CMLanguageList'
 import snippetManager from '../lib/SnippetManager'

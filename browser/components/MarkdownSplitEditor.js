@@ -159,9 +159,9 @@ class MarkdownSplitEditor extends React.Component {
     const {config, value, storageKey, noteKey, linesHighlighted, isStacking} = this.props
     const storage = findStorage(storageKey)
 
-    const editorStyle = {}
-    const previewStyle = {}
-    const sliderStyle = {}
+    let editorStyle = {}
+    let previewStyle = {}
+    let sliderStyle = {}
 
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -171,21 +171,29 @@ class MarkdownSplitEditor extends React.Component {
     if (!(editorStyle.fontSize > 0 && editorStyle.fontSize < 132)) editorIndentSize = 4
     editorStyle.indentSize = editorIndentSize
 
-    if (isStacking) {
-      editorStyle.width = 100 + '%'
-      editorStyle.height = this.state.codeEditorHeightInPercent + '%'
-      previewStyle.width = 100 + '%'
-      previewStyle.height = (100 - this.state.codeEditorHeightInPercent) + '%'
-      sliderStyle.left = 0
-      sliderStyle.top = this.state.codeEditorHeightInPercent + '%'
-    } else {
-      editorStyle.width = this.state.codeEditorWidthInPercent + '%'
-      editorStyle.height = 100 + '%'
-      previewStyle.width = (100 - this.state.codeEditorWidthInPercent) + '%'
-      previewStyle.height = 100 + '%'
-      sliderStyle.left = this.state.codeEditorWidthInPercent + '%'
-      sliderStyle.top = 0
-    }
+    editorStyle = Object.assign(editorStyle, isStacking ? {
+      width: '100%',
+      height: `${this.state.codeEditorHeightInPercent}%`
+    } : {
+      width: `${this.state.codeEditorWidthInPercent}%`,
+      height: '100%'
+    })
+
+    previewStyle = Object.assign(previewStyle, isStacking ? {
+      width: '100%',
+      height: `${100 - this.state.codeEditorHeightInPercent}%`
+    } : {
+      width: `${100 - this.state.codeEditorWidthInPercent}%`,
+      height: '100%'
+    })
+
+    sliderStyle = Object.assign(sliderStyle, isStacking ? {
+      left: 0,
+      top: `${this.state.codeEditorHeightInPercent}%`
+    } : {
+      left: `${this.state.codeEditorWidthInPercent}%`,
+      top: 0
+    })
 
     if (this.props.ignorePreviewPointerEvents || this.state.isSliderFocused) previewStyle.pointerEvents = 'none'
 

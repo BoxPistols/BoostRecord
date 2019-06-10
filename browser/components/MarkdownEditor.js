@@ -32,6 +32,7 @@ class MarkdownEditor extends React.Component {
   componentDidMount () {
     this.value = this.refs.code.value
     eventEmitter.on('editor:lock', this.lockEditorCode)
+    eventEmitter.on('editor:focus', this.focusEditor.bind(this))
   }
 
   componentDidUpdate () {
@@ -47,6 +48,15 @@ class MarkdownEditor extends React.Component {
   componentWillUnmount () {
     this.cancelQueue()
     eventEmitter.off('editor:lock', this.lockEditorCode)
+    eventEmitter.off('editor:focus', this.focusEditor.bind(this))
+  }
+
+  focusEditor () {
+    this.setState({
+      status: 'CODE'
+    }, () => {
+      this.refs.code.focus()
+    })
   }
 
   queueRendering (value) {
@@ -149,10 +159,10 @@ class MarkdownEditor extends React.Component {
     e.preventDefault()
     e.stopPropagation()
     const idMatch = /checkbox-([0-9]+)/
-    const checkedMatch = /^\s*[\+\-\*] \[x\]/i
-    const uncheckedMatch = /^\s*[\+\-\*] \[ \]/
-    const checkReplace = /\[x\]/i
-    const uncheckReplace = /\[ \]/
+    const checkedMatch = /^(\s*>?)*\s*[+\-*] \[x]/i
+    const uncheckedMatch = /^(\s*>?)*\s*[+\-*] \[ ]/
+    const checkReplace = /\[x]/i
+    const uncheckReplace = /\[ ]/
     if (idMatch.test(e.target.getAttribute('id'))) {
       const lineIndex = parseInt(e.target.getAttribute('id').match(idMatch)[1], 10) - 1
       const lines = this.refs.code.value
@@ -309,6 +319,8 @@ class MarkdownEditor extends React.Component {
           enableSmartPaste={config.editor.enableSmartPaste}
           hotkey={config.hotkey}
           switchPreview={config.editor.switchPreview}
+          enableMarkdownLint={config.editor.enableMarkdownLint}
+          customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
         />
         <MarkdownPreview styleName={this.state.status === 'PREVIEW'
             ? 'preview'

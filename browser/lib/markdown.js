@@ -32,6 +32,7 @@ class Markdown {
 
     const updatedOptions = Object.assign(defaultOptions, options)
     this.md = markdownit(updatedOptions)
+    this.md.linkify.set({ fuzzyLink: false })
 
     if (updatedOptions.sanitize !== 'NONE') {
       const allowedTags = ['iframe', 'input', 'b',
@@ -181,7 +182,7 @@ class Markdown {
     })
 
     const deflate = require('markdown-it-plantuml/lib/deflate')
-    this.md.use(require('markdown-it-plantuml'), '', {
+    this.md.use(require('markdown-it-plantuml'), {
       generateSource: function (umlCode) {
         const stripTrailingSlash = (url) => url.endsWith('/') ? url.slice(0, -1) : url
         const serverAddress = stripTrailingSlash(config.preview.plantUMLServerAddress) + '/svg'

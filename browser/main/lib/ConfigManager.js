@@ -11,6 +11,10 @@ const consts = require('browser/lib/consts')
 
 let isInitialized = false
 
+const DEFAULT_MARKDOWN_LINT_CONFIG = `{
+  "default": true
+}`
+
 export const DEFAULT_CONFIG = {
   zoom: 1,
   isSideNavFolded: false,
@@ -47,7 +51,7 @@ export const DEFAULT_CONFIG = {
     enableRulers: false,
     rulers: [80, 120],
     displayLineNumbers: true,
-    matchingPairs: '()[]{}\'\'""$$**``',
+    matchingPairs: '()[]{}\'\'""$$**``~~__',
     matchingTriples: '```"""\'\'\'',
     explodingPairs: '[]{}``$$',
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
@@ -60,7 +64,9 @@ export const DEFAULT_CONFIG = {
     enableFrontMatterTitle: true,
     frontMatterTitleField: 'title',
     spellcheck: false,
-    enableSmartPaste: false
+    enableSmartPaste: false,
+    enableMarkdownLint: false,
+    customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG
   },
   preview: {
     fontSize: '14',
@@ -133,16 +139,12 @@ function get () {
       document.head.appendChild(editorTheme)
     }
 
-    config.editor.theme = consts.THEMES.some((theme) => theme === config.editor.theme)
-      ? config.editor.theme
-      : 'default'
+    const theme = consts.THEMES.find(theme => theme.name === config.editor.theme)
 
-    if (config.editor.theme !== 'default') {
-      if (config.editor.theme.startsWith('solarized')) {
-        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/solarized.css')
-      } else {
-        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme + '.css')
-      }
+    if (theme) {
+      editorTheme.setAttribute('href', `../${theme.path}`)
+    } else {
+      config.editor.theme = 'default'
     }
   }
 
@@ -178,16 +180,11 @@ function set (updates) {
     editorTheme.setAttribute('rel', 'stylesheet')
     document.head.appendChild(editorTheme)
   }
-  const newTheme = consts.THEMES.some((theme) => theme === newConfig.editor.theme)
-    ? newConfig.editor.theme
-    : 'default'
 
-  if (newTheme !== 'default') {
-    if (newTheme.startsWith('solarized')) {
-      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/solarized.css')
-    } else {
-      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme + '.css')
-    }
+  const newTheme = consts.THEMES.find(theme => theme.name === newConfig.editor.theme)
+
+  if (newTheme) {
+    editorTheme.setAttribute('href', `../${newTheme.path}`)
   }
 
   ipcRenderer.send('config-renew', {

@@ -1128,10 +1128,11 @@ export default class CodeEditor extends React.Component {
     const {
       className,
       fontSize,
+      fontFamily,
       width,
       height
     } = this.props
-    const fontFamily = normalizeEditorFontFamily(this.props.fontFamily)
+    const normalizedFontFamily = normalizeEditorFontFamily(fontFamily)
 
     return (<
       div className={
@@ -1140,7 +1141,7 @@ export default class CodeEditor extends React.Component {
       ref='root'
       tabIndex='-1'
       style={{
-        fontFamily,
+        normalizedFontFamily,
         fontSize: fontSize,
         width: width,
         height: height

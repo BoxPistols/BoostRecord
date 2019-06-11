@@ -28,6 +28,7 @@ import {generateInEditor, tocExistsInEditor} from 'browser/lib/markdown-toc-gene
 import markdownlint from 'markdownlint'
 import Jsonlint from 'jsonlint-mod'
 import { DEFAULT_CONFIG } from '../main/lib/ConfigManager'
+const prettier = require('prettier')
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -231,6 +232,10 @@ export default class CodeEditor extends React.Component {
           document.execCommand('copy')
         }
         return CodeMirror.Pass
+      },
+      'Shift-Alt-F': cm => {
+        // console.log(prettier.format('foo ( );', { semi: false, parser: 'babel' }))
+        // console.log('Key Combo Pressed')
       },
       [translateHotkey(hotkey.pasteSmartly)]: cm => {
         this.handlePaste(cm, true)

@@ -220,7 +220,7 @@ export default class CodeEditor extends React.Component {
         const dateNow = new Date()
         cm.replaceSelection(dateNow.toLocaleString())
       },
-      'Shift-Cmd-/': function (cm) {
+      'Alt-Cmd-/': function (cm) {
         if (global.process.platform !== 'darwin') { return }
         const dateNow = new Date()
         cm.replaceSelection(dateNow.toLocaleString())

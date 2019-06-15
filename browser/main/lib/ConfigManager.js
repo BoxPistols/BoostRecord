@@ -31,6 +31,7 @@ export const DEFAULT_CONFIG = {
     toggleMode: OSX ? 'Command + Alt + M' : 'Ctrl + M',
     deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace',
     pasteSmartly: OSX ? 'Command + Shift + V' : 'Ctrl + Shift + V',
+    prettifyMarkdown: 'Shift + Alt + F',
     toggleMenuBar: 'Alt'
   },
   ui: {

@@ -31,8 +31,12 @@ class UiTab extends React.Component {
     CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
     CodeMirror.autoLoadMode(this.customMarkdownLintConfigCM.getCodeMirror(), 'javascript')
+    CodeMirror.autoLoadMode(this.prettierConfigCM.getCodeMirror(), 'json')
+    // Set CM editor Sizes
     this.customCSSCM.getCodeMirror().setSize('400px', '400px')
+    this.prettierConfigCM.getCodeMirror().setSize('400px', '400px')
     this.customMarkdownLintConfigCM.getCodeMirror().setSize('400px', '200px')
+
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
@@ -105,7 +109,9 @@ class UiTab extends React.Component {
         spellcheck: this.refs.spellcheck.checked,
         enableSmartPaste: this.refs.enableSmartPaste.checked,
         enableMarkdownLint: this.refs.enableMarkdownLint.checked,
-        customMarkdownLintConfig: this.customMarkdownLintConfigCM.getCodeMirror().getValue()
+        customMarkdownLintConfig: this.customMarkdownLintConfigCM.getCodeMirror().getValue(),
+        prettierConfig: this.prettierConfigCM.getCodeMirror().getValue()
+
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -892,7 +898,26 @@ class UiTab extends React.Component {
               </div>
             </div>
           </div>
-
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Prettier Config')}
+            </div>
+            <div styleName='group-section-control'>
+              <div style={{fontFamily}}>
+                <ReactCodeMirror
+                  width='400px'
+                  height='400px'
+                  onChange={e => this.handleUIChange(e)}
+                  ref={e => (this.prettierConfigCM = e)}
+                  value={config.editor.prettierConfig}
+                  options={{
+                    lineNumbers: true,
+                    mode: 'json',
+                    theme: codemirrorTheme
+                  }} />
+              </div>
+            </div>
+          </div>
           <div styleName='group-control'>
             <button styleName='group-control-rightButton'
               onClick={(e) => this.handleSaveUIClick(e)}>{i18n.__('Save')}

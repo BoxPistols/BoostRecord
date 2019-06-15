@@ -233,9 +233,23 @@ export default class CodeEditor extends React.Component {
         }
         return CodeMirror.Pass
       },
-      'Shift-Alt-F': cm => {
-        // console.log(prettier.format('foo ( );', { semi: false, parser: 'babel' }))
-        // console.log('Key Combo Pressed')
+      [translateHotkey(hotkey.prettifyMarkdown)]: cm => {
+        // Default / User configured prettier options
+        const currentConfig = JSON.parse(self.props.prettierConfig)
+        // Get current cursor position.
+        const cursorPos = cm.getCursor()
+        currentConfig.cursorOffset = cm.doc.indexFromPos(cursorPos)
+
+        // Prettify contents of editor.
+        const formattedTextDetails = prettier.formatWithCursor(cm.doc.getValue(), currentConfig)
+
+        const formattedText = formattedTextDetails.formatted
+        const formattedCursorPos = formattedTextDetails.cursorOffset
+        cm.doc.setValue(formattedText)
+
+        // Reset Cursor position to be at the same markdown as was before prettifying
+        const newCursorPos = cm.doc.posFromIndex(formattedCursorPos)
+        cm.doc.setCursor(newCursorPos)
       },
       [translateHotkey(hotkey.pasteSmartly)]: cm => {
         this.handlePaste(cm, true)
@@ -290,7 +304,8 @@ export default class CodeEditor extends React.Component {
         explode: this.props.explodingPairs,
         override: true
       },
-      extraKeys: this.defaultKeyMap
+      extraKeys: this.defaultKeyMap,
+      prettierConfig: this.props.prettierConfig
     })
 
     document.querySelector('.CodeMirror-lint-markers').style.display = enableMarkdownLint ? 'inline-block' : 'none'
@@ -1200,5 +1215,6 @@ CodeEditor.defaultProps = {
   autoDetect: false,
   spellCheck: false,
   enableMarkdownLint: DEFAULT_CONFIG.editor.enableMarkdownLint,
-  customMarkdownLintConfig: DEFAULT_CONFIG.editor.customMarkdownLintConfig
+  customMarkdownLintConfig: DEFAULT_CONFIG.editor.customMarkdownLintConfig,
+  prettierConfig: DEFAULT_CONFIG.editor.prettierConfig
 }

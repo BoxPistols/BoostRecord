@@ -66,7 +66,15 @@ export const DEFAULT_CONFIG = {
     spellcheck: false,
     enableSmartPaste: false,
     enableMarkdownLint: false,
-    customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG
+    customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG,
+    prettierConfig: ` {
+      "trailingComma": "es5",
+      "tabWidth": 4,
+      "semi": false,
+      "singleQuote": true,
+      "parser":"markdown"
+    }`
+
   },
   preview: {
     fontSize: '14',

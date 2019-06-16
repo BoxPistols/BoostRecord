@@ -73,7 +73,7 @@ export const DEFAULT_CONFIG = {
       "semi": false,
       "singleQuote": true,
       "parser":"markdown"
-    }`
+  }`
 
   },
   preview: {

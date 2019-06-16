@@ -205,23 +205,11 @@ export default class CodeEditor extends React.Component {
       'Cmd-T': function (cm) {
         // Do nothing
       },
-      'Ctrl-/': function (cm) {
-        if (global.process.platform === 'darwin') { return }
+      [translateHotkey(hotkey.insertDate)]: function (cm) {
         const dateNow = new Date()
         cm.replaceSelection(dateNow.toLocaleDateString())
       },
-      'Cmd-/': function (cm) {
-        if (global.process.platform !== 'darwin') { return }
-        const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleDateString())
-      },
-      'Shift-Ctrl-/': function (cm) {
-        if (global.process.platform === 'darwin') { return }
-        const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleString())
-      },
-      'Alt-Cmd-/': function (cm) {
-        if (global.process.platform !== 'darwin') { return }
+      [translateHotkey(hotkey.insertDateTime)]: function (cm) {
         const dateNow = new Date()
         cm.replaceSelection(dateNow.toLocaleString())
       },

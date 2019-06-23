@@ -738,6 +738,7 @@ class SnippetNoteDetail extends React.Component {
             enableSmartPaste={config.editor.enableSmartPaste}
             hotkey={config.hotkey}
             autoDetect={autoDetect}
+            dateISO8601={config.ui.dateFormatISO8601}
           />
         }
       </div>

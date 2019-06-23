@@ -39,7 +39,8 @@ export const DEFAULT_CONFIG = {
     showCopyNotification: true,
     disableDirectWrite: false,
     defaultNote: 'ALWAYS_ASK', // 'ALWAYS_ASK', 'SNIPPET_NOTE', 'MARKDOWN_NOTE'
-    showMenuBar: false
+    showMenuBar: false,
+    dateFormatISO8601: false
   },
   editor: {
     theme: 'base16-light',

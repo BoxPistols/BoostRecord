@@ -321,6 +321,7 @@ class MarkdownEditor extends React.Component {
           switchPreview={config.editor.switchPreview}
           enableMarkdownLint={config.editor.enableMarkdownLint}
           customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
+          dateISO8601={config.ui.dateFormatISO8601}
         />
         <MarkdownPreview styleName={this.state.status === 'PREVIEW'
             ? 'preview'

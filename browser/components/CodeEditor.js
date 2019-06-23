@@ -208,7 +208,11 @@ export default class CodeEditor extends React.Component {
       'Ctrl-/': function (cm) {
         if (global.process.platform === 'darwin') { return }
         const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleDateString())
+        if (self.props.dateISO8601) {
+          cm.replaceSelection(dateNow.toISOString().split('T')[0])
+        } else {
+          cm.replaceSelection(dateNow.toLocaleDateString())
+        }
       },
       'Cmd-/': function (cm) {
         if (global.process.platform !== 'darwin') { return }
@@ -218,7 +222,11 @@ export default class CodeEditor extends React.Component {
       'Shift-Ctrl-/': function (cm) {
         if (global.process.platform === 'darwin') { return }
         const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleString())
+        if (self.props.dateISO8601) {
+          cm.replaceSelection(dateNow.toISOString())
+        } else {
+          cm.replaceSelection(dateNow.toLocaleString())
+        }
       },
       'Shift-Cmd-/': function (cm) {
         if (global.process.platform !== 'darwin') { return }

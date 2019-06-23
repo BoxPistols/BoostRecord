@@ -31,7 +31,7 @@ class UiTab extends React.Component {
     CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
     CodeMirror.autoLoadMode(this.customMarkdownLintConfigCM.getCodeMirror(), 'javascript')
-    CodeMirror.autoLoadMode(this.prettierConfigCM.getCodeMirror(), 'json')
+    CodeMirror.autoLoadMode(this.prettierConfigCM.getCodeMirror(), 'javascript')
     // Set CM editor Sizes
     this.customCSSCM.getCodeMirror().setSize('400px', '400px')
     this.prettierConfigCM.getCodeMirror().setSize('400px', '400px')
@@ -912,7 +912,8 @@ class UiTab extends React.Component {
                   value={config.editor.prettierConfig}
                   options={{
                     lineNumbers: true,
-                    mode: 'json',
+                    mode: 'application/json',
+                    lint: true,
                     theme: codemirrorTheme
                   }} />
               </div>

@@ -895,6 +895,12 @@ export default class MarkdownPreview extends React.Component {
       this.setImgOnClickEventHelper(img, rect)
       imgObserver.observe(parentEl, config)
     }
+
+    const aList = markdownPreviewIframe.contentWindow.document.body.querySelectorAll('a')
+    for (const a of aList) {
+      a.removeEventListener('click', this.linkClickHandler)
+      a.addEventListener('click', this.linkClickHandler)
+    }
   }
 
   setImgOnClickEventHelper (img, rect) {
@@ -1023,11 +1029,11 @@ export default class MarkdownPreview extends React.Component {
 
     if (!rawHref) return // not checked href because parser will create file://... string for [empty link]()
 
-    const regexNoteInternalLink = /.*[main.\w]*.html#/
-
-    if (regexNoteInternalLink.test(href)) {
-      const targetId = mdurl.encode(linkHash)
-      const targetElement = this.refs.root.contentWindow.document.querySelector(
+    const extractId = /(main.html)?#/
+    const regexNoteInternalLink = new RegExp(`${extractId.source}(.+)`)
+    if (regexNoteInternalLink.test(linkHash)) {
+      const targetId = mdurl.encode(linkHash.replace(extractId, ''))
+      const targetElement = this.refs.root.contentWindow.document.getElementById(
         targetId
       )
 

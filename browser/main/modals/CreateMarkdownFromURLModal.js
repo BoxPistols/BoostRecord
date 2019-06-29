@@ -107,8 +107,11 @@ class CreateMarkdownFromURLModal extends React.Component {
 }
 
 CreateMarkdownFromURLModal.propTypes = {
-  storage: PropTypes.shape({
-    key: PropTypes.string
+  storage: PropTypes.string,
+  folder: PropTypes.string,
+  dispatch: PropTypes.func,
+  location: PropTypes.shape({
+    pathname: PropTypes.string
   })
 }
 

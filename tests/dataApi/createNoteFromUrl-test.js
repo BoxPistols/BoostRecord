@@ -12,7 +12,6 @@ const TestDummy = require('../fixtures/TestDummy')
 const sander = require('sander')
 const os = require('os')
 const CSON = require('@rokt33r/season')
-// const faker = require('faker')
 
 const storagePath = path.join(os.tmpdir(), 'test/create-note-from-url')
 
@@ -27,25 +26,14 @@ test.serial('Create a note from URL', (t) => {
 
   const url = 'https://shapeshed.com/writing-cross-platform-node/'
 
-  return Promise.resolve()
-    .then(function doTest () {
-      return Promise.all([
-        createNoteFromUrl(url, storageKey, folderKey)
-      ])
-    })
-    .then(function assert (data) {
-      const data1 = data[0]
+  return createNoteFromUrl(url, storageKey, folderKey)
+    .then(function assert ({ note }) {
+      t.is(storageKey, note.storage)
+      const jsonData = CSON.readFileSync(path.join(storagePath, 'notes', note.key + '.cson'))
 
-      console.log('STORM LOOK HERE', data1)
-
-      t.is(storageKey, data1.storage)
-      const jsonData2 = CSON.readFileSync(path.join(storagePath, 'notes', data1.key + '.cson'))
-
-      //  <<<<<< fix me - input2 & data not defined
-      /* t.is(input2.content, data2.content)
-      t.is(input2.content, jsonData2.content)
-      t.is(input2.tags.length, data2.tags.length)
-      t.is(input2.tags.length, jsonData2.tags.length) */
+      // Test if saved content is matching the created in memory note
+      t.is(note.content, jsonData.content)
+      t.is(note.tags.length, jsonData.tags.length)
     })
 })
 

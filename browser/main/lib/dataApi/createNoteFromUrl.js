@@ -76,7 +76,7 @@ function createNoteFromUrl (url, storage, folder, dispatch = null, location = nu
             title: '',
             content: markdownHTML
           }).then((note) => {
-            resolve({result: true, error: null})
+            resolve({result: true, note, error: null})
           })
         }
       })

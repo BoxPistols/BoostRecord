@@ -3,10 +3,7 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './CreateMarkdownFromURLModal.styl'
 import dataApi from 'browser/main/lib/dataApi'
-import store from 'browser/main/store'
-import consts from 'browser/lib/consts'
 import ModalEscButton from 'browser/components/ModalEscButton'
-import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import i18n from 'browser/lib/i18n'
 
 class CreateMarkdownFromURLModal extends React.Component {
@@ -18,7 +15,6 @@ class CreateMarkdownFromURLModal extends React.Component {
       showerror: false,
       errormessage: ''
     }
-
   }
 
   componentDidMount () {
@@ -57,7 +53,7 @@ class CreateMarkdownFromURLModal extends React.Component {
     this.setState({
       showerror: true,
       errormessage: message
-    });
+    })
   }
 
   hideError () {
@@ -68,14 +64,14 @@ class CreateMarkdownFromURLModal extends React.Component {
   }
 
   confirm () {
-      this.hideError()
-      const { storage, folder, dispatch, location } = this.props
+    this.hideError()
+    const { storage, folder, dispatch, location } = this.props
 
-      let note = dataApi.createNoteFromUrl(this.state.name, storage, folder, dispatch, location).then((result) => {
-        this.props.close()
-      }).catch((result) => {
-        this.showError(result.error);
-      });
+    dataApi.createNoteFromUrl(this.state.name, storage, folder, dispatch, location).then((result) => {
+      this.props.close()
+    }).catch((result) => {
+      this.showError(result.error)
+    })
   }
 
   render () {
@@ -103,7 +99,7 @@ class CreateMarkdownFromURLModal extends React.Component {
           >
             {i18n.__('Import')}
           </button>
-          <div className="error" styleName="error">{this.state.errormessage}</div>
+          <div className='error' styleName='error'>{this.state.errormessage}</div>
         </div>
       </div>
     )

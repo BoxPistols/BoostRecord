@@ -27,7 +27,6 @@ test.serial('Create a note from URL', (t) => {
 
   const url = 'https://shapeshed.com/writing-cross-platform-node/'
 
-
   return Promise.resolve()
     .then(function doTest () {
       return Promise.all([
@@ -37,10 +36,12 @@ test.serial('Create a note from URL', (t) => {
     .then(function assert (data) {
       const data1 = data[0]
 
-      console.log("STORM LOOK HERE", data1)
+      console.log('STORM LOOK HERE', data1)
 
       t.is(storageKey, data1.storage)
       const jsonData2 = CSON.readFileSync(path.join(storagePath, 'notes', data1.key + '.cson'))
+
+      //  <<<<<< fix me - input2 & data not defined
       t.is(input2.content, data2.content)
       t.is(input2.content, jsonData2.content)
       t.is(input2.tags.length, data2.tags.length)

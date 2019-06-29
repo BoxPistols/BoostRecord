@@ -3,27 +3,27 @@ const https = require('https')
 const TurndownService = require('turndown')
 const createNote = require('./createNote')
 
-import { hashHistory } from 'react-router'
+import { push } from 'connected-react-router'
 import ee from 'browser/main/lib/eventEmitter'
 
-function validateUrl(str) {
-  if(/^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(str)) {
-    return true;
+function validateUrl (str) {
+  if (/^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})).?)(?::\d{2,5})?(?:[/?#]\S*)?$/i.test(str)) {
+    return true
   } else {
-    return false;
+    return false
   }
 }
 
 function createNoteFromUrl (url, storage, folder, dispatch = null, location = null) {
   return new Promise((resolve, reject) => {
-    let td = new TurndownService();
+    let td = new TurndownService()
 
-    if(!validateUrl(url)) {
-      reject({result: false, error: "Please check your URL is in correct format. (Example, https://www.google.com)"})
+    if (!validateUrl(url)) {
+      reject({result: false, error: 'Please check your URL is in correct format. (Example, https://www.google.com)'})
     }
 
     let request = http
-    if(url.includes('https')) {
+    if (url.includes('https')) {
       request = https
     }
 
@@ -39,7 +39,7 @@ function createNoteFromUrl (url, storage, folder, dispatch = null, location = nu
         html.innerHTML = data
 
         let scripts = html.getElementsByTagName('script')
-        for(let i = scripts.length - 1; i >= 0; i--) {
+        for (let i = scripts.length - 1; i >= 0; i--) {
           scripts[i].parentNode.removeChild(scripts[i])
         }
 
@@ -48,7 +48,7 @@ function createNoteFromUrl (url, storage, folder, dispatch = null, location = nu
 
         html.innerHTML = ''
 
-        if(dispatch !== null) {
+        if (dispatch !== null) {
           createNote(storage, {
             type: 'MARKDOWN_NOTE',
             folder: folder,
@@ -61,10 +61,10 @@ function createNoteFromUrl (url, storage, folder, dispatch = null, location = nu
               type: 'UPDATE_NOTE',
               note: note
             })
-            hashHistory.push({
+            dispatch(push({
               pathname: location.pathname,
               query: {key: noteHash}
-            })
+            }))
             ee.emit('list:jump', noteHash)
             ee.emit('detail:focus')
             resolve({result: true, error: null})
@@ -86,9 +86,8 @@ function createNoteFromUrl (url, storage, folder, dispatch = null, location = nu
       console.error('error in parsing URL', e)
       reject({result: false, error: e})
     })
-    req.end();
+    req.end()
   })
-
 }
 
-module.exports = createNoteFromUrl;
+module.exports = createNoteFromUrl

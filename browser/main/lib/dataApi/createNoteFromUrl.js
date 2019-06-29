@@ -16,18 +16,15 @@ function validateUrl (str) {
 
 function createNoteFromUrl (url, storage, folder, dispatch = null, location = null) {
   return new Promise((resolve, reject) => {
-    let td = new TurndownService()
+    const td = new TurndownService()
 
     if (!validateUrl(url)) {
       reject({result: false, error: 'Please check your URL is in correct format. (Example, https://www.google.com)'})
     }
 
-    let request = http
-    if (url.includes('https')) {
-      request = https
-    }
+    const request = url.includes('https') ? https : http
 
-    let req = request.request(url, (res) => {
+    const req = request.request(url, (res) => {
       let data = ''
 
       res.on('data', (chunk) => {
@@ -35,16 +32,16 @@ function createNoteFromUrl (url, storage, folder, dispatch = null, location = nu
       })
 
       res.on('end', () => {
-        let html = document.createElement('html')
+        const html = document.createElement('html')
         html.innerHTML = data
 
-        let scripts = html.getElementsByTagName('script')
+        const scripts = html.getElementsByTagName('script')
         for (let i = scripts.length - 1; i >= 0; i--) {
           scripts[i].parentNode.removeChild(scripts[i])
         }
 
-        let body = html.getElementsByTagName('body')[0].innerHTML
-        let markdownHTML = td.turndown(body)
+        const body = html.getElementsByTagName('body')[0].innerHTML
+        const markdownHTML = td.turndown(body)
 
         html.innerHTML = ''
 

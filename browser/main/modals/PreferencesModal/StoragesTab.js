@@ -70,7 +70,7 @@ class StoragesTab extends React.Component {
     })
     return (
       <div styleName='list'>
-        <div styleName='header'>{i18n.__('Storages')}</div>
+        <div styleName='header'>{i18n.__('Storage Locations')}</div>
         {storageList.length > 0
           ? storageList
           : <div styleName='list-empty'>{i18n.__('No storage found.')}</div>
@@ -182,7 +182,7 @@ class StoragesTab extends React.Component {
             <div styleName='addStorage-body-section-path'>
               <input styleName='addStorage-body-section-path-input'
                 ref='addStoragePath'
-                placeholder='Select Folder'
+                placeholder={i18n.__('Select Folder')}
                 value={this.state.newStorage.path}
                 onChange={(e) => this.handleAddStorageChange(e)}
               />

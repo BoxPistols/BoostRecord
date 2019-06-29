@@ -7,6 +7,7 @@ import modal from 'browser/main/lib/modal'
 import NewNoteModal from 'browser/main/modals/NewNoteModal'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import i18n from 'browser/lib/i18n'
+import { createMarkdownNote, createSnippetNote } from 'browser/lib/newNote'
 
 const { remote } = require('electron')
 const { dialog } = remote
@@ -20,35 +21,39 @@ class NewNoteButton extends React.Component {
     this.state = {
     }
 
-    this.newNoteHandler = () => {
-      this.handleNewNoteButtonClick()
-    }
+    this.handleNewNoteButtonClick = this.handleNewNoteButtonClick.bind(this)
   }
 
   componentDidMount () {
-    eventEmitter.on('top:new-note', this.newNoteHandler)
+    eventEmitter.on('top:new-note', this.handleNewNoteButtonClick)
   }
 
   componentWillUnmount () {
-    eventEmitter.off('top:new-note', this.newNoteHandler)
+    eventEmitter.off('top:new-note', this.handleNewNoteButtonClick)
   }
 
   handleNewNoteButtonClick (e) {
-    const { location, dispatch } = this.props
+    const { location, dispatch, match: { params }, config } = this.props
     const { storage, folder } = this.resolveTargetFolder()
-
-    modal.open(NewNoteModal, {
-      storage: storage.key,
-      folder: folder.key,
-      dispatch,
-      location
-    })
+    if (config.ui.defaultNote === 'MARKDOWN_NOTE') {
+      createMarkdownNote(storage.key, folder.key, dispatch, location, params, config)
+    } else if (config.ui.defaultNote === 'SNIPPET_NOTE') {
+      createSnippetNote(storage.key, folder.key, dispatch, location, params, config)
+    } else {
+      modal.open(NewNoteModal, {
+        storage: storage.key,
+        folder: folder.key,
+        dispatch,
+        location,
+        params,
+        config
+      })
+    }
   }
 
   resolveTargetFolder () {
-    const { data, params } = this.props
+    const { data, match: { params } } = this.props
     let storage = data.storageMap.get(params.storageKey)
-
     // Find first storage
     if (storage == null) {
       for (const kv of data.storageMap) {
@@ -84,7 +89,7 @@ class NewNoteButton extends React.Component {
       >
         <div styleName='control'>
           <button styleName='control-newNoteButton'
-            onClick={(e) => this.handleNewNoteButtonClick(e)}>
+            onClick={this.handleNewNoteButtonClick}>
             <img styleName='iconTag' src='../resources/icon/icon-newnote.svg' />
             <span styleName='control-newNoteButton-tooltip'>
               {i18n.__('Make a note')} {OSX ? '⌘' : i18n.__('Ctrl')} + N

@@ -14,14 +14,24 @@ class MarkdownSplitEditor extends React.Component {
     this.focus = () => this.refs.code.focus()
     this.reload = () => this.refs.code.reload()
     this.userScroll = true
+    this.state = {
+      isSliderFocused: false,
+      codeEditorWidthInPercent: 50
+    }
   }
 
-  handleOnChange () {
+  setValue (value) {
+    this.refs.code.setValue(value)
+  }
+
+  handleOnChange (e) {
     this.value = this.refs.code.value
-    this.props.onChange()
+    this.props.onChange(e)
   }
 
   handleScroll (e) {
+    if (!this.props.config.preview.scrollSync) return
+
     const previewDoc = _.get(this, 'refs.preview.refs.root.contentWindow.document')
     const codeDoc = _.get(this, 'refs.code.editor.doc')
     let srcTop, srcHeight, targetTop, targetHeight
@@ -68,8 +78,10 @@ class MarkdownSplitEditor extends React.Component {
     e.preventDefault()
     e.stopPropagation()
     const idMatch = /checkbox-([0-9]+)/
-    const checkedMatch = /\[x\]/i
-    const uncheckedMatch = /\[ \]/
+    const checkedMatch = /^(\s*>?)*\s*[+\-*] \[x]/i
+    const uncheckedMatch = /^(\s*>?)*\s*[+\-*] \[ ]/
+    const checkReplace = /\[x]/i
+    const uncheckReplace = /\[ ]/
     if (idMatch.test(e.target.getAttribute('id'))) {
       const lineIndex = parseInt(e.target.getAttribute('id').match(idMatch)[1], 10) - 1
       const lines = this.refs.code.value
@@ -78,47 +90,101 @@ class MarkdownSplitEditor extends React.Component {
       const targetLine = lines[lineIndex]
 
       if (targetLine.match(checkedMatch)) {
-        lines[lineIndex] = targetLine.replace(checkedMatch, '[ ]')
+        lines[lineIndex] = targetLine.replace(checkReplace, '[ ]')
       }
       if (targetLine.match(uncheckedMatch)) {
-        lines[lineIndex] = targetLine.replace(uncheckedMatch, '[x]')
+        lines[lineIndex] = targetLine.replace(uncheckReplace, '[x]')
       }
       this.refs.code.setValue(lines.join('\n'))
     }
   }
 
+  handleMouseMove (e) {
+    if (this.state.isSliderFocused) {
+      const rootRect = this.refs.root.getBoundingClientRect()
+      const rootWidth = rootRect.width
+      const offset = rootRect.left
+      let newCodeEditorWidthInPercent = (e.pageX - offset) / rootWidth * 100
+
+      // limit minSize to 10%, maxSize to 90%
+      if (newCodeEditorWidthInPercent <= 10) {
+        newCodeEditorWidthInPercent = 10
+      }
+
+      if (newCodeEditorWidthInPercent >= 90) {
+        newCodeEditorWidthInPercent = 90
+      }
+
+      this.setState({
+        codeEditorWidthInPercent: newCodeEditorWidthInPercent
+      })
+    }
+  }
+
+  handleMouseUp (e) {
+    e.preventDefault()
+    this.setState({
+      isSliderFocused: false
+    })
+  }
+
+  handleMouseDown (e) {
+    e.preventDefault()
+    this.setState({
+      isSliderFocused: true
+    })
+  }
+
   render () {
-    const {config, value, storageKey, noteKey} = this.props
+    const {config, value, storageKey, noteKey, linesHighlighted} = this.props
     const storage = findStorage(storageKey)
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
     let editorIndentSize = parseInt(config.editor.indentSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 132)) editorIndentSize = 4
     const previewStyle = {}
-    if (this.props.ignorePreviewPointerEvents) previewStyle.pointerEvents = 'none'
+    previewStyle.width = (100 - this.state.codeEditorWidthInPercent) + '%'
+    if (this.props.ignorePreviewPointerEvents || this.state.isSliderFocused) previewStyle.pointerEvents = 'none'
     return (
-      <div styleName='root'>
+      <div styleName='root' ref='root'
+        onMouseMove={e => this.handleMouseMove(e)}
+        onMouseUp={e => this.handleMouseUp(e)}>
         <CodeEditor
           styleName='codeEditor'
           ref='code'
-          mode='GitHub Flavored Markdown'
+          width={this.state.codeEditorWidthInPercent + '%'}
+          mode='Boost Flavored Markdown'
           value={value}
           theme={config.editor.theme}
           keyMap={config.editor.keyMap}
           fontFamily={config.editor.fontFamily}
           fontSize={editorFontSize}
           displayLineNumbers={config.editor.displayLineNumbers}
+          matchingPairs={config.editor.matchingPairs}
+          matchingTriples={config.editor.matchingTriples}
+          explodingPairs={config.editor.explodingPairs}
           indentType={config.editor.indentType}
           indentSize={editorIndentSize}
           enableRulers={config.editor.enableRulers}
           rulers={config.editor.rulers}
           scrollPastEnd={config.editor.scrollPastEnd}
           fetchUrlTitle={config.editor.fetchUrlTitle}
+          enableTableEditor={config.editor.enableTableEditor}
           storageKey={storageKey}
           noteKey={noteKey}
-          onChange={this.handleOnChange.bind(this)}
+          linesHighlighted={linesHighlighted}
+          onChange={(e) => this.handleOnChange(e)}
           onScroll={this.handleScroll.bind(this)}
+          spellCheck={config.editor.spellcheck}
+          enableSmartPaste={config.editor.enableSmartPaste}
+          hotkey={config.hotkey}
+          switchPreview={config.editor.switchPreview}
+          enableMarkdownLint={config.editor.enableMarkdownLint}
+          customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
        />
+        <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
+          <div styleName='slider-hitbox' />
+        </div>
         <MarkdownPreview
           style={previewStyle}
           styleName='preview'
@@ -131,6 +197,7 @@ class MarkdownSplitEditor extends React.Component {
           lineNumber={config.preview.lineNumber}
           scrollPastEnd={config.preview.scrollPastEnd}
           smartQuotes={config.preview.smartQuotes}
+          smartArrows={config.preview.smartArrows}
           breaks={config.preview.breaks}
           sanitize={config.preview.sanitize}
           ref='preview'
@@ -141,6 +208,9 @@ class MarkdownSplitEditor extends React.Component {
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
           noteKey={noteKey}
+          customCSS={config.preview.customCSS}
+          allowCustomCSS={config.preview.allowCustomCSS}
+          lineThroughCheckbox={config.preview.lineThroughCheckbox}
        />
       </div>
     )

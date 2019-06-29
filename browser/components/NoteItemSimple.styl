@@ -134,6 +134,7 @@ body[data-theme="dark"]
     .item-simple-wrapper
       border-color transparent
     .item-simple-title
+    .item-simple-title-empty
     .item-simple-title-icon
     .item-simple-bottom-time
       color $ui-dark-text-color
@@ -239,7 +240,7 @@ body[data-theme="monokai"]
       .item-simple-title-icon
       .item-simple-bottom-time
         transition 0.15s
-        color $ui-solarized-dark-text-color
+        color $ui-monokai-text-color
       .item-simple-bottom-tagList-item
         transition 0.15s
         background-color alpha(#fff, 20%)
@@ -277,6 +278,70 @@ body[data-theme="monokai"]
       color #c0392b
       .item-simple-bottom-tagList-item
         background-color alpha(#fff, 20%)
+  .item-simple-title
+    color $ui-dark-text-color
+    border-bottom $ui-dark-borderColor
+  .item-simple-right
+    float right
+    .item-simple-right-storageName
+      padding-left 4px
+      opacity 0.4
+
+body[data-theme="dracula"]
+  .root
+    border-color $ui-dracula-borderColor
+    background-color $ui-dracula-noteList-backgroundColor
+
+  .item-simple
+    border-color $ui-dracula-borderColor
+    background-color $ui-dracula-noteList-backgroundColor
+    &:hover
+      transition 0.15s
+      background-color alpha($ui-dracula-button-backgroundColor, 60%)
+      color $ui-dracula-text-color
+      .item-simple-title
+      .item-simple-title-empty
+      .item-simple-title-icon
+      .item-simple-bottom-time
+        transition 0.15s
+        color $ui-dracula-text-color
+      .item-simple-bottom-tagList-item
+        transition 0.15s
+        background-color alpha(#f8f8f2, 20%)
+        color $ui-dracula-text-color
+    &:active
+      transition 0.15s
+      background-color $ui-dracula-button--active-backgroundColor
+      color $ui-dracula-text-color
+      .item-simple-title
+      .item-simple-title-empty
+      .item-simple-title-icon
+      .item-simple-bottom-time
+        transition 0.15s
+        color $ui-dracula-text-color
+      .item-simple-bottom-tagList-item
+        transition 0.15s
+        background-color alpha(#f8f8f2, 10%)
+        color $ui-dracula-text-color
+
+  .item-simple--active
+    border-color $ui-dracula-borderColor
+    background-color $ui-dracula-button--active-backgroundColor
+    .item-simple-wrapper
+      border-color transparent
+    .item-simple-title
+    .item-simple-title-empty
+    .item-simple-title-icon
+    .item-simple-bottom-time
+      color $ui-dracula-text-color
+    .item-simple-bottom-tagList-item
+      background-color alpha(#f8f8f2, 10%)
+      color $ui-dracula-text-color
+    &:hover
+      // background-color alpha($ui-dark-button--active-backgroundColor, 60%)
+      color #c0392b
+      .item-simple-bottom-tagList-item
+        background-color alpha(#f8f8f2, 20%)
   .item-simple-title
     color $ui-dark-text-color
     border-bottom $ui-dark-borderColor

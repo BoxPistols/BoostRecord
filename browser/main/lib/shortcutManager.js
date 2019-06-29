@@ -3,7 +3,7 @@ import CM from 'browser/main/lib/ConfigManager'
 import ee from 'browser/main/lib/eventEmitter'
 import { isObjectEqual } from 'browser/lib/utils'
 require('mousetrap-global-bind')
-const functions = require('./shortcut')
+import functions from './shortcut'
 
 let shortcuts = CM.get().hotkey
 

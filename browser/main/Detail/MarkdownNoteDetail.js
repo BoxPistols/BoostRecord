@@ -9,7 +9,6 @@ import StarButton from './StarButton'
 import TagSelect from './TagSelect'
 import FolderSelect from './FolderSelect'
 import dataApi from 'browser/main/lib/dataApi'
-import { hashHistory } from 'react-router'
 import ee from 'browser/main/lib/eventEmitter'
 import markdown from 'browser/lib/markdownTextHelper'
 import StatusBar from '../StatusBar'
@@ -29,6 +28,9 @@ import { formatDate } from 'browser/lib/date-formatter'
 import { getTodoPercentageOfCompleted } from 'browser/lib/getTodoStatus'
 import striptags from 'striptags'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
+import markdownToc from 'browser/lib/markdown-toc-generator'
+import queryString from 'query-string'
+import { replace } from 'connected-react-router'
 
 class MarkdownNoteDetail extends React.Component {
   constructor (props) {
@@ -38,15 +40,19 @@ class MarkdownNoteDetail extends React.Component {
       isMovingNote: false,
       note: Object.assign({
         title: '',
-        content: ''
+        content: '',
+        linesHighlighted: []
       }, props.note),
-      isLockButtonShown: false,
+      isLockButtonShown: props.config.editor.type !== 'SPLIT',
       isLocked: false,
-      editorType: props.config.editor.type
+      editorType: props.config.editor.type,
+      switchPreview: props.config.editor.switchPreview
     }
+
     this.dispatchTimer = null
 
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
+    this.generateToc = () => this.handleGenerateToc()
   }
 
   focus () {
@@ -59,22 +65,41 @@ class MarkdownNoteDetail extends React.Component {
       const reversedType = this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
       this.handleSwitchMode(reversedType)
     })
+    ee.on('hotkey:deletenote', this.handleDeleteNote.bind(this))
+    ee.on('code:generate-toc', this.generateToc)
   }
 
   componentWillReceiveProps (nextProps) {
-    if (nextProps.note.key !== this.props.note.key && !this.state.isMovingNote) {
+    const isNewNote = nextProps.note.key !== this.props.note.key
+    const hasDeletedTags = nextProps.note.tags.length < this.props.note.tags.length
+    if (!this.state.isMovingNote && (isNewNote || hasDeletedTags)) {
       if (this.saveQueue != null) this.saveNow()
       this.setState({
-        note: Object.assign({}, nextProps.note)
+        note: Object.assign({linesHighlighted: []}, nextProps.note)
       }, () => {
         this.refs.content.reload()
         if (this.refs.tags) this.refs.tags.reset()
       })
     }
+
+    // Focus content if using blur or double click
+    // --> Moved here from componentDidMount so a re-render during search won't set focus to the editor
+    const {switchPreview} = nextProps.config.editor
+
+    if (this.state.switchPreview !== switchPreview) {
+      this.setState({
+        switchPreview
+      })
+      if (switchPreview === 'BLUR' || switchPreview === 'DBL_CLICK') {
+        console.log('setting focus', switchPreview)
+        this.focus()
+      }
+    }
   }
 
   componentWillUnmount () {
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
+    ee.off('code:generate-toc', this.generateToc)
     if (this.saveQueue != null) this.saveNow()
   }
 
@@ -87,7 +112,12 @@ class MarkdownNoteDetail extends React.Component {
   handleUpdateContent () {
     const { note } = this.state
     note.content = this.refs.content.value
-    note.title = markdown.strip(striptags(findNoteTitle(note.content)))
+
+    let title = findNoteTitle(note.content, this.props.config.editor.enableFrontMatterTitle, this.props.config.editor.frontMatterTitleField)
+    title = striptags(title)
+    title = markdown.strip(title)
+    note.title = title
+
     this.updateNote(note)
   }
 
@@ -122,6 +152,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleFolderChange (e) {
+    const { dispatch } = this.props
     const { note } = this.state
     const value = this.refs.folder.value
     const splitted = value.split('-')
@@ -141,12 +172,12 @@ class MarkdownNoteDetail extends React.Component {
             originNote: note,
             note: newNote
           })
-          hashHistory.replace({
+          dispatch(replace({
             pathname: location.pathname,
-            query: {
+            search: queryString.stringify({
               key: newNote.key
-            }
-          })
+            })
+          }))
           this.setState({
             isMovingNote: false
           })
@@ -181,6 +212,40 @@ class MarkdownNoteDetail extends React.Component {
 
   exportAsHtml () {
     ee.emit('export:save-html')
+  }
+
+  exportAsPdf () {
+    ee.emit('export:save-pdf')
+  }
+
+  handleKeyDown (e) {
+    switch (e.keyCode) {
+      // tab key
+      case 9:
+        if (e.ctrlKey && !e.shiftKey) {
+          e.preventDefault()
+          this.jumpNextTab()
+        } else if (e.ctrlKey && e.shiftKey) {
+          e.preventDefault()
+          this.jumpPrevTab()
+        } else if (!e.ctrlKey && !e.shiftKey && e.target === this.refs.description) {
+          e.preventDefault()
+          this.focusEditor()
+        }
+        break
+      // I key
+      case 73:
+        {
+          const isSuper = global.process.platform === 'darwin'
+            ? e.metaKey
+            : e.ctrlKey
+          if (isSuper) {
+            e.preventDefault()
+            this.handleInfoButtonClick(e)
+          }
+        }
+        break
+    }
   }
 
   handleTrashButtonClick (e) {
@@ -255,11 +320,16 @@ class MarkdownNoteDetail extends React.Component {
 
   handleToggleLockButton (event, noteStatus) {
     // first argument event is not used
-    if (this.props.config.editor.switchPreview === 'BLUR' && noteStatus === 'CODE') {
+    if (noteStatus === 'CODE') {
       this.setState({isLockButtonShown: true})
     } else {
       this.setState({isLockButtonShown: false})
     }
+  }
+
+  handleGenerateToc () {
+    const editor = this.refs.content.refs.code.editor
+    markdownToc.generateInEditor(editor)
   }
 
   handleFocus (e) {
@@ -276,16 +346,42 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleSwitchMode (type) {
-    this.setState({ editorType: type }, () => {
+    // If in split mode, hide the lock button
+    this.setState({ editorType: type, isLockButtonShown: !(type === 'SPLIT') }, () => {
+      this.focus()
       const newConfig = Object.assign({}, this.props.config)
       newConfig.editor.type = type
       ConfigManager.set(newConfig)
     })
   }
 
+  handleDeleteNote () {
+    this.handleTrashButtonClick()
+  }
+
+  handleClearTodo () {
+    const { note } = this.state
+    const splitted = note.content.split('\n')
+
+    const clearTodoContent = splitted.map((line) => {
+      const trimmedLine = line.trim()
+      if (trimmedLine.match(/\[x\]/i)) {
+        return line.replace(/\[x\]/i, '[ ]')
+      } else {
+        return line
+      }
+    }).join('\n')
+
+    note.content = clearTodoContent
+    this.refs.content.setValue(note.content)
+
+    this.updateNote(note)
+  }
+
   renderEditor () {
     const { config, ignorePreviewPointerEvents } = this.props
     const { note } = this.state
+
     if (this.state.editorType === 'EDITOR_PREVIEW') {
       return <MarkdownEditor
         ref='content'
@@ -294,7 +390,9 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         noteKey={note.key}
+        linesHighlighted={note.linesHighlighted}
         onChange={this.handleUpdateContent.bind(this)}
+        isLocked={this.state.isLocked}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
     } else {
@@ -304,6 +402,7 @@ class MarkdownNoteDetail extends React.Component {
         value={note.content}
         storageKey={note.storage}
         noteKey={note.key}
+        linesHighlighted={note.linesHighlighted}
         onChange={this.handleUpdateContent.bind(this)}
         ignorePreviewPointerEvents={ignorePreviewPointerEvents}
       />
@@ -311,7 +410,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   render () {
-    const { data, location } = this.props
+    const { data, location, config } = this.props
     const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
@@ -344,6 +443,7 @@ class MarkdownNoteDetail extends React.Component {
           exportAsHtml={this.exportAsHtml}
           exportAsMd={this.exportAsMd}
           exportAsTxt={this.exportAsTxt}
+          exportAsPdf={this.exportAsPdf}
         />
       </div>
     </div>
@@ -362,9 +462,13 @@ class MarkdownNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
+          saveTagsAlphabetically={config.ui.saveTagsAlphabetically}
+          showTagsAlphabetically={config.ui.showTagsAlphabetically}
+          data={data}
           onChange={this.handleUpdateTag.bind(this)}
+          coloredTags={config.coloredTags}
         />
-        <TodoListPercentage percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
+        <TodoListPercentage onClearCheckboxClick={(e) => this.handleClearTodo(e)} percentageOfTodo={getTodoPercentageOfCompleted(note.content)} />
       </div>
       <div styleName='info-right'>
         <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
@@ -401,12 +505,13 @@ class MarkdownNoteDetail extends React.Component {
         <InfoPanel
           storageName={currentOption.storage.name}
           folderName={currentOption.folder.name}
-          noteLink={`[${note.title}](:note:${location.query.key})`}
+          noteLink={`[${note.title}](:note:${queryString.parse(location.search).key})`}
           updatedAt={formatDate(note.updatedAt)}
           createdAt={formatDate(note.createdAt)}
           exportAsMd={this.exportAsMd}
           exportAsTxt={this.exportAsTxt}
           exportAsHtml={this.exportAsHtml}
+          exportAsPdf={this.exportAsPdf}
           wordCount={note.content.split(' ').length}
           letterCount={note.content.replace(/\r?\n/g, '').length}
           type={note.type}
@@ -419,6 +524,7 @@ class MarkdownNoteDetail extends React.Component {
       <div className='NoteDetail'
         style={this.props.style}
         styleName='root'
+        onKeyDown={(e) => this.handleKeyDown(e)}
       >
 
         {location.pathname === '/trashed' ? trashTopBar : detailTopBar}

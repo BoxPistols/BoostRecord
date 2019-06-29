@@ -2,6 +2,7 @@ import markdownit from 'markdown-it'
 import sanitize from './markdown-it-sanitize-html'
 import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
+import smartArrows from 'markdown-it-smartarrows'
 import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
@@ -26,31 +27,12 @@ class Markdown {
       html: true,
       xhtmlOut: true,
       breaks: config.preview.breaks,
-      highlight: function (str, lang) {
-        const delimiter = ':'
-        const langInfo = lang.split(delimiter)
-        const langType = langInfo[0]
-        const fileName = langInfo[1] || ''
-        const firstLineNumber = parseInt(langInfo[2], 10)
-
-        if (langType === 'flowchart') {
-          return `<pre class="flowchart">${str}</pre>`
-        }
-        if (langType === 'sequence') {
-          return `<pre class="sequence">${str}</pre>`
-        }
-        return '<pre class="code CodeMirror">' +
-          '<span class="filename">' + fileName + '</span>' +
-          createGutter(str, firstLineNumber) +
-          '<code class="' + langType + '">' +
-          str +
-          '</code></pre>'
-      },
       sanitize: 'STRICT'
     }
 
     const updatedOptions = Object.assign(defaultOptions, options)
     this.md = markdownit(updatedOptions)
+    this.md.linkify.set({ fuzzyLink: false })
 
     if (updatedOptions.sanitize !== 'NONE') {
       const allowedTags = ['iframe', 'input', 'b',
@@ -98,7 +80,11 @@ class Markdown {
           'iframe': ['src', 'width', 'height', 'frameborder', 'allowfullscreen'],
           'input': ['type', 'id', 'checked']
         },
-        allowedIframeHostnames: ['www.youtube.com']
+        allowedIframeHostnames: ['www.youtube.com'],
+        selfClosing: [ 'img', 'br', 'hr', 'input' ],
+        allowedSchemes: [ 'http', 'https', 'ftp', 'mailto' ],
+        allowedSchemesAppliedToAttributes: [ 'href', 'src', 'cite' ],
+        allowProtocolRelative: true
       })
     }
 
@@ -132,24 +118,93 @@ class Markdown {
     this.md.use(require('markdown-it-imsize'))
     this.md.use(require('markdown-it-footnote'))
     this.md.use(require('markdown-it-multimd-table'))
-    this.md.use(require('markdown-it-named-headers'), {
-      slugify: (header) => {
-        return encodeURI(header.trim()
-          .replace(/[\]\[\!\"\#\$\%\&\'\(\)\*\+\,\.\/\:\;\<\=\>\?\@\\\^\_\{\|\}\~]/g, '')
-          .replace(/\s+/g, '-'))
-          .replace(/\-+$/, '')
-      }
+    this.md.use(require('@enyaxu/markdown-it-anchor'), {
+      slugify: require('./slugify')
     })
     this.md.use(require('markdown-it-kbd'))
+    this.md.use(require('markdown-it-admonition'), {types: ['note', 'hint', 'attention', 'caution', 'danger', 'error']})
+    this.md.use(require('markdown-it-abbr'))
+    this.md.use(require('markdown-it-sub'))
+    this.md.use(require('markdown-it-sup'))
+    this.md.use(require('./markdown-it-deflist'))
+    this.md.use(require('./markdown-it-frontmatter'))
+
+    this.md.use(require('./markdown-it-fence'), {
+      chart: token => {
+        if (token.parameters.hasOwnProperty('yaml')) {
+          token.parameters.format = 'yaml'
+        }
+
+        return `<pre class="fence" data-line="${token.map[0]}">
+          <span class="filename">${token.fileName}</span>
+          <div class="chart" data-height="${token.parameters.height}" data-format="${token.parameters.format || 'json'}">${token.content}</div>
+        </pre>`
+      },
+      flowchart: token => {
+        return `<pre class="fence" data-line="${token.map[0]}">
+          <span class="filename">${token.fileName}</span>
+          <div class="flowchart" data-height="${token.parameters.height}">${token.content}</div>
+        </pre>`
+      },
+      gallery: token => {
+        const content = token.content.split('\n').slice(0, -1).map(line => {
+          const match = /!\[[^\]]*]\(([^\)]*)\)/.exec(line)
+          if (match) {
+            return match[1]
+          } else {
+            return line
+          }
+        }).join('\n')
+
+        return `<pre class="fence" data-line="${token.map[0]}">
+          <span class="filename">${token.fileName}</span>
+          <div class="gallery" data-autoplay="${token.parameters.autoplay}" data-height="${token.parameters.height}">${content}</div>
+        </pre>`
+      },
+      mermaid: token => {
+        return `<pre class="fence" data-line="${token.map[0]}">
+          <span class="filename">${token.fileName}</span>
+          <div class="mermaid" data-height="${token.parameters.height}">${token.content}</div>
+        </pre>`
+      },
+      sequence: token => {
+        return `<pre class="fence" data-line="${token.map[0]}">
+          <span class="filename">${token.fileName}</span>
+          <div class="sequence" data-height="${token.parameters.height}">${token.content}</div>
+        </pre>`
+      }
+    }, token => {
+      return `<pre class="code CodeMirror" data-line="${token.map[0]}">
+        <span class="filename">${token.fileName}</span>
+        ${createGutter(token.content, token.firstLineNumber)}
+        <code class="${token.langType}">${token.content}</code>
+      </pre>`
+    })
 
     const deflate = require('markdown-it-plantuml/lib/deflate')
-    this.md.use(require('markdown-it-plantuml'), '', {
+    this.md.use(require('markdown-it-plantuml'), {
       generateSource: function (umlCode) {
         const stripTrailingSlash = (url) => url.endsWith('/') ? url.slice(0, -1) : url
         const serverAddress = stripTrailingSlash(config.preview.plantUMLServerAddress) + '/svg'
         const s = unescape(encodeURIComponent(umlCode))
         const zippedCode = deflate.encode64(
           deflate.zip_deflate(`@startuml\n${s}\n@enduml`, 9)
+        )
+        return `${serverAddress}/${zippedCode}`
+      }
+    })
+
+    // Ditaa support
+    this.md.use(require('markdown-it-plantuml'), {
+      openMarker: '@startditaa',
+      closeMarker: '@endditaa',
+      generateSource: function (umlCode) {
+        const stripTrailingSlash = (url) => url.endsWith('/') ? url.slice(0, -1) : url
+        // Currently PlantUML server doesn't support Ditaa in SVG, so we set the format as PNG at the moment.
+        const serverAddress = stripTrailingSlash(config.preview.plantUMLServerAddress) + '/png'
+        const s = unescape(encodeURIComponent(umlCode))
+        const zippedCode = deflate.encode64(
+          deflate.zip_deflate(`@startditaa\n${s}\n@endditaa`, 9)
         )
         return `${serverAddress}/${zippedCode}`
       }
@@ -197,7 +252,11 @@ class Markdown {
             if (!liToken.attrs) {
               liToken.attrs = []
             }
-            liToken.attrs.push(['class', 'taskListItem'])
+            if (config.preview.lineThroughCheckbox) {
+              liToken.attrs.push(['class', `taskListItem${match[1] !== ' ' ? ' checked' : ''}`])
+            } else {
+              liToken.attrs.push(['class', 'taskListItem'])
+            }
           }
           content = `<label class='taskListItem${match[1] !== ' ' ? ' checked' : ''}' for='checkbox-${startLine + 1}'><input type='checkbox'${match[1] !== ' ' ? ' checked' : ''} id='checkbox-${startLine + 1}'/> ${content.substring(4, content.length)}</label>`
         }
@@ -213,14 +272,21 @@ class Markdown {
       return true
     })
 
+    if (config.preview.smartArrows) {
+      this.md.use(smartArrows)
+    }
+
     // Add line number attribute for scrolling
     const originalRender = this.md.renderer.render
     this.md.renderer.render = (tokens, options, env) => {
       tokens.forEach((token) => {
         switch (token.type) {
-          case 'heading_open':
-          case 'paragraph_open':
           case 'blockquote_open':
+          case 'dd_open':
+          case 'dt_open':
+          case 'heading_open':
+          case 'list_item_open':
+          case 'paragraph_open':
           case 'table_open':
             token.attrPush(['data-line', token.map[0]])
         }
@@ -239,4 +305,3 @@ class Markdown {
 }
 
 export default Markdown
-

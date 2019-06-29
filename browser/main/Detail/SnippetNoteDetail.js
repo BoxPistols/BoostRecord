@@ -8,7 +8,6 @@ import StarButton from './StarButton'
 import TagSelect from './TagSelect'
 import FolderSelect from './FolderSelect'
 import dataApi from 'browser/main/lib/dataApi'
-import {hashHistory} from 'react-router'
 import ee from 'browser/main/lib/eventEmitter'
 import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
@@ -18,8 +17,8 @@ import context from 'browser/lib/context'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import _ from 'lodash'
 import {findNoteTitle} from 'browser/lib/findNoteTitle'
-import convertModeName from 'browser/lib/convertModeName'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
+import FullscreenButton from './FullscreenButton'
 import TrashButton from './TrashButton'
 import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
@@ -29,10 +28,13 @@ import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
 import i18n from 'browser/lib/i18n'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
+import markdownToc from 'browser/lib/markdown-toc-generator'
+import queryString from 'query-string'
+import { replace } from 'connected-react-router'
 
 const electron = require('electron')
 const { remote } = electron
-const { Menu, MenuItem, dialog } = remote
+const { dialog } = remote
 
 class SnippetNoteDetail extends React.Component {
   constructor (props) {
@@ -47,11 +49,12 @@ class SnippetNoteDetail extends React.Component {
       note: Object.assign({
         description: ''
       }, props.note, {
-        snippets: props.note.snippets.map((snippet) => Object.assign({}, snippet))
+        snippets: props.note.snippets.map((snippet) => Object.assign({linesHighlighted: []}, snippet))
       })
     }
 
     this.scrollToNextTabThreshold = 0.7
+    this.generateToc = () => this.handleGenerateToc()
   }
 
   componentDidMount () {
@@ -65,6 +68,7 @@ class SnippetNoteDetail extends React.Component {
         enableLeftArrow: allTabs.offsetLeft !== 0
       })
     }
+    ee.on('code:generate-toc', this.generateToc)
   }
 
   componentWillReceiveProps (nextProps) {
@@ -73,8 +77,9 @@ class SnippetNoteDetail extends React.Component {
       const nextNote = Object.assign({
         description: ''
       }, nextProps.note, {
-        snippets: nextProps.note.snippets.map((snippet) => Object.assign({}, snippet))
+        snippets: nextProps.note.snippets.map((snippet) => Object.assign({linesHighlighted: []}, snippet))
       })
+
       this.setState({
         snippetIndex: 0,
         note: nextNote
@@ -91,6 +96,16 @@ class SnippetNoteDetail extends React.Component {
 
   componentWillUnmount () {
     if (this.saveQueue != null) this.saveNow()
+    ee.off('code:generate-toc', this.generateToc)
+  }
+
+  handleGenerateToc () {
+    const { note, snippetIndex } = this.state
+    const currentMode = note.snippets[snippetIndex].mode
+    if (currentMode.includes('Markdown')) {
+      const currentEditor = this.refs[`code-${snippetIndex}`].refs.code.editor
+      markdownToc.generateInEditor(currentEditor)
+    }
   }
 
   handleChange (e) {
@@ -99,7 +114,7 @@ class SnippetNoteDetail extends React.Component {
     if (this.refs.tags) note.tags = this.refs.tags.value
     note.description = this.refs.description.value
     note.updatedAt = new Date()
-    note.title = findNoteTitle(note.description)
+    note.title = findNoteTitle(note.description, false)
 
     this.setState({
       note
@@ -151,12 +166,12 @@ class SnippetNoteDetail extends React.Component {
             originNote: note,
             note: newNote
           })
-          hashHistory.replace({
+          dispatch(replace({
             pathname: location.pathname,
-            query: {
+            search: queryString.stringify({
               key: newNote.key
-            }
-          })
+            })
+          }))
           this.setState({
             isMovingNote: false
           })
@@ -341,12 +356,10 @@ class SnippetNoteDetail extends React.Component {
       this.refs['code-' + this.state.snippetIndex].reload()
 
       if (this.visibleTabs.offsetWidth > this.allTabs.scrollWidth) {
-        console.log('no need for arrows')
         this.moveTabBarBy(0)
       } else {
         const lastTab = this.allTabs.lastChild
         if (lastTab.offsetLeft + lastTab.offsetWidth < this.visibleTabs.offsetWidth) {
-          console.log('need to scroll')
           const width = this.visibleTabs.offsetWidth
           const newLeft = lastTab.offsetLeft + lastTab.offsetWidth - width
           this.moveTabBarBy(newLeft > 0 ? -newLeft : 0)
@@ -399,6 +412,8 @@ class SnippetNoteDetail extends React.Component {
     return (e) => {
       const snippets = this.state.note.snippets.slice()
       snippets[index].content = this.refs['code-' + index].value
+      snippets[index].linesHighlighted = e.options.linesHighlighted
+
       this.setState(state => ({note: Object.assign(state.note, {snippets: snippets})}))
       this.setState(state => ({
         note: state.note
@@ -423,6 +438,18 @@ class SnippetNoteDetail extends React.Component {
           this.focusEditor()
         }
         break
+      // I key
+      case 73:
+        {
+          const isSuper = global.process.platform === 'darwin'
+            ? e.metaKey
+            : e.ctrlKey
+          if (isSuper) {
+            e.preventDefault()
+            this.handleInfoButtonClick(e)
+          }
+        }
+        break
       // L key
       case 76:
         {
@@ -441,7 +468,7 @@ class SnippetNoteDetail extends React.Component {
           const isSuper = global.process.platform === 'darwin'
             ? e.metaKey
             : e.ctrlKey
-          if (isSuper) {
+          if (isSuper && !e.shiftKey && !e.altKey) {
             e.preventDefault()
             this.addSnippet()
           }
@@ -451,14 +478,14 @@ class SnippetNoteDetail extends React.Component {
   }
 
   handleModeButtonClick (e, index) {
-    const menu = new Menu()
+    const templetes = []
     CodeMirror.modeInfo.sort(function (a, b) { return a.name.localeCompare(b.name) }).forEach((mode) => {
-      menu.append(new MenuItem({
+      templetes.push({
         label: mode.name,
         click: (e) => this.handleModeOptionClick(index, mode.name)(e)
-      }))
+      })
     })
-    menu.popup(remote.getCurrentWindow())
+    context.popup(templetes)
   }
 
   handleIndentTypeButtonClick (e) {
@@ -573,12 +600,16 @@ class SnippetNoteDetail extends React.Component {
   }
 
   addSnippet () {
+    const { config: { editor: { snippetDefaultLanguage } } } = this.props
     const { note } = this.state
+
+    const defaultLanguage = snippetDefaultLanguage === 'Auto Detect' ? null : snippetDefaultLanguage
 
     note.snippets = note.snippets.concat([{
       name: '',
-      mode: 'Plain Text',
-      content: ''
+      mode: defaultLanguage,
+      content: '',
+      linesHighlighted: []
     }])
     const snippetIndex = note.snippets.length - 1
 
@@ -613,7 +644,6 @@ class SnippetNoteDetail extends React.Component {
   }
 
   focusEditor () {
-    console.log('code-' + this.state.snippetIndex)
     this.refs['code-' + this.state.snippetIndex].focus()
   }
 
@@ -622,11 +652,19 @@ class SnippetNoteDetail extends React.Component {
     if (infoPanel.style) infoPanel.style.display = infoPanel.style.display === 'none' ? 'inline' : 'none'
   }
 
-  showWarning () {
+  showWarning (e, msg) {
+    const warningMessage = (msg) => ({
+      'export-txt': 'Text export',
+      'export-md': 'Markdown export',
+      'export-html': 'HTML export',
+      'export-pdf': 'PDF export',
+      'print': 'Print'
+    })[msg]
+
     dialog.showMessageBox(remote.getCurrentWindow(), {
       type: 'warning',
       message: i18n.__('Sorry!'),
-      detail: i18n.__('md/text import is available only a markdown note.'),
+      detail: i18n.__(warningMessage(msg) + ' is available only in markdown notes.'),
       buttons: [i18n.__('OK')]
     })
   }
@@ -637,6 +675,8 @@ class SnippetNoteDetail extends React.Component {
 
     const storageKey = note.storage
     const folderKey = note.folder
+
+    const autoDetect = config.editor.snippetDefaultLanguage === 'Auto Detect'
 
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -662,10 +702,6 @@ class SnippetNoteDetail extends React.Component {
 
     const viewList = note.snippets.map((snippet, index) => {
       const isActive = this.state.snippetIndex === index
-
-      let syntax = CodeMirror.findModeByName(convertModeName(snippet.mode))
-      if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
-
       return <div styleName='tabView'
         key={index}
         style={{zIndex: isActive ? 5 : 4}}
@@ -674,25 +710,34 @@ class SnippetNoteDetail extends React.Component {
           ? <MarkdownEditor styleName='tabView-content'
             value={snippet.content}
             config={config}
+            linesHighlighted={snippet.linesHighlighted}
             onChange={(e) => this.handleCodeChange(index)(e)}
             ref={'code-' + index}
             ignorePreviewPointerEvents={this.props.ignorePreviewPointerEvents}
             storageKey={storageKey}
           />
           : <CodeEditor styleName='tabView-content'
-            mode={snippet.mode}
+            mode={snippet.mode || (autoDetect ? null : config.editor.snippetDefaultLanguage)}
             value={snippet.content}
+            linesHighlighted={snippet.linesHighlighted}
             theme={config.editor.theme}
             fontFamily={config.editor.fontFamily}
             fontSize={editorFontSize}
             indentType={config.editor.indentType}
             indentSize={editorIndentSize}
             displayLineNumbers={config.editor.displayLineNumbers}
+            matchingPairs={config.editor.matchingPairs}
+            matchingTriples={config.editor.matchingTriples}
+            explodingPairs={config.editor.explodingPairs}
             keyMap={config.editor.keyMap}
             scrollPastEnd={config.editor.scrollPastEnd}
             fetchUrlTitle={config.editor.fetchUrlTitle}
+            enableTableEditor={config.editor.enableTableEditor}
             onChange={(e) => this.handleCodeChange(index)(e)}
             ref={'code-' + index}
+            enableSmartPaste={config.editor.enableSmartPaste}
+            hotkey={config.hotkey}
+            autoDetect={autoDetect}
           />
         }
       </div>
@@ -726,6 +771,7 @@ class SnippetNoteDetail extends React.Component {
           exportAsMd={this.showWarning}
           exportAsTxt={this.showWarning}
           exportAsHtml={this.showWarning}
+          exportAsPdf={this.showWarning}
         />
       </div>
     </div>
@@ -744,7 +790,11 @@ class SnippetNoteDetail extends React.Component {
         <TagSelect
           ref='tags'
           value={this.state.note.tags}
+          saveTagsAlphabetically={config.ui.saveTagsAlphabetically}
+          showTagsAlphabetically={config.ui.showTagsAlphabetically}
+          data={data}
           onChange={(e) => this.handleChange(e)}
+          coloredTags={config.coloredTags}
         />
       </div>
       <div styleName='info-right'>
@@ -753,11 +803,7 @@ class SnippetNoteDetail extends React.Component {
           isActive={note.isStarred}
         />
 
-        <button styleName='control-fullScreenButton' title={i18n.__('Fullscreen')}
-          onMouseDown={(e) => this.handleFullScreenButton(e)}>
-          <img styleName='iconInfo' src='../resources/icon/icon-full.svg' />
-          <span styleName='tooltip'>{i18n.__('Fullscreen')}</span>
-        </button>
+        <FullscreenButton onClick={(e) => this.handleFullScreenButton(e)} />
 
         <TrashButton onClick={(e) => this.handleTrashButtonClick(e)} />
 
@@ -768,12 +814,15 @@ class SnippetNoteDetail extends React.Component {
         <InfoPanel
           storageName={currentOption.storage.name}
           folderName={currentOption.folder.name}
-          noteLink={`[${note.title}](:note:${location.query.key})`}
+          noteLink={`[${note.title}](:note:${queryString.parse(location.search).key})`}
           updatedAt={formatDate(note.updatedAt)}
           createdAt={formatDate(note.createdAt)}
           exportAsMd={this.showWarning}
           exportAsTxt={this.showWarning}
+          exportAsHtml={this.showWarning}
+          exportAsPdf={this.showWarning}
           type={note.type}
+          print={this.showWarning}
         />
       </div>
     </div>

@@ -2,7 +2,7 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './InfoTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
-import store from 'browser/main/store'
+import { store } from 'browser/main/store'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
@@ -69,10 +69,14 @@ class InfoTab extends React.Component {
   render () {
     return (
       <div styleName='root'>
-
-        <div styleName='header--sub'>{i18n.__('Community')}</div>
+        <div styleName='group-header'>{i18n.__('Community')}</div>
         <div styleName='top'>
           <ul styleName='list'>
+            <li>
+              <a href='https://issuehunt.io/repos/53266139'
+                onClick={(e) => this.handleLinkClick(e)}
+              >{i18n.__('Bounty on IssueHunt')}</a>
+            </li>
             <li>
               <a href='https://boostnote.io/#subscribe'
                 onClick={(e) => this.handleLinkClick(e)}
@@ -84,7 +88,7 @@ class InfoTab extends React.Component {
               >{i18n.__('GitHub')}</a>
             </li>
             <li>
-              <a href='https://boostlog.io/@junp1234'
+              <a href='https://medium.com/boostnote'
                 onClick={(e) => this.handleLinkClick(e)}
               >{i18n.__('Blog')}</a>
             </li>
@@ -103,7 +107,7 @@ class InfoTab extends React.Component {
 
         <hr />
 
-        <div styleName='header--sub'>{i18n.__('About')}</div>
+        <div styleName='group-header--sub'>{i18n.__('About')}</div>
 
         <div styleName='top'>
           <div styleName='icon-space'>
@@ -129,7 +133,7 @@ class InfoTab extends React.Component {
             >{i18n.__('Development')}</a>{i18n.__(' : Development configurations for Boostnote.')}
           </li>
           <li styleName='cc'>
-            {i18n.__('Copyright (C) 2017 - 2018 BoostIO')}
+            {i18n.__('Copyright (C) 2017 - 2019 BoostIO')}
           </li>
           <li styleName='cc'>
             {i18n.__('License: GPL v3')}
@@ -138,7 +142,7 @@ class InfoTab extends React.Component {
 
         <hr styleName='separate-line' />
 
-        <div styleName='policy'>{i18n.__('Analytics')}</div>
+        <div styleName='group-header2--sub'>{i18n.__('Analytics')}</div>
         <div>{i18n.__('Boostnote collects anonymous data for the sole purpose of improving the application, and strictly does not collect any personal information such the contents of your notes.')}</div>
         <div>{i18n.__('You can see how it works on ')}<a href='https://github.com/BoostIO/Boostnote' onClick={(e) => this.handleLinkClick(e)}>GitHub</a>.</div>
         <br />

@@ -2,7 +2,7 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
-import store from 'browser/main/store'
+import { store } from 'browser/main/store'
 import PropTypes from 'prop-types'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
@@ -43,7 +43,7 @@ class Blog extends React.Component {
     this.handleSettingError = (err) => {
       this.setState({BlogAlert: {
         type: 'error',
-        message: err.message != null ? err.message : i18n.__('Error occurs!')
+        message: err.message != null ? err.message : i18n.__('An error occurred!')
       }})
     }
     this.oldBlog = this.state.config.blog
@@ -70,7 +70,7 @@ class Blog extends React.Component {
       this.props.haveToSave({
         tab: 'Blog',
         type: 'warning',
-        message: i18n.__('You have to save!')
+        message: i18n.__('Unsaved Changes!')
       })
     }
   }

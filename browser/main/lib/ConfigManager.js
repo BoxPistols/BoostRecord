@@ -71,8 +71,7 @@ export const DEFAULT_CONFIG = {
       "trailingComma": "es5",
       "tabWidth": 4,
       "semi": false,
-      "singleQuote": true,
-      "parser":"markdown"
+      "singleQuote": true
   }`
 
   },

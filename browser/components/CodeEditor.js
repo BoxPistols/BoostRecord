@@ -236,11 +236,15 @@ export default class CodeEditor extends React.Component {
       [translateHotkey(hotkey.prettifyMarkdown)]: cm => {
         // Default / User configured prettier options
         const currentConfig = JSON.parse(self.props.prettierConfig)
-        // Get current cursor position.
+
+        // Parser type will always need to be markdown so we override the option before use
+        currentConfig.parser = 'markdown'
+
+        // Get current cursor position
         const cursorPos = cm.getCursor()
         currentConfig.cursorOffset = cm.doc.indexFromPos(cursorPos)
 
-        // Prettify contents of editor.
+        // Prettify contents of editor
         const formattedTextDetails = prettier.formatWithCursor(cm.doc.getValue(), currentConfig)
 
         const formattedText = formattedTextDetails.formatted

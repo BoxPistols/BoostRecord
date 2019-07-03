@@ -28,7 +28,7 @@ import {generateInEditor, tocExistsInEditor} from 'browser/lib/markdown-toc-gene
 import markdownlint from 'markdownlint'
 import Jsonlint from 'jsonlint-mod'
 import { DEFAULT_CONFIG } from '../main/lib/ConfigManager'
-const prettier = require('prettier')
+import prettier from 'prettier'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 

@@ -22,7 +22,7 @@ function createNoteFromUrl (url, storage, folder, dispatch = null, location = nu
       reject({result: false, error: 'Please check your URL is in correct format. (Example, https://www.google.com)'})
     }
 
-    const request = url.includes('https') ? https : http
+    const request = url.startsWith('https') ? https : http
 
     const req = request.request(url, (res) => {
       let data = ''

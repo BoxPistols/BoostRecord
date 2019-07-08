@@ -208,7 +208,7 @@ export default class CodeEditor extends React.Component {
       'Ctrl-/': function (cm) {
         if (global.process.platform === 'darwin') { return }
         const dateNow = new Date()
-        if (self.props.dateISO8601) {
+        if (self.props.dateFormatISO8601) {
           cm.replaceSelection(dateNow.toISOString().split('T')[0])
         } else {
           cm.replaceSelection(dateNow.toLocaleDateString())
@@ -222,7 +222,7 @@ export default class CodeEditor extends React.Component {
       'Shift-Ctrl-/': function (cm) {
         if (global.process.platform === 'darwin') { return }
         const dateNow = new Date()
-        if (self.props.dateISO8601) {
+        if (self.props.dateFormatISO8601) {
           cm.replaceSelection(dateNow.toISOString())
         } else {
           cm.replaceSelection(dateNow.toLocaleString())

@@ -78,7 +78,7 @@ class UiTab extends React.Component {
         saveTagsAlphabetically: this.refs.saveTagsAlphabetically.checked,
         enableLiveNoteCounts: this.refs.enableLiveNoteCounts.checked,
         showMenuBar: this.refs.showMenuBar.checked,
-        dateFormatISO8601: this.refs.dateFormatISO8601.checked,
+        // dateFormatISO8601: this.refs.dateFormatISO8601.checked,
         disableDirectWrite: this.refs.uiD2w != null
           ? this.refs.uiD2w.checked
           : false
@@ -106,7 +106,8 @@ class UiTab extends React.Component {
         spellcheck: this.refs.spellcheck.checked,
         enableSmartPaste: this.refs.enableSmartPaste.checked,
         enableMarkdownLint: this.refs.enableMarkdownLint.checked,
-        customMarkdownLintConfig: this.customMarkdownLintConfigCM.getCodeMirror().getValue()
+        customMarkdownLintConfig: this.customMarkdownLintConfigCM.getCodeMirror().getValue(),
+        dateFormatISO8601: this.refs.dateFormatISO8601.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -294,7 +295,7 @@ class UiTab extends React.Component {
             </div>
             : null
           }
-          <div styleName='group-checkBoxSection'>
+          {/* <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
                 checked={this.state.config.ui.dateFormatISO8601}
@@ -303,7 +304,7 @@ class UiTab extends React.Component {
               />&nbsp;
               {i18n.__('Date shortcut use iso 8601 format')}
             </label>
-          </div>
+          </div> */}
           <div styleName='group-header2'>Tags</div>
 
           <div styleName='group-checkBoxSection'>
@@ -607,6 +608,17 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Enable spellcheck - Experimental feature!! :)')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.dateFormatISO8601}
+                ref='dateFormatISO8601'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Date shortcut use iso 8601 format')}
             </label>
           </div>
 

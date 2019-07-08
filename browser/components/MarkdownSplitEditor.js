@@ -181,7 +181,8 @@ class MarkdownSplitEditor extends React.Component {
           switchPreview={config.editor.switchPreview}
           enableMarkdownLint={config.editor.enableMarkdownLint}
           customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
-          dateISO8601={config.ui.dateFormatISO8601}
+          // dateISO8601={config.ui.dateFormatISO8601}
+          dateFormatISO8601={config.editor.dateFormatISO8601}
        />
         <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
           <div styleName='slider-hitbox' />

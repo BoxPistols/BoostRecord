@@ -53,6 +53,7 @@ function buildStyle (
   codeBlockFontFamily,
   lineNumber,
   scrollPastEnd,
+  optimizeOverflowScroll,
   theme,
   allowCustomCSS,
   customCSS
@@ -86,12 +87,14 @@ function buildStyle (
        url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
        url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
 }
+
 ${markdownStyle}
 
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
-  ${scrollPastEnd && 'padding-bottom: 90vh;'}
+  ${scrollPastEnd ? 'padding-bottom: 90vh;' : ''}
+  ${optimizeOverflowScroll ? 'height: 100%;' : ''}
 }
 @media print {
   body {
@@ -341,6 +344,7 @@ export default class MarkdownPreview extends React.Component {
       codeBlockFontFamily,
       lineNumber,
       scrollPastEnd,
+      false,
       theme,
       allowCustomCSS,
       customCSS
@@ -663,16 +667,19 @@ export default class MarkdownPreview extends React.Component {
     this.getWindow().document.getElementById(
       'codeTheme'
     ).href = this.GetCodeThemeLink(codeBlockTheme)
+
     this.getWindow().document.getElementById('style').innerHTML = buildStyle(
       fontFamily,
       fontSize,
       codeBlockFontFamily,
       lineNumber,
       scrollPastEnd,
+      true,
       theme,
       allowCustomCSS,
-      customCSS
+      customCSS,
     )
+    this.getWindow().document.documentElement.style.overflowY = 'hidden'
   }
 
   GetCodeThemeLink (name) {

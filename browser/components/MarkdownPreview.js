@@ -47,17 +47,31 @@ const CSS_FILES = [
 ]
 const win = global.process.platform === 'win32'
 
-function buildStyle (
-  fontFamily,
-  fontSize,
-  codeBlockFontFamily,
-  lineNumber,
-  scrollPastEnd,
-  optimizeOverflowScroll,
-  theme,
-  allowCustomCSS,
-  customCSS
-) {
+/**
+ * @param {Object} opts
+ * @param {String} opts.fontFamily
+ * @param {Numberl} opts.fontSize
+ * @param {String} opts.codeBlockFontFamily
+ * @param {String} opts.theme
+ * @param {Boolean} [opts.lineNumber] Should show line number
+ * @param {Boolean} [opts.scrollPastEnd]
+ * @param {Boolean} [opts.optimizeOverflowScroll] Should tweak body style to optimize overflow scrollbar display
+ * @param {Boolean} [opts.allowCustomCSS] Should add custom css
+ * @param {String} [opts.customCSS] Will be added to bottom, only if `opts.allowCustomCSS` is truthy
+ * @returns {String}
+ */
+function buildStyle (opts) {
+  const {
+    fontFamily,
+    fontSize,
+    codeBlockFontFamily,
+    lineNumber,
+    scrollPastEnd,
+    optimizeOverflowScroll,
+    theme,
+    allowCustomCSS,
+    customCSS
+  } = opts
   return `
 @font-face {
   font-family: 'Lato';
@@ -338,17 +352,16 @@ export default class MarkdownPreview extends React.Component {
       customCSS
     } = this.getStyleParams()
 
-    const inlineStyles = buildStyle(
+    const inlineStyles = buildStyle({
       fontFamily,
       fontSize,
       codeBlockFontFamily,
       lineNumber,
       scrollPastEnd,
-      false,
       theme,
       allowCustomCSS,
       customCSS
-    )
+    })
     let body = this.markdown.render(noteContent)
     body = attachmentManagement.fixLocalURLS(
       body,
@@ -668,17 +681,17 @@ export default class MarkdownPreview extends React.Component {
       'codeTheme'
     ).href = this.GetCodeThemeLink(codeBlockTheme)
 
-    this.getWindow().document.getElementById('style').innerHTML = buildStyle(
+    this.getWindow().document.getElementById('style').innerHTML = buildStyle({
       fontFamily,
       fontSize,
       codeBlockFontFamily,
       lineNumber,
       scrollPastEnd,
-      true,
+      optimizeOverflowScroll: true,
       theme,
       allowCustomCSS,
-      customCSS,
-    )
+      customCSS
+    })
     this.getWindow().document.documentElement.style.overflowY = 'hidden'
   }
 

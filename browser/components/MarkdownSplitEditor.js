@@ -150,7 +150,6 @@ class MarkdownSplitEditor extends React.Component {
         onMouseMove={e => this.handleMouseMove(e)}
         onMouseUp={e => this.handleMouseUp(e)}>
         <CodeEditor
-          styleName='codeEditor'
           ref='code'
           width={this.state.codeEditorWidthInPercent + '%'}
           mode='Boost Flavored Markdown'
@@ -188,7 +187,6 @@ class MarkdownSplitEditor extends React.Component {
         </div>
         <MarkdownPreview
           style={previewStyle}
-          styleName='preview'
           theme={config.ui.theme}
           keyMap={config.editor.keyMap}
           fontSize={config.preview.fontSize}

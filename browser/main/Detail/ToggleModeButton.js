@@ -20,7 +20,7 @@ const ToggleModeButton = ({
 
 ToggleModeButton.propTypes = {
   onClick: PropTypes.func.isRequired,
-  editorType: PropTypes.string
+  editorType: PropTypes.string.isRequired
 }
 
 export default CSSModules(ToggleModeButton, styles)

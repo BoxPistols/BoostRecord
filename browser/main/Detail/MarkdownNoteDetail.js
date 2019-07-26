@@ -450,7 +450,7 @@ class MarkdownNoteDetail extends React.Component {
 
     const detailTopBar = <div styleName='info'>
       <div styleName='info-left'>
-        <div styleName='info-left-top'>
+        <div>
           <FolderSelect styleName='info-left-top-folderSelect'
             value={this.state.note.storage + '-' + this.state.note.folder}
             ref='folder'
@@ -484,7 +484,7 @@ class MarkdownNoteDetail extends React.Component {
               onFocus={(e) => this.handleFocus(e)}
               onMouseDown={(e) => this.handleLockButtonMouseDown(e)}
             >
-              <img styleName='iconInfo' src={imgSrc} />
+              <img src={imgSrc} />
               {this.state.isLocked ? <span styleName='tooltip'>Unlock</span> : <span styleName='tooltip'>Lock</span>}
             </button>
 

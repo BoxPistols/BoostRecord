@@ -73,3 +73,8 @@ test('Markdown.render() should render footnote correctly', t => {
   const rendered = md.render(markdownFixtures.footnote)
   t.snapshot(rendered)
 })
+
+test('Markdown.render() should renders [TOC] placholder correctly', t => {
+  const rendered = md.render(markdownFixtures.tocPlaceholder)
+  t.snapshot(rendered)
+})

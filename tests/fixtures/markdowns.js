@@ -109,6 +109,14 @@ const footnote = `
 hello-world: https://github.com/BoostIO/Boostnote/
 `
 
+const tocPlaceholder = `
+[TOC]
+# H1
+## H2
+### H3
+###$ H4
+`
+
 export default {
   basic,
   codeblock,
@@ -121,5 +129,6 @@ export default {
   supTexts,
   deflists,
   shortcuts,
-  footnote
+  footnote,
+  tocPlaceholder
 }

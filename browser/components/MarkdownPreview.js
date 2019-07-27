@@ -560,6 +560,7 @@ export default class MarkdownPreview extends React.Component {
     if (
       prevProps.smartQuotes !== this.props.smartQuotes ||
       prevProps.sanitize !== this.props.sanitize ||
+      prevProps.mermaidHTMLLabel !== this.props.mermaidHTMLLabel ||
       prevProps.smartArrows !== this.props.smartArrows ||
       prevProps.breaks !== this.props.breaks ||
       prevProps.lineThroughCheckbox !== this.props.lineThroughCheckbox
@@ -681,7 +682,8 @@ export default class MarkdownPreview extends React.Component {
       showCopyNotification,
       storagePath,
       noteKey,
-      sanitize
+      sanitize,
+      mermaidHTMLLabel
     } = this.props
     let { value, codeBlockTheme } = this.props
 
@@ -823,7 +825,7 @@ export default class MarkdownPreview extends React.Component {
     _.forEach(
       this.refs.root.contentWindow.document.querySelectorAll('.mermaid'),
       el => {
-        mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML), theme)
+        mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML), theme, mermaidHTMLLabel)
       }
     )
 

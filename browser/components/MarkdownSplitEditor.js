@@ -199,6 +199,7 @@ class MarkdownSplitEditor extends React.Component {
           smartArrows={config.preview.smartArrows}
           breaks={config.preview.breaks}
           sanitize={config.preview.sanitize}
+          mermaidHTMLLabel={config.preview.mermaidHTMLLabel}
           ref='preview'
           tabInde='0'
           value={value}

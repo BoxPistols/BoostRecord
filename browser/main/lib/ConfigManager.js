@@ -86,8 +86,10 @@ export const DEFAULT_CONFIG = {
     breaks: true,
     smartArrows: false,
     allowCustomCSS: false,
+
     customCSS: '/* Drop Your Custom CSS Code Here */',
     sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
+    mermaidHTMLLabel: false,
     lineThroughCheckbox: true
   },
   blog: {

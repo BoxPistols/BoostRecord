@@ -591,6 +591,11 @@ export default class MarkdownPreview extends React.Component {
     if (needsRewriteIframe) {
       this.rewriteIframe()
     }
+
+    // Should scroll to top after selecting another note
+    if (prevProps.noteKey !== this.props.noteKey) {
+      this.getWindow().scrollTo(0, 0)
+    }
   }
 
   getStyleParams () {
@@ -962,8 +967,6 @@ export default class MarkdownPreview extends React.Component {
       overlay.appendChild(zoomImg)
       document.body.appendChild(overlay)
     }
-
-    this.getWindow().scrollTo(0, 0)
   }
 
   focus () {

@@ -1,6 +1,6 @@
 const http = require('http')
 const https = require('https')
-const TurndownService = require('turndown')
+const { createTurndownService } = require('../../../lib/turndown')
 const createNote = require('./createNote')
 
 import { push } from 'connected-react-router'
@@ -16,7 +16,7 @@ function validateUrl (str) {
 
 function createNoteFromUrl (url, storage, folder, dispatch = null, location = null) {
   return new Promise((resolve, reject) => {
-    const td = new TurndownService()
+    const td = createTurndownService()
 
     if (!validateUrl(url)) {
       reject({result: false, error: 'Please check your URL is in correct format. (Example, https://www.google.com)'})

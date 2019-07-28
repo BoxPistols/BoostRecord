@@ -21,7 +21,7 @@ const { ipcRenderer, remote, clipboard } = require('electron')
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 const spellcheck = require('browser/lib/spellcheck')
 const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')
-import TurndownService from 'turndown'
+import { createTurndownService } from '../lib/turndown'
 import {languageMaps} from '../lib/CMLanguageList'
 import snippetManager from '../lib/SnippetManager'
 import {generateInEditor, tocExistsInEditor} from 'browser/lib/markdown-toc-generator'
@@ -102,7 +102,7 @@ export default class CodeEditor extends React.Component {
 
     this.editorActivityHandler = () => this.handleEditorActivity()
 
-    this.turndownService = new TurndownService()
+    this.turndownService = createTurndownService()
   }
 
   handleSearch (msg) {

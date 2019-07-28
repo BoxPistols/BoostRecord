@@ -558,7 +558,9 @@ export default class MarkdownPreview extends React.Component {
   }
 
   componentDidUpdate (prevProps) {
-    if (prevProps.value !== this.props.value) this.rewriteIframe()
+    // actual rewriteIframe function should be called only once
+    let needsRewriteIframe = false
+    if (prevProps.value !== this.props.value) needsRewriteIframe = true
     if (
       prevProps.smartQuotes !== this.props.smartQuotes ||
       prevProps.sanitize !== this.props.sanitize ||
@@ -568,7 +570,7 @@ export default class MarkdownPreview extends React.Component {
       prevProps.lineThroughCheckbox !== this.props.lineThroughCheckbox
     ) {
       this.initMarkdown()
-      this.rewriteIframe()
+      needsRewriteIframe = true
     }
     if (
       prevProps.fontFamily !== this.props.fontFamily ||
@@ -583,6 +585,10 @@ export default class MarkdownPreview extends React.Component {
       prevProps.customCSS !== this.props.customCSS
     ) {
       this.applyStyle()
+      needsRewriteIframe = true
+    }
+
+    if (needsRewriteIframe) {
       this.rewriteIframe()
     }
   }

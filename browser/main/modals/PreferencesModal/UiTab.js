@@ -14,6 +14,7 @@ import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 
 const OSX = global.process.platform === 'darwin'
+const WIN = global.process.platform === 'win32'
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer
@@ -95,6 +96,7 @@ class UiTab extends React.Component {
         enableRulers: this.refs.enableEditorRulers.value === 'true',
         rulers: this.refs.editorRulers.value.replace(/[^0-9,]/g, '').split(','),
         displayLineNumbers: this.refs.editorDisplayLineNumbers.checked,
+        lineWrapping: this.refs.editorLineWrapping.checked,
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
         snippetDefaultLanguage: this.refs.editorSnippetDefaultLanguage.value,
@@ -129,6 +131,7 @@ class UiTab extends React.Component {
         breaks: this.refs.previewBreaks.checked,
         smartArrows: this.refs.previewSmartArrows.checked,
         sanitize: this.refs.previewSanitize.value,
+        mermaidHTMLLabel: this.refs.previewMermaidHTMLLabel.checked,
         allowCustomCSS: this.refs.previewAllowCustomCSS.checked,
         lineThroughCheckbox: this.refs.lineThroughCheckbox.checked,
         customCSS: this.customCSSCM.getCodeMirror().getValue()
@@ -141,7 +144,7 @@ class UiTab extends React.Component {
       const theme = consts.THEMES.find(theme => theme.name === newCodemirrorTheme)
 
       if (theme) {
-        checkHighLight.setAttribute('href', `../${theme.path}`)
+        checkHighLight.setAttribute('href', theme.path)
       }
     }
 
@@ -554,6 +557,17 @@ class UiTab extends React.Component {
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.lineWrapping}
+                ref='editorLineWrapping'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Wrap line in Snippet Note')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
                 checked={this.state.config.editor.scrollPastEnd}
                 ref='scrollPastEnd'
                 type='checkbox'
@@ -806,6 +820,16 @@ class UiTab extends React.Component {
               </select>
             </div>
           </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.mermaidHTMLLabel}
+                ref='previewMermaidHTMLLabel'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable HTML label in mermaid flowcharts')}
+            </label>
+          </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('LaTeX Inline Open Delimiter')}
@@ -889,7 +913,6 @@ class UiTab extends React.Component {
                   onChange={e => this.handleUIChange(e)}
                   ref={e => (this.customCSSCM = e)}
                   value={config.preview.customCSS}
-                  defaultValue={'/* Drop Your Custom CSS Code Here */\n'}
                   options={{
                     lineNumbers: true,
                     mode: 'css',

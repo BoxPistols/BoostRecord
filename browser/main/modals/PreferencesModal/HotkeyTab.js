@@ -181,7 +181,26 @@ class HotkeyTab extends React.Component {
                 onChange={(e) => this.handleHotkeyChange(e)}
                 ref='prettifyMarkdown'
                 value={config.hotkey.prettifyMarkdown}
+                type='text'/>
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>{i18n.__('Insert Current Date')}</div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                value={config.hotkey.insertDate}
                 type='text'
+                disabled='true'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>{i18n.__('Insert Current Date and Time')}</div>
+            <div styleName='group-section-control'>
+              <input styleName='group-section-control-input'
+                value={config.hotkey.insertDateTime}
+                type='text'
+                disabled='true'
               />
             </div>
           </div>

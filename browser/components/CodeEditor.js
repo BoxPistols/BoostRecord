@@ -54,6 +54,7 @@ export default class CodeEditor extends React.Component {
     this.focusHandler = () => {
       ipcRenderer.send('editor:focused', true)
     }
+    const debouncedDeletionOfAttachments = _.debounce(attachmentManagement.deleteAttachmentsNotPresentInNote, 30000)
     this.blurHandler = (editor, e) => {
       ipcRenderer.send('editor:focused', false)
       if (e == null) return null
@@ -65,16 +66,11 @@ export default class CodeEditor extends React.Component {
         el = el.parentNode
       }
       this.props.onBlur != null && this.props.onBlur(e)
-
       const {
         storageKey,
         noteKey
       } = this.props
-      attachmentManagement.deleteAttachmentsNotPresentInNote(
-        this.editor.getValue(),
-        storageKey,
-        noteKey
-      )
+      debouncedDeletionOfAttachments(this.editor.getValue(), storageKey, noteKey)
     }
     this.pasteHandler = (editor, e) => {
       e.preventDefault()
@@ -206,23 +202,11 @@ export default class CodeEditor extends React.Component {
       'Cmd-T': function (cm) {
         // Do nothing
       },
-      'Ctrl-/': function (cm) {
-        if (global.process.platform === 'darwin') { return }
+      [translateHotkey(hotkey.insertDate)]: function (cm) {
         const dateNow = new Date()
         cm.replaceSelection(dateNow.toLocaleDateString())
       },
-      'Cmd-/': function (cm) {
-        if (global.process.platform !== 'darwin') { return }
-        const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleDateString())
-      },
-      'Shift-Ctrl-/': function (cm) {
-        if (global.process.platform === 'darwin') { return }
-        const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleString())
-      },
-      'Shift-Cmd-/': function (cm) {
-        if (global.process.platform !== 'darwin') { return }
+      [translateHotkey(hotkey.insertDateTime)]: function (cm) {
         const dateNow = new Date()
         cm.replaceSelection(dateNow.toLocaleString())
       },
@@ -290,7 +274,7 @@ export default class CodeEditor extends React.Component {
       value: this.props.value,
       linesHighlighted: this.props.linesHighlighted,
       lineNumbers: this.props.displayLineNumbers,
-      lineWrapping: true,
+      lineWrapping: this.props.lineWrapping,
       theme: this.props.theme,
       indentUnit: this.props.indentSize,
       tabSize: this.props.indentSize,
@@ -588,6 +572,10 @@ export default class CodeEditor extends React.Component {
 
     if (prevProps.displayLineNumbers !== this.props.displayLineNumbers) {
       this.editor.setOption('lineNumbers', this.props.displayLineNumbers)
+    }
+
+    if (prevProps.lineWrapping !== this.props.lineWrapping) {
+      this.editor.setOption('lineWrapping', this.props.lineWrapping)
     }
 
     if (prevProps.scrollPastEnd !== this.props.scrollPastEnd) {

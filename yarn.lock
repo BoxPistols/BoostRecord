@@ -7751,6 +7751,13 @@ react-color@^2.2.2:
     reactcss "^1.2.0"
     tinycolor2 "^1.4.1"
 
+react-composition-input@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/react-composition-input/-/react-composition-input-1.1.1.tgz#51fc711f8b1c7d11e39210639175f0b48de44aff"
+  integrity sha512-xzRAUvsrEdSjI1tQXu3ouPHkHVZnunx6OoAFsv4YxVV6fIBHc9XZuxkmJwoxSatPxJ6WN94k91PBWQTsL6h/ZA==
+  dependencies:
+    prop-types "^15.6.2"
+
 react-css-modules@^4.7.9:
   version "4.7.9"
   resolved "https://registry.yarnpkg.com/react-css-modules/-/react-css-modules-4.7.9.tgz#459235e149a0df7a62b092ae079d53cb0b6154ee"

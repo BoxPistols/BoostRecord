@@ -248,11 +248,7 @@ export default class MarkdownPreview extends React.Component {
   handleContextMenu (event) {
     const menu = buildMarkdownPreviewContextMenu(this, event)
     if (menu != null) {
-<<<<<<< HEAD
-      setTimeout(() => menu.popup(remote.getCurrentWindow()), 30)
-=======
       menu.popup(remote.getCurrentWindow())
->>>>>>> upstream/master
     }
   }
 

@@ -181,7 +181,7 @@ class HotkeyTab extends React.Component {
                 onChange={(e) => this.handleHotkeyChange(e)}
                 ref='prettifyMarkdown'
                 value={config.hotkey.prettifyMarkdown}
-                type='text'/>
+                type='text' />
             </div>
           </div>
           <div styleName='group-section'>

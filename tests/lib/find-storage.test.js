@@ -12,14 +12,16 @@ const sander = require('sander')
 const os = require('os')
 const storagePath = path.join(os.tmpdir(), 'test/find-storage')
 
+let storageContext
+
 beforeEach(() => {
-  t.context.storage = TestDummy.dummyStorage(storagePath)
-  localStorage.setItem('storages', JSON.stringify([t.context.storage.cache]))
+  storageContext = TestDummy.dummyStorage(storagePath)
+  localStorage.setItem('storages', JSON.stringify([storageContext.cache]))
 })
 
 // Unit test
 test('findStorage() should return a correct storage path(string)', () => {
-  const storageKey = t.context.storage.cache.key
+  const storageKey = storageContext.cache.key
 
   expect(findStorage(storageKey).key).toBe(storageKey)
   expect(findStorage(storageKey).path).toBe(storagePath)

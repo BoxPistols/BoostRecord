@@ -1,4 +1,3 @@
-import test from 'ava'
 import searchFromNotes from 'browser/lib/search'
 import { dummyNote } from '../fixtures/TestDummy'
 import _ from 'lodash'
@@ -8,7 +7,7 @@ const pickContents = (notes) => notes.map((note) => { return note.content })
 let notes = []
 let note1, note2, note3
 
-test.before(t => {
+beforeAll(() => {
   const data1 = { type: 'MARKDOWN_NOTE', content: 'content1', tags: ['tag1'] }
   const data2 = { type: 'MARKDOWN_NOTE', content: 'content1\ncontent2', tags: ['tag1', 'tag2'] }
   const data3 = { type: 'MARKDOWN_NOTE', content: '#content4', tags: ['tag1'] }
@@ -20,7 +19,7 @@ test.before(t => {
   notes = [note1, note2, note3]
 })
 
-test('it can find notes by tags and words', t => {
+test('it can find notes by tags and words', () => {
   // [input, expected content (Array)]
   const testWithTags = [
     ['#tag1', [note1.content, note2.content, note3.content]],
@@ -42,6 +41,6 @@ test('it can find notes by tags and words', t => {
   testCases.forEach((testCase) => {
     const [input, expectedContents] = testCase
     const results = searchFromNotes(notes, input)
-    t.true(_.isEqual(pickContents(results).sort(), expectedContents.sort()))
+    expect(_.isEqual(pickContents(results).sort(), expectedContents.sort())).toBe(true)
   })
 })

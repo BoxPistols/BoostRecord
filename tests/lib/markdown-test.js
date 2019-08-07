@@ -1,4 +1,3 @@
-import test from 'ava'
 import Markdown from 'browser/lib/markdown'
 import markdownFixtures from '../fixtures/markdowns'
 
@@ -6,70 +5,70 @@ import markdownFixtures from '../fixtures/markdowns'
 // To test markdown options, initialize a new instance in your test case
 const md = new Markdown()
 
-test('Markdown.render() should renders markdown correctly', t => {
+test('Markdown.render() should renders markdown correctly', () => {
   const rendered = md.render(markdownFixtures.basic)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should renders codeblock correctly', t => {
+test('Markdown.render() should renders codeblock correctly', () => {
   const rendered = md.render(markdownFixtures.codeblock)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should renders KaTeX correctly', t => {
+test('Markdown.render() should renders KaTeX correctly', () => {
   const rendered = md.render(markdownFixtures.katex)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should renders checkboxes', t => {
+test('Markdown.render() should renders checkboxes', () => {
   const rendered = md.render(markdownFixtures.checkboxes)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should text with quotes correctly', t => {
+test('Markdown.render() should text with quotes correctly', () => {
   const renderedSmartQuotes = md.render(markdownFixtures.smartQuotes)
-  t.snapshot(renderedSmartQuotes)
+  expect(renderedSmartQuotes).toMatchSnapshot()
 
   const newmd = new Markdown({ typographer: false })
   const renderedNonSmartQuotes = newmd.render(markdownFixtures.smartQuotes)
-  t.snapshot(renderedNonSmartQuotes)
+  expect(renderedNonSmartQuotes).toMatchSnapshot()
 })
 
-test('Markdown.render() should render line breaks correctly', t => {
+test('Markdown.render() should render line breaks correctly', () => {
   const renderedBreaks = md.render(markdownFixtures.breaks)
-  t.snapshot(renderedBreaks)
+  expect(renderedBreaks).toMatchSnapshot()
 
   const newmd = new Markdown({ breaks: false })
   const renderedNonBreaks = newmd.render(markdownFixtures.breaks)
-  t.snapshot(renderedNonBreaks)
+  expect(renderedNonBreaks).toMatchSnapshot()
 })
 
-test('Markdown.render() should renders abbrevations correctly', t => {
+test('Markdown.render() should renders abbrevations correctly', () => {
   const rendered = md.render(markdownFixtures.abbrevations)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should renders sub correctly', t => {
+test('Markdown.render() should renders sub correctly', () => {
   const rendered = md.render(markdownFixtures.subTexts)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should renders sup correctly', t => {
+test('Markdown.render() should renders sup correctly', () => {
   const rendered = md.render(markdownFixtures.supTexts)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should renders definition lists correctly', t => {
+test('Markdown.render() should renders definition lists correctly', () => {
   const rendered = md.render(markdownFixtures.deflists)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render shortcuts correctly', t => {
+test('Markdown.render() should render shortcuts correctly', () => {
   const rendered = md.render(markdownFixtures.shortcuts)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render footnote correctly', t => {
+test('Markdown.render() should render footnote correctly', () => {
   const rendered = md.render(markdownFixtures.footnote)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })

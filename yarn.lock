@@ -74,10 +74,10 @@
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/@enyaxu/markdown-it-anchor/-/markdown-it-anchor-5.0.2.tgz#d173f7b60b492aabc17dfba864c4d071f5595f72"
 
-"@hikerpig/markdown-it-toc-and-anchor@^4.4.0":
-  version "4.4.0"
-  resolved "https://registry.npmjs.org/@hikerpig/markdown-it-toc-and-anchor/-/markdown-it-toc-and-anchor-4.4.0.tgz#376f7be6a747536661402c944d0c7df9ad71da28"
-  integrity sha512-i/4bstYYAZx6Pk1W58vpr7SMEdTub7zpzJlakA0eRBkNabHnk3bFqfvUkGxFA1m1m4IxaN1V+k51fOmTPopy6Q==
+"@hikerpig/markdown-it-toc-and-anchor@^4.5.0":
+  version "4.5.0"
+  resolved "https://registry.npmjs.org/@hikerpig/markdown-it-toc-and-anchor/-/markdown-it-toc-and-anchor-4.5.0.tgz#c1652bdebfd07d41c9738254891515d759b054f0"
+  integrity sha512-PaYl/v9/ViceXm+fC+WoQOD/8lvYf76SnA3s8b/BQ6s3NpZdk/W/aW0dg5YHquQNcdaLfz3lmQTt6iafbe5tbg==
   dependencies:
     clone "^2.1.0"
     uslug "^1.0.4"

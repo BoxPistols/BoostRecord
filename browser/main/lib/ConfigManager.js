@@ -31,6 +31,7 @@ export const DEFAULT_CONFIG = {
     toggleMode: OSX ? 'Command + Alt + M' : 'Ctrl + M',
     deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace',
     pasteSmartly: OSX ? 'Command + Shift + V' : 'Ctrl + Shift + V',
+    prettifyMarkdown: 'Shift + F',
     insertDate: OSX ? 'Command + /' : 'Ctrl + /',
     insertDateTime: OSX ? 'Command + Alt + /' : 'Ctrl + Shift + /',
     toggleMenuBar: 'Alt'
@@ -50,6 +51,7 @@ export const DEFAULT_CONFIG = {
     fontFamily: win ? 'Consolas' : 'Monaco',
     indentType: 'space',
     indentSize: '2',
+    lineWrapping: true,
     enableRulers: false,
     rulers: [80, 120],
     displayLineNumbers: true,
@@ -67,7 +69,14 @@ export const DEFAULT_CONFIG = {
     spellcheck: false,
     enableSmartPaste: false,
     enableMarkdownLint: false,
-    customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG
+    customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG,
+    prettierConfig: ` {
+      "trailingComma": "es5",
+      "tabWidth": 4,
+      "semi": false,
+      "singleQuote": true
+  }`
+
   },
   preview: {
     fontSize: '14',
@@ -85,8 +94,10 @@ export const DEFAULT_CONFIG = {
     breaks: true,
     smartArrows: false,
     allowCustomCSS: false,
+
     customCSS: '/* Drop Your Custom CSS Code Here */',
     sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
+    mermaidHTMLLabel: false,
     lineThroughCheckbox: true
   },
   blog: {
@@ -142,7 +153,7 @@ function get () {
     const theme = consts.THEMES.find(theme => theme.name === config.editor.theme)
 
     if (theme) {
-      editorTheme.setAttribute('href', win ? theme.path : `../${theme.path}`)
+      editorTheme.setAttribute('href', theme.path)
     } else {
       config.editor.theme = 'default'
     }
@@ -190,7 +201,7 @@ function set (updates) {
   const newTheme = consts.THEMES.find(theme => theme.name === newConfig.editor.theme)
 
   if (newTheme) {
-    editorTheme.setAttribute('href', win ? newTheme.path : `../${newTheme.path}`)
+    editorTheme.setAttribute('href', newTheme.path)
   }
 
   ipcRenderer.send('config-renew', {

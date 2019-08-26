@@ -14,7 +14,6 @@ import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 
 const OSX = global.process.platform === 'darwin'
-const win = global.process.platform === 'win32'
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer
@@ -32,8 +31,12 @@ class UiTab extends React.Component {
     CodeMirror.autoLoadMode(this.codeMirrorInstance.getCodeMirror(), 'javascript')
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
     CodeMirror.autoLoadMode(this.customMarkdownLintConfigCM.getCodeMirror(), 'javascript')
+    CodeMirror.autoLoadMode(this.prettierConfigCM.getCodeMirror(), 'javascript')
+    // Set CM editor Sizes
     this.customCSSCM.getCodeMirror().setSize('400px', '400px')
+    this.prettierConfigCM.getCodeMirror().setSize('400px', '400px')
     this.customMarkdownLintConfigCM.getCodeMirror().setSize('400px', '200px')
+
     this.handleSettingDone = () => {
       this.setState({UiAlert: {
         type: 'success',
@@ -92,6 +95,7 @@ class UiTab extends React.Component {
         enableRulers: this.refs.enableEditorRulers.value === 'true',
         rulers: this.refs.editorRulers.value.replace(/[^0-9,]/g, '').split(','),
         displayLineNumbers: this.refs.editorDisplayLineNumbers.checked,
+        lineWrapping: this.refs.editorLineWrapping.checked,
         switchPreview: this.refs.editorSwitchPreview.value,
         keyMap: this.refs.editorKeyMap.value,
         snippetDefaultLanguage: this.refs.editorSnippetDefaultLanguage.value,
@@ -106,7 +110,9 @@ class UiTab extends React.Component {
         spellcheck: this.refs.spellcheck.checked,
         enableSmartPaste: this.refs.enableSmartPaste.checked,
         enableMarkdownLint: this.refs.enableMarkdownLint.checked,
-        customMarkdownLintConfig: this.customMarkdownLintConfigCM.getCodeMirror().getValue()
+        customMarkdownLintConfig: this.customMarkdownLintConfigCM.getCodeMirror().getValue(),
+        prettierConfig: this.prettierConfigCM.getCodeMirror().getValue()
+
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -124,6 +130,7 @@ class UiTab extends React.Component {
         breaks: this.refs.previewBreaks.checked,
         smartArrows: this.refs.previewSmartArrows.checked,
         sanitize: this.refs.previewSanitize.value,
+        mermaidHTMLLabel: this.refs.previewMermaidHTMLLabel.checked,
         allowCustomCSS: this.refs.previewAllowCustomCSS.checked,
         lineThroughCheckbox: this.refs.lineThroughCheckbox.checked,
         customCSS: this.customCSSCM.getCodeMirror().getValue()
@@ -136,7 +143,7 @@ class UiTab extends React.Component {
       const theme = consts.THEMES.find(theme => theme.name === newCodemirrorTheme)
 
       if (theme) {
-        checkHighLight.setAttribute('href', win ? theme.path : `../${theme.path}`)
+        checkHighLight.setAttribute('href', theme.path)
       }
     }
 
@@ -549,6 +556,17 @@ class UiTab extends React.Component {
           <div styleName='group-checkBoxSection'>
             <label>
               <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.lineWrapping}
+                ref='editorLineWrapping'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Wrap line in Snippet Note')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
                 checked={this.state.config.editor.scrollPastEnd}
                 ref='scrollPastEnd'
                 type='checkbox'
@@ -801,6 +819,16 @@ class UiTab extends React.Component {
               </select>
             </div>
           </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.preview.mermaidHTMLLabel}
+                ref='previewMermaidHTMLLabel'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Enable HTML label in mermaid flowcharts')}
+            </label>
+          </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('LaTeX Inline Open Delimiter')}
@@ -892,7 +920,27 @@ class UiTab extends React.Component {
               </div>
             </div>
           </div>
-
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Prettier Config')}
+            </div>
+            <div styleName='group-section-control'>
+              <div style={{fontFamily}}>
+                <ReactCodeMirror
+                  width='400px'
+                  height='400px'
+                  onChange={e => this.handleUIChange(e)}
+                  ref={e => (this.prettierConfigCM = e)}
+                  value={config.editor.prettierConfig}
+                  options={{
+                    lineNumbers: true,
+                    mode: 'application/json',
+                    lint: true,
+                    theme: codemirrorTheme
+                  }} />
+              </div>
+            </div>
+          </div>
           <div styleName='group-control'>
             <button styleName='group-control-rightButton'
               onClick={(e) => this.handleSaveUIClick(e)}>{i18n.__('Save')}

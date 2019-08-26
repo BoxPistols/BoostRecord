@@ -20,7 +20,7 @@ import styles from '../components/CodeEditor.styl'
 const { ipcRenderer, remote, clipboard } = require('electron')
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 const spellcheck = require('browser/lib/spellcheck')
-const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')
+const buildEditorContextMenu = require('browser/lib/contextMenuBuilder').buildEditorContextMenu
 import TurndownService from 'turndown'
 import {languageMaps} from '../lib/CMLanguageList'
 import snippetManager from '../lib/SnippetManager'
@@ -28,6 +28,7 @@ import {generateInEditor, tocExistsInEditor} from 'browser/lib/markdown-toc-gene
 import markdownlint from 'markdownlint'
 import Jsonlint from 'jsonlint-mod'
 import { DEFAULT_CONFIG } from '../main/lib/ConfigManager'
+import prettier from 'prettier'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -106,7 +107,7 @@ export default class CodeEditor extends React.Component {
     const component = this
 
     if (component.searchState) cm.removeOverlay(component.searchState)
-    if (msg.length < 3) return
+    if (msg.length < 1) return
 
     cm.operation(function () {
       component.searchState = makeOverlay(msg, 'searching')
@@ -216,6 +217,28 @@ export default class CodeEditor extends React.Component {
         }
         return CodeMirror.Pass
       },
+      [translateHotkey(hotkey.prettifyMarkdown)]: cm => {
+        // Default / User configured prettier options
+        const currentConfig = JSON.parse(self.props.prettierConfig)
+
+        // Parser type will always need to be markdown so we override the option before use
+        currentConfig.parser = 'markdown'
+
+        // Get current cursor position
+        const cursorPos = cm.getCursor()
+        currentConfig.cursorOffset = cm.doc.indexFromPos(cursorPos)
+
+        // Prettify contents of editor
+        const formattedTextDetails = prettier.formatWithCursor(cm.doc.getValue(), currentConfig)
+
+        const formattedText = formattedTextDetails.formatted
+        const formattedCursorPos = formattedTextDetails.cursorOffset
+        cm.doc.setValue(formattedText)
+
+        // Reset Cursor position to be at the same markdown as was before prettifying
+        const newCursorPos = cm.doc.posFromIndex(formattedCursorPos)
+        cm.doc.setCursor(newCursorPos)
+      },
       [translateHotkey(hotkey.pasteSmartly)]: cm => {
         this.handlePaste(cm, true)
       }
@@ -251,7 +274,7 @@ export default class CodeEditor extends React.Component {
       value: this.props.value,
       linesHighlighted: this.props.linesHighlighted,
       lineNumbers: this.props.displayLineNumbers,
-      lineWrapping: true,
+      lineWrapping: this.props.lineWrapping,
       theme: this.props.theme,
       indentUnit: this.props.indentSize,
       tabSize: this.props.indentSize,
@@ -269,7 +292,8 @@ export default class CodeEditor extends React.Component {
         explode: this.props.explodingPairs,
         override: true
       },
-      extraKeys: this.defaultKeyMap
+      extraKeys: this.defaultKeyMap,
+      prettierConfig: this.props.prettierConfig
     })
 
     document.querySelector('.CodeMirror-lint-markers').style.display = enableMarkdownLint ? 'inline-block' : 'none'
@@ -548,6 +572,10 @@ export default class CodeEditor extends React.Component {
 
     if (prevProps.displayLineNumbers !== this.props.displayLineNumbers) {
       this.editor.setOption('lineNumbers', this.props.displayLineNumbers)
+    }
+
+    if (prevProps.lineWrapping !== this.props.lineWrapping) {
+      this.editor.setOption('lineWrapping', this.props.lineWrapping)
     }
 
     if (prevProps.scrollPastEnd !== this.props.scrollPastEnd) {
@@ -830,6 +858,17 @@ export default class CodeEditor extends React.Component {
     const cursor = this.editor.getCursor()
     this.editor.setValue(value)
     this.editor.setCursor(cursor)
+  }
+
+  /**
+   * Update content of one line
+   * @param {Number} lineNumber
+   * @param {String} content
+   */
+  setLineContent (lineNumber, content) {
+    const prevContent = this.editor.getLine(lineNumber)
+    const prevContentLength = prevContent ? prevContent.length : 0
+    this.editor.replaceRange(content, { line: lineNumber, ch: 0 }, { line: lineNumber, ch: prevContentLength })
   }
 
   handleDropImage (dropEvent) {
@@ -1179,5 +1218,6 @@ CodeEditor.defaultProps = {
   autoDetect: false,
   spellCheck: false,
   enableMarkdownLint: DEFAULT_CONFIG.editor.enableMarkdownLint,
-  customMarkdownLintConfig: DEFAULT_CONFIG.editor.customMarkdownLintConfig
+  customMarkdownLintConfig: DEFAULT_CONFIG.editor.customMarkdownLintConfig,
+  prettierConfig: DEFAULT_CONFIG.editor.prettierConfig
 }

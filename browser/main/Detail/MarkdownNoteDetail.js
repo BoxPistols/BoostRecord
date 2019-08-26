@@ -152,7 +152,6 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleFolderChange (e) {
-    const { dispatch } = this.props
     const { note } = this.state
     const value = this.refs.folder.value
     const splitted = value.split('-')
@@ -410,7 +409,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   render () {
-    const { data, location, config } = this.props
+    const { data, dispatch, location, config } = this.props
     const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
@@ -450,7 +449,7 @@ class MarkdownNoteDetail extends React.Component {
 
     const detailTopBar = <div styleName='info'>
       <div styleName='info-left'>
-        <div styleName='info-left-top'>
+        <div>
           <FolderSelect styleName='info-left-top-folderSelect'
             value={this.state.note.storage + '-' + this.state.note.folder}
             ref='folder'
@@ -465,6 +464,7 @@ class MarkdownNoteDetail extends React.Component {
           saveTagsAlphabetically={config.ui.saveTagsAlphabetically}
           showTagsAlphabetically={config.ui.showTagsAlphabetically}
           data={data}
+          dispatch={dispatch}
           onChange={this.handleUpdateTag.bind(this)}
           coloredTags={config.coloredTags}
         />
@@ -484,7 +484,7 @@ class MarkdownNoteDetail extends React.Component {
               onFocus={(e) => this.handleFocus(e)}
               onMouseDown={(e) => this.handleLockButtonMouseDown(e)}
             >
-              <img styleName='iconInfo' src={imgSrc} />
+              <img src={imgSrc} />
               {this.state.isLocked ? <span styleName='tooltip'>Unlock</span> : <span styleName='tooltip'>Lock</span>}
             </button>
 

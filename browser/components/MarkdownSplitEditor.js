@@ -182,6 +182,7 @@ class MarkdownSplitEditor extends React.Component {
           switchPreview={config.editor.switchPreview}
           enableMarkdownLint={config.editor.enableMarkdownLint}
           customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
+          deleteUnusedAttachments={config.editor.deleteUnusedAttachments}
        />
         <div styleName='slider' style={{left: this.state.codeEditorWidthInPercent + '%'}} onMouseDown={e => this.handleMouseDown(e)} >
           <div styleName='slider-hitbox' />

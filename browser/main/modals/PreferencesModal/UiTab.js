@@ -111,8 +111,8 @@ class UiTab extends React.Component {
         enableSmartPaste: this.refs.enableSmartPaste.checked,
         enableMarkdownLint: this.refs.enableMarkdownLint.checked,
         customMarkdownLintConfig: this.customMarkdownLintConfigCM.getCodeMirror().getValue(),
-        prettierConfig: this.prettierConfigCM.getCodeMirror().getValue()
-
+        prettierConfig: this.prettierConfigCM.getCodeMirror().getValue(),
+        deleteUnusedAttachments: this.refs.deleteUnusedAttachments.checked
       },
       preview: {
         fontSize: this.refs.previewFontSize.value,
@@ -616,6 +616,16 @@ class UiTab extends React.Component {
                 type='checkbox'
               />&nbsp;
               {i18n.__('Enable spellcheck - Experimental feature!! :)')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input onChange={(e) => this.handleUIChange(e)}
+                checked={this.state.config.editor.deleteUnusedAttachments}
+                ref='deleteUnusedAttachments'
+                type='checkbox'
+              />&nbsp;
+              {i18n.__('Delete attachments, that are not referenced in the text anymore')}
             </label>
           </div>
 

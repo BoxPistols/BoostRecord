@@ -324,6 +324,7 @@ class MarkdownEditor extends React.Component {
           enableMarkdownLint={config.editor.enableMarkdownLint}
           customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
           prettierConfig={config.editor.prettierConfig}
+          deleteUnusedAttachments={config.editor.deleteUnusedAttachments}
         />
         <MarkdownPreview styleName={this.state.status === 'PREVIEW'
             ? 'preview'

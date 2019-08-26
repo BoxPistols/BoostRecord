@@ -75,8 +75,8 @@ export const DEFAULT_CONFIG = {
       "tabWidth": 4,
       "semi": false,
       "singleQuote": true
-  }`
-
+    }`,
+    deleteUnusedAttachments: true
   },
   preview: {
     fontSize: '14',

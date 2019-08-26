@@ -70,7 +70,9 @@ export default class CodeEditor extends React.Component {
         storageKey,
         noteKey
       } = this.props
-      debouncedDeletionOfAttachments(this.editor.getValue(), storageKey, noteKey)
+      if (this.props.deleteUnusedAttachments === true) {
+        debouncedDeletionOfAttachments(this.editor.getValue(), storageKey, noteKey)
+      }
     }
     this.pasteHandler = (editor, e) => {
       e.preventDefault()
@@ -631,6 +633,9 @@ export default class CodeEditor extends React.Component {
       } else {
         this.editor.addPanel(this.createSpellCheckPanel(), {position: 'bottom'})
       }
+    }
+    if (prevProps.deleteUnusedAttachments !== this.props.deleteUnusedAttachments) {
+      this.editor.setOption('deleteUnusedAttachments', this.props.deleteUnusedAttachments)
     }
 
     if (needRefresh) {
@@ -1204,7 +1209,8 @@ CodeEditor.propTypes = {
   autoDetect: PropTypes.bool,
   spellCheck: PropTypes.bool,
   enableMarkdownLint: PropTypes.bool,
-  customMarkdownLintConfig: PropTypes.string
+  customMarkdownLintConfig: PropTypes.string,
+  deleteUnusedAttachments: PropTypes.bool
 }
 
 CodeEditor.defaultProps = {
@@ -1219,5 +1225,6 @@ CodeEditor.defaultProps = {
   spellCheck: false,
   enableMarkdownLint: DEFAULT_CONFIG.editor.enableMarkdownLint,
   customMarkdownLintConfig: DEFAULT_CONFIG.editor.customMarkdownLintConfig,
-  prettierConfig: DEFAULT_CONFIG.editor.prettierConfig
+  prettierConfig: DEFAULT_CONFIG.editor.prettierConfig,
+  deleteUnusedAttachments: DEFAULT_CONFIG.editor.deleteUnusedAttachments
 }

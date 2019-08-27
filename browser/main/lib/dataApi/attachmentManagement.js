@@ -624,6 +624,52 @@ function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey
   }
 }
 
+function getAttachments (markdownContent, storageKey, noteKey) {
+  if (storageKey == null || noteKey == null || markdownContent == null) {
+    return
+  }
+  const targetStorage = findStorage.findStorage(storageKey)
+  const attachmentFolder = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey)
+  const attachmentsInNote = getAttachmentsInMarkdownContent(markdownContent)
+  const attachmentsInNoteOnlyFileNames = []
+  if (attachmentsInNote) {
+    for (let i = 0; i < attachmentsInNote.length; i++) {
+      attachmentsInNoteOnlyFileNames.push(attachmentsInNote[i].replace(new RegExp(STORAGE_FOLDER_PLACEHOLDER + escapeStringRegexp(path.sep) + noteKey + escapeStringRegexp(path.sep), 'g'), ''))
+    }
+  }
+  if (fs.existsSync(attachmentFolder)) {
+    return new Promise((resolve, reject) => {
+      fs.readdir(attachmentFolder, (err, files) => {
+        if (err) {
+          console.error('Error reading directory "' + attachmentFolder + '". Error:')
+          console.error(err)
+          reject(err)
+          return
+        }
+        const attachmentsNotInNotePaths = []
+        const attachmentsInNotePaths = []
+        const allAttachments = []
+        for (const file of files) {
+          const absolutePathOfFile = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey, file)
+          if (!attachmentsInNoteOnlyFileNames.includes(file)) {
+            attachmentsNotInNotePaths.push(absolutePathOfFile)
+          } else {
+            attachmentsInNotePaths.push(absolutePathOfFile)
+          }
+          allAttachments.push(absolutePathOfFile)
+        }
+        resolve({
+          allAttachments,
+          attachmentsNotInNotePaths,
+          attachmentsInNotePaths
+        })
+      })
+    })
+  } else {
+    return null
+  }
+}
+
 /**
  * Clones the attachments of a given note.
  * Copies the attachments to their new destination and updates the content of the new note so that the attachment-links again point to the correct destination.
@@ -728,6 +774,7 @@ module.exports = {
   removeStorageAndNoteReferences,
   deleteAttachmentFolder,
   deleteAttachmentsNotPresentInNote,
+  getAttachments,
   moveAttachments,
   cloneAttachments,
   isAttachmentLink,

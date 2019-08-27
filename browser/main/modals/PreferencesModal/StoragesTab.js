@@ -60,7 +60,7 @@ class StoragesTab extends React.Component {
   loadAttachmentStorage () {
     const promises = []
     this.props.data.noteMap.map(note => {
-      const promise = attachmentManagement.getAttachments(
+      const promise = attachmentManagement.getAttachmentsPathAndStatus(
         note.content,
         note.storage,
         note.key
@@ -69,7 +69,10 @@ class StoragesTab extends React.Component {
     })
 
     Promise.all(promises)
-      .then(data => this.setState({attachments: data}))
+      .then(data => {
+        const result = data.reduce((acc, curr) => acc.concat(curr), [])
+        this.setState({attachments: result})
+      })
       .catch(console.error)
   }
 
@@ -118,32 +121,24 @@ class StoragesTab extends React.Component {
     const { data, boundingBox } = this.props
     const { attachments } = this.state
 
-    const totalUnusedAttachments = attachments
-      .reduce((acc, curr) => acc + curr.attachmentsNotInNotePaths.length, 0)
-    const totalInuseAttachments = attachments
-      .reduce((acc, curr) => acc + curr.attachmentsInNotePaths.length, 0)
+    const unusedAttachments = attachments.filter(attachment => !attachment.isInUse)
+    const inUseAttachments = attachments.filter(attachment => attachment.isInUse)
+
+    const totalUnusedAttachments = unusedAttachments.length
+    const totalInuseAttachments = inUseAttachments.length
     const totalAttachments = totalUnusedAttachments + totalInuseAttachments
 
-    const unusedAttachments = attachments.reduce((acc, curr) => {
-      acc.push(curr.attachmentsNotInNotePaths)
-      return acc
-    }, [])
-
-    const totalUnusedAttachmentsSize = attachments
+    const totalUnusedAttachmentsSize = unusedAttachments
       .reduce((acc, curr) => {
-        return acc + curr.attachmentsNotInNotePaths.reduce((racc, rcurr) => {
-          const stats = fs.statSync(rcurr)
-          const fileSizeInBytes = stats.size
-          return racc + fileSizeInBytes
-        }, 0)
+        const stats = fs.statSync(curr.path)
+        const fileSizeInBytes = stats.size
+        return acc + fileSizeInBytes
       }, 0)
-    const totalInuseAttachmentsSize = attachments
+    const totalInuseAttachmentsSize = inUseAttachments
       .reduce((acc, curr) => {
-        return acc + curr.attachmentsInNotePaths.reduce((racc, rcurr) => {
-          const stats = fs.statSync(rcurr)
-          const fileSizeInBytes = stats.size
-          return racc + fileSizeInBytes
-        }, 0)
+        const stats = fs.statSync(curr.path)
+        const fileSizeInBytes = stats.size
+        return acc + fileSizeInBytes
       }, 0)
     const totalAttachmentsSize = totalUnusedAttachmentsSize + totalInuseAttachmentsSize
 

@@ -624,7 +624,15 @@ function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey
   }
 }
 
-function getAttachments (markdownContent, storageKey, noteKey) {
+/**
+ * @description Get all existing attachments related to a specific note
+ including their status (in use or not) and their path. Return null if there're no attachment related to note or specified parametters are invalid
+ * @param storageKey StorageKey of the current note
+ * @param noteKey NoteKey of the currentNote
+ * @param linkText Text that was pasted
+ * @return {Promise<Array<{path: String, isInUse: bool}>>} Promise returning the
+ list of attachments with their properties */
+function getAttachmentsPathAndStatus (markdownContent, storageKey, noteKey) {
   if (storageKey == null || noteKey == null || markdownContent == null) {
     return
   }
@@ -646,23 +654,16 @@ function getAttachments (markdownContent, storageKey, noteKey) {
           reject(err)
           return
         }
-        const attachmentsNotInNotePaths = []
-        const attachmentsInNotePaths = []
-        const allAttachments = []
+        const attachments = []
         for (const file of files) {
           const absolutePathOfFile = path.join(targetStorage.path, DESTINATION_FOLDER, noteKey, file)
           if (!attachmentsInNoteOnlyFileNames.includes(file)) {
-            attachmentsNotInNotePaths.push(absolutePathOfFile)
+            attachments.push({ path: absolutePathOfFile, isInUse: false })
           } else {
-            attachmentsInNotePaths.push(absolutePathOfFile)
+            attachments.push({ path: absolutePathOfFile, isInUse: true })
           }
-          allAttachments.push(absolutePathOfFile)
         }
-        resolve({
-          allAttachments,
-          attachmentsNotInNotePaths,
-          attachmentsInNotePaths
-        })
+        resolve(attachments)
       })
     })
   } else {
@@ -774,7 +775,7 @@ module.exports = {
   removeStorageAndNoteReferences,
   deleteAttachmentFolder,
   deleteAttachmentsNotPresentInNote,
-  getAttachments,
+  getAttachmentsPathAndStatus,
   moveAttachments,
   cloneAttachments,
   isAttachmentLink,

@@ -6,6 +6,7 @@ import dataApi from 'browser/main/lib/dataApi'
 import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import StorageItem from './StorageItem'
 import i18n from 'browser/lib/i18n'
+import { humanFileSize } from 'browser/lib/utils'
 import fs from 'fs'
 
 const electron = require('electron')
@@ -25,20 +26,6 @@ function browseFolder () {
       resolve(targetPaths[0])
     })
   })
-}
-
-function humanFileSize (bytes) {
-  const threshold = 1000
-  if (Math.abs(bytes) < threshold) {
-    return bytes + ' B'
-  }
-  var units = ['kB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
-  var u = -1
-  do {
-    bytes /= threshold
-    ++u
-  } while (Math.abs(bytes) >= threshold && u < units.length - 1)
-  return bytes.toFixed(1) + ' ' + units[u]
 }
 
 class StoragesTab extends React.Component {
@@ -94,25 +81,8 @@ class StoragesTab extends React.Component {
     e.preventDefault()
   }
 
-  removeAllAttachments (attachments) {
-    const promises = []
-    for (const attachment of attachments) {
-      for (const file of attachment) {
-        const promise = new Promise((resolve, reject) => {
-          fs.unlink(file, (err) => {
-            if (err) {
-              console.error('Could not delete "%s"', file)
-              console.error(err)
-              reject(err)
-              return
-            }
-            resolve()
-          })
-        })
-        promises.push(promise)
-      }
-    }
-    Promise.all(promises)
+  handleRemoveUnusedAttachments (attachments) {
+    attachmentManagement.removeAttachmentsByPaths(attachments)
       .then(() => this.loadAttachmentStorage())
       .catch(console.error)
   }
@@ -141,6 +111,9 @@ class StoragesTab extends React.Component {
         return acc + fileSizeInBytes
       }, 0)
     const totalAttachmentsSize = totalUnusedAttachmentsSize + totalInuseAttachmentsSize
+
+    const unusedAttachmentPaths = unusedAttachments
+      .reduce((acc, curr) => acc.concat(curr.path), [])
 
     if (!boundingBox) { return null }
     const storageList = data.storageMap.map((storage) => {
@@ -174,7 +147,8 @@ class StoragesTab extends React.Component {
         <p styleName='list-attachment-label'>
           Total attachments size: {humanFileSize(totalAttachmentsSize)} ({totalAttachments} items)
         </p>
-        <button styleName='list-attachement-clear-button' onClick={() => this.removeAllAttachments(unusedAttachments)}>
+        <button styleName='list-attachement-clear-button'
+          onClick={() => this.handleRemoveUnusedAttachments(unusedAttachmentPaths)}>
           {i18n.__('Clear unused attachments')}
         </button>
       </div>

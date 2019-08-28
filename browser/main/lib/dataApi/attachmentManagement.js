@@ -627,9 +627,9 @@ function deleteAttachmentsNotPresentInNote (markdownContent, storageKey, noteKey
 /**
  * @description Get all existing attachments related to a specific note
  including their status (in use or not) and their path. Return null if there're no attachment related to note or specified parametters are invalid
+ * @param markdownContent markdownContent of the current note
  * @param storageKey StorageKey of the current note
  * @param noteKey NoteKey of the currentNote
- * @param linkText Text that was pasted
  * @return {Promise<Array<{path: String, isInUse: bool}>>} Promise returning the
  list of attachments with their properties */
 function getAttachmentsPathAndStatus (markdownContent, storageKey, noteKey) {
@@ -669,6 +669,29 @@ function getAttachmentsPathAndStatus (markdownContent, storageKey, noteKey) {
   } else {
     return null
   }
+}
+
+/**
+ * @description Remove all specified attachment paths
+ * @param attachments attachment paths
+ * @return {Promise} Promise after all attachments are removed */
+function removeAttachmentsByPaths (attachments) {
+  const promises = []
+  for (const attachment of attachments) {
+    const promise = new Promise((resolve, reject) => {
+      fs.unlink(attachment, (err) => {
+        if (err) {
+          console.error('Could not delete "%s"', attachment)
+          console.error(err)
+          reject(err)
+          return
+        }
+        resolve()
+      })
+    })
+    promises.push(promise)
+  }
+  return Promise.all(promises)
 }
 
 /**
@@ -773,6 +796,7 @@ module.exports = {
   getAbsolutePathsOfAttachmentsInContent,
   importAttachments,
   removeStorageAndNoteReferences,
+  removeAttachmentsByPaths,
   deleteAttachmentFolder,
   deleteAttachmentsNotPresentInNote,
   getAttachmentsPathAndStatus,

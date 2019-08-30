@@ -169,14 +169,15 @@ class MarkdownEditor extends React.Component {
         .split('\n')
 
       const targetLine = lines[lineIndex]
+      let newLine = targetLine
 
       if (targetLine.match(checkedMatch)) {
-        lines[lineIndex] = targetLine.replace(checkReplace, '[ ]')
+        newLine = targetLine.replace(checkReplace, '[ ]')
       }
       if (targetLine.match(uncheckedMatch)) {
-        lines[lineIndex] = targetLine.replace(uncheckReplace, '[x]')
+        newLine = targetLine.replace(uncheckReplace, '[x]')
       }
-      this.refs.code.setValue(lines.join('\n'))
+      this.refs.code.setLineContent(lineIndex, newLine)
     }
   }
 
@@ -304,6 +305,7 @@ class MarkdownEditor extends React.Component {
           enableRulers={config.editor.enableRulers}
           rulers={config.editor.rulers}
           displayLineNumbers={config.editor.displayLineNumbers}
+          lineWrapping
           matchingPairs={config.editor.matchingPairs}
           matchingTriples={config.editor.matchingTriples}
           explodingPairs={config.editor.explodingPairs}
@@ -322,6 +324,8 @@ class MarkdownEditor extends React.Component {
           enableMarkdownLint={config.editor.enableMarkdownLint}
           customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
           dateFormatISO8601={config.editor.dateFormatISO8601}
+          prettierConfig={config.editor.prettierConfig}
+          deleteUnusedAttachments={config.editor.deleteUnusedAttachments}
         />
         <MarkdownPreview styleName={this.state.status === 'PREVIEW'
             ? 'preview'
@@ -341,6 +345,7 @@ class MarkdownEditor extends React.Component {
           smartArrows={config.preview.smartArrows}
           breaks={config.preview.breaks}
           sanitize={config.preview.sanitize}
+          mermaidHTMLLabel={config.preview.mermaidHTMLLabel}
           ref='preview'
           onContextMenu={(e) => this.handleContextMenu(e)}
           onDoubleClick={(e) => this.handleDoubleClick(e)}

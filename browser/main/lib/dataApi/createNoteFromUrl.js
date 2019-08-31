@@ -32,18 +32,7 @@ function createNoteFromUrl (url, storage, folder, dispatch = null, location = nu
       })
 
       res.on('end', () => {
-        const html = document.createElement('html')
-        html.innerHTML = data
-
-        const scripts = html.getElementsByTagName('script')
-        for (let i = scripts.length - 1; i >= 0; i--) {
-          scripts[i].parentNode.removeChild(scripts[i])
-        }
-
-        const body = html.getElementsByTagName('body')[0].innerHTML
-        const markdownHTML = td.turndown(body)
-
-        html.innerHTML = ''
+        const markdownHTML = td.turndown(data)
 
         if (dispatch !== null) {
           createNote(storage, {

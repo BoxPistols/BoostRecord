@@ -82,7 +82,9 @@ class HotkeyTab extends React.Component {
       deleteNote: this.refs.deleteNote.value,
       pasteSmartly: this.refs.pasteSmartly.value,
       prettifyMarkdown: this.refs.prettifyMarkdown.value,
-      toggleMenuBar: this.refs.toggleMenuBar.value
+      toggleMenuBar: this.refs.toggleMenuBar.value,
+      insertDate: this.refs.insertDate.value,
+      insertDateTime: this.refs.insertDateTime.value
     })
     this.setState({
       config
@@ -188,6 +190,7 @@ class HotkeyTab extends React.Component {
             <div styleName='group-section-label'>{i18n.__('Insert Current Date')}</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
+                ref='insertDate'
                 value={config.hotkey.insertDate}
                 type='text'
                 disabled='true'
@@ -198,6 +201,7 @@ class HotkeyTab extends React.Component {
             <div styleName='group-section-label'>{i18n.__('Insert Current Date and Time')}</div>
             <div styleName='group-section-control'>
               <input styleName='group-section-control-input'
+                ref='insertDateTime'
                 value={config.hotkey.insertDateTime}
                 type='text'
                 disabled='true'

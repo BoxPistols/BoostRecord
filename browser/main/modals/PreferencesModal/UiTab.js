@@ -111,7 +111,7 @@ class UiTab extends React.Component {
         enableSmartPaste: this.refs.enableSmartPaste.checked,
         enableMarkdownLint: this.refs.enableMarkdownLint.checked,
         customMarkdownLintConfig: this.customMarkdownLintConfigCM.getCodeMirror().getValue(),
-        dateFormatISO8601: this.refs.dateFormatISO8601.checked
+        dateFormatISO8601: this.refs.dateFormatISO8601.checked,
         prettierConfig: this.prettierConfigCM.getCodeMirror().getValue(),
         deleteUnusedAttachments: this.refs.deleteUnusedAttachments.checked
       },

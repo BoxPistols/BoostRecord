@@ -70,7 +70,7 @@ export const DEFAULT_CONFIG = {
     enableSmartPaste: false,
     enableMarkdownLint: false,
     customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG,
-    dateFormatISO8601: false
+    dateFormatISO8601: false,
     prettierConfig: ` {
       "trailingComma": "es5",
       "tabWidth": 4,

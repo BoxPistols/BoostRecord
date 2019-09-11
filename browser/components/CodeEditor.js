@@ -228,9 +228,10 @@ export default class CodeEditor extends React.Component {
       },
       'Shift-Cmd-/': function (cm) {
         if (global.process.platform !== 'darwin') { return }
-      [translateHotkey(hotkey.insertDateTime)]: function (cm) {
-        const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleString())
+        [translateHotkey(hotkey.insertDateTime)]: function (cm) {
+          const dateNow = new Date()
+          cm.replaceSelection(dateNow.toLocaleString())
+        }
       },
       Enter: 'boostNewLineAndIndentContinueMarkdownList',
       'Ctrl-C': cm => {

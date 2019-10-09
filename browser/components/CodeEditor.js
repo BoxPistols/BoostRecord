@@ -1173,8 +1173,7 @@ export default class CodeEditor extends React.Component {
         fontSize: fontSize,
         width: width,
         height: height
-      }
-      }
+      }}
       onDrop={
         e => this.handleDropImage(e)
       }

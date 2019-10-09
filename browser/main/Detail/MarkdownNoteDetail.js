@@ -47,7 +47,7 @@ class MarkdownNoteDetail extends React.Component {
       isLockButtonShown: props.config.editor.type !== 'SPLIT',
       isLocked: false,
       editorType: props.config.editor.type,
-      isStacking: props.config.editor.isStacking,
+      isStacking: props.config.ui.isStacking,
       switchPreview: props.config.editor.switchPreview
     }
 
@@ -360,7 +360,7 @@ class MarkdownNoteDetail extends React.Component {
     this.setState({ isStacking: type }, () => {
       this.focus()
       const newConfig = Object.assign({}, this.props.config)
-      newConfig.editor.isStacking = type
+      newConfig.ui.isStacking = type
       ConfigManager.set(newConfig)
     })
   }

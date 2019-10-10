@@ -41,18 +41,32 @@ const CSS_FILES = [
   `${appPath}/node_modules/codemirror/lib/codemirror.css`,
   `${appPath}/node_modules/react-image-carousel/lib/css/main.min.css`
 ]
-const win = global.process.platform === 'win32'
 
-function buildStyle (
-  fontFamily,
-  fontSize,
-  codeBlockFontFamily,
-  lineNumber,
-  scrollPastEnd,
-  theme,
-  allowCustomCSS,
-  customCSS
-) {
+/**
+ * @param {Object} opts
+ * @param {String} opts.fontFamily
+ * @param {Numberl} opts.fontSize
+ * @param {String} opts.codeBlockFontFamily
+ * @param {String} opts.theme
+ * @param {Boolean} [opts.lineNumber] Should show line number
+ * @param {Boolean} [opts.scrollPastEnd]
+ * @param {Boolean} [opts.optimizeOverflowScroll] Should tweak body style to optimize overflow scrollbar display
+ * @param {Boolean} [opts.allowCustomCSS] Should add custom css
+ * @param {String} [opts.customCSS] Will be added to bottom, only if `opts.allowCustomCSS` is truthy
+ * @returns {String}
+ */
+function buildStyle (opts) {
+  const {
+    fontFamily,
+    fontSize,
+    codeBlockFontFamily,
+    lineNumber,
+    scrollPastEnd,
+    optimizeOverflowScroll,
+    theme,
+    allowCustomCSS,
+    customCSS
+  } = opts
   return `
 @font-face {
   font-family: 'Lato';
@@ -82,12 +96,14 @@ function buildStyle (
        url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
        url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
 }
+
 ${markdownStyle}
 
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
-  ${scrollPastEnd && 'padding-bottom: 90vh;'}
+  ${scrollPastEnd ? 'padding-bottom: 90vh;' : ''}
+  ${optimizeOverflowScroll ? 'height: 100%;' : ''}
 }
 @media print {
   body {
@@ -247,8 +263,11 @@ export default class MarkdownPreview extends React.Component {
 
   handleContextMenu (event) {
     const menu = buildMarkdownPreviewContextMenu(this, event)
-    if (menu != null) {
+    const switchPreview = ConfigManager.get().editor.switchPreview
+    if (menu != null && switchPreview !== 'RIGHTCLICK') {
       menu.popup(remote.getCurrentWindow())
+    } else if (_.isFunction(this.props.onContextMenu)) {
+      this.props.onContextMenu(event)
     }
   }
 
@@ -310,7 +329,7 @@ export default class MarkdownPreview extends React.Component {
       customCSS
     } = this.getStyleParams()
 
-    const inlineStyles = buildStyle(
+    const inlineStyles = buildStyle({
       fontFamily,
       fontSize,
       codeBlockFontFamily,
@@ -319,7 +338,7 @@ export default class MarkdownPreview extends React.Component {
       theme,
       allowCustomCSS,
       customCSS
-    )
+    })
     let body = this.markdown.render(noteContent)
     body = attachmentManagement.fixLocalURLS(
       body,
@@ -361,7 +380,7 @@ export default class MarkdownPreview extends React.Component {
 
   handleSaveAsPdf () {
     this.exportAsDocument('pdf', (noteContent, exportTasks, targetDir) => {
-      const printout = new remote.BrowserWindow({show: false, webPreferences: {webSecurity: false}})
+      const printout = new remote.BrowserWindow({show: false, webPreferences: {webSecurity: false, javascript: false}})
       printout.loadURL('data:text/html;charset=UTF-8,' + this.htmlContentFormatter(noteContent, exportTasks, targetDir))
       return new Promise((resolve, reject) => {
         printout.webContents.on('did-finish-load', () => {
@@ -556,16 +575,19 @@ export default class MarkdownPreview extends React.Component {
   }
 
   componentDidUpdate (prevProps) {
-    if (prevProps.value !== this.props.value) this.rewriteIframe()
+    // actual rewriteIframe function should be called only once
+    let needsRewriteIframe = false
+    if (prevProps.value !== this.props.value) needsRewriteIframe = true
     if (
       prevProps.smartQuotes !== this.props.smartQuotes ||
       prevProps.sanitize !== this.props.sanitize ||
+      prevProps.mermaidHTMLLabel !== this.props.mermaidHTMLLabel ||
       prevProps.smartArrows !== this.props.smartArrows ||
       prevProps.breaks !== this.props.breaks ||
       prevProps.lineThroughCheckbox !== this.props.lineThroughCheckbox
     ) {
       this.initMarkdown()
-      this.rewriteIframe()
+      needsRewriteIframe = true
     }
     if (
       prevProps.fontFamily !== this.props.fontFamily ||
@@ -580,7 +602,16 @@ export default class MarkdownPreview extends React.Component {
       prevProps.customCSS !== this.props.customCSS
     ) {
       this.applyStyle()
+      needsRewriteIframe = true
+    }
+
+    if (needsRewriteIframe) {
       this.rewriteIframe()
+    }
+
+    // Should scroll to top after selecting another note
+    if (prevProps.noteKey !== this.props.noteKey) {
+      this.getWindow().scrollTo(0, 0)
     }
   }
 
@@ -638,16 +669,18 @@ export default class MarkdownPreview extends React.Component {
     this.getWindow().document.getElementById(
       'codeTheme'
     ).href = this.getCodeThemeLink(codeBlockTheme)
-    this.getWindow().document.getElementById('style').innerHTML = buildStyle(
+    this.getWindow().document.getElementById('style').innerHTML = buildStyle({
       fontFamily,
       fontSize,
       codeBlockFontFamily,
       lineNumber,
       scrollPastEnd,
+      optimizeOverflowScroll: true,
       theme,
       allowCustomCSS,
       customCSS
-    )
+    })
+    this.getWindow().document.documentElement.style.overflowY = 'hidden'
   }
 
   getCodeThemeLink (name) {
@@ -681,7 +714,8 @@ export default class MarkdownPreview extends React.Component {
       showCopyNotification,
       storagePath,
       noteKey,
-      sanitize
+      sanitize,
+      mermaidHTMLLabel
     } = this.props
     let { value, codeBlockTheme } = this.props
 
@@ -813,6 +847,7 @@ export default class MarkdownPreview extends React.Component {
             canvas.height = height.value + 'vh'
           }
 
+          // eslint-disable-next-line no-unused-vars
           const chart = new Chart(canvas, chartConfig)
         } catch (e) {
           el.className = 'chart-error'
@@ -823,7 +858,7 @@ export default class MarkdownPreview extends React.Component {
     _.forEach(
       this.refs.root.contentWindow.document.querySelectorAll('.mermaid'),
       el => {
-        mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML), theme)
+        mermaidRender(el, htmlTextHelper.decodeEntities(el.innerHTML), theme, mermaidHTMLLabel)
       }
     )
 
@@ -951,8 +986,6 @@ export default class MarkdownPreview extends React.Component {
       overlay.appendChild(zoomImg)
       document.body.appendChild(overlay)
     }
-
-    this.getWindow().scrollTo(0, 0)
   }
 
   focus () {
@@ -1000,25 +1033,31 @@ export default class MarkdownPreview extends React.Component {
     e.stopPropagation()
 
     const rawHref = e.target.getAttribute('href')
-    const parser = document.createElement('a')
-    parser.href = e.target.getAttribute('href')
-    const { href, hash } = parser
-    const linkHash = hash === '' ? rawHref : hash // needed because we're having special link formats that are removed by parser e.g. :line:10
-
     if (!rawHref) return // not checked href because parser will create file://... string for [empty link]()
 
-    const extractId = /(main.html)?#/
-    const regexNoteInternalLink = new RegExp(`${extractId.source}(.+)`)
-    if (regexNoteInternalLink.test(linkHash)) {
-      const targetId = mdurl.encode(linkHash.replace(extractId, ''))
-      const targetElement = this.refs.root.contentWindow.document.getElementById(
-        targetId
-      )
+    const parser = document.createElement('a')
+    parser.href = rawHref
+    const isStartWithHash = rawHref[0] === '#'
+    const { href, hash } = parser
 
-      if (targetElement != null) {
-        this.getWindow().scrollTo(0, targetElement.offsetTop)
+    const linkHash = hash === '' ? rawHref : hash // needed because we're having special link formats that are removed by parser e.g. :line:10
+
+    const extractIdRegex = /file:\/\/.*main.?\w*.html#/ // file://path/to/main(.development.)html
+    const regexNoteInternalLink = new RegExp(`${extractIdRegex.source}(.+)`)
+    if (isStartWithHash || regexNoteInternalLink.test(rawHref)) {
+      const posOfHash = linkHash.indexOf('#')
+      if (posOfHash > -1) {
+        const extractedId = linkHash.slice(posOfHash + 1)
+        const targetId = mdurl.encode(extractedId)
+        const targetElement = this.refs.root.contentWindow.document.getElementById(
+          targetId
+        )
+
+        if (targetElement != null) {
+          this.getWindow().scrollTo(0, targetElement.offsetTop)
+        }
+        return
       }
-      return
     }
 
     // this will match the new uuid v4 hash and the old hash

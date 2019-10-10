@@ -31,6 +31,8 @@ export const DEFAULT_CONFIG = {
     toggleMode: OSX ? 'Command + Alt + M' : 'Ctrl + M',
     deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace',
     pasteSmartly: OSX ? 'Command + Shift + V' : 'Ctrl + Shift + V',
+    prettifyMarkdown: OSX ? 'Command + Shift + F' : 'Ctrl + Shift + F',
+    sortLines: OSX ? 'Command + Shift + S' : 'Ctrl + Shift + S',
     insertDate: OSX ? 'Command + /' : 'Ctrl + /',
     insertDateTime: OSX ? 'Command + Alt + /' : 'Ctrl + Shift + /',
     toggleMenuBar: 'Alt'
@@ -68,7 +70,14 @@ export const DEFAULT_CONFIG = {
     spellcheck: false,
     enableSmartPaste: false,
     enableMarkdownLint: false,
-    customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG
+    customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG,
+    prettierConfig: ` {
+      "trailingComma": "es5",
+      "tabWidth": 4,
+      "semi": false,
+      "singleQuote": true
+    }`,
+    deleteUnusedAttachments: true
   },
   preview: {
     fontSize: '14',
@@ -86,8 +95,10 @@ export const DEFAULT_CONFIG = {
     breaks: true,
     smartArrows: false,
     allowCustomCSS: false,
+
     customCSS: '/* Drop Your Custom CSS Code Here */',
     sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
+    mermaidHTMLLabel: false,
     lineThroughCheckbox: true
   },
   blog: {

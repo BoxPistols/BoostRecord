@@ -72,3 +72,28 @@ test('Markdown.render() should render footnote correctly', () => {
   const rendered = md.render(markdownFixtures.footnote)
   expect(rendered).toMatchSnapshot()
 })
+
+test('Markdown.render() should render PlantUML MindMaps correctly', t => {
+  const rendered = md.render(markdownFixtures.plantUmlMindMap)
+  expect(rendered).toMatchSnapshot()
+})
+
+test('Markdown.render() should render PlantUML Gantt correctly', t => {
+  const rendered = md.render(markdownFixtures.plantUmlGantt)
+  expect(rendered).toMatchSnapshot()
+})
+
+test('Markdown.render() should render PlantUML WBS correctly', t => {
+  const rendered = md.render(markdownFixtures.plantUmlWbs)
+  expect(rendered).toMatchSnapshot()
+})
+
+test('Markdown.render() should render PlantUML Umls correctly', t => {
+  const rendered = md.render(markdownFixtures.plantUmlUml)
+  expect(rendered).toMatchSnapshot()
+})
+
+test('Markdown.render() should render PlantUML Ditaa correctly', t => {
+  const rendered = md.render(markdownFixtures.plantUmlDitaa)
+  expect(rendered).toMatchSnapshot()
+})

@@ -152,7 +152,6 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleFolderChange (e) {
-    const { dispatch } = this.props
     const { note } = this.state
     const value = this.refs.folder.value
     const splitted = value.split('-')
@@ -410,7 +409,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   render () {
-    const { data, location, config } = this.props
+    const { data, dispatch, location, config } = this.props
     const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
@@ -465,6 +464,7 @@ class MarkdownNoteDetail extends React.Component {
           saveTagsAlphabetically={config.ui.saveTagsAlphabetically}
           showTagsAlphabetically={config.ui.showTagsAlphabetically}
           data={data}
+          dispatch={dispatch}
           onChange={this.handleUpdateTag.bind(this)}
           coloredTags={config.coloredTags}
         />
@@ -472,6 +472,7 @@ class MarkdownNoteDetail extends React.Component {
       </div>
       <div styleName='info-right'>
         <ToggleModeButton onClick={(e) => this.handleSwitchMode(e)} editorType={editorType} />
+
         <StarButton
           onClick={(e) => this.handleStarButtonClick(e)}
           isActive={note.isStarred}
@@ -511,7 +512,7 @@ class MarkdownNoteDetail extends React.Component {
           exportAsTxt={this.exportAsTxt}
           exportAsHtml={this.exportAsHtml}
           exportAsPdf={this.exportAsPdf}
-          wordCount={note.content.split(' ').length}
+          wordCount={note.content.trim().split(/\s+/g).length}
           letterCount={note.content.replace(/\r?\n/g, '').length}
           type={note.type}
           print={this.print}

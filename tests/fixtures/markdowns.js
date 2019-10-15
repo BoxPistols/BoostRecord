@@ -109,6 +109,14 @@ const footnote = `
 hello-world: https://github.com/BoostIO/Boostnote/
 `
 
+const tocPlaceholder = `
+[TOC]
+# H1
+## H2
+### H3
+###$ H4
+`
+
 const plantUmlMindMap = `
 @startmindmap
 * Debian
@@ -192,6 +200,7 @@ export default {
   deflists,
   shortcuts,
   footnote,
+  tocPlaceholder,
   plantUmlMindMap,
   plantUmlGantt,
   plantUmlWbs,

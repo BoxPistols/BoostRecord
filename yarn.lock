@@ -74,6 +74,14 @@
   version "5.0.2"
   resolved "https://registry.yarnpkg.com/@enyaxu/markdown-it-anchor/-/markdown-it-anchor-5.0.2.tgz#d173f7b60b492aabc17dfba864c4d071f5595f72"
 
+"@hikerpig/markdown-it-toc-and-anchor@^4.5.0":
+  version "4.5.0"
+  resolved "https://registry.npmjs.org/@hikerpig/markdown-it-toc-and-anchor/-/markdown-it-toc-and-anchor-4.5.0.tgz#c1652bdebfd07d41c9738254891515d759b054f0"
+  integrity sha512-PaYl/v9/ViceXm+fC+WoQOD/8lvYf76SnA3s8b/BQ6s3NpZdk/W/aW0dg5YHquQNcdaLfz3lmQTt6iafbe5tbg==
+  dependencies:
+    clone "^2.1.0"
+    uslug "^1.0.4"
+
 "@ladjs/time-require@^0.1.4":
   version "0.1.4"
   resolved "https://registry.yarnpkg.com/@ladjs/time-require/-/time-require-0.1.4.tgz#5c615d75fd647ddd5de9cf6922649558856b21a1"
@@ -1813,6 +1821,11 @@ cliui@^4.0.0:
 clone@^1.0.2:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/clone/-/clone-1.0.4.tgz#da309cc263df15994c688ca902179ca3c7cd7c7e"
+
+clone@^2.1.0:
+  version "2.1.2"
+  resolved "https://registry.npmjs.org/clone/-/clone-2.1.2.tgz#1b7f4b9f591f1e8f83670401600345a02887435f"
+  integrity sha1-G39Ln1kfHo+DZwQBYANFoCiHQ18=
 
 co-with-promise@^4.6.0:
   version "4.6.0"
@@ -9557,6 +9570,11 @@ universalify@^0.1.0:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/universalify/-/universalify-0.1.1.tgz#fa71badd4437af4c148841e3b3b165f9e9e590b7"
 
+"unorm@>= 1.0.0":
+  version "1.6.0"
+  resolved "https://registry.npmjs.org/unorm/-/unorm-1.6.0.tgz#029b289661fba714f1a9af439eb51d9b16c205af"
+  integrity sha512-b2/KCUlYZUeA7JFUuRJZPUtr4gZvBh7tavtv4fvk4+KV9pfGiR6CQAQAWl49ZpR3ts2dk4FYkP7EIgDJoiOLDA==
+
 unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/unpipe/-/unpipe-1.0.0.tgz#b2bf4ee8514aae6165b4817829d21b2ef49904ec"
@@ -9633,6 +9651,13 @@ user-home@^2.0.0:
   resolved "https://registry.yarnpkg.com/user-home/-/user-home-2.0.0.tgz#9c70bfd8169bc1dcbf48604e0f04b8b49cde9e9f"
   dependencies:
     os-homedir "^1.0.0"
+
+uslug@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.npmjs.org/uslug/-/uslug-1.0.4.tgz#b9a22f0914e0a86140633dacc302e5f4fa450677"
+  integrity sha1-uaIvCRTgqGFAYz2swwLl9PpFBnc=
+  dependencies:
+    unorm ">= 1.0.0"
 
 utf8-byte-length@^1.0.1:
   version "1.0.4"

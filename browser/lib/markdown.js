@@ -4,6 +4,7 @@ import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
 import mdurl from 'mdurl'
 import smartArrows from 'markdown-it-smartarrows'
+import markdownItTocAndAnchor from '@hikerpig/markdown-it-toc-and-anchor'
 import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
@@ -127,6 +128,12 @@ class Markdown {
     this.md.use(require('markdown-it-abbr'))
     this.md.use(require('markdown-it-sub'))
     this.md.use(require('markdown-it-sup'))
+    this.md.use(markdownItTocAndAnchor, {
+      toc: true,
+      tocPattern: /\[TOC\]/i,
+      anchorLink: false,
+      appendIdToHeading: false
+    })
     this.md.use(require('./markdown-it-deflist'))
     this.md.use(require('./markdown-it-frontmatter'))
 

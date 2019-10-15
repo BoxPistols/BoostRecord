@@ -74,6 +74,11 @@ test('Markdown.render() should render footnote correctly', t => {
   t.snapshot(rendered)
 })
 
+test('Markdown.render() should renders [TOC] placholder correctly', t => {
+  const rendered = md.render(markdownFixtures.tocPlaceholder)
+  t.snapshot(rendered)
+})
+
 test('Markdown.render() should render PlantUML MindMaps correctly', t => {
   const rendered = md.render(markdownFixtures.plantUmlMindMap)
   t.snapshot(rendered)

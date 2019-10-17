@@ -118,6 +118,8 @@ body {
 code {
   font-family: '${codeBlockFontFamily.join("','")}';
   background-color: rgba(0,0,0,0.04);
+  text-align: left;
+  direction: ltr;
 }
 .lineNumber {
   ${lineNumber && 'display: block !important;'}

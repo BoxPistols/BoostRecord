@@ -539,7 +539,7 @@ export default class CodeEditor extends React.Component {
       rulers,
       enableRulers,
       enableMarkdownLint,
-      customMarkdownLintConfig,
+      customMarkdownLintConfig
     } = this.props
     if (prevProps.mode !== this.props.mode) {
       this.setMode(this.props.mode)
@@ -558,8 +558,8 @@ export default class CodeEditor extends React.Component {
       needRefresh = true
     }
     if (prevProps.RTL !== this.props.RTL) {
-      this.editor.setOption('direction', this.props.RTL ? 'rtl' : 'ltr' )
-      this.editor.setOption('rtlMoveVisually',  this.props.RTL ? 'true' : 'false' )
+      this.editor.setOption('direction', this.props.RTL ? 'rtl' : 'ltr')
+      this.editor.setOption('rtlMoveVisually', this.props.RTL ? 'true' : 'false')
     }
     if (prevProps.enableMarkdownLint !== enableMarkdownLint || prevProps.customMarkdownLintConfig !== customMarkdownLintConfig) {
       if (!enableMarkdownLint) {

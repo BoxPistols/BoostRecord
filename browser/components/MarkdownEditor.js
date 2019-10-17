@@ -325,7 +325,7 @@ class MarkdownEditor extends React.Component {
           customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
           prettierConfig={config.editor.prettierConfig}
           deleteUnusedAttachments={config.editor.deleteUnusedAttachments}
-                    RTL={RTL}
+          RTL={RTL}
         />
         <MarkdownPreview styleName={this.state.status === 'PREVIEW'
             ? 'preview'
@@ -361,7 +361,7 @@ class MarkdownEditor extends React.Component {
           allowCustomCSS={config.preview.allowCustomCSS}
           lineThroughCheckbox={config.preview.lineThroughCheckbox}
           onDrop={(e) => this.handleDropImage(e)}
-                         RTL={RTL}
+          RTL={RTL}
         />
       </div>
     )

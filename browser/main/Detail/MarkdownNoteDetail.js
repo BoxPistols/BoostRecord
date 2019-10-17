@@ -31,7 +31,7 @@ import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import markdownToc from 'browser/lib/markdown-toc-generator'
 import queryString from 'query-string'
 import { replace } from 'connected-react-router'
-import ToggleDirectionButton from "browser/main/Detail/ToggleDirectionButton";
+import ToggleDirectionButton from 'browser/main/Detail/ToggleDirectionButton'
 
 class MarkdownNoteDetail extends React.Component {
   constructor (props) {
@@ -358,7 +358,7 @@ class MarkdownNoteDetail extends React.Component {
 
   handleSwitchDirection () {
     // If in split mode, hide the lock button
-    let direction = this.state.RTL
+    const direction = this.state.RTL
     this.setState({ RTL: !direction })
   }
 
@@ -528,7 +528,6 @@ class MarkdownNoteDetail extends React.Component {
           print={this.print}
         />
       </div>
-
 
     </div>
 

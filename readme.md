@@ -11,6 +11,10 @@
   </a>
  </p>
 
+## Download
+
+[Find the latest release of Boostnote here!](https://github.com/BoostIO/boost-releases/releases/)
+
 ## Authors & Maintainers
 
 - [Rokt33r](https://github.com/rokt33r)

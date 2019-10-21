@@ -124,7 +124,7 @@ class Markdown {
       slugify: require('./slugify')
     })
     this.md.use(require('markdown-it-kbd'))
-    this.md.use(require('markdown-it-admonition'), {types: ['note', 'hint', 'attention', 'caution', 'danger', 'error']})
+    this.md.use(require('markdown-it-admonition'), {types: ['note', 'hint', 'attention', 'caution', 'danger', 'error', 'quote', 'abstract', 'question']})
     this.md.use(require('markdown-it-abbr'))
     this.md.use(require('markdown-it-sub'))
     this.md.use(require('markdown-it-sup'))

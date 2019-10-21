@@ -30,6 +30,7 @@ var config = {
     ]
   },
   externals: [
+    'pdf-js',
     'prettier',
     'node-ipc',
     'electron',

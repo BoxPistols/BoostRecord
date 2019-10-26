@@ -348,7 +348,7 @@ export default class MarkdownPreview extends React.Component {
       allowCustomCSS,
       customCSS
     })
-    let body = this.markdown.render(noteContent)
+    let body = this.refs.root.contentWindow.document.body.innerHTML
     body = attachmentManagement.fixLocalURLS(
       body,
       this.props.storagePath

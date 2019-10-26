@@ -183,6 +183,10 @@ const scrollBarStyle = `
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.15);
 }
+
+::-webkit-scrollbar-track-piece {
+  background-color: inherit;
+}
 `
 const scrollBarDarkStyle = `
 ::-webkit-scrollbar {
@@ -191,6 +195,10 @@ const scrollBarDarkStyle = `
 
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-track-piece {
+  background-color: inherit;
 }
 `
 
@@ -684,7 +692,6 @@ export default class MarkdownPreview extends React.Component {
       allowCustomCSS,
       customCSS
     })
-    this.getWindow().document.documentElement.style.overflowY = 'hidden'
   }
 
   getCodeThemeLink (name) {
@@ -1066,7 +1073,7 @@ export default class MarkdownPreview extends React.Component {
       if (posOfHash > -1) {
         const extractedId = linkHash.slice(posOfHash + 1)
         const targetId = mdurl.encode(extractedId)
-        const targetElement = this.refs.root.contentWindow.document.getElementById(
+        const targetElement = this.getWindow().document.getElementById(
           targetId
         )
 

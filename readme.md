@@ -1,4 +1,4 @@
-:mega: The renewal will be released end of Nov, 2019. [To keep updated, subscribe our mailing list!](https://boostnote.io/#subscribe)
+> We will launch the new Boost Note in January 2020. Please support us via [Kickstarter](https://www.kickstarter.com/projects/kazz-boostio/new-boost-note)!
 
 ![Boostnote app screenshot](./resources/repository/top.png)
 

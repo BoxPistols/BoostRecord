@@ -12,11 +12,11 @@ import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import mobileAnalytics from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import eventEmitter from 'browser/main/lib/eventEmitter'
-import { hashHistory } from 'react-router'
-import store from 'browser/main/store'
+import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
 import { getLocales } from 'browser/lib/Languages'
 import applyShortcuts from 'browser/main/lib/shortcutManager'
+import { push } from 'connected-react-router'
 const path = require('path')
 const electron = require('electron')
 const { remote } = electron
@@ -102,7 +102,7 @@ class Main extends React.Component {
               {
                 name: 'example.js',
                 mode: 'javascript',
-                content: "var boostnote = document.getElementById('enjoy').innerHTML\n\nconsole.log(boostnote)",
+                content: "var boostnote = document.getElementById('hello').innerHTML\n\nconsole.log(boostnote)",
                 linesHighlighted: []
               }
             ]
@@ -132,7 +132,7 @@ class Main extends React.Component {
           .then(() => data.storage)
       })
       .then(storage => {
-        hashHistory.push('/storages/' + storage.key)
+        store.dispatch(push('/storages/' + storage.key))
       })
       .catch(err => {
         throw err
@@ -169,13 +169,25 @@ class Main extends React.Component {
       }
     })
 
+    // eslint-disable-next-line no-undef
     delete CodeMirror.keyMap.emacs['Ctrl-V']
 
     eventEmitter.on('editor:fullscreen', this.toggleFullScreen)
+    eventEmitter.on('menubar:togglemenubar', this.toggleMenuBarVisible.bind(this))
   }
 
   componentWillUnmount () {
     eventEmitter.off('editor:fullscreen', this.toggleFullScreen)
+    eventEmitter.off('menubar:togglemenubar', this.toggleMenuBarVisible.bind(this))
+  }
+
+  toggleMenuBarVisible () {
+    const { config } = this.props
+    const { ui } = config
+
+    const newUI = Object.assign(ui, {showMenuBar: !ui.showMenuBar})
+    const newConfig = Object.assign(config, newUI)
+    ConfigManager.set(newConfig)
   }
 
   handleLeftSlideMouseDown (e) {
@@ -300,7 +312,7 @@ class Main extends React.Component {
         onMouseUp={e => this.handleMouseUp(e)}
       >
         <SideNav
-          {..._.pick(this.props, ['dispatch', 'data', 'config', 'params', 'location'])}
+          {..._.pick(this.props, ['dispatch', 'data', 'config', 'match', 'location'])}
           width={this.state.navWidth}
         />
         {!config.isSideNavFolded &&
@@ -330,7 +342,7 @@ class Main extends React.Component {
               'dispatch',
               'config',
               'data',
-              'params',
+              'match',
               'location'
             ])}
           />
@@ -340,7 +352,7 @@ class Main extends React.Component {
               'dispatch',
               'data',
               'config',
-              'params',
+              'match',
               'location'
             ])}
           />
@@ -362,7 +374,7 @@ class Main extends React.Component {
               'dispatch',
               'data',
               'config',
-              'params',
+              'match',
               'location'
             ])}
             ignorePreviewPointerEvents={this.state.isRightSliderFocused}

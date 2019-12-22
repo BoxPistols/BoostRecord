@@ -14,23 +14,42 @@ import NoteItemSimple from 'browser/components/NoteItemSimple'
 import searchFromNotes from 'browser/lib/search'
 import fs from 'fs'
 import path from 'path'
-import { hashHistory } from 'react-router'
+import { push, replace } from 'connected-react-router'
 import copy from 'copy-to-clipboard'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import Markdown from '../../lib/markdown'
 import i18n from 'browser/lib/i18n'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import context from 'browser/lib/context'
+import queryString from 'query-string'
 
 const { remote } = require('electron')
 const { dialog } = remote
 const WP_POST_PATH = '/wp/v2/posts'
+
+const regexMatchStartingTitleNumber = new RegExp('^([0-9]*\.?[0-9]+).*$')
 
 function sortByCreatedAt (a, b) {
   return new Date(b.createdAt) - new Date(a.createdAt)
 }
 
 function sortByAlphabetical (a, b) {
+  const matchA = regexMatchStartingTitleNumber.exec(a.title)
+  const matchB = regexMatchStartingTitleNumber.exec(b.title)
+
+  if (matchA && matchA.length === 2 && matchB && matchB.length === 2) {
+    // Both note titles are starting with a float. We will compare it now.
+    const floatA = parseFloat(matchA[1])
+    const floatB = parseFloat(matchB[1])
+
+    const diff = floatA - floatB
+    if (diff !== 0) {
+      return diff
+    }
+
+    // The float values are equal. We will compare the full title.
+  }
+
   return a.title.localeCompare(b.title)
 }
 
@@ -69,6 +88,7 @@ class NoteList extends React.Component {
     this.importFromFileHandler = this.importFromFile.bind(this)
     this.jumpNoteByHash = this.jumpNoteByHashHandler.bind(this)
     this.handleNoteListKeyUp = this.handleNoteListKeyUp.bind(this)
+    this.handleNoteListBlur = this.handleNoteListBlur.bind(this)
     this.getNoteKeyFromTargetIndex = this.getNoteKeyFromTargetIndex.bind(this)
     this.cloneNote = this.cloneNote.bind(this)
     this.deleteNote = this.deleteNote.bind(this)
@@ -127,15 +147,15 @@ class NoteList extends React.Component {
   }
 
   componentDidUpdate (prevProps) {
-    const { location } = this.props
+    const { dispatch, location } = this.props
     const { selectedNoteKeys } = this.state
-    const visibleNoteKeys = this.notes.map(note => note.key)
-    const note = this.notes[0]
-    const prevKey = prevProps.location.query.key
+    const visibleNoteKeys = this.notes && this.notes.map(note => note.key)
+    const note = this.notes && this.notes[0]
+    const key = location.search && queryString.parse(location.search).key
+    const prevKey = prevProps.location.search && queryString.parse(prevProps.location.search).key
     const noteKey = visibleNoteKeys.includes(prevKey) ? prevKey : note && note.key
 
-    if (note && location.query.key == null) {
-      const { router } = this.context
+    if (note && location.search === '') {
       if (!location.pathname.match(/\/searched/)) this.contextNotes = this.getContextNotes()
 
       // A visible note is an active note
@@ -145,17 +165,17 @@ class NoteList extends React.Component {
         ee.emit('list:moved')
       }
 
-      router.replace({
+      dispatch(replace({ // was passed with context - we can use connected router here
         pathname: location.pathname,
-        query: {
+        search: queryString.stringify({
           key: noteKey
-        }
-      })
+        })
+      }))
       return
     }
 
     // Auto scroll
-    if (_.isString(location.query.key) && prevProps.location.query.key === location.query.key) {
+    if (_.isString(key) && prevKey === key) {
       const targetIndex = this.getTargetIndex()
       if (targetIndex > -1) {
         const list = this.refs.list
@@ -176,18 +196,18 @@ class NoteList extends React.Component {
   }
 
   focusNote (selectedNoteKeys, noteKey, pathname) {
-    const { router } = this.context
+    const { dispatch } = this.props
 
     this.setState({
       selectedNoteKeys
     })
 
-    router.push({
+    dispatch(push({
       pathname,
-      query: {
+      search: queryString.stringify({
         key: noteKey
-      }
-    })
+      })
+    }))
   }
 
   getNoteKeyFromTargetIndex (targetIndex) {
@@ -259,13 +279,22 @@ class NoteList extends React.Component {
   }
 
   jumpNoteByHashHandler (event, noteHash) {
+    const { data } = this.props
+
     // first argument event isn't used.
     if (this.notes === null || this.notes.length === 0) {
       return
     }
 
     const selectedNoteKeys = [noteHash]
-    this.focusNote(selectedNoteKeys, noteHash, '/home')
+
+    let locationToSelect = '/home'
+    const noteByHash = data.noteMap.map((note) => note).find(note => note.key === noteHash)
+    if (noteByHash !== undefined) {
+      locationToSelect = '/storages/' + noteByHash.storage + '/folders/' + noteByHash.folder
+    }
+
+    this.focusNote(selectedNoteKeys, noteHash, locationToSelect)
 
     ee.emit('list:moved')
   }
@@ -320,9 +349,15 @@ class NoteList extends React.Component {
     }
   }
 
-  getNotes () {
-    const { data, params, location } = this.props
+  handleNoteListBlur () {
+    this.setState({
+      shiftKeyDown: false,
+      ctrlKeyDown: false
+    })
+  }
 
+  getNotes () {
+    const { data, match: { params }, location } = this.props
     if (location.pathname.match(/\/home/) || location.pathname.match(/alltags/)) {
       const allNotes = data.noteMap.map((note) => note)
       this.contextNotes = allNotes
@@ -363,7 +398,7 @@ class NoteList extends React.Component {
 
   // get notes in the current folder
   getContextNotes () {
-    const { data, params } = this.props
+    const { data, match: { params } } = this.props
     const storageKey = params.storageKey
     const folderKey = params.folderKey
     const storage = data.storageMap.get(storageKey)
@@ -403,8 +438,7 @@ class NoteList extends React.Component {
   }
 
   handleNoteClick (e, uniqueKey) {
-    const { router } = this.context
-    const { location } = this.props
+    const { dispatch, location } = this.props
     let { selectedNoteKeys, prevShiftNoteIndex } = this.state
     const { ctrlKeyDown, shiftKeyDown } = this.state
     const hasSelectedNoteKey = selectedNoteKeys.length > 0
@@ -455,16 +489,16 @@ class NoteList extends React.Component {
       prevShiftNoteIndex
     })
 
-    router.push({
+    dispatch(push({
       pathname: location.pathname,
-      query: {
+      search: queryString.stringify({
         key: uniqueKey
-      }
-    })
+      })
+    }))
   }
 
   handleSortByChange (e) {
-    const { dispatch, params: { folderKey } } = this.props
+    const { dispatch, match: { params: { folderKey } } } = this.props
 
     const config = {
       [folderKey]: { sortBy: e.target.value }
@@ -496,6 +530,7 @@ class NoteList extends React.Component {
       'export-txt': 'Text export',
       'export-md': 'Markdown export',
       'export-html': 'HTML export',
+      'export-pdf': 'PDF export',
       'print': 'Print'
     })[msg]
 
@@ -656,14 +691,18 @@ class NoteList extends React.Component {
         })
       )
       .then((data) => {
-        data.forEach((item) => {
-          dispatch({
-            type: 'DELETE_NOTE',
-            storageKey: item.storageKey,
-            noteKey: item.noteKey
+        const dispatchHandler = () => {
+          data.forEach((item) => {
+            dispatch({
+              type: 'DELETE_NOTE',
+              storageKey: item.storageKey,
+              noteKey: item.noteKey
+            })
           })
-        })
+        }
+        ee.once('list:next', dispatchHandler)
       })
+      .then(() => ee.emit('list:next'))
       .catch((err) => {
         console.error('Cannot Delete note: ' + err)
       })
@@ -687,6 +726,7 @@ class NoteList extends React.Component {
         })
         AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
       })
+      .then(() => ee.emit('list:next'))
       .catch((err) => {
         console.error('Notes could not go to trash: ' + err)
       })
@@ -711,7 +751,11 @@ class NoteList extends React.Component {
         folder: folder.key,
         title: firstNote.title + ' ' + i18n.__('copy'),
         content: firstNote.content,
-        linesHighlighted: firstNote.linesHighlighted
+        linesHighlighted: firstNote.linesHighlighted,
+        description: firstNote.description,
+        snippets: firstNote.snippets,
+        tags: firstNote.tags,
+        isStarred: firstNote.isStarred
       })
       .then((note) => {
         attachmentManagement.cloneAttachments(firstNote, note)
@@ -727,10 +771,10 @@ class NoteList extends React.Component {
           selectedNoteKeys: [note.key]
         })
 
-        hashHistory.push({
+        dispatch(push({
           pathname: location.pathname,
-          query: {key: note.key}
-        })
+          search: queryString.stringify({key: note.key})
+        }))
       })
   }
 
@@ -740,13 +784,13 @@ class NoteList extends React.Component {
   }
 
   navigate (sender, pathname) {
-    const { router } = this.context
-    router.push({
+    const { dispatch } = this.props
+    dispatch(push({
       pathname,
-      query: {
+      search: queryString.stringify({
         // key: noteKey
-      }
-    })
+      })
+    }))
   }
 
   save (note) {
@@ -876,7 +920,7 @@ class NoteList extends React.Component {
     if (!location.pathname.match(/\/trashed/)) this.addNotesFromFiles(filepaths)
   }
 
-  // Add notes to the current folder
+ // Add notes to the current folder
   addNotesFromFiles (filepaths) {
     const { dispatch, location } = this.props
     const { storage, folder } = this.resolveTargetFolder()
@@ -900,13 +944,20 @@ class NoteList extends React.Component {
           }
           dataApi.createNote(storage.key, newNote)
           .then((note) => {
-            dispatch({
-              type: 'UPDATE_NOTE',
-              note: note
-            })
-            hashHistory.push({
-              pathname: location.pathname,
-              query: {key: getNoteKey(note)}
+            attachmentManagement.importAttachments(note.content, filepath, storage.key, note.key)
+            .then((newcontent) => {
+              note.content = newcontent
+
+              dataApi.updateNote(storage.key, note.key, note)
+
+              dispatch({
+                type: 'UPDATE_NOTE',
+                note: note
+              })
+              dispatch(push({
+                pathname: location.pathname,
+                search: queryString.stringify({key: getNoteKey(note)})
+              }))
             })
           })
         })
@@ -916,14 +967,15 @@ class NoteList extends React.Component {
 
   getTargetIndex () {
     const { location } = this.props
+    const key = queryString.parse(location.search).key
     const targetIndex = _.findIndex(this.notes, (note) => {
-      return getNoteKey(note) === location.query.key
+      return getNoteKey(note) === key
     })
     return targetIndex
   }
 
   resolveTargetFolder () {
-    const { data, params } = this.props
+    const { data, match: { params } } = this.props
     let storage = data.storageMap.get(params.storageKey)
 
     // Find first storage
@@ -971,7 +1023,7 @@ class NoteList extends React.Component {
   }
 
   render () {
-    const { location, config, params: { folderKey } } = this.props
+    const { location, config, match: { params: { folderKey } } } = this.props
     let { notes } = this.props
     const { selectedNoteKeys } = this.state
     const sortBy = _.get(config, [folderKey, 'sortBy'], config.sortBy.default)
@@ -1047,6 +1099,7 @@ class NoteList extends React.Component {
               storageName={this.getNoteStorage(note).name}
               viewType={viewType}
               showTagsAlphabetically={config.ui.showTagsAlphabetically}
+              coloredTags={config.coloredTags}
             />
           )
         }
@@ -1093,7 +1146,7 @@ class NoteList extends React.Component {
               }
               onClick={(e) => this.handleListStyleButtonClick(e, 'DEFAULT')}
             >
-              <img styleName='iconTag' src='../resources/icon/icon-column.svg' />
+              <img src='../resources/icon/icon-column.svg' />
             </button>
             <button title={i18n.__('Compressed View')} styleName={config.listStyle === 'SMALL'
                 ? 'control-button--active'
@@ -1101,7 +1154,7 @@ class NoteList extends React.Component {
               }
               onClick={(e) => this.handleListStyleButtonClick(e, 'SMALL')}
             >
-              <img styleName='iconTag' src='../resources/icon/icon-column-list.svg' />
+              <img src='../resources/icon/icon-column-list.svg' />
             </button>
           </div>
         </div>
@@ -1110,6 +1163,7 @@ class NoteList extends React.Component {
           tabIndex='-1'
           onKeyDown={(e) => this.handleNoteListKeyDown(e)}
           onKeyUp={this.handleNoteListKeyUp}
+          onBlur={this.handleNoteListBlur}
         >
           {noteList}
         </div>

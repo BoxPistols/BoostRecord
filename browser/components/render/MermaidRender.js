@@ -19,7 +19,7 @@ function getId () {
   return id
 }
 
-function render (element, content, theme) {
+function render (element, content, theme, enableHTMLLabel) {
   try {
     const height = element.attributes.getNamedItem('data-height')
     const isPredefined = height && height.value !== 'undefined'
@@ -30,6 +30,9 @@ function render (element, content, theme) {
     mermaidAPI.initialize({
       theme: isDarkTheme ? 'dark' : 'default',
       themeCSS: isDarkTheme ? darkThemeStyling : '',
+      flowchart: {
+        htmlLabels: enableHTMLLabel
+      },
       gantt: {
         useWidth: element.clientWidth
       }
@@ -51,6 +54,7 @@ function render (element, content, theme) {
 
         el.setAttribute('ratio', ratio)
         el.setAttribute('height', el.parentNode.clientWidth / ratio)
+        console.log(el)
       }
     })
   } catch (e) {

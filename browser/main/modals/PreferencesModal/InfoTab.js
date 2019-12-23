@@ -2,7 +2,7 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './InfoTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
-import store from 'browser/main/store'
+import { store } from 'browser/main/store'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
@@ -59,6 +59,15 @@ class InfoTab extends React.Component {
       type: 'SET_CONFIG',
       config: newConfig
     })
+  }
+
+  toggleAutoUpdate () {
+    const newConfig = {
+      autoUpdateEnabled: !this.state.config.autoUpdateEnabled
+    }
+
+    this.setState({ config: newConfig })
+    ConfigManager.set(newConfig)
   }
 
   infoMessage () {
@@ -139,6 +148,8 @@ class InfoTab extends React.Component {
             {i18n.__('License: GPL v3')}
           </li>
         </ul>
+
+        <div><label><input type='checkbox' onChange={this.toggleAutoUpdate.bind(this)} checked={this.state.config.autoUpdateEnabled} />{i18n.__('Enable Auto Update')}</label></div>
 
         <hr styleName='separate-line' />
 

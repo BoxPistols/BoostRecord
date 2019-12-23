@@ -1,4 +1,4 @@
-> We will launch the new Boost Note in January 2020. Please support us via [Kickstarter](https://www.kickstarter.com/projects/kazz-boostio/new-boost-note)!
+> [We've launched desktop app of the new Boost Note now. We'll release its mobile app too in January 2020.](https://github.com/BoostIO/BoostNote.next)
 
 ![Boostnote app screenshot](./resources/repository/top.png)
 

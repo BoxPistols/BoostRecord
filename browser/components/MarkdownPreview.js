@@ -107,8 +107,6 @@ body {
   ${optimizeOverflowScroll ? 'height: 100%;' : ''}
   ${RTL ? 'direction: rtl;' : ''}
   ${RTL ? 'text-align: right;' : ''}
-  
-  
 }
 @media print {
   body {

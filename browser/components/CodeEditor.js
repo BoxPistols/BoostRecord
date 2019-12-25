@@ -295,7 +295,7 @@ export default class CodeEditor extends React.Component {
       inputStyle: 'textarea',
       dragDrop: false,
       direction: RTL ? 'rtl' : 'ltr',
-      rtlMoveVisually: RTL ? 'true' : 'false',
+      rtlMoveVisually: RTL,
       foldGutter: true,
       lint: enableMarkdownLint ? this.getCodeEditorLintConfig() : false,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter', 'CodeMirror-lint-markers'],
@@ -559,7 +559,7 @@ export default class CodeEditor extends React.Component {
     }
     if (prevProps.RTL !== this.props.RTL) {
       this.editor.setOption('direction', this.props.RTL ? 'rtl' : 'ltr')
-      this.editor.setOption('rtlMoveVisually', this.props.RTL ? 'true' : 'false')
+      this.editor.setOption('rtlMoveVisually', this.props.RTL)
     }
     if (prevProps.enableMarkdownLint !== enableMarkdownLint || prevProps.customMarkdownLintConfig !== customMarkdownLintConfig) {
       if (!enableMarkdownLint) {

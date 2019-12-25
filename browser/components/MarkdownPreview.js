@@ -246,6 +246,7 @@ export default class MarkdownPreview extends React.Component {
     this.saveAsHtmlHandler = () => this.handleSaveAsHtml()
     this.saveAsPdfHandler = () => this.handleSaveAsPdf()
     this.printHandler = () => this.handlePrint()
+    this.resizeHandler = _.throttle(this.handleResize.bind(this), 100)
 
     this.linkClickHandler = this.handleLinkClick.bind(this)
     this.initMarkdown = this.initMarkdown.bind(this)
@@ -540,6 +541,10 @@ export default class MarkdownPreview extends React.Component {
       'scroll',
       this.scrollHandler
     )
+    this.refs.root.contentWindow.addEventListener(
+      'resize',
+      this.resizeHandler
+    )
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
@@ -577,6 +582,10 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.removeEventListener(
       'scroll',
       this.scrollHandler
+    )
+    this.refs.root.contentWindow.removeEventListener(
+      'resize',
+      this.resizeHandler
     )
     eventEmitter.off('export:save-text', this.saveAsTextHandler)
     eventEmitter.off('export:save-md', this.saveAsMdHandler)
@@ -995,6 +1004,15 @@ export default class MarkdownPreview extends React.Component {
       overlay.appendChild(zoomImg)
       document.body.appendChild(overlay)
     }
+  }
+
+  handleResize () {
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('svg[ratio]'),
+      el => {
+        el.setAttribute('height', el.clientWidth / el.getAttribute('ratio'))
+      }
+    )
   }
 
   focus () {

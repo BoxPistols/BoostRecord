@@ -21,6 +21,7 @@ import yaml from 'js-yaml'
 import { render } from 'react-dom'
 import Carousel from 'react-image-carousel'
 import ConfigManager from '../main/lib/ConfigManager'
+import i18n from 'browser/lib/i18n'
 
 const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
@@ -50,7 +51,6 @@ const CSS_FILES = [
  * @param {String} opts.theme
  * @param {Boolean} [opts.lineNumber] Should show line number
  * @param {Boolean} [opts.scrollPastEnd]
- * @param {Boolean} [opts.optimizeOverflowScroll] Should tweak body style to optimize overflow scrollbar display
  * @param {Boolean} [opts.allowCustomCSS] Should add custom css
  * @param {String} [opts.customCSS] Will be added to bottom, only if `opts.allowCustomCSS` is truthy
  * @returns {String}
@@ -62,7 +62,6 @@ function buildStyle (opts) {
     codeBlockFontFamily,
     lineNumber,
     scrollPastEnd,
-    optimizeOverflowScroll,
     theme,
     allowCustomCSS,
     customCSS,
@@ -103,7 +102,12 @@ ${markdownStyle}
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
-  ${scrollPastEnd ? 'padding-bottom: 90vh;' : ''}
+
+  ${scrollPastEnd ? `
+    padding-bottom: 90vh;
+    box-sizing: border-box;
+    `
+    : ''}
   ${optimizeOverflowScroll ? 'height: 100%;' : ''}
   ${RTL ? 'direction: rtl;' : ''}
   ${RTL ? 'text-align: right;' : ''}
@@ -184,6 +188,10 @@ const scrollBarStyle = `
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.15);
 }
+
+::-webkit-scrollbar-track-piece {
+  background-color: inherit;
+}
 `
 const scrollBarDarkStyle = `
 ::-webkit-scrollbar {
@@ -192,6 +200,10 @@ const scrollBarDarkStyle = `
 
 ::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.3);
+}
+
+::-webkit-scrollbar-track-piece {
+  background-color: inherit;
 }
 `
 
@@ -241,6 +253,7 @@ export default class MarkdownPreview extends React.Component {
     this.saveAsHtmlHandler = () => this.handleSaveAsHtml()
     this.saveAsPdfHandler = () => this.handleSaveAsPdf()
     this.printHandler = () => this.handlePrint()
+    this.resizeHandler = _.throttle(this.handleResize.bind(this), 100)
 
     this.linkClickHandler = this.handleLinkClick.bind(this)
     this.initMarkdown = this.initMarkdown.bind(this)
@@ -346,7 +359,7 @@ export default class MarkdownPreview extends React.Component {
       customCSS,
       RTL
     })
-    let body = this.markdown.render(noteContent)
+    let body = this.refs.root.contentWindow.document.body.innerHTML
     body = attachmentManagement.fixLocalURLS(
       body,
       this.props.storagePath
@@ -366,7 +379,7 @@ export default class MarkdownPreview extends React.Component {
 
     let styles = ''
     files.forEach(file => {
-      styles += `<link rel="stylesheet" href="css/${path.basename(file)}">`
+      styles += `<link rel="stylesheet" href="../css/${path.basename(file)}">`
     })
 
     return `<html>
@@ -421,7 +434,8 @@ export default class MarkdownPreview extends React.Component {
           .then(res => {
             dialog.showMessageBox(remote.getCurrentWindow(), {
               type: 'info',
-              message: `Exported to ${filename}`
+              message: `Exported to ${filename}`,
+              buttons: [i18n.__('Ok')]
             })
           })
           .catch(err => {
@@ -536,6 +550,10 @@ export default class MarkdownPreview extends React.Component {
       'scroll',
       this.scrollHandler
     )
+    this.refs.root.contentWindow.addEventListener(
+      'resize',
+      this.resizeHandler
+    )
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
@@ -573,6 +591,10 @@ export default class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.removeEventListener(
       'scroll',
       this.scrollHandler
+    )
+    this.refs.root.contentWindow.removeEventListener(
+      'resize',
+      this.resizeHandler
     )
     eventEmitter.off('export:save-text', this.saveAsTextHandler)
     eventEmitter.off('export:save-md', this.saveAsMdHandler)
@@ -619,7 +641,7 @@ export default class MarkdownPreview extends React.Component {
 
     // Should scroll to top after selecting another note
     if (prevProps.noteKey !== this.props.noteKey) {
-      this.getWindow().scrollTo(0, 0)
+      this.scrollTo(0, 0)
     }
   }
 
@@ -686,13 +708,11 @@ export default class MarkdownPreview extends React.Component {
       codeBlockFontFamily,
       lineNumber,
       scrollPastEnd,
-      optimizeOverflowScroll: true,
       theme,
       allowCustomCSS,
       customCSS,
       RTL
     })
-    this.getWindow().document.documentElement.style.overflowY = 'hidden'
   }
 
   getCodeThemeLink (name) {
@@ -1000,6 +1020,15 @@ export default class MarkdownPreview extends React.Component {
     }
   }
 
+  handleResize () {
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('svg[ratio]'),
+      el => {
+        el.setAttribute('height', el.clientWidth / el.getAttribute('ratio'))
+      }
+    )
+  }
+
   focus () {
     this.refs.root.focus()
   }
@@ -1008,7 +1037,11 @@ export default class MarkdownPreview extends React.Component {
     return this.refs.root.contentWindow
   }
 
-  scrollTo (targetRow) {
+  /**
+   * @public
+   * @param {Number} targetRow
+   */
+  scrollToRow (targetRow) {
     const blocks = this.getWindow().document.querySelectorAll(
       'body>[data-line]'
     )
@@ -1018,10 +1051,19 @@ export default class MarkdownPreview extends React.Component {
       const row = parseInt(block.getAttribute('data-line'))
       if (row > targetRow || index === blocks.length - 1) {
         block = blocks[index - 1]
-        block != null && this.getWindow().scrollTo(0, block.offsetTop)
+        block != null && this.scrollTo(0, block.offsetTop)
         break
       }
     }
+  }
+
+  /**
+   * `document.body.scrollTo`
+   * @param {Number} x
+   * @param {Number} y
+   */
+  scrollTo (x, y) {
+    this.getWindow().document.body.scrollTo(x, y)
   }
 
   preventImageDroppedHandler (e) {
@@ -1061,12 +1103,12 @@ export default class MarkdownPreview extends React.Component {
       if (posOfHash > -1) {
         const extractedId = linkHash.slice(posOfHash + 1)
         const targetId = mdurl.encode(extractedId)
-        const targetElement = this.refs.root.contentWindow.document.getElementById(
+        const targetElement = this.getWindow().document.getElementById(
           targetId
         )
 
         if (targetElement != null) {
-          this.getWindow().scrollTo(0, targetElement.offsetTop)
+          this.scrollTo(0, targetElement.offsetTop)
         }
         return
       }

@@ -108,7 +108,6 @@ body {
     box-sizing: border-box;
     `
     : ''}
-  ${optimizeOverflowScroll ? 'height: 100%;' : ''}
   ${RTL ? 'direction: rtl;' : ''}
   ${RTL ? 'text-align: right;' : ''}
 }

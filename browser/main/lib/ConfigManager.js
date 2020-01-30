@@ -9,8 +9,13 @@ const win = global.process.platform === 'win32'
 const electron = require('electron')
 const { ipcRenderer } = electron
 const consts = require('browser/lib/consts')
+const electronConfig = new (require('electron-config'))()
 
 let isInitialized = false
+
+const DEFAULT_MARKDOWN_LINT_CONFIG = `{
+  "default": true
+}`
 
 export const DEFAULT_CONFIG = {
   zoom: 1,
@@ -23,11 +28,17 @@ export const DEFAULT_CONFIG = {
   sortTagsBy: 'ALPHABETICAL', // 'ALPHABETICAL', 'COUNTER'
   listStyle: 'DEFAULT', // 'DEFAULT', 'SMALL'
   amaEnabled: true,
+  autoUpdateEnabled: true,
   hotkey: {
     toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
     toggleMode: OSX ? 'Command + Alt + M' : 'Ctrl + M',
+    toggleDirection: OSX ? 'Command + Alt + Right' : 'Ctrl + Right',
     deleteNote: OSX ? 'Command + Shift + Backspace' : 'Ctrl + Shift + Backspace',
     pasteSmartly: OSX ? 'Command + Shift + V' : 'Ctrl + Shift + V',
+    prettifyMarkdown: OSX ? 'Command + Shift + F' : 'Ctrl + Shift + F',
+    sortLines: OSX ? 'Command + Shift + S' : 'Ctrl + Shift + S',
+    insertDate: OSX ? 'Command + /' : 'Ctrl + /',
+    insertDateTime: OSX ? 'Command + Alt + /' : 'Ctrl + Shift + /',
     toggleMenuBar: 'Alt'
   },
   ui: {
@@ -45,10 +56,11 @@ export const DEFAULT_CONFIG = {
     fontFamily: win ? 'Consolas' : 'Monaco',
     indentType: 'space',
     indentSize: '2',
+    lineWrapping: true,
     enableRulers: false,
     rulers: [80, 120],
     displayLineNumbers: true,
-    matchingPairs: '()[]{}\'\'""$$**``',
+    matchingPairs: '()[]{}\'\'""$$**``~~__',
     matchingTriples: '```"""\'\'\'',
     explodingPairs: '[]{}``$$',
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
@@ -60,7 +72,16 @@ export const DEFAULT_CONFIG = {
     enableFrontMatterTitle: true,
     frontMatterTitleField: 'title',
     spellcheck: false,
-    enableSmartPaste: false
+    enableSmartPaste: false,
+    enableMarkdownLint: false,
+    customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG,
+    prettierConfig: ` {
+      "trailingComma": "es5",
+      "tabWidth": 2,
+      "semi": false,
+      "singleQuote": true
+    }`,
+    deleteUnusedAttachments: true
   },
   preview: {
     fontSize: '14',
@@ -78,8 +99,10 @@ export const DEFAULT_CONFIG = {
     breaks: true,
     smartArrows: false,
     allowCustomCSS: false,
-    customCSS: '',
+
+    customCSS: '/* Drop Your Custom CSS Code Here */',
     sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
+    mermaidHTMLLabel: false,
     lineThroughCheckbox: true
   },
   blog: {
@@ -103,7 +126,6 @@ function validate (config) {
 }
 
 function _save (config) {
-  console.log(config)
   window.localStorage.setItem('config', JSON.stringify(config))
 }
 
@@ -123,6 +145,8 @@ function get () {
     _save(config)
   }
 
+  config.autoUpdateEnabled = electronConfig.get('autoUpdateEnabled', config.autoUpdateEnabled)
+
   if (!isInitialized) {
     isInitialized = true
     let editorTheme = document.getElementById('editorTheme')
@@ -133,16 +157,12 @@ function get () {
       document.head.appendChild(editorTheme)
     }
 
-    config.editor.theme = consts.THEMES.some((theme) => theme === config.editor.theme)
-      ? config.editor.theme
-      : 'default'
+    const theme = consts.THEMES.find(theme => theme.name === config.editor.theme)
 
-    if (config.editor.theme !== 'default') {
-      if (config.editor.theme.startsWith('solarized')) {
-        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/solarized.css')
-      } else {
-        editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + config.editor.theme + '.css')
-      }
+    if (theme) {
+      editorTheme.setAttribute('href', theme.path)
+    } else {
+      config.editor.theme = 'default'
     }
   }
 
@@ -151,7 +171,13 @@ function get () {
 
 function set (updates) {
   const currentConfig = get()
-  const newConfig = Object.assign({}, DEFAULT_CONFIG, currentConfig, updates)
+
+  const arrangedUpdates = updates
+  if (updates.preview !== undefined && updates.preview.customCSS === '') {
+    arrangedUpdates.preview.customCSS = DEFAULT_CONFIG.preview.customCSS
+  }
+
+  const newConfig = Object.assign({}, DEFAULT_CONFIG, currentConfig, arrangedUpdates)
   if (!validate(newConfig)) throw new Error('INVALID CONFIG')
   _save(newConfig)
 
@@ -170,17 +196,14 @@ function set (updates) {
     editorTheme.setAttribute('rel', 'stylesheet')
     document.head.appendChild(editorTheme)
   }
-  const newTheme = consts.THEMES.some((theme) => theme === newConfig.editor.theme)
-    ? newConfig.editor.theme
-    : 'default'
 
-  if (newTheme !== 'default') {
-    if (newTheme.startsWith('solarized')) {
-      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/solarized.css')
-    } else {
-      editorTheme.setAttribute('href', '../node_modules/codemirror/theme/' + newTheme + '.css')
-    }
+  const newTheme = consts.THEMES.find(theme => theme.name === newConfig.editor.theme)
+
+  if (newTheme) {
+    editorTheme.setAttribute('href', newTheme.path)
   }
+
+  electronConfig.set('autoUpdateEnabled', newConfig.autoUpdateEnabled)
 
   ipcRenderer.send('config-renew', {
     config: get()

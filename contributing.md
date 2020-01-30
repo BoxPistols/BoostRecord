@@ -1,3 +1,5 @@
+> [Please consider to contribute to the new Boost Note app too!](https://github.com/BoostIO/BoostNote.next)
+
 # Contributing to Boostnote (English)
 
 ### When you open an issue or a bug report
@@ -67,11 +69,23 @@ GPL v3 라이센스는 다른 라이센스와 혼합해 사용하기엔 너무 �
 # Contributing to Boostnote (Japanese)
 
 ### バグレポートに関してのissueを立てる時
-イシューテンプレートはありませんが、1つお願いがあります。
-
-**開発者ツールを開いた状態のBoostnoteのスクリーンショットを貼ってください**
+イシューテンプレートがあります。このテンプレートに従って、できるだけ多くの情報を提供してください。
 
 よろしくお願いします。
+
+### Pull requestを出す時
+Pull requestのテンプレートがあります。このテンプレートを埋めてからコードをサブミットしてください。内容を正確に把握できるPull requestが作られていれば、迅速にレビューを行えます。
+
+以下のことを必ず行ってください：
+- [`code_style.md`](docs/code_style.md)を読み、コーディングスタイルを確認する
+- 変更分のコードに対するテストコードを書き、以下のコマンドでテストを実行する
+```
+npm run test
+```
+- 以下のコマンドを使って、コードの静的解析を実行する
+```
+npm run lint
+```
 
 ### Pull requestの著作権について
 
@@ -87,17 +101,17 @@ Pull requestをすることはその変化分のコードの著作権をBoostIO�
 # Contributing to Boostnote (Simplified Chinese)
 
 ### 当您创建一个issue的时候
-我们对您的issue格式没有要求，但是我们有一个请求：  
+我们对您的issue格式没有要求，但是我们有一个请求：
 
-**如果可能，请在开发者模式打开的情况下，为我们提供屏幕截图**  
+**如果可能，请在开发者模式打开的情况下，为我们提供屏幕截图**
 
-（您可以通过`Ctrl+Shift+I`打开开发者模式）。  
-感谢您对我们的支持。  
+（您可以通过`Ctrl+Shift+I`打开开发者模式）。
+感谢您对我们的支持。
 
 ### 关于您提供的Pull Request的著作权（版权）问题
-如果您提供了一个Pull Request，这表示您将您所修改的代码的著作权移交给BoostIO。  
+如果您提供了一个Pull Request，这表示您将您所修改的代码的著作权移交给BoostIO。
 
-这并不表示Boostnote会成为一个需要付费的软件。如果我们想获得收益，我们会尝试一些其他的方法，比如说云存储、绑定手机软件等。  
+这并不表示Boostnote会成为一个需要付费的软件。如果我们想获得收益，我们会尝试一些其他的方法，比如说云存储、绑定手机软件等。
 因为GPLv3过于严格，不能和其他的一些协议兼容，所以我们有可能在将来会把BoostNote的协议改为一些较为宽松的协议，比如说BSD、MIT。
 
 ---

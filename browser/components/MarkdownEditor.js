@@ -32,6 +32,7 @@ class MarkdownEditor extends React.Component {
   componentDidMount () {
     this.value = this.refs.code.value
     eventEmitter.on('editor:lock', this.lockEditorCode)
+    eventEmitter.on('editor:focus', this.focusEditor.bind(this))
   }
 
   componentDidUpdate () {
@@ -47,6 +48,15 @@ class MarkdownEditor extends React.Component {
   componentWillUnmount () {
     this.cancelQueue()
     eventEmitter.off('editor:lock', this.lockEditorCode)
+    eventEmitter.off('editor:focus', this.focusEditor.bind(this))
+  }
+
+  focusEditor () {
+    this.setState({
+      status: 'CODE'
+    }, () => {
+      this.refs.code.focus()
+    })
   }
 
   queueRendering (value) {
@@ -109,7 +119,7 @@ class MarkdownEditor extends React.Component {
         status: 'PREVIEW'
       }, () => {
         this.refs.preview.focus()
-        this.refs.preview.scrollTo(cursorPosition.line)
+        this.refs.preview.scrollToRow(cursorPosition.line)
       })
       eventEmitter.emit('topbar:togglelockbutton', this.state.status)
     }
@@ -149,24 +159,25 @@ class MarkdownEditor extends React.Component {
     e.preventDefault()
     e.stopPropagation()
     const idMatch = /checkbox-([0-9]+)/
-    const checkedMatch = /^\s*[\+\-\*] \[x\]/i
-    const uncheckedMatch = /^\s*[\+\-\*] \[ \]/
-    const checkReplace = /\[x\]/i
-    const uncheckReplace = /\[ \]/
+    const checkedMatch = /^(\s*>?)*\s*[+\-*] \[x]/i
+    const uncheckedMatch = /^(\s*>?)*\s*[+\-*] \[ ]/
+    const checkReplace = /\[x]/i
+    const uncheckReplace = /\[ ]/
     if (idMatch.test(e.target.getAttribute('id'))) {
       const lineIndex = parseInt(e.target.getAttribute('id').match(idMatch)[1], 10) - 1
       const lines = this.refs.code.value
         .split('\n')
 
       const targetLine = lines[lineIndex]
+      let newLine = targetLine
 
       if (targetLine.match(checkedMatch)) {
-        lines[lineIndex] = targetLine.replace(checkReplace, '[ ]')
+        newLine = targetLine.replace(checkReplace, '[ ]')
       }
       if (targetLine.match(uncheckedMatch)) {
-        lines[lineIndex] = targetLine.replace(uncheckReplace, '[x]')
+        newLine = targetLine.replace(uncheckReplace, '[x]')
       }
-      this.refs.code.setValue(lines.join('\n'))
+      this.refs.code.setLineContent(lineIndex, newLine)
     }
   }
 
@@ -256,7 +267,7 @@ class MarkdownEditor extends React.Component {
   }
 
   render () {
-    const {className, value, config, storageKey, noteKey, linesHighlighted} = this.props
+    const {className, value, config, storageKey, noteKey, linesHighlighted, RTL} = this.props
 
     let editorFontSize = parseInt(config.editor.fontSize, 10)
     if (!(editorFontSize > 0 && editorFontSize < 101)) editorFontSize = 14
@@ -294,6 +305,7 @@ class MarkdownEditor extends React.Component {
           enableRulers={config.editor.enableRulers}
           rulers={config.editor.rulers}
           displayLineNumbers={config.editor.displayLineNumbers}
+          lineWrapping
           matchingPairs={config.editor.matchingPairs}
           matchingTriples={config.editor.matchingTriples}
           explodingPairs={config.editor.explodingPairs}
@@ -309,6 +321,11 @@ class MarkdownEditor extends React.Component {
           enableSmartPaste={config.editor.enableSmartPaste}
           hotkey={config.hotkey}
           switchPreview={config.editor.switchPreview}
+          enableMarkdownLint={config.editor.enableMarkdownLint}
+          customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
+          prettierConfig={config.editor.prettierConfig}
+          deleteUnusedAttachments={config.editor.deleteUnusedAttachments}
+          RTL={RTL}
         />
         <MarkdownPreview styleName={this.state.status === 'PREVIEW'
             ? 'preview'
@@ -328,6 +345,7 @@ class MarkdownEditor extends React.Component {
           smartArrows={config.preview.smartArrows}
           breaks={config.preview.breaks}
           sanitize={config.preview.sanitize}
+          mermaidHTMLLabel={config.preview.mermaidHTMLLabel}
           ref='preview'
           onContextMenu={(e) => this.handleContextMenu(e)}
           onDoubleClick={(e) => this.handleDoubleClick(e)}
@@ -343,6 +361,7 @@ class MarkdownEditor extends React.Component {
           allowCustomCSS={config.preview.allowCustomCSS}
           lineThroughCheckbox={config.preview.lineThroughCheckbox}
           onDrop={(e) => this.handleDropImage(e)}
+          RTL={RTL}
         />
       </div>
     )

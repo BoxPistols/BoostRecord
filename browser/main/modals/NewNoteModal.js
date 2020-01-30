@@ -3,12 +3,15 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './NewNoteModal.styl'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import i18n from 'browser/lib/i18n'
+import { openModal } from 'browser/main/lib/modal'
+import CreateMarkdownFromURLModal from '../modals/CreateMarkdownFromURLModal'
 import { createMarkdownNote, createSnippetNote } from 'browser/lib/newNote'
+import queryString from 'query-string'
 
 class NewNoteModal extends React.Component {
   constructor (props) {
     super(props)
-
+    this.lock = false
     this.state = {}
   }
 
@@ -20,11 +23,27 @@ class NewNoteModal extends React.Component {
     this.props.close()
   }
 
-  handleMarkdownNoteButtonClick (e) {
-    const { storage, folder, dispatch, location, params, config } = this.props
-    createMarkdownNote(storage, folder, dispatch, location, params, config).then(() => {
-      setTimeout(this.props.close, 200)
+  handleCreateMarkdownFromUrlClick (e) {
+    this.props.close()
+
+    const { storage, folder, dispatch, location } = this.props
+    openModal(CreateMarkdownFromURLModal, {
+      storage: storage,
+      folder: folder,
+      dispatch,
+      location
     })
+  }
+
+  handleMarkdownNoteButtonClick (e) {
+    const { storage, folder, dispatch, location, config } = this.props
+    const params = location.search !== '' && queryString.parse(location.search)
+    if (!this.lock) {
+      this.lock = true
+      createMarkdownNote(storage, folder, dispatch, location, params, config).then(() => {
+        setTimeout(this.props.close, 200)
+      })
+    }
   }
 
   handleMarkdownNoteButtonKeyDown (e) {
@@ -35,10 +54,14 @@ class NewNoteModal extends React.Component {
   }
 
   handleSnippetNoteButtonClick (e) {
-    const { storage, folder, dispatch, location, params, config } = this.props
-    createSnippetNote(storage, folder, dispatch, location, params, config).then(() => {
-      setTimeout(this.props.close, 200)
-    })
+    const { storage, folder, dispatch, location, config } = this.props
+    const params = location.search !== '' && queryString.parse(location.search)
+    if (!this.lock) {
+      this.lock = true
+      createSnippetNote(storage, folder, dispatch, location, params, config).then(() => {
+        setTimeout(this.props.close, 200)
+      })
+    }
   }
 
   handleSnippetNoteButtonKeyDown (e) {
@@ -106,10 +129,8 @@ class NewNoteModal extends React.Component {
           </button>
 
         </div>
-        <div styleName='description'>
-          <i className='fa fa-arrows-h' />{i18n.__('Tab to switch format')}
-        </div>
-
+        <div styleName='description'><i className='fa fa-arrows-h' />{i18n.__('Tab to switch format')}</div>
+        <div styleName='from-url' onClick={(e) => this.handleCreateMarkdownFromUrlClick(e)}>Or, create a new markdown note from a URL</div>
       </div>
     )
   }

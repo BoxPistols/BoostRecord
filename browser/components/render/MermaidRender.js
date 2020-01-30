@@ -20,11 +20,12 @@ function getId () {
   return id
 }
 
-function render (element, content, theme) {
+function render (element, content, theme, enableHTMLLabel) {
   try {
     const height = element.attributes.getNamedItem('data-height')
+    const isPredefined = height && height.value !== 'undefined'
 
-    if (height && height.value !== 'undefined') {
+    if (isPredefined) {
       element.style.height = height.value + 'vh'
     }
 
@@ -33,11 +34,33 @@ function render (element, content, theme) {
     mermaidAPI.initialize({
       theme: isDarkTheme ? 'dark' : 'default',
       themeCSS: isDarkTheme ? darkThemeStyling : '',
-      useMaxWidth: false
+      flowchart: {
+        htmlLabels: enableHTMLLabel
+      },
+      gantt: {
+        useWidth: element.clientWidth
+      }
     })
 
     mermaidAPI.render(getId(), content, (svgGraph) => {
       element.innerHTML = svgGraph
+
+      if (!isPredefined) {
+        const el = element.firstChild
+        const viewBox = el.getAttribute('viewBox').split(' ')
+
+        let ratio = viewBox[2] / viewBox[3]
+
+        if (el.style.maxWidth) {
+          const maxWidth = parseFloat(el.style.maxWidth)
+
+          ratio *= el.parentNode.clientWidth / maxWidth
+        }
+
+        el.setAttribute('ratio', ratio)
+        el.setAttribute('height', el.parentNode.clientWidth / ratio)
+        console.log(el)
+      }
     })
   } catch (e) {
     element.className = 'mermaid-error'

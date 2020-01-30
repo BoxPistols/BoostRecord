@@ -80,7 +80,6 @@ body[data-theme="dark"]
 
 apply-theme(theme)
   body[data-theme={theme}]
-    navButtonColor()
     .zoom
       border-color $ui-dark-borderColor
       color get-theme-var(theme, 'text-color')
@@ -90,7 +89,7 @@ apply-theme(theme)
       &:active
         color get-theme-var(theme, 'active-color')
 
-for theme in 'dracula'
+for theme in 'dracula' 'solarized-dark'
   apply-theme(theme)
 
 for theme in $themes

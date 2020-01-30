@@ -2,7 +2,9 @@ import markdownit from 'markdown-it'
 import sanitize from './markdown-it-sanitize-html'
 import emoji from 'markdown-it-emoji'
 import math from '@rokt33r/markdown-it-math'
+import mdurl from 'mdurl'
 import smartArrows from 'markdown-it-smartarrows'
+import markdownItTocAndAnchor from '@hikerpig/markdown-it-toc-and-anchor'
 import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
@@ -32,6 +34,7 @@ class Markdown {
 
     const updatedOptions = Object.assign(defaultOptions, options)
     this.md = markdownit(updatedOptions)
+    this.md.linkify.set({ fuzzyLink: false })
 
     if (updatedOptions.sanitize !== 'NONE') {
       const allowedTags = ['iframe', 'input', 'b',
@@ -121,10 +124,23 @@ class Markdown {
       slugify: require('./slugify')
     })
     this.md.use(require('markdown-it-kbd'))
-    this.md.use(require('markdown-it-admonition'), {types: ['note', 'hint', 'attention', 'caution', 'danger', 'error']})
+    this.md.use(require('markdown-it-admonition'), {types: ['note', 'hint', 'attention', 'caution', 'danger', 'error', 'quote', 'abstract', 'question']})
     this.md.use(require('markdown-it-abbr'))
     this.md.use(require('markdown-it-sub'))
     this.md.use(require('markdown-it-sup'))
+
+    this.md.use(md => {
+      markdownItTocAndAnchor(md, {
+        toc: true,
+        tocPattern: /\[TOC\]/i,
+        anchorLink: false,
+        appendIdToHeading: false
+      })
+
+      md.renderer.rules.toc_open = () => '<div class="markdownIt-TOC-wrapper">'
+      md.renderer.rules.toc_close = () => '</div>'
+    })
+
     this.md.use(require('./markdown-it-deflist'))
     this.md.use(require('./markdown-it-frontmatter'))
 
@@ -149,9 +165,9 @@ class Markdown {
         const content = token.content.split('\n').slice(0, -1).map(line => {
           const match = /!\[[^\]]*]\(([^\)]*)\)/.exec(line)
           if (match) {
-            return match[1]
+            return mdurl.encode(match[1])
           } else {
-            return line
+            return mdurl.encode(line)
           }
         }).join('\n')
 
@@ -181,32 +197,47 @@ class Markdown {
     })
 
     const deflate = require('markdown-it-plantuml/lib/deflate')
-    this.md.use(require('markdown-it-plantuml'), '', {
-      generateSource: function (umlCode) {
-        const stripTrailingSlash = (url) => url.endsWith('/') ? url.slice(0, -1) : url
-        const serverAddress = stripTrailingSlash(config.preview.plantUMLServerAddress) + '/svg'
-        const s = unescape(encodeURIComponent(umlCode))
-        const zippedCode = deflate.encode64(
-          deflate.zip_deflate(`@startuml\n${s}\n@enduml`, 9)
-        )
-        return `${serverAddress}/${zippedCode}`
-      }
+    const plantuml = require('markdown-it-plantuml')
+    const plantUmlStripTrailingSlash = (url) => url.endsWith('/') ? url.slice(0, -1) : url
+    const plantUmlServerAddress = plantUmlStripTrailingSlash(config.preview.plantUMLServerAddress)
+    const parsePlantUml = function (umlCode, openMarker, closeMarker, type) {
+      const s = unescape(encodeURIComponent(umlCode))
+      const zippedCode = deflate.encode64(
+        deflate.zip_deflate(`${openMarker}\n${s}\n${closeMarker}`, 9)
+      )
+      return `${plantUmlServerAddress}/${type}/${zippedCode}`
+    }
+
+    this.md.use(plantuml, {
+      generateSource: (umlCode) => parsePlantUml(umlCode, '@startuml', '@enduml', 'svg')
     })
 
-    // Ditaa support
-    this.md.use(require('markdown-it-plantuml'), {
+    // Ditaa support. PlantUML server doesn't support Ditaa in SVG, so we set the format as PNG at the moment.
+    this.md.use(plantuml, {
       openMarker: '@startditaa',
       closeMarker: '@endditaa',
-      generateSource: function (umlCode) {
-        const stripTrailingSlash = (url) => url.endsWith('/') ? url.slice(0, -1) : url
-        // Currently PlantUML server doesn't support Ditaa in SVG, so we set the format as PNG at the moment.
-        const serverAddress = stripTrailingSlash(config.preview.plantUMLServerAddress) + '/png'
-        const s = unescape(encodeURIComponent(umlCode))
-        const zippedCode = deflate.encode64(
-          deflate.zip_deflate(`@startditaa\n${s}\n@endditaa`, 9)
-        )
-        return `${serverAddress}/${zippedCode}`
-      }
+      generateSource: (umlCode) => parsePlantUml(umlCode, '@startditaa', '@endditaa', 'png')
+    })
+
+    // Mindmap support
+    this.md.use(plantuml, {
+      openMarker: '@startmindmap',
+      closeMarker: '@endmindmap',
+      generateSource: (umlCode) => parsePlantUml(umlCode, '@startmindmap', '@endmindmap', 'svg')
+    })
+
+    // WBS support
+    this.md.use(plantuml, {
+      openMarker: '@startwbs',
+      closeMarker: '@endwbs',
+      generateSource: (umlCode) => parsePlantUml(umlCode, '@startwbs', '@endwbs', 'svg')
+    })
+
+    // Gantt support
+    this.md.use(plantuml, {
+      openMarker: '@startgantt',
+      closeMarker: '@endgantt',
+      generateSource: (umlCode) => parsePlantUml(umlCode, '@startgantt', '@endgantt', 'svg')
     })
 
     // Override task item
@@ -287,7 +318,9 @@ class Markdown {
           case 'list_item_open':
           case 'paragraph_open':
           case 'table_open':
-            token.attrPush(['data-line', token.map[0]])
+            if (token.map) {
+              token.attrPush(['data-line', token.map[0]])
+            }
         }
       })
       const result = originalRender.call(this.md.renderer, tokens, options, env)

@@ -3,8 +3,9 @@
  */
 import PropTypes from 'prop-types'
 import React from 'react'
-import { isArray } from 'lodash'
+import { isArray, sortBy } from 'lodash'
 import invertColor from 'invert-color'
+import Emoji from 'react-emoji-render'
 import CSSModules from 'browser/lib/CSSModules'
 import { getTodoStatus } from 'browser/lib/getTodoStatus'
 import styles from './NoteItem.styl'
@@ -43,7 +44,7 @@ const TagElementList = (tags, showTagsAlphabetically, coloredTags) => {
   }
 
   if (showTagsAlphabetically) {
-    return _.sortBy(tags).map(tag => TagElement({ tagName: tag, color: coloredTags[tag] }))
+    return sortBy(tags).map(tag => TagElement({ tagName: tag, color: coloredTags[tag] }))
   } else {
     return tags.map(tag => TagElement({ tagName: tag, color: coloredTags[tag] }))
   }
@@ -87,7 +88,7 @@ const NoteItem = ({
         : <i styleName='item-title-icon' className='fa fa-fw fa-file-text-o' />}
       <div styleName='item-title'>
         {note.title.trim().length > 0
-          ? note.title
+          ? <Emoji text={note.title} />
           : <span styleName='item-title-empty'>{i18n.__('Empty note')}</span>}
       </div>
       <div styleName='item-middle'>
@@ -148,15 +149,14 @@ NoteItem.propTypes = {
     tags: PropTypes.array,
     isStarred: PropTypes.bool.isRequired,
     isTrashed: PropTypes.bool.isRequired,
-    blog: {
+    blog: PropTypes.shape({
       blogLink: PropTypes.string,
       blogId: PropTypes.number
-    }
+    })
   }),
   handleNoteClick: PropTypes.func.isRequired,
   handleNoteContextMenu: PropTypes.func.isRequired,
-  handleDragStart: PropTypes.func.isRequired,
-  handleDragEnd: PropTypes.func.isRequired
+  handleDragStart: PropTypes.func.isRequired
 }
 
 export default CSSModules(NoteItem, styles)

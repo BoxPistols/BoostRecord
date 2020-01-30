@@ -21,6 +21,7 @@ import yaml from 'js-yaml'
 import { render } from 'react-dom'
 import Carousel from 'react-image-carousel'
 import ConfigManager from '../main/lib/ConfigManager'
+import i18n from 'browser/lib/i18n'
 
 const { remote, shell } = require('electron')
 const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
@@ -63,7 +64,8 @@ function buildStyle (opts) {
     scrollPastEnd,
     theme,
     allowCustomCSS,
-    customCSS
+    customCSS,
+    RTL
   } = opts
   return `
 @font-face {
@@ -100,11 +102,14 @@ ${markdownStyle}
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
+
   ${scrollPastEnd ? `
     padding-bottom: 90vh;
     box-sizing: border-box;
     `
     : ''}
+  ${RTL ? 'direction: rtl;' : ''}
+  ${RTL ? 'text-align: right;' : ''}
 }
 @media print {
   body {
@@ -114,6 +119,8 @@ body {
 code {
   font-family: '${codeBlockFontFamily.join("','")}';
   background-color: rgba(0,0,0,0.04);
+  text-align: left;
+  direction: ltr;
 }
 .lineNumber {
   ${lineNumber && 'display: block !important;'}
@@ -245,6 +252,7 @@ export default class MarkdownPreview extends React.Component {
     this.saveAsHtmlHandler = () => this.handleSaveAsHtml()
     this.saveAsPdfHandler = () => this.handleSaveAsPdf()
     this.printHandler = () => this.handlePrint()
+    this.resizeHandler = _.throttle(this.handleResize.bind(this), 100)
 
     this.linkClickHandler = this.handleLinkClick.bind(this)
     this.initMarkdown = this.initMarkdown.bind(this)
@@ -335,7 +343,8 @@ export default class MarkdownPreview extends React.Component {
       scrollPastEnd,
       theme,
       allowCustomCSS,
-      customCSS
+      customCSS,
+      RTL
     } = this.getStyleParams()
 
     const inlineStyles = buildStyle({
@@ -346,9 +355,10 @@ export default class MarkdownPreview extends React.Component {
       scrollPastEnd,
       theme,
       allowCustomCSS,
-      customCSS
+      customCSS,
+      RTL
     })
-    let body = this.markdown.render(noteContent)
+    let body = this.refs.root.contentWindow.document.body.innerHTML
     body = attachmentManagement.fixLocalURLS(
       body,
       this.props.storagePath
@@ -368,7 +378,7 @@ export default class MarkdownPreview extends React.Component {
 
     let styles = ''
     files.forEach(file => {
-      styles += `<link rel="stylesheet" href="css/${path.basename(file)}">`
+      styles += `<link rel="stylesheet" href="../css/${path.basename(file)}">`
     })
 
     return `<html>
@@ -423,7 +433,8 @@ export default class MarkdownPreview extends React.Component {
           .then(res => {
             dialog.showMessageBox(remote.getCurrentWindow(), {
               type: 'info',
-              message: `Exported to ${filename}`
+              message: `Exported to ${filename}`,
+              buttons: [i18n.__('Ok')]
             })
           })
           .catch(err => {
@@ -538,6 +549,10 @@ export default class MarkdownPreview extends React.Component {
       'scroll',
       this.scrollHandler
     )
+    this.refs.root.contentWindow.addEventListener(
+      'resize',
+      this.resizeHandler
+    )
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
@@ -576,6 +591,10 @@ export default class MarkdownPreview extends React.Component {
       'scroll',
       this.scrollHandler
     )
+    this.refs.root.contentWindow.removeEventListener(
+      'resize',
+      this.resizeHandler
+    )
     eventEmitter.off('export:save-text', this.saveAsTextHandler)
     eventEmitter.off('export:save-md', this.saveAsMdHandler)
     eventEmitter.off('export:save-html', this.saveAsHtmlHandler)
@@ -608,7 +627,8 @@ export default class MarkdownPreview extends React.Component {
       prevProps.theme !== this.props.theme ||
       prevProps.scrollPastEnd !== this.props.scrollPastEnd ||
       prevProps.allowCustomCSS !== this.props.allowCustomCSS ||
-      prevProps.customCSS !== this.props.customCSS
+      prevProps.customCSS !== this.props.customCSS ||
+      prevProps.RTL !== this.props.RTL
     ) {
       this.applyStyle()
       needsRewriteIframe = true
@@ -632,7 +652,8 @@ export default class MarkdownPreview extends React.Component {
       scrollPastEnd,
       theme,
       allowCustomCSS,
-      customCSS
+      customCSS,
+      RTL
     } = this.props
     let { fontFamily, codeBlockFontFamily } = this.props
     fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
@@ -658,7 +679,8 @@ export default class MarkdownPreview extends React.Component {
       scrollPastEnd,
       theme,
       allowCustomCSS,
-      customCSS
+      customCSS,
+      RTL
     }
   }
 
@@ -672,7 +694,8 @@ export default class MarkdownPreview extends React.Component {
       scrollPastEnd,
       theme,
       allowCustomCSS,
-      customCSS
+      customCSS,
+      RTL
     } = this.getStyleParams()
 
     this.getWindow().document.getElementById(
@@ -686,7 +709,8 @@ export default class MarkdownPreview extends React.Component {
       scrollPastEnd,
       theme,
       allowCustomCSS,
-      customCSS
+      customCSS,
+      RTL
     })
   }
 
@@ -993,6 +1017,15 @@ export default class MarkdownPreview extends React.Component {
       overlay.appendChild(zoomImg)
       document.body.appendChild(overlay)
     }
+  }
+
+  handleResize () {
+    _.forEach(
+      this.refs.root.contentWindow.document.querySelectorAll('svg[ratio]'),
+      el => {
+        el.setAttribute('height', el.clientWidth / el.getAttribute('ratio'))
+      }
+    )
   }
 
   focus () {

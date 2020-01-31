@@ -2,7 +2,6 @@
 
 .root
   padding 15px
-  color $ui-text-color
   margin-bottom 30px
 
 .group
@@ -14,7 +13,6 @@
 
 .group-header2
   font-size 20px
-  color $ui-text-color
   margin-bottom 15px
   margin-top 30px
 
@@ -140,6 +138,14 @@ colorThemedControl(theme)
   border none
   background-color get-theme-var(theme, 'button-backgroundColor')
   color get-theme-var(theme, 'text-color')
+
+body[data-theme="default"],
+body[data-theme="white"]
+  .root
+      color $ui-text-color
+
+  .group-header2
+      color $ui-text-color
 
 body[data-theme="dark"]
   .root

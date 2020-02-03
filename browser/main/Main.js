@@ -16,7 +16,9 @@ import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
 import { getLocales } from 'browser/lib/Languages'
 import applyShortcuts from 'browser/main/lib/shortcutManager'
+import uiThemes from 'browser/lib/ui-themes'
 import { push } from 'connected-react-router'
+
 const path = require('path')
 const electron = require('electron')
 const { remote } = electron
@@ -142,9 +144,7 @@ class Main extends React.Component {
   componentDidMount () {
     const { dispatch, config } = this.props
 
-    const supportedThemes = ['dark', 'white', 'solarized-dark', 'monokai', 'dracula']
-
-    if (supportedThemes.indexOf(config.ui.theme) !== -1) {
+    if (uiThemes.some(theme => theme.name === config.ui.theme)) {
       document.body.setAttribute('data-theme', config.ui.theme)
     } else {
       document.body.setAttribute('data-theme', 'default')

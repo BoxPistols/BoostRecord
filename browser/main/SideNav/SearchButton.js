@@ -5,10 +5,14 @@ import styles from './SearchButton.styl'
 import i18n from 'browser/lib/i18n'
 
 const SearchButton = ({ onClick, isActive }) => (
-  <button styleName='top-menu-search' onClick={(e) => onClick(e)}>
+  <button styleName='top-menu-search' onClick={e => onClick(e)}>
     <img
       styleName='icon-search'
-      src={isActive ? '../resources/icon/icon-search-active.svg' : '../resources/icon/icon-search.svg'}
+      src={
+        isActive
+          ? '../resources/icon/icon-search-active.svg'
+          : '../resources/icon/icon-search.svg'
+      }
     />
     <span styleName='tooltip'>{i18n.__('Search')}</span>
   </button>

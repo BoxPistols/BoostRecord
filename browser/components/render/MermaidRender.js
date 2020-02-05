@@ -1,4 +1,5 @@
 import mermaidAPI from 'mermaid'
+import uiThemes from 'browser/lib/ui-themes'
 
 // fixes bad styling in the mermaid dark theme
 const darkThemeStyling = `
@@ -23,10 +24,13 @@ function render (element, content, theme, enableHTMLLabel) {
   try {
     const height = element.attributes.getNamedItem('data-height')
     const isPredefined = height && height.value !== 'undefined'
+
     if (isPredefined) {
       element.style.height = height.value + 'vh'
     }
-    const isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai' || theme === 'dracula'
+
+    const isDarkTheme = uiThemes.some(item => item.name === theme && item.isDark)
+
     mermaidAPI.initialize({
       theme: isDarkTheme ? 'dark' : 'default',
       themeCSS: isDarkTheme ? darkThemeStyling : '',
@@ -37,6 +41,7 @@ function render (element, content, theme, enableHTMLLabel) {
         useWidth: element.clientWidth
       }
     })
+
     mermaidAPI.render(getId(), content, (svgGraph) => {
       element.innerHTML = svgGraph
 

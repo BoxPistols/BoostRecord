@@ -169,30 +169,19 @@ body[data-theme="dark"]
   .top
     border-color $ui-dark-borderColor
 
-body[data-theme="solarized-dark"]
-  .root, .root--folded
-    background-color $ui-solarized-dark-backgroundColor
-    border-right 1px solid $ui-solarized-dark-borderColor
+apply-theme(theme)
+  body[data-theme={theme}]
+    .root, .root--folded
+      background-color get-theme-var(theme, 'backgroundColor')
+      border-right 1px solid get-theme-var(theme, 'borderColor')
 
-  .search .search-input
-    background-color $ui-solarized-dark-backgroundColor
-    color $ui-solarized-dark-text-color
-    border-color $ui-solarized-dark-borderColor
+    .search .search-input
+      background-color get-theme-var(theme, 'backgroundColor')
+      color get-theme-var(theme, 'text-color')
+      border-color get-theme-var(theme, 'borderColor')
 
-body[data-theme="monokai"]
-  .root, .root--folded
-    background-color $ui-monokai-backgroundColor
-    border-right 1px solid $ui-monokai-borderColor
-  .search .search-input
-    background-color $ui-monokai-button-backgroundColor
-    color $ui-monokai-text-color
-    border-color $ui-monokai-borderColor
+for theme in 'solarized-dark' 'dracula'
+  apply-theme(theme)
 
-body[data-theme="dracula"]
-  .root, .root--folded
-    background-color $ui-dracula-backgroundColor
-    border-right 1px solid $ui-dracula-borderColor
-  .search .search-input
-    background-color $ui-dracula-backgroundColor
-    color $ui-dracula-text-color
-    border-color $ui-dracula-borderColor
+for theme in $themes
+  apply-theme(theme)

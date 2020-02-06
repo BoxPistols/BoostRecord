@@ -223,6 +223,7 @@
   "Spellcheck disabled": "拼写检查已禁用",
   "Show menu bar": "显示菜单栏",
   "Auto Detect": "自动检测",
+  "Filter tags/folders...": "filter tags/folders...",
   "Enable HTML label in mermaid flowcharts": "在 mermaid flowcharts 中启用 HTML 标签 ⚠ 这个选项可能会产生 XSS",
   "Wrap line in Snippet Note": "在 Snippet Note 里换行",
   "Toggle Editor Mode": "切换编辑模式",

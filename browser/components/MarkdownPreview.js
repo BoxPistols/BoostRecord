@@ -242,7 +242,7 @@ function getSourceLineNumberByElement(element) {
 }
 
 class MarkdownPreview extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.contextMenuHandler = e => this.handleContextMenu(e)

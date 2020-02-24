@@ -156,14 +156,22 @@ h1, h2 {
   border: none;
 }
 
+h3 {
+  margin: 1em 0 0.8em;
+}
+
+h4, h5, h6 {
+  margin: 1.1em 0 0.5em;
+}
+
 h1 {
-  padding-bottom: 4px;
+  padding: 0.2em 0 0.2em;
   margin: 1em 0 8px;
 }
 
 h2 {
-  padding-bottom: 0.2em;
-  margin: 1em 0 0.37em;
+  padding: 0.2em 0 0.2em;
+  margin: 1em 0 0.7em;
 }
 
 body p {

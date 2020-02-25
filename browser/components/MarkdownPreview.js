@@ -1161,7 +1161,7 @@ class MarkdownPreview extends React.Component {
       return
     }
 
-    const regexIsTagLink = /^:tag:#([\w]+)$/
+    const regexIsTagLink = /^:tag:([\w]+)$/
     if (regexIsTagLink.test(rawHref)) {
       const tag = rawHref.match(regexIsTagLink)[1]
       dispatch(push(`/tags/${encodeURIComponent(tag)}`))

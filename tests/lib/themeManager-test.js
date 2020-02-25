@@ -15,7 +15,7 @@ test.beforeEach(t => {
   }
   const constantDate = new Date('2017-11-27T14:33:42Z')
   global.Date = class extends Date {
-    constructor () {
+    constructor() {
       super()
       return constantDate
     }
@@ -26,7 +26,7 @@ test.afterEach(t => {
   global.Date = originalDate
 })
 
-test('enableScheduleTheme is false, theme shouldn\'t change', t => {
+test("enableScheduleTheme is false, theme shouldn't change", t => {
   t.context.enableScheduleTheme = false
 
   const beforeTheme = t.context.theme
@@ -37,7 +37,7 @@ test('enableScheduleTheme is false, theme shouldn\'t change', t => {
 })
 
 // NOT IN SCHEDULE
-test('scheduleEnd is bigger than scheduleStart and not in schedule, theme shouldn\'t change', t => {
+test("scheduleEnd is bigger than scheduleStart and not in schedule, theme shouldn't change", t => {
   const beforeTheme = t.context.defaultTheme
   t.context.scheduleStart = 720 // 12:00
   t.context.scheduleEnd = 870 // 14:30
@@ -47,7 +47,7 @@ test('scheduleEnd is bigger than scheduleStart and not in schedule, theme should
   t.is(afterTheme, beforeTheme)
 })
 
-test('scheduleStart is bigger than scheduleEnd and not in schedule, theme shouldn\'t change', t => {
+test("scheduleStart is bigger than scheduleEnd and not in schedule, theme shouldn't change", t => {
   const beforeTheme = t.context.defaultTheme
   t.context.scheduleStart = 960 // 16:00
   t.context.scheduleEnd = 600 // 10:00
@@ -78,7 +78,7 @@ test('scheduleStart is bigger than scheduleEnd and in schedule, theme should cha
   t.is(afterTheme, beforeTheme)
 })
 
-test('theme to apply is not a supported theme, theme shouldn\'t change', t => {
+test("theme to apply is not a supported theme, theme shouldn't change", t => {
   applyTheme('notATheme')
   const afterTheme = document.body.dataset.theme
 

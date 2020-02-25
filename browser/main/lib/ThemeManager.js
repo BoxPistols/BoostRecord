@@ -1,4 +1,4 @@
-const chooseTheme = (ui) => {
+const chooseTheme = ui => {
   if (!ui.enableScheduleTheme) {
     return
   }
@@ -11,9 +11,12 @@ const chooseTheme = (ui) => {
 
   const isEndAfterStart = end > start
   const isBetweenStartAndEnd = minutes >= start && minutes <= end
-  const isBetweenEndAndStart = (minutes >= start || minutes <= end)
+  const isBetweenEndAndStart = minutes >= start || minutes <= end
 
-  if ((isEndAfterStart && isBetweenStartAndEnd) || (!isEndAfterStart && isBetweenEndAndStart)) {
+  if (
+    (isEndAfterStart && isBetweenStartAndEnd) ||
+    (!isEndAfterStart && isBetweenEndAndStart)
+  ) {
     if (ui.theme !== ui.scheduledTheme) {
       ui.defaultTheme = ui.theme
       ui.theme = ui.scheduledTheme
@@ -27,8 +30,14 @@ const chooseTheme = (ui) => {
   }
 }
 
-const applyTheme = (theme) => {
-  const supportedThemes = ['dark', 'white', 'solarized-dark', 'monokai', 'dracula']
+const applyTheme = theme => {
+  const supportedThemes = [
+    'dark',
+    'white',
+    'solarized-dark',
+    'monokai',
+    'dracula'
+  ]
   if (supportedThemes.indexOf(theme) !== -1) {
     document.body.setAttribute('data-theme', theme)
   } else {

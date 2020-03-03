@@ -229,7 +229,6 @@ class MarkdownSplitEditor extends React.Component {
           breaks={config.preview.breaks}
           sanitize={config.preview.sanitize}
           mermaidHTMLLabel={config.preview.mermaidHTMLLabel}
-          ref='preview'
           tabInde='0'
           value={value}
           onCheckboxClick={e => this.handleCheckboxClick(e)}

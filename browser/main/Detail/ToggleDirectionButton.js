@@ -20,7 +20,7 @@ const ToggleDirectionButton = ({ onClick, isRTL }) => (
 
 ToggleDirectionButton.propTypes = {
   onClick: PropTypes.func.isRequired,
-  isRTL: PropTypes.string.isRequired
+  isRTL: PropTypes.bool.isRequired
 }
 
 export default CSSModules(ToggleDirectionButton, styles)

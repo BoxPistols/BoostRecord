@@ -63,9 +63,6 @@ class UiTab extends React.Component {
     }
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
-
-    this.handleSlider(null, 1)
-    this.handleSlider(null, 2)
   }
 
   componentWillUnmount() {
@@ -230,24 +227,6 @@ class UiTab extends React.Component {
     return `${hour}:${minute}`
   }
 
-  handleSlider(e, number) {
-    const sliderID = 'rs-range-line-' + number
-    const bulletID = 'rs-bullet-' + number
-
-    const rangeSlider = document.getElementById(sliderID)
-    const rangeBullet = document.getElementById(bulletID)
-
-    if (rangeSlider && rangeBullet) {
-      const bulletPosition = rangeSlider.value / rangeSlider.max
-      rangeBullet.style.left =
-        bulletPosition * 574 + 6 * (1 - bulletPosition) + 'px'
-    }
-
-    if (e) {
-      this.handleUIChange(e)
-    }
-  }
-
   render() {
     const UiAlert = this.state.UiAlert
     const UiAlertElement =
@@ -308,7 +287,7 @@ class UiTab extends React.Component {
             <label>
               <input
                 onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.enableScheduleTheme}
+                checked={config.ui.enableScheduleTheme}
                 ref='enableScheduleTheme'
                 type='checkbox'
               />
@@ -322,6 +301,7 @@ class UiTab extends React.Component {
             </div>
             <div styleName='group-section-control'>
               <select
+                disabled={!config.ui.enableScheduleTheme}
                 value={config.ui.scheduledTheme}
                 onChange={e => this.handleUIChange(e)}
                 ref='uiScheduledTheme'
@@ -361,6 +341,7 @@ class UiTab extends React.Component {
                   styleName='rs-label'
                 >{`End: ${this.formatTime(config.ui.scheduleEnd)}`}</span>
                 <input
+                  disabled={!config.ui.enableScheduleTheme}
                   id='rs-range-line-1'
                   styleName='rs-range'
                   type='range'
@@ -369,7 +350,7 @@ class UiTab extends React.Component {
                   max='1440'
                   step='5'
                   ref='scheduleEnd'
-                  onChange={e => this.handleSlider(e, 1)}
+                  onChange={e => this.handleUIChange(e)}
                 />
               </div>
               <div styleName='range-slider' id='secondRow'>
@@ -378,6 +359,7 @@ class UiTab extends React.Component {
                   styleName='rs-label'
                 >{`Start: ${this.formatTime(config.ui.scheduleStart)}`}</span>
                 <input
+                  disabled={!config.ui.enableScheduleTheme}
                   id='rs-range-line-2'
                   styleName='rs-range'
                   type='range'
@@ -386,7 +368,7 @@ class UiTab extends React.Component {
                   max='1440'
                   step='5'
                   ref='scheduleStart'
-                  onChange={e => this.handleSlider(e, 2)}
+                  onChange={e => this.handleUIChange(e)}
                 />
               </div>
               <div styleName='box-minmax'>

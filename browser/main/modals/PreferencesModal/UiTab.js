@@ -215,10 +215,6 @@ class UiTab extends React.Component {
     }, 2000)()
   }
 
-  /**
-   * Gets the total number of minutes and returns a string in the HH:MM format
-   * @param {Number} time total number of minutes
-   */
   formatTime(time) {
     let hour = Math.floor(time / 60)
     let minute = time % 60

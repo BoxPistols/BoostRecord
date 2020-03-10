@@ -335,7 +335,7 @@ class UiTab extends React.Component {
           </div>
           <div styleName='group-section'>
             <div styleName='container'>
-              <div styleName='range-slider' id='firstRow'>
+              <div id='firstRow'>
                 <span
                   id='rs-bullet-1'
                   styleName='rs-label'
@@ -353,7 +353,7 @@ class UiTab extends React.Component {
                   onChange={e => this.handleUIChange(e)}
                 />
               </div>
-              <div styleName='range-slider' id='secondRow'>
+              <div id='secondRow'>
                 <span
                   id='rs-bullet-2'
                   styleName='rs-label'

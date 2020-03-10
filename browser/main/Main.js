@@ -190,6 +190,7 @@ class Main extends React.Component {
       'menubar:togglemenubar',
       this.toggleMenuBarVisible.bind(this)
     )
+    clearInterval(this.refreshTheme)
   }
 
   toggleMenuBarVisible() {

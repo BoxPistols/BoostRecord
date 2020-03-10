@@ -10,8 +10,8 @@ const chooseTheme = ui => {
   const minutes = now.getHours() * 60 + now.getMinutes()
 
   const isEndAfterStart = end > start
-  const isBetweenStartAndEnd = minutes >= start && minutes <= end
-  const isBetweenEndAndStart = minutes >= start || minutes <= end
+  const isBetweenStartAndEnd = minutes >= start && minutes < end
+  const isBetweenEndAndStart = minutes >= start || minutes < end
 
   if (
     (isEndAfterStart && isBetweenStartAndEnd) ||

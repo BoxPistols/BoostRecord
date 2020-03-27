@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
+import { connect } from 'react-redux'
 import Markdown from 'browser/lib/markdown'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
@@ -21,6 +22,7 @@ import { escapeHtmlCharacters } from 'browser/lib/utils'
 import yaml from 'js-yaml'
 import { render } from 'react-dom'
 import Carousel from 'react-image-carousel'
+import { push } from 'connected-react-router'
 import ConfigManager from '../main/lib/ConfigManager'
 import uiThemes from 'browser/lib/ui-themes'
 import i18n from 'browser/lib/i18n'
@@ -252,7 +254,7 @@ function getSourceLineNumberByElement(element) {
   return parent.dataset.line !== undefined ? parseInt(parent.dataset.line) : -1
 }
 
-export default class MarkdownPreview extends React.Component {
+class MarkdownPreview extends React.Component {
   constructor(props) {
     super(props)
 
@@ -1116,6 +1118,7 @@ export default class MarkdownPreview extends React.Component {
     e.stopPropagation()
 
     const rawHref = e.target.getAttribute('href')
+    const { dispatch } = this.props
     if (!rawHref) return // not checked href because parser will create file://... string for [empty link]()
 
     const parser = document.createElement('a')
@@ -1169,6 +1172,13 @@ export default class MarkdownPreview extends React.Component {
       return
     }
 
+    const regexIsTagLink = /^:tag:([\w]+)$/
+    if (regexIsTagLink.test(rawHref)) {
+      const tag = rawHref.match(regexIsTagLink)[1]
+      dispatch(push(`/tags/${encodeURIComponent(tag)}`))
+      return
+    }
+
     // other case
     this.openExternal(href)
   }
@@ -1213,3 +1223,10 @@ MarkdownPreview.propTypes = {
   smartArrows: PropTypes.bool,
   breaks: PropTypes.bool
 }
+
+export default connect(
+  null,
+  null,
+  null,
+  { forwardRef: true }
+)(MarkdownPreview)

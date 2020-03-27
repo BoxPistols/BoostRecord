@@ -215,6 +215,7 @@ class MarkdownSplitEditor extends React.Component {
           <div styleName='slider-hitbox' />
         </div>
         <MarkdownPreview
+          ref='preview'
           style={previewStyle}
           theme={config.ui.theme}
           keyMap={config.editor.keyMap}
@@ -229,7 +230,6 @@ class MarkdownSplitEditor extends React.Component {
           breaks={config.preview.breaks}
           sanitize={config.preview.sanitize}
           mermaidHTMLLabel={config.preview.mermaidHTMLLabel}
-          ref='preview'
           tabInde='0'
           value={value}
           onCheckboxClick={e => this.handleCheckboxClick(e)}

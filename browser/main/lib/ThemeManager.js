@@ -1,4 +1,11 @@
-const chooseTheme = ui => {
+import ConfigManager from 'browser/main/lib/ConfigManager'
+
+const saveChanges = newConfig => {
+  ConfigManager.set(newConfig)
+}
+
+const chooseTheme = config => {
+  const { ui } = config
   if (!ui.enableScheduleTheme) {
     return
   }
@@ -21,11 +28,13 @@ const chooseTheme = ui => {
       ui.defaultTheme = ui.theme
       ui.theme = ui.scheduledTheme
       applyTheme(ui.theme)
+      saveChanges(config)
     }
   } else {
     if (ui.theme !== ui.defaultTheme) {
       ui.theme = ui.defaultTheme
       applyTheme(ui.theme)
+      saveChanges(config)
     }
   }
 }
@@ -40,6 +49,11 @@ const applyTheme = theme => {
   ]
   if (supportedThemes.indexOf(theme) !== -1) {
     document.body.setAttribute('data-theme', theme)
+    if (document.body.querySelector('.MarkdownPreview')) {
+      document.body
+        .querySelector('.MarkdownPreview')
+        .contentDocument.body.setAttribute('data-theme', theme)
+    }
   } else {
     document.body.setAttribute('data-theme', 'default')
   }

@@ -149,10 +149,11 @@ class Main extends React.Component {
     const { dispatch, config } = this.props
 
     this.refreshTheme = setInterval(() => {
-      chooseTheme(ConfigManager.get().ui)
+      const conf = ConfigManager.get()
+      chooseTheme(conf)
     }, 5 * 1000)
 
-    chooseTheme(config.ui)
+    chooseTheme(config)
     applyTheme(config.ui.theme)
 
     if (getLocales().indexOf(config.ui.language) !== -1) {

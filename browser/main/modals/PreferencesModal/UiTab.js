@@ -13,6 +13,7 @@ import i18n from 'browser/lib/i18n'
 import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 import uiThemes from 'browser/lib/ui-themes'
+import { chooseTheme, applyTheme } from 'browser/main/lib/ThemeManager'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -193,6 +194,9 @@ class UiTab extends React.Component {
       editor: this.state.config.editor,
       preview: this.state.config.preview
     }
+
+    chooseTheme(newConfig)
+    applyTheme(newConfig.ui.theme)
 
     ConfigManager.set(newConfig)
 

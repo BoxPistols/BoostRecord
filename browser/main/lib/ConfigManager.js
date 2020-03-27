@@ -2,7 +2,6 @@ import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
 import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
-import { chooseTheme, applyTheme } from 'browser/main/lib/ThemeManager'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -203,9 +202,6 @@ function set(updates) {
   )
   if (!validate(newConfig)) throw new Error('INVALID CONFIG')
   _save(newConfig)
-
-  chooseTheme(newConfig.ui)
-  applyTheme(newConfig.ui.theme)
 
   i18n.setLocale(newConfig.ui.language)
 

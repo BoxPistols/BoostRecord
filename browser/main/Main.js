@@ -16,7 +16,7 @@ import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
 import { getLocales } from 'browser/lib/Languages'
 import applyShortcuts from 'browser/main/lib/shortcutManager'
-import uiThemes from 'browser/lib/ui-themes'
+import { chooseTheme, applyTheme } from 'browser/main/lib/ThemeManager'
 import { push } from 'connected-react-router'
 
 const path = require('path')
@@ -148,11 +148,13 @@ class Main extends React.Component {
   componentDidMount() {
     const { dispatch, config } = this.props
 
-    if (uiThemes.some(theme => theme.name === config.ui.theme)) {
-      document.body.setAttribute('data-theme', config.ui.theme)
-    } else {
-      document.body.setAttribute('data-theme', 'default')
-    }
+    this.refreshTheme = setInterval(() => {
+      const conf = ConfigManager.get()
+      chooseTheme(conf)
+    }, 5 * 1000)
+
+    chooseTheme(config)
+    applyTheme(config.ui.theme)
 
     if (getLocales().indexOf(config.ui.language) !== -1) {
       i18n.setLocale(config.ui.language)
@@ -191,6 +193,7 @@ class Main extends React.Component {
       this.toggleMenuBarVisible.bind(this)
     )
     eventEmitter.off('dispatch:push', this.changeRoutePush.bind(this))
+    clearInterval(this.refreshTheme)
   }
 
   changeRoutePush(event, destination) {

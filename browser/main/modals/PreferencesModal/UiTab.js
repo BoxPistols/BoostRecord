@@ -13,6 +13,7 @@ import i18n from 'browser/lib/i18n'
 import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 import uiThemes from 'browser/lib/ui-themes'
+import { chooseTheme, applyTheme } from 'browser/main/lib/ThemeManager'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -84,6 +85,11 @@ class UiTab extends React.Component {
     const newConfig = {
       ui: {
         theme: this.refs.uiTheme.value,
+        defaultTheme: this.refs.uiTheme.value,
+        enableScheduleTheme: this.refs.enableScheduleTheme.checked,
+        scheduledTheme: this.refs.uiScheduledTheme.value,
+        scheduleStart: this.refs.scheduleStart.value,
+        scheduleEnd: this.refs.scheduleEnd.value,
         language: this.refs.uiLanguage.value,
         defaultNote: this.refs.defaultNote.value,
         tagNewNoteWithFilteringTags: this.refs.tagNewNoteWithFilteringTags
@@ -190,6 +196,9 @@ class UiTab extends React.Component {
       preview: this.state.config.preview
     }
 
+    chooseTheme(newConfig)
+    applyTheme(newConfig.ui.theme)
+
     ConfigManager.set(newConfig)
 
     store.dispatch({
@@ -206,6 +215,21 @@ class UiTab extends React.Component {
         UiAlert: null
       })
     }, 2000)()
+  }
+
+  formatTime(time) {
+    let hour = Math.floor(time / 60)
+    let minute = time % 60
+
+    if (hour < 10) {
+      hour = '0' + hour
+    }
+
+    if (minute < 10) {
+      minute = '0' + minute
+    }
+
+    return `${hour}:${minute}`
   }
 
   render() {
@@ -232,7 +256,7 @@ class UiTab extends React.Component {
             </div>
             <div styleName='group-section-control'>
               <select
-                value={config.ui.theme}
+                value={config.ui.defaultTheme}
                 onChange={e => this.handleUIChange(e)}
                 ref='uiTheme'
               >
@@ -261,6 +285,101 @@ class UiTab extends React.Component {
                     })}
                 </optgroup>
               </select>
+            </div>
+          </div>
+          <div styleName='group-header2'>{i18n.__('Theme Schedule')}</div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input
+                onChange={e => this.handleUIChange(e)}
+                checked={config.ui.enableScheduleTheme}
+                ref='enableScheduleTheme'
+                type='checkbox'
+              />
+              &nbsp;
+              {i18n.__('Enable Scheduled Themes')}
+            </label>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Scheduled Theme')}
+            </div>
+            <div styleName='group-section-control'>
+              <select
+                disabled={!config.ui.enableScheduleTheme}
+                value={config.ui.scheduledTheme}
+                onChange={e => this.handleUIChange(e)}
+                ref='uiScheduledTheme'
+              >
+                <optgroup label='Light Themes'>
+                  {uiThemes
+                    .filter(theme => !theme.isDark)
+                    .sort((a, b) => a.label.localeCompare(b.label))
+                    .map(theme => {
+                      return (
+                        <option value={theme.name} key={theme.name}>
+                          {theme.label}
+                        </option>
+                      )
+                    })}
+                </optgroup>
+                <optgroup label='Dark Themes'>
+                  {uiThemes
+                    .filter(theme => theme.isDark)
+                    .sort((a, b) => a.label.localeCompare(b.label))
+                    .map(theme => {
+                      return (
+                        <option value={theme.name} key={theme.name}>
+                          {theme.label}
+                        </option>
+                      )
+                    })}
+                </optgroup>
+              </select>
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='container'>
+              <div id='firstRow'>
+                <span
+                  id='rs-bullet-1'
+                  styleName='rs-label'
+                >{`End: ${this.formatTime(config.ui.scheduleEnd)}`}</span>
+                <input
+                  disabled={!config.ui.enableScheduleTheme}
+                  id='rs-range-line-1'
+                  styleName='rs-range'
+                  type='range'
+                  value={config.ui.scheduleEnd}
+                  min='0'
+                  max='1440'
+                  step='5'
+                  ref='scheduleEnd'
+                  onChange={e => this.handleUIChange(e)}
+                />
+              </div>
+              <div id='secondRow'>
+                <span
+                  id='rs-bullet-2'
+                  styleName='rs-label'
+                >{`Start: ${this.formatTime(config.ui.scheduleStart)}`}</span>
+                <input
+                  disabled={!config.ui.enableScheduleTheme}
+                  id='rs-range-line-2'
+                  styleName='rs-range'
+                  type='range'
+                  value={config.ui.scheduleStart}
+                  min='0'
+                  max='1440'
+                  step='5'
+                  ref='scheduleStart'
+                  onChange={e => this.handleUIChange(e)}
+                />
+              </div>
+              <div styleName='box-minmax'>
+                <span>00:00</span>
+                <span>24:00</span>
+              </div>
             </div>
           </div>
 

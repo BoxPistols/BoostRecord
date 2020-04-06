@@ -2,7 +2,6 @@ import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
 import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
-import uiThemes from 'browser/lib/ui-themes'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -47,6 +46,11 @@ export const DEFAULT_CONFIG = {
   ui: {
     language: 'en',
     theme: 'default',
+    defaultTheme: 'default',
+    enableScheduleTheme: false,
+    scheduledTheme: 'monokai',
+    scheduleStart: 1200,
+    scheduleEnd: 360,
     showCopyNotification: true,
     disableDirectWrite: false,
     showScrollBar: true,
@@ -199,12 +203,6 @@ function set(updates) {
   )
   if (!validate(newConfig)) throw new Error('INVALID CONFIG')
   _save(newConfig)
-
-  if (uiThemes.some(theme => theme.name === newConfig.ui.theme)) {
-    document.body.setAttribute('data-theme', newConfig.ui.theme)
-  } else {
-    document.body.setAttribute('data-theme', 'default')
-  }
 
   i18n.setLocale(newConfig.ui.language)
 

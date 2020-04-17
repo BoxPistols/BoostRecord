@@ -1,3 +1,17 @@
+jest.mock(
+  'electron',
+  () => {
+    return {
+      remote: {
+        app: {
+          getPath: jest.fn().mockReturnValue('.')
+        }
+      }
+    }
+  },
+  { virtual: true }
+)
+
 import Markdown from 'browser/lib/markdown'
 import markdownFixtures from '../fixtures/markdowns'
 
@@ -73,32 +87,32 @@ test('Markdown.render() should render footnote correctly', () => {
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should renders [TOC] placholder correctly', t => {
+test('Markdown.render() should renders [TOC] placholder correctly', () => {
   const rendered = md.render(markdownFixtures.tocPlaceholder)
-  t.snapshot(rendered)
+  expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML MindMaps correctly', t => {
+test('Markdown.render() should render PlantUML MindMaps correctly', () => {
   const rendered = md.render(markdownFixtures.plantUmlMindMap)
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML Gantt correctly', t => {
+test('Markdown.render() should render PlantUML Gantt correctly', () => {
   const rendered = md.render(markdownFixtures.plantUmlGantt)
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML WBS correctly', t => {
+test('Markdown.render() should render PlantUML WBS correctly', () => {
   const rendered = md.render(markdownFixtures.plantUmlWbs)
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML Umls correctly', t => {
+test('Markdown.render() should render PlantUML Umls correctly', () => {
   const rendered = md.render(markdownFixtures.plantUmlUml)
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML Ditaa correctly', t => {
+test('Markdown.render() should render PlantUML Ditaa correctly', () => {
   const rendered = md.render(markdownFixtures.plantUmlDitaa)
   expect(rendered).toMatchSnapshot()
 })

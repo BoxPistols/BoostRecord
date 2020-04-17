@@ -16,6 +16,22 @@ const DEFAULT_MARKDOWN_LINT_CONFIG = `{
   "default": true
 }`
 
+const DEFAULT_CSS_CONFIG = `
+/* Drop Your Custom CSS Code Here */
+[data-theme="default"] p code,
+[data-theme="default"] li code,
+[data-theme="default"] td code
+{
+  padding: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 5px;
+  background-color: #F4F4F4;
+  border-color: #d9d9d9;
+  color: #03C588;
+}
+`
+
 export const DEFAULT_CONFIG = {
   zoom: 1,
   isSideNavFolded: false,
@@ -83,7 +99,7 @@ export const DEFAULT_CONFIG = {
     enableSmartPaste: false,
     enableMarkdownLint: false,
     customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG,
-    prettierConfig: ` {
+    prettierConfig: `{
       "trailingComma": "es5",
       "tabWidth": 2,
       "semi": false,
@@ -108,8 +124,7 @@ export const DEFAULT_CONFIG = {
     breaks: true,
     smartArrows: false,
     allowCustomCSS: false,
-
-    customCSS: '/* Drop Your Custom CSS Code Here */',
+    customCSS: DEFAULT_CSS_CONFIG,
     sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
     mermaidHTMLLabel: false,
     lineThroughCheckbox: true

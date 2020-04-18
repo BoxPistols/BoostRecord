@@ -23,7 +23,6 @@ import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import ToggleModeButton from './ToggleModeButton'
-import ToggleStackDirectionButton from './ToggleStackDirectionButton'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
@@ -60,6 +59,7 @@ class MarkdownNoteDetail extends React.Component {
     this.toggleLockButton = this.handleToggleLockButton.bind(this)
     this.generateToc = this.handleGenerateToc.bind(this)
     this.handleUpdateContent = this.handleUpdateContent.bind(this)
+    this.handleSwitchStackDirection = this.handleSwitchStackDirection.bind(this)
   }
 
   focus() {
@@ -67,6 +67,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   componentDidMount() {
+    ee.on('editor:orientation', this.handleSwitchStackDirection)
     ee.on('topbar:togglelockbutton', this.toggleLockButton)
     ee.on('topbar:toggledirectionbutton', () => this.handleSwitchDirection())
     ee.on('topbar:togglemodebutton', () => {
@@ -393,13 +394,16 @@ class MarkdownNoteDetail extends React.Component {
     )
   }
 
-  handleSwitchStackDirection(type) {
-    this.setState({ isStacking: type }, () => {
-      this.focus()
-      const newConfig = Object.assign({}, this.props.config)
-      newConfig.ui.isStacking = type
-      ConfigManager.set(newConfig)
-    })
+  handleSwitchStackDirection() {
+    this.setState(
+      prevState => ({ isStacking: !prevState.isStacking }),
+      () => {
+        this.focus()
+        const newConfig = Object.assign({}, this.props.config)
+        newConfig.ui.isStacking = this.state.isStacking
+        ConfigManager.set(newConfig)
+      }
+    )
   }
 
   handleSwitchDirection() {
@@ -476,7 +480,7 @@ class MarkdownNoteDetail extends React.Component {
 
   render() {
     const { data, dispatch, location, config } = this.props
-    const { note, editorType, isStacking } = this.state
+    const { note, editorType } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -553,12 +557,6 @@ class MarkdownNoteDetail extends React.Component {
           />
         </div>
         <div styleName='info-right'>
-          {editorType === 'SPLIT' ? (
-            <ToggleStackDirectionButton
-              onClick={e => this.handleSwitchStackDirection(e)}
-              isStacking={isStacking}
-            />
-          ) : null}
           <ToggleModeButton
             onClick={e => this.handleSwitchMode(e)}
             editorType={editorType}

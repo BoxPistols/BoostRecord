@@ -51,7 +51,8 @@ class MarkdownNoteDetail extends React.Component {
       isLockButtonShown: props.config.editor.type !== 'SPLIT',
       isLocked: false,
       editorType: props.config.editor.type,
-      switchPreview: props.config.editor.switchPreview
+      switchPreview: props.config.editor.switchPreview,
+      RTL: false
     }
 
     this.dispatchTimer = null

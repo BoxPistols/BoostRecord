@@ -21,6 +21,10 @@
 
 [Find the latest release of Boostnote here!](https://github.com/BoostIO/boost-releases/releases/)
 
+## Roadmap
+
+[Boost Note Roadmap 2020](https://medium.com/boostnote/boost-note-roadmap-2020-9f06a642f5f1)
+
 ## Authors & Maintainers
 
 - [Rokt33r](https://github.com/rokt33r)

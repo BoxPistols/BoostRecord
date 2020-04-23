@@ -71,7 +71,8 @@ export const DEFAULT_CONFIG = {
     disableDirectWrite: false,
     showScrollBar: true,
     defaultNote: 'ALWAYS_ASK', // 'ALWAYS_ASK', 'SNIPPET_NOTE', 'MARKDOWN_NOTE'
-    showMenuBar: false
+    showMenuBar: false,
+    isStacking: false
   },
   editor: {
     theme: 'base16-light',

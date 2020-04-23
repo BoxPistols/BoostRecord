@@ -1240,18 +1240,19 @@ export default class CodeEditor extends React.Component {
   }
 
   render() {
-    const { className, fontSize } = this.props
-    const fontFamily = normalizeEditorFontFamily(this.props.fontFamily)
-    const width = this.props.width
+    const { className, fontSize, fontFamily, width, height } = this.props
+    const normalisedFontFamily = normalizeEditorFontFamily(fontFamily)
+
     return (
       <div
         className={className == null ? 'CodeEditor' : `CodeEditor ${className}`}
         ref='root'
         tabIndex='-1'
         style={{
-          fontFamily,
-          fontSize: fontSize,
-          width: width
+          fontFamily: normalisedFontFamily,
+          fontSize,
+          width,
+          height
         }}
         onDrop={e => this.handleDropImage(e)}
       />

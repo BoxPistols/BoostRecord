@@ -10,3 +10,5 @@ node_modules/*
 *.log
 .idea
 .vscode
+package-lock.json
+config.json

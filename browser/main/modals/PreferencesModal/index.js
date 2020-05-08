@@ -82,19 +82,13 @@ class Preferences extends React.Component {
           />
         )
       case 'SNIPPET':
-        return (
-          <SnippetTab
-            dispatch={dispatch}
-            config={config}
-            data={data}
-          />
-        )
+        return <SnippetTab dispatch={dispatch} config={config} data={data} />
       case 'PLUGINS':
         return (
           <PluginsTab
             dispatch={dispatch}
             config={config}
-            haveToSave={alert => this.setState({PluginsAlert: alert})}
+            haveToSave={alert => this.setState({ PluginsAlert: alert })}
           />
         )
       case 'STORAGES':

@@ -21,7 +21,6 @@ const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')
 import { createTurndownService } from '../lib/turndown'
 import { languageMaps } from '../lib/CMLanguageList'
 import snippetManager from '../lib/SnippetManager'
-import { gfm } from 'turndown-plugin-gfm'
 import { findStorage } from 'browser/lib/findStorage'
 import { sendWakatimeHeartBeat } from 'browser/lib/wakatime-plugin'
 import {
@@ -120,8 +119,15 @@ export default class CodeEditor extends React.Component {
     // wakatime
     const { storageKey, noteKey } = this.props
     const storage = findStorage(storageKey)
-    if (storage) sendWakatimeHeartBeat(storage.path, noteKey, storage.name, false, false, true)
-
+    if (storage)
+      sendWakatimeHeartBeat(
+        storage.path,
+        noteKey,
+        storage.name,
+        false,
+        false,
+        true
+      )
   }
 
   handleSearch(msg) {
@@ -807,9 +813,25 @@ export default class CodeEditor extends React.Component {
     const storage = findStorage(storageKey)
     if (this.props.onChange) {
       this.props.onChange(editor)
-      if (storage) sendWakatimeHeartBeat(storage.path, noteKey, storage.name, true, true, false)
+      if (storage)
+        sendWakatimeHeartBeat(
+          storage.path,
+          noteKey,
+          storage.name,
+          true,
+          true,
+          false
+        )
     } else {
-      if (storage) sendWakatimeHeartBeat(storage.path, noteKey, storage.name, false, false, false)
+      if (storage)
+        sendWakatimeHeartBeat(
+          storage.path,
+          noteKey,
+          storage.name,
+          false,
+          false,
+          false
+        )
     }
   }
 
@@ -942,7 +964,15 @@ export default class CodeEditor extends React.Component {
     // wakatime
     const { storageKey, noteKey } = this.props
     const storage = findStorage(storageKey)
-    if (storage) sendWakatimeHeartBeat(storage.path, noteKey, storage.name, false, false, true)
+    if (storage)
+      sendWakatimeHeartBeat(
+        storage.path,
+        noteKey,
+        storage.name,
+        false,
+        false,
+        true
+      )
   }
 
   setValue(value) {

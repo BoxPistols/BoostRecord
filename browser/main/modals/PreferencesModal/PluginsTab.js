@@ -11,7 +11,7 @@ const electron = require('electron')
 const ipc = electron.ipcRenderer
 
 class PluginsTab extends React.Component {
-  constructor (props) {
+  constructor(props) {
     super(props)
 
     this.state = {
@@ -19,27 +19,34 @@ class PluginsTab extends React.Component {
     }
   }
 
-  componentDidMount () {
+  componentDidMount() {
     this.handleSettingDone = () => {
-      this.setState({pluginsAlert: {
-        type: 'success',
-        message: i18n.__('Successfully applied!')
-      }})
+      this.setState({
+        pluginsAlert: {
+          type: 'success',
+          message: i18n.__('Successfully applied!')
+        }
+      })
     }
-    this.handleSettingError = (err) => {
+    this.handleSettingError = err => {
       if (
         this.state.config.wakatime.key === '' ||
         this.state.config.wakatime.key === null
       ) {
-        this.setState({pluginsAlert: {
-          type: 'success',
-          message: i18n.__('Successfully applied!')
-        }})
+        this.setState({
+          pluginsAlert: {
+            type: 'success',
+            message: i18n.__('Successfully applied!')
+          }
+        })
       } else {
-        this.setState({pluginsAlert: {
-          type: 'error',
-          message: err.message != null ? err.message : i18n.__('An error occurred!')
-        }})
+        this.setState({
+          pluginsAlert: {
+            type: 'error',
+            message:
+              err.message != null ? err.message : i18n.__('An error occurred!')
+          }
+        })
       }
     }
     this.oldWakatimekey = this.state.config.wakatime
@@ -47,12 +54,12 @@ class PluginsTab extends React.Component {
     ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
   }
 
-  componentWillUnmount () {
+  componentWillUnmount() {
     ipc.removeListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.removeListener('APP_SETTING_ERROR', this.handleSettingError)
   }
 
-  handleSaveButtonClick (e) {
+  handleSaveButtonClick(e) {
     const newConfig = {
       wakatime: this.state.config.wakatime
     }
@@ -67,7 +74,7 @@ class PluginsTab extends React.Component {
     this.props.haveToSave()
   }
 
-  handleWakatimeKeyChange (e) {
+  handleWakatimeKeyChange(e) {
     const { config } = this.state
     config.wakatime = { key: this.refs.key.value }
     this.setState({
@@ -84,7 +91,7 @@ class PluginsTab extends React.Component {
     }
   }
 
-  clearMessage () {
+  clearMessage() {
     _.debounce(() => {
       this.setState({
         pluginsAlert: null
@@ -92,13 +99,12 @@ class PluginsTab extends React.Component {
     }, 2000)()
   }
 
-  render () {
+  render() {
     const pluginsAlert = this.state.pluginsAlert
-    const pluginsAlertElement = pluginsAlert != null
-      ? <p className={`alert ${pluginsAlert.type}`}>
-        {pluginsAlert.message}
-      </p>
-      : null
+    const pluginsAlertElement =
+      pluginsAlert != null ? (
+        <p className={`alert ${pluginsAlert.type}`}>{pluginsAlert.message}</p>
+      ) : null
     const { config } = this.state
 
     return (
@@ -108,8 +114,9 @@ class PluginsTab extends React.Component {
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Wakatime key')}</div>
             <div styleName='group-section-control'>
-              <input styleName='group-section-control-input'
-                onChange={(e) => this.handleWakatimeKeyChange(e)}
+              <input
+                styleName='group-section-control-input'
+                onChange={e => this.handleWakatimeKeyChange(e)}
                 ref='key'
                 value={config.wakatime.key}
                 type='text'
@@ -117,8 +124,11 @@ class PluginsTab extends React.Component {
             </div>
           </div>
           <div styleName='group-control'>
-            <button styleName='group-control-rightButton'
-              onClick={(e) => this.handleSaveButtonClick(e)}>{i18n.__('Save')}
+            <button
+              styleName='group-control-rightButton'
+              onClick={e => this.handleSaveButtonClick(e)}
+            >
+              {i18n.__('Save')}
             </button>
             {pluginsAlertElement}
           </div>

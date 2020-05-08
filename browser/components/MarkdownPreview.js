@@ -1299,9 +1299,4 @@ MarkdownPreview.propTypes = {
   breaks: PropTypes.bool
 }
 
-export default connect(
-  null,
-  null,
-  null,
-  { forwardRef: true }
-)(MarkdownPreview)
+export default connect(null, null, null, { forwardRef: true })(MarkdownPreview)

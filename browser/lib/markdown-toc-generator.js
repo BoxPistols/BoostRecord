@@ -12,7 +12,7 @@ const hasProp = Object.prototype.hasOwnProperty
 /**
  * From @enyaxu/markdown-it-anchor
  */
-function uniqueSlug (slug, slugs, opts) {
+function uniqueSlug(slug, slugs, opts) {
   let uniq = slug
   let i = opts.uniqueSlugStartIndex
   while (hasProp.call(slugs, uniq)) uniq = `${slug}-${i++}`
@@ -20,13 +20,15 @@ function uniqueSlug (slug, slugs, opts) {
   return uniq
 }
 
-function linkify (token) {
-  token.content = mdlink(token.content, '#' + token.slug)
+function linkify(token) {
+  token.content = mdlink(token.content, `#${decodeURI(token.slug)}`)
   return token
 }
 
 const TOC_MARKER_START = '<!-- toc -->'
 const TOC_MARKER_END = '<!-- tocstop -->'
+
+const tocRegex = new RegExp(`${TOC_MARKER_START}[\\s\\S]*?${TOC_MARKER_END}`)
 
 /**
  * Takes care of proper updating given editor with TOC.
@@ -34,14 +36,8 @@ const TOC_MARKER_END = '<!-- tocstop -->'
  * Otherwise,TOC is updated in place.
  * @param editor CodeMirror editor to be updated with TOC
  */
-export function generateInEditor (editor) {
-  const tocRegex = new RegExp(`${TOC_MARKER_START}[\\s\\S]*?${TOC_MARKER_END}`)
-
-  function tocExistsInEditor () {
-    return tocRegex.test(editor.getValue())
-  }
-
-  function updateExistingToc () {
+export function generateInEditor(editor) {
+  function updateExistingToc() {
     const toc = generate(editor.getValue())
     const search = editor.getSearchCursor(tocRegex)
     while (search.findNext()) {
@@ -49,16 +45,22 @@ export function generateInEditor (editor) {
     }
   }
 
-  function addTocAtCursorPosition () {
-    const toc = generate(editor.getRange(editor.getCursor(), {line: Infinity}))
+  function addTocAtCursorPosition() {
+    const toc = generate(
+      editor.getRange(editor.getCursor(), { line: Infinity })
+    )
     editor.replaceRange(wrapTocWithEol(toc, editor), editor.getCursor())
   }
 
-  if (tocExistsInEditor()) {
+  if (tocExistsInEditor(editor)) {
     updateExistingToc()
   } else {
     addTocAtCursorPosition()
   }
+}
+
+export function tocExistsInEditor(editor) {
+  return tocRegex.test(editor.getValue())
 }
 
 /**
@@ -66,7 +68,7 @@ export function generateInEditor (editor) {
  * @param markdownText MD document
  * @returns generatedTOC String containing generated TOC
  */
-export function generate (markdownText) {
+export function generate(markdownText) {
   const slugs = {}
   const opts = {
     uniqueSlugStartIndex: 1
@@ -86,13 +88,17 @@ export function generate (markdownText) {
   return TOC_MARKER_START + EOL + EOL + md + EOL + EOL + TOC_MARKER_END
 }
 
-function wrapTocWithEol (toc, editor) {
+function wrapTocWithEol(toc, editor) {
   const leftWrap = editor.getCursor().ch === 0 ? '' : EOL
-  const rightWrap = editor.getLine(editor.getCursor().line).length === editor.getCursor().ch ? '' : EOL
+  const rightWrap =
+    editor.getLine(editor.getCursor().line).length === editor.getCursor().ch
+      ? ''
+      : EOL
   return leftWrap + toc + rightWrap
 }
 
 export default {
   generate,
-  generateInEditor
+  generateInEditor,
+  tocExistsInEditor
 }

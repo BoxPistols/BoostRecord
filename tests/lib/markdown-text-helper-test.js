@@ -36,11 +36,16 @@ test(t => {
     ['`MY_TITLE`', 'MY_TITLE'],
     ['MY_TITLE', 'MY_TITLE'],
     // I have no idea for it...
-    ['```test', '`test']
+    ['```test', '`test'],
+    ['# C# Features', 'C# Features']
   ]
 
   testCases.forEach(testCase => {
     const [input, expected] = testCase
-    t.is(markdown.strip(input), expected, `Test for strip() input: ${input} expected: ${expected}`)
+    t.is(
+      markdown.strip(input),
+      expected,
+      `Test for strip() input: ${input} expected: ${expected}`
+    )
   })
 })

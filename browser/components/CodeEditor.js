@@ -158,6 +158,10 @@ export default class CodeEditor extends React.Component {
   }
 
   handleEditorActivity() {
+    if (this.props.onCursorActivity) {
+      this.props.onCursorActivity(this.editor)
+    }
+
     if (!this.textEditorInterface.transaction) {
       this.updateTableEditorState()
     }

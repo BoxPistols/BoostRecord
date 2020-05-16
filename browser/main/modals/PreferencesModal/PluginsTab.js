@@ -3,13 +3,14 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
-import store from 'browser/main/store'
+import { store } from 'browser/main/store'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
-
+import { sync as commandExists } from 'command-exists'
 const electron = require('electron')
 const ipc = electron.ipcRenderer
-
+const { remote } = electron
+const { dialog } = remote
 class PluginsTab extends React.Component {
   constructor(props) {
     super(props)
@@ -59,6 +60,35 @@ class PluginsTab extends React.Component {
     ipc.removeListener('APP_SETTING_ERROR', this.handleSettingError)
   }
 
+  checkPluginsRequirements() {
+    this.checkWakatimePluginRequirement()
+  }
+
+  checkWakatimePluginRequirement() {
+    if (!commandExists('wakatime-cli')) {
+      this.setState({
+        wakatimePlugin: {
+          type: i18n.__('Warning'),
+          message: i18n.__('Missing wakatime-cli')
+        }
+      })
+
+      const alertConfig = {
+        type: 'warning',
+        message: i18n.__('Missing Wakatime CLI'),
+        detail: i18n.__(
+          `Please install Wakatime CLI to use Wakatime tracker feature.`
+        ),
+        buttons: [i18n.__('OK')]
+      }
+      dialog.showMessageBox(remote.getCurrentWindow(), alertConfig)
+    } else {
+      this.setState({
+        wakatimePlugin: null
+      })
+    }
+  }
+
   handleSaveButtonClick(e) {
     const newConfig = {
       wakatime: this.state.config.wakatime
@@ -72,6 +102,7 @@ class PluginsTab extends React.Component {
     })
     this.clearMessage()
     this.props.haveToSave()
+    this.checkPluginsRequirements()
   }
 
   handleWakatimeKeyChange(e) {
@@ -105,6 +136,13 @@ class PluginsTab extends React.Component {
       pluginsAlert != null ? (
         <p className={`alert ${pluginsAlert.type}`}>{pluginsAlert.message}</p>
       ) : null
+
+    const wakatimeAlert = this.state.wakatimePlugin
+    const wakatimePluginAlertElement =
+      wakatimeAlert != null ? (
+        <p className={`alert ${wakatimeAlert.type}`}>{wakatimeAlert.message}</p>
+      ) : null
+
     const { config } = this.state
 
     return (
@@ -121,6 +159,7 @@ class PluginsTab extends React.Component {
                 value={config.wakatime.key}
                 type='text'
               />
+              {wakatimePluginAlertElement}
             </div>
           </div>
           <div styleName='group-control'>

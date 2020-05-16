@@ -61,6 +61,7 @@
     "chart.js": "^2.7.2",
     "codemirror": "^5.40.2",
     "codemirror-mode-elixir": "^1.1.1",
+    "command-exists": "^1.2.9",
     "connected-react-router": "^6.4.0",
     "electron-config": "^1.0.0",
     "electron-gh-releases": "^2.0.4",

@@ -11,7 +11,11 @@ function sendWakatimeHeartBeat(
   hasFileChanges,
   isFileChange
 ) {
-  if (new Date().getTime() - lastHeartbeat > 120000 || isFileChange) {
+  if (
+    config.get().wakatime.isActive &&
+    !!config.get().wakatime.key &&
+    (new Date().getTime() - lastHeartbeat > 120000 || isFileChange)
+  ) {
     const notePath = path.join(storagePath, 'notes', noteKey + '.cson')
 
     if (!isWrite && !hasFileChanges && !isFileChange) {

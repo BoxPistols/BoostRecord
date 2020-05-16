@@ -30,27 +30,15 @@ class PluginsTab extends React.Component {
       })
     }
     this.handleSettingError = err => {
-      if (
-        this.state.config.wakatime.key === '' ||
-        this.state.config.wakatime.key === null
-      ) {
-        this.setState({
-          pluginsAlert: {
-            type: 'success',
-            message: i18n.__('Successfully applied!')
-          }
-        })
-      } else {
-        this.setState({
-          pluginsAlert: {
-            type: 'error',
-            message:
-              err.message != null ? err.message : i18n.__('An error occurred!')
-          }
-        })
-      }
+      this.setState({
+        pluginsAlert: {
+          type: 'error',
+          message:
+            err.message != null ? err.message : i18n.__('An error occurred!')
+        }
+      })
     }
-    this.oldWakatimekey = this.state.config.wakatime
+    this.oldWakatimeConfig = this.state.config.wakatime
     ipc.addListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.addListener('APP_SETTING_ERROR', this.handleSettingError)
   }
@@ -65,9 +53,10 @@ class PluginsTab extends React.Component {
   }
 
   checkWakatimePluginRequirement() {
-    if (!commandExists('wakatime-cli')) {
+    const { wakatime } = this.state.config
+    if (wakatime.isActive && !commandExists('wakatime-cli')) {
       this.setState({
-        wakatimePlugin: {
+        wakatimePluginAlert: {
           type: i18n.__('Warning'),
           message: i18n.__('Missing wakatime-cli')
         }
@@ -84,14 +73,17 @@ class PluginsTab extends React.Component {
       dialog.showMessageBox(remote.getCurrentWindow(), alertConfig)
     } else {
       this.setState({
-        wakatimePlugin: null
+        wakatimePluginAlert: null
       })
     }
   }
 
   handleSaveButtonClick(e) {
     const newConfig = {
-      wakatime: this.state.config.wakatime
+      wakatime: {
+        isActive: this.state.config.wakatime.isActive,
+        key: this.state.config.wakatime.key
+      }
     }
 
     ConfigManager.set(newConfig)
@@ -105,13 +97,33 @@ class PluginsTab extends React.Component {
     this.checkPluginsRequirements()
   }
 
-  handleWakatimeKeyChange(e) {
+  handleIsWakatimePluginActiveChange(e) {
     const { config } = this.state
-    config.wakatime = { key: this.refs.key.value }
+    config.wakatime.isActive = !config.wakatime.isActive
     this.setState({
       config
     })
-    if (_.isEqual(this.oldWakatimekey, config.wakatime)) {
+    if (_.isEqual(this.oldWakatimeConfig.isActive, config.wakatime.isActive)) {
+      this.props.haveToSave()
+    } else {
+      this.props.haveToSave({
+        tab: 'Plugins',
+        type: 'warning',
+        message: i18n.__('Unsaved Changes!')
+      })
+    }
+  }
+
+  handleWakatimeKeyChange(e) {
+    const { config } = this.state
+    config.wakatime = {
+      isActive: true,
+      key: this.refs.wakatimeKey.value
+    }
+    this.setState({
+      config
+    })
+    if (_.isEqual(this.oldWakatimeConfig.key, config.wakatime.key)) {
       this.props.haveToSave()
     } else {
       this.props.haveToSave({
@@ -137,7 +149,7 @@ class PluginsTab extends React.Component {
         <p className={`alert ${pluginsAlert.type}`}>{pluginsAlert.message}</p>
       ) : null
 
-    const wakatimeAlert = this.state.wakatimePlugin
+    const wakatimeAlert = this.state.wakatimePluginAlert
     const wakatimePluginAlertElement =
       wakatimeAlert != null ? (
         <p className={`alert ${wakatimeAlert.type}`}>{wakatimeAlert.message}</p>
@@ -150,12 +162,25 @@ class PluginsTab extends React.Component {
         <div styleName='group'>
           <div styleName='group-header'>{i18n.__('Plugins')}</div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Wakatime key')}</div>
+            <div styleName='group-section-label'>
+              <div styleName='group-checkBoxSection'>
+                <label>
+                  <input
+                    onChange={e => this.handleIsWakatimePluginActiveChange(e)}
+                    checked={config.wakatime.isActive}
+                    ref='wakatimeIsActive'
+                    type='checkbox'
+                  />
+                  &nbsp;
+                  {i18n.__('Wakatime key')}
+                </label>
+              </div>
+            </div>
             <div styleName='group-section-control'>
               <input
                 styleName='group-section-control-input'
                 onChange={e => this.handleWakatimeKeyChange(e)}
-                ref='key'
+                ref='wakatimeKey'
                 value={config.wakatime.key}
                 type='text'
               />

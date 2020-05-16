@@ -43,8 +43,9 @@ class MarkdownSplitEditor extends React.Component {
       if (line === 0) {
         top = 0
       } else {
+        const blockElements = previewDoc.querySelectorAll('body [data-line]')
         const blocks = []
-        for (const block of previewDoc.querySelectorAll('body [data-line]')) {
+        for (const block of blockElements) {
           const l = parseInt(block.getAttribute('data-line'))
 
           blocks.push({
@@ -57,25 +58,27 @@ class MarkdownSplitEditor extends React.Component {
           }
         }
 
-        const i = blocks.length - 1
-        if (i > 0) {
-          const ratio =
-            (blocks[i].top - blocks[i - 1].top) /
-            (blocks[i].line - blocks[i - 1].line)
+        if (blocks.length === 1) {
+          const block = blockElements[blockElements.length - 1]
 
-          const delta = Math.floor(_.get(previewDoc, 'body.clientHeight') / 3)
-
-          top =
-            blocks[i - 1].top +
-            Math.floor((line - blocks[i - 1].line) * ratio) -
-            delta
-        } else {
-          const srcTop = _.get(editor.doc, 'scrollTop')
-          const srcHeight = _.get(editor.doc, 'height')
-          const targetHeight = _.get(previewDoc, 'body.scrollHeight')
-
-          top = (targetHeight * srcTop) / srcHeight
+          blocks.push({
+            line: editor.doc.size,
+            top: block.offsetTop + block.offsetHeight
+          })
         }
+
+        const i = blocks.length - 1
+
+        const ratio =
+          (blocks[i].top - blocks[i - 1].top) /
+          (blocks[i].line - blocks[i - 1].line)
+
+        const delta = Math.floor(_.get(previewDoc, 'body.clientHeight') / 3)
+
+        top =
+          blocks[i - 1].top +
+          Math.floor((line - blocks[i - 1].line) * ratio) -
+          delta
       }
 
       this.scrollTo(previewTop, top, y =>
@@ -118,8 +121,9 @@ class MarkdownSplitEditor extends React.Component {
       } else {
         const line = from + Math.floor((to - from) / 3)
 
+        const blockElements = previewDoc.querySelectorAll('body [data-line]')
         const blocks = []
-        for (const block of previewDoc.querySelectorAll('body [data-line]')) {
+        for (const block of blockElements) {
           const l = parseInt(block.getAttribute('data-line'))
 
           blocks.push({
@@ -130,6 +134,15 @@ class MarkdownSplitEditor extends React.Component {
           if (l > line) {
             break
           }
+        }
+
+        if (blocks.length === 1) {
+          const block = blockElements[blockElements.length - 1]
+
+          blocks.push({
+            line: codeDoc.size,
+            top: block.offsetTop + block.offsetHeight
+          })
         }
 
         const i = blocks.length - 1
@@ -166,8 +179,9 @@ class MarkdownSplitEditor extends React.Component {
         const delta = Math.floor(_.get(previewDoc, 'body.clientHeight') / 3)
         const previewTop = srcTop + delta
 
+        const blockElements = previewDoc.querySelectorAll('body [data-line]')
         const blocks = []
-        for (const block of previewDoc.querySelectorAll('body [data-line]')) {
+        for (const block of blockElements) {
           const top = block.offsetTop
 
           blocks.push({
@@ -180,23 +194,24 @@ class MarkdownSplitEditor extends React.Component {
           }
         }
 
-        const i = blocks.length - 1
-        if (i > 0) {
-          const from = codeDoc.cm.heightAtLine(blocks[i - 1].line, 'local')
-          const to = codeDoc.cm.heightAtLine(blocks[i].line, 'local')
+        if (blocks.length === 1) {
+          const block = blockElements[blockElements.length - 1]
 
-          const ratio =
-            (previewTop - blocks[i - 1].top) /
-            (blocks[i].top - blocks[i - 1].top)
-
-          top = from + Math.floor((to - from) * ratio) - delta
-        } else {
-          const srcTop = _.get(previewDoc, 'body.scrollTop')
-          const srcHeight = _.get(previewDoc, 'body.scrollHeight')
-          const targetHeight = _.get(codeDoc, 'height')
-
-          top = (targetHeight * srcTop) / srcHeight
+          blocks.push({
+            line: codeDoc.size,
+            top: block.offsetTop + block.offsetHeight
+          })
         }
+
+        const i = blocks.length - 1
+
+        const from = codeDoc.cm.heightAtLine(blocks[i - 1].line, 'local')
+        const to = codeDoc.cm.heightAtLine(blocks[i].line, 'local')
+
+        const ratio =
+          (previewTop - blocks[i - 1].top) / (blocks[i].top - blocks[i - 1].top)
+
+        top = from + Math.floor((to - from) * ratio) - delta
       }
 
       this.scrollTo(editorTop, top, y => codeDoc.cm.scrollTo(0, y))

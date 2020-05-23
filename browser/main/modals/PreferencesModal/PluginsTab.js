@@ -48,10 +48,6 @@ class PluginsTab extends React.Component {
     ipc.removeListener('APP_SETTING_ERROR', this.handleSettingError)
   }
 
-  checkPluginsRequirements() {
-    this.checkWakatimePluginRequirement()
-  }
-
   checkWakatimePluginRequirement() {
     const { wakatime } = this.state.config
     if (wakatime.isActive && !commandExists('wakatime-cli')) {
@@ -94,7 +90,7 @@ class PluginsTab extends React.Component {
     })
     this.clearMessage()
     this.props.haveToSave()
-    this.checkPluginsRequirements()
+    this.checkWakatimePluginRequirement()
   }
 
   handleIsWakatimePluginActiveChange(e) {

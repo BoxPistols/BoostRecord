@@ -7,9 +7,7 @@ function sendWakatimeHeartBeat(
   storagePath,
   noteKey,
   storageName,
-  isWrite,
-  hasFileChanges,
-  isFileChange
+  { isWrite, hasFileChanges, isFileChange }
 ) {
   if (
     config.get().wakatime.isActive &&

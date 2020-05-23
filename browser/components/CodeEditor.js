@@ -120,14 +120,11 @@ export default class CodeEditor extends React.Component {
     const { storageKey, noteKey } = this.props
     const storage = findStorage(storageKey)
     if (storage)
-      sendWakatimeHeartBeat(
-        storage.path,
-        noteKey,
-        storage.name,
-        false,
-        false,
-        true
-      )
+      sendWakatimeHeartBeat(storage.path, noteKey, storage.name, {
+        isWrite: false,
+        hasFileChanges: false,
+        isFileChange: true
+      })
   }
 
   handleSearch(msg) {
@@ -813,25 +810,17 @@ export default class CodeEditor extends React.Component {
     const storage = findStorage(storageKey)
     if (this.props.onChange) {
       this.props.onChange(editor)
-      if (storage)
-        sendWakatimeHeartBeat(
-          storage.path,
-          noteKey,
-          storage.name,
-          true,
-          true,
-          false
-        )
-    } else {
-      if (storage)
-        sendWakatimeHeartBeat(
-          storage.path,
-          noteKey,
-          storage.name,
-          false,
-          false,
-          false
-        )
+    }
+
+    const isWrite = !!this.props.onChange
+    const hasFileChanges = isWrite
+
+    if (storage) {
+      sendWakatimeHeartBeat(storage.path, noteKey, storage.name, {
+        isWrite,
+        hasFileChanges,
+        isFileChange: false
+      })
     }
   }
 
@@ -965,14 +954,11 @@ export default class CodeEditor extends React.Component {
     const { storageKey, noteKey } = this.props
     const storage = findStorage(storageKey)
     if (storage)
-      sendWakatimeHeartBeat(
-        storage.path,
-        noteKey,
-        storage.name,
-        false,
-        false,
-        true
-      )
+      sendWakatimeHeartBeat(storage.path, noteKey, storage.name, {
+        isWrite: false,
+        hasFileChanges: false,
+        isFileChange: true
+      })
   }
 
   setValue(value) {

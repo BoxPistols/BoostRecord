@@ -50,11 +50,11 @@ class PluginsTab extends React.Component {
 
   checkWakatimePluginRequirement() {
     const { wakatime } = this.state.config
-    if (wakatime.isActive && !commandExists('wakatime-cli')) {
+    if (wakatime.isActive && !commandExists('wakatime')) {
       this.setState({
         wakatimePluginAlert: {
           type: i18n.__('Warning'),
-          message: i18n.__('Missing wakatime-cli')
+          message: i18n.__('Missing wakatime cli')
         }
       })
 

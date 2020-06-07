@@ -157,25 +157,26 @@ class PluginsTab extends React.Component {
       <div styleName='root'>
         <div styleName='group'>
           <div styleName='group-header'>{i18n.__('Plugins')}</div>
+          <div styleName='group-header2'>{i18n.__('Wakatime')}</div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input
+                onChange={e => this.handleIsWakatimePluginActiveChange(e)}
+                checked={config.wakatime.isActive}
+                ref='wakatimeIsActive'
+                type='checkbox'
+              />
+              &nbsp;
+              {i18n.__('Enable Wakatime')}
+            </label>
+          </div>
           <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              <div styleName='group-checkBoxSection'>
-                <label>
-                  <input
-                    onChange={e => this.handleIsWakatimePluginActiveChange(e)}
-                    checked={config.wakatime.isActive}
-                    ref='wakatimeIsActive'
-                    type='checkbox'
-                  />
-                  &nbsp;
-                  {i18n.__('Wakatime key')}
-                </label>
-              </div>
-            </div>
+            <div styleName='group-section-label'>{i18n.__('Wakatime key')}</div>
             <div styleName='group-section-control'>
               <input
                 styleName='group-section-control-input'
                 onChange={e => this.handleWakatimeKeyChange(e)}
+                disabled={!config.wakatime.isActive}
                 ref='wakatimeKey'
                 value={config.wakatime.key}
                 type='text'

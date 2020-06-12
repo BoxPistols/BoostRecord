@@ -7,6 +7,7 @@ import fs from 'fs'
 import exportNote from './exportNote'
 import formatMarkdown from './formatMarkdown'
 import formatHTML from './formatHTML'
+import getFilename from './getFilename'
 
 /**
  * @param {String} storageKey
@@ -83,11 +84,15 @@ function exportStorage(storageKey, fileType, exportDir, config) {
         } catch (e) {}
       })
 
+      const deduplicator = {}
+
       return Promise.all(
         notes.map(note => {
-          const targetPath = path.join(
-            folderNamesMapping[note.folder],
-            `${filenamify(note.title, { replacement: '_' })}.${fileType}`
+          const targetPath = getFilename(
+            note,
+            fileType,
+            exportDir,
+            deduplicator
           )
 
           return exportNote(storage.key, note, targetPath, contentFormatter)

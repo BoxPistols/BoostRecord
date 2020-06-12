@@ -1,6 +1,5 @@
 import exportNoteAs from './exportNoteAs'
-import filenamify from 'filenamify'
-import path from 'path'
+import getFilename from './getFilename'
 
 /**
  * @param {Object} data
@@ -15,12 +14,11 @@ function exportTag(data, tag, fileType, exportDir, config) {
     .map(note => note)
     .filter(note => note.tags.indexOf(tag) !== -1)
 
+  const deduplicator = {}
+
   return Promise.all(
     notes.map(note => {
-      const filename = path.join(
-        exportDir,
-        `${filenamify(note.title, { replacement: '_' })}.${fileType}`
-      )
+      const filename = getFilename(note, fileType, exportDir, deduplicator)
 
       return exportNoteAs(note, filename, fileType, config)
     })

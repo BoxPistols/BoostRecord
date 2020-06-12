@@ -1,8 +1,7 @@
 import { findStorage } from 'browser/lib/findStorage'
 import resolveStorageData from './resolveStorageData'
 import resolveStorageNotes from './resolveStorageNotes'
-import filenamify from 'filenamify'
-import path from 'path'
+import getFilename from './getFilename'
 import exportNote from './exportNote'
 import getContentFormatter from './getContentFormatter'
 
@@ -32,6 +31,8 @@ function exportFolder(storageKey, folderKey, fileType, exportDir, config) {
     return Promise.reject(e)
   }
 
+  const deduplicator = {}
+
   return resolveStorageData(targetStorage)
     .then(storage => {
       return resolveStorageNotes(storage).then(notes => ({
@@ -49,9 +50,11 @@ function exportFolder(storageKey, folderKey, fileType, exportDir, config) {
 
       return Promise.all(
         notes.map(note => {
-          const targetPath = path.join(
+          const targetPath = getFilename(
+            note,
+            fileType,
             exportDir,
-            `${filenamify(note.title, { replacement: '_' })}.${fileType}`
+            deduplicator
           )
 
           return exportNote(storage.key, note, targetPath, contentFormatter)

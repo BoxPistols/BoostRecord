@@ -22,6 +22,7 @@ const dataApi = {
   updateSnippet: require('./updateSnippet'),
   fetchSnippet: require('./fetchSnippet'),
   exportTag: require('./exportTag'),
+  getFilename: require('./getFilename'),
 
   _migrateFromV6Storage: require('./migrateFromV6Storage'),
   _resolveStorageData: require('./resolveStorageData'),

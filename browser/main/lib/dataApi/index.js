@@ -21,6 +21,7 @@ const dataApi = {
   deleteSnippet: require('./deleteSnippet'),
   updateSnippet: require('./updateSnippet'),
   fetchSnippet: require('./fetchSnippet'),
+  exportTag: require('./exportTag'),
 
   _migrateFromV6Storage: require('./migrateFromV6Storage'),
   _resolveStorageData: require('./resolveStorageData'),

@@ -5,9 +5,12 @@ import { remote } from 'electron'
 import consts from 'browser/lib/consts'
 import Markdown from 'browser/lib/markdown'
 import attachmentManagement from './attachmentManagement'
+import { version as codemirrorVersion } from 'codemirror/package.json'
 
 const { app } = remote
-const appPath = fileUrl(process.env.NODE_ENV === 'production' ? app.getAppPath() : path.resolve())
+const appPath = fileUrl(
+  process.env.NODE_ENV === 'production' ? app.getAppPath() : path.resolve()
+)
 
 let markdownStyle = ''
 try {
@@ -16,11 +19,14 @@ try {
 
 export const CSS_FILES = [
   `${appPath}/node_modules/katex/dist/katex.min.css`,
-  `${appPath}/node_modules/codemirror/lib/codemirror.css`
+  `${appPath}/node_modules/codemirror/lib/codemirror.css`,
+  `${appPath}/node_modules/react-image-carousel/lib/css/main.min.css`
 ]
 
+const macos = global.process.platform === 'darwin'
+
 const defaultFontFamily = ['helvetica', 'arial', 'sans-serif']
-if (global.process.platform !== 'darwin') {
+if (!macos) {
   defaultFontFamily.unshift('Microsoft YaHei')
   defaultFontFamily.unshift('meiryo')
 }
@@ -34,7 +40,7 @@ const defaultCodeBlockFontFamily = [
   'monospace'
 ]
 
-function unprefix (file) {
+function unprefix(file) {
   if (global.process.platform === 'win32') {
     return file.replace('file:///', '')
   } else {
@@ -63,7 +69,7 @@ function unprefix (file) {
  * }
  * ```
  */
-export default function formatHTML (props) {
+export default function formatHTML(props) {
   const {
     fontFamily,
     fontSize,
@@ -96,14 +102,16 @@ export default function formatHTML (props) {
 
   const files = [getCodeThemeLink(codeBlockTheme), ...CSS_FILES]
 
-  return function (note, targetPath, exportTasks) {
-    let styles = files.map(file => `<link rel="stylesheet" href="css/${path.basename(file)}">`).join('\n')
+  return function(note, targetPath, exportTasks) {
+    const styles = files
+      .map(file => `<link rel="stylesheet" href="css/${path.basename(file)}">`)
+      .join('\n')
 
     let inlineScripts = ''
     let scripts = ''
 
     let decodeEntities = false
-    function addDecodeEntities () {
+    function addDecodeEntities() {
       if (decodeEntities) {
         return
       }
@@ -130,7 +138,7 @@ function decodeEntities (text) {
     }
 
     let lodash = false
-    function addLodash () {
+    function addLodash() {
       if (lodash) {
         return
       }
@@ -146,7 +154,7 @@ function decodeEntities (text) {
     }
 
     let raphael = false
-    function addRaphael () {
+    function addRaphael() {
       if (raphael) {
         return
       }
@@ -162,7 +170,7 @@ function decodeEntities (text) {
     }
 
     let yaml = false
-    function addYAML () {
+    function addYAML() {
       if (yaml) {
         return
       }
@@ -178,7 +186,7 @@ function decodeEntities (text) {
     }
 
     let chart = false
-    function addChart () {
+    function addChart() {
       if (chart) {
         return
       }
@@ -195,7 +203,7 @@ function decodeEntities (text) {
       scripts += `<script src="js/Chart.min.js"></script>`
 
       inlineScripts += `
-function displayCharts () {
+function displayCharts() {
   _.forEach(
     document.querySelectorAll('.chart'),
     el => {
@@ -227,7 +235,7 @@ document.addEventListener('DOMContentLoaded', displayCharts);
     }
 
     let codemirror = false
-    function addCodeMirror () {
+    function addCodeMirror() {
       if (codemirror) {
         return
       }
@@ -237,19 +245,28 @@ document.addEventListener('DOMContentLoaded', displayCharts);
       addDecodeEntities()
       addLodash()
 
-      exportTasks.push({
-        src: unprefix(`${appPath}/node_modules/codemirror/lib/codemirror.js`),
-        dst: 'js/codemirror'
-      }, {
-        src: unprefix(`${appPath}/node_modules/codemirror/mode/meta.js`),
-        dst: 'js/codemirror/mode'
-      }, {
-        src: unprefix(`${appPath}/node_modules/codemirror/addon/mode/loadmode.js`),
-        dst: 'js/codemirror/addon/mode'
-      }, {
-        src: unprefix(`${appPath}/node_modules/codemirror/addon/runmode/runmode.js`),
-        dst: 'js/codemirror/addon/runmode'
-      })
+      exportTasks.push(
+        {
+          src: unprefix(`${appPath}/node_modules/codemirror/lib/codemirror.js`),
+          dst: 'js/codemirror'
+        },
+        {
+          src: unprefix(`${appPath}/node_modules/codemirror/mode/meta.js`),
+          dst: 'js/codemirror/mode'
+        },
+        {
+          src: unprefix(
+            `${appPath}/node_modules/codemirror/addon/mode/loadmode.js`
+          ),
+          dst: 'js/codemirror/addon/mode'
+        },
+        {
+          src: unprefix(
+            `${appPath}/node_modules/codemirror/addon/runmode/runmode.js`
+          ),
+          dst: 'js/codemirror/addon/runmode'
+        }
+      )
 
       scripts += `
 <script src="js/codemirror/codemirror.js"></script>
@@ -265,18 +282,18 @@ document.addEventListener('DOMContentLoaded', displayCharts);
       }
 
       inlineScripts += `
-CodeMirror.modeURL = 'js/codemirror/mode/%N/%N.js';
+CodeMirror.modeURL = 'https://cdn.jsdelivr.net/npm/codemirror@${codemirrorVersion}/mode/%N/%N.js';
 
-function displayCodeBlocks () {
+function displayCodeBlocks() {
   _.forEach(
     document.querySelectorAll('.code code'),
     el => {
+      el.parentNode.className += ' ${className}'
       let syntax = CodeMirror.findModeByName(el.className)
       if (syntax == null) syntax = CodeMirror.findModeByName('Plain Text')
       CodeMirror.requireMode(syntax.mode, () => {
         const content = decodeEntities(el.innerHTML)
         el.innerHTML = ''
-        el.parentNode.className += ' ${className}'
         CodeMirror.runMode(content, syntax.mime, el, {
           tabSize: ${indentSize}
         })
@@ -290,7 +307,7 @@ document.addEventListener('DOMContentLoaded', displayCodeBlocks);
     }
 
     let flowchart = false
-    function addFlowchart () {
+    function addFlowchart() {
       if (flowchart) {
         return
       }
@@ -302,14 +319,16 @@ document.addEventListener('DOMContentLoaded', displayCodeBlocks);
       addRaphael()
 
       exportTasks.push({
-        src: unprefix(`${appPath}/node_modules/flowchart.js/release/flowchart.min.js`),
+        src: unprefix(
+          `${appPath}/node_modules/flowchart.js/release/flowchart.min.js`
+        ),
         dst: 'js'
       })
 
       scripts += `<script src="js/flowchart.min.js"></script>`
 
       inlineScripts += `
-function displayFlowcharts () {
+function displayFlowcharts() {
   _.forEach(
     document.querySelectorAll('.flowchart'),
     el => {
@@ -332,7 +351,7 @@ document.addEventListener('DOMContentLoaded', displayFlowcharts);
     }
 
     let mermaid = false
-    function addMermaid () {
+    function addMermaid() {
       if (mermaid) {
         return
       }
@@ -348,10 +367,8 @@ document.addEventListener('DOMContentLoaded', displayFlowcharts);
 
       scripts += `<script src="js/mermaid.min.js"></script>`
 
-      const isDarkTheme = theme === 'dark' || theme === 'solarized-dark' || theme === 'monokai' || theme === 'dracula'
-
       inlineScripts += `
-function displayMermaids () {
+function displayMermaids() {
   _.forEach(
     document.querySelectorAll('.mermaid'),
     el => {
@@ -368,7 +385,7 @@ document.addEventListener('DOMContentLoaded', displayMermaids);
     }
 
     let sequence = false
-    function addSequence () {
+    function addSequence() {
       if (sequence) {
         return
       }
@@ -380,14 +397,16 @@ document.addEventListener('DOMContentLoaded', displayMermaids);
       addRaphael()
 
       exportTasks.push({
-        src: unprefix(`${appPath}/node_modules/js-sequence-diagrams/fucknpm/sequence-diagram-min.js`),
+        src: unprefix(
+          `${appPath}/node_modules/@rokt33r/js-sequence-diagrams/dist/sequence-diagram-min.js`
+        ),
         dst: 'js'
       })
 
       scripts += `<script src="js/sequence-diagram-min.js"></script>`
 
       inlineScripts += `
-function displaySequences () {
+function displaySequences() {
   _.forEach(
     document.querySelectorAll('.sequence'),
     el => {
@@ -414,7 +433,7 @@ document.addEventListener('DOMContentLoaded', displaySequences);
       typographer: smartQuotes,
       sanitize,
       breaks,
-      onFence (type, mode) {
+      onFence(type, mode) {
         if (type === 'chart') {
           addChart()
 
@@ -425,7 +444,9 @@ document.addEventListener('DOMContentLoaded', displaySequences);
           addCodeMirror()
 
           if (mode && modes[mode] !== true) {
-            const file = unprefix(`${appPath}/node_modules/codemirror/mode/${mode}/${mode}.js`)
+            const file = unprefix(
+              `${appPath}/node_modules/codemirror/mode/${mode}/${mode}.js`
+            )
 
             if (fs.existsSync(file)) {
               exportTasks.push({
@@ -448,7 +469,10 @@ document.addEventListener('DOMContentLoaded', displaySequences);
 
     let body = markdown.render(note.content)
 
-    const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(note.content, props.storagePath)
+    const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
+      note.content,
+      props.storagePath
+    )
 
     files.forEach(file => {
       exportTasks.push({
@@ -457,7 +481,11 @@ document.addEventListener('DOMContentLoaded', displaySequences);
       })
     })
 
-    const destinationFolder = props.export.prefixAttachmentFolder ? `${path.parse(targetPath).name} - ${attachmentManagement.DESTINATION_FOLDER}` : attachmentManagement.DESTINATION_FOLDER
+    const destinationFolder = props.export.prefixAttachmentFolder
+      ? `${path.parse(targetPath).name} - ${
+          attachmentManagement.DESTINATION_FOLDER
+        }`
+      : attachmentManagement.DESTINATION_FOLDER
 
     attachmentsAbsolutePaths.forEach(attachment => {
       exportTasks.push({
@@ -466,7 +494,11 @@ document.addEventListener('DOMContentLoaded', displaySequences);
       })
     })
 
-    body = attachmentManagement.replaceStorageReferences(body, note.key, destinationFolder)
+    body = attachmentManagement.replaceStorageReferences(
+      body,
+      note.key,
+      destinationFolder
+    )
 
     return `
 <html>
@@ -478,7 +510,7 @@ document.addEventListener('DOMContentLoaded', displaySequences);
   ${scripts}
   <script>${inlineScripts}</script>
 </head>
-<body>
+<body data-theme="${theme}">
 ${body}
 </body>
 </html>
@@ -486,7 +518,7 @@ ${body}
   }
 }
 
-export function getStyleParams (props) {
+export function getStyleParams(props) {
   const {
     fontSize,
     lineNumber,
@@ -494,25 +526,27 @@ export function getStyleParams (props) {
     scrollPastEnd,
     theme,
     allowCustomCSS,
-    customCSS
+    customCSS,
+    RTL
   } = props
 
   let { fontFamily, codeBlockFontFamily } = props
 
-  fontFamily = _.isString(fontFamily) && fontFamily.trim().length > 0
-    ? fontFamily
-        .split(',')
-        .map(fontName => fontName.trim())
-        .concat(defaultFontFamily)
-    : defaultFontFamily
+  fontFamily =
+    _.isString(fontFamily) && fontFamily.trim().length > 0
+      ? fontFamily
+          .split(',')
+          .map(fontName => fontName.trim())
+          .concat(defaultFontFamily)
+      : defaultFontFamily
 
-  codeBlockFontFamily = _.isString(codeBlockFontFamily) &&
-    codeBlockFontFamily.trim().length > 0
-    ? codeBlockFontFamily
-        .split(',')
-        .map(fontName => fontName.trim())
-        .concat(defaultCodeBlockFontFamily)
-    : defaultCodeBlockFontFamily
+  codeBlockFontFamily =
+    _.isString(codeBlockFontFamily) && codeBlockFontFamily.trim().length > 0
+      ? codeBlockFontFamily
+          .split(',')
+          .map(fontName => fontName.trim())
+          .concat(defaultCodeBlockFontFamily)
+      : defaultCodeBlockFontFamily
 
   return {
     fontFamily,
@@ -523,21 +557,20 @@ export function getStyleParams (props) {
     scrollPastEnd,
     theme,
     allowCustomCSS,
-    customCSS
+    customCSS,
+    RTL
   }
 }
 
-export function getCodeThemeLink (theme) {
-  if (consts.THEMES.some(_theme => _theme === theme)) {
-    theme = theme !== 'default' ? theme : 'elegant'
-  }
+export function getCodeThemeLink(name) {
+  const theme = consts.THEMES.find(theme => theme.name === name)
 
-  return theme.startsWith('solarized')
-    ? `${appPath}/node_modules/codemirror/theme/solarized.css`
-    : `${appPath}/node_modules/codemirror/theme/${theme}.css`
+  return theme != null
+    ? theme.path
+    : `${appPath}/node_modules/codemirror/theme/elegant.css`
 }
 
-export function buildStyle (
+export function buildStyle(
   fontFamily,
   fontSize,
   codeBlockFontFamily,
@@ -545,7 +578,8 @@ export function buildStyle (
   scrollPastEnd,
   theme,
   allowCustomCSS,
-  customCSS
+  customCSS,
+  RTL
 ) {
   return `
 @font-face {
@@ -581,17 +615,96 @@ ${markdownStyle}
 body {
   font-family: '${fontFamily.join("','")}';
   font-size: ${fontSize}px;
-  ${scrollPastEnd && 'padding-bottom: 90vh;'}
+  ${scrollPastEnd && 'padding-bottom: 90vh;box-sizing: border-box;'}
+  ${RTL && 'direction: rtl;text-align: right;'}
 }
 @media print {
   body {
     padding-bottom: initial;
   }
 }
+
 code {
   font-family: '${codeBlockFontFamily.join("','")}';
   background-color: rgba(0,0,0,0.04);
+  text-align: left;
+  direction: ltr;
 }
+
+p code,
+li code,
+td code
+{
+  padding: 2px;
+  border-width: 1px;
+  border-style: solid;
+  border-radius: 5px;
+}
+[data-theme="default"] p code,
+[data-theme="default"] li code,
+[data-theme="default"] td code
+{
+  background-color: #F4F4F4;
+  border-color: #d9d9d9;
+  color: inherit;
+}
+[data-theme="white"] p code,
+[data-theme="white"] li code,
+[data-theme="white"] td code
+{
+  background-color: #F4F4F4;
+  border-color: #d9d9d9;
+  color: inherit;
+}
+[data-theme="dark"] p code,
+[data-theme="dark"] li code,
+[data-theme="dark"] td code
+{
+  background-color: #444444;
+  border-color: #555;
+  color: #FFFFFF;
+}
+[data-theme="dracula"] p code,
+[data-theme="dracula"] li code,
+[data-theme="dracula"] td code
+{
+  background-color: #444444;
+  border-color: #555;
+  color: #FFFFFF;
+}
+[data-theme="monokai"] p code,
+[data-theme="monokai"] li code,
+[data-theme="monokai"] td code
+{
+  background-color: #444444;
+  border-color: #555;
+  color: #FFFFFF;
+}
+[data-theme="nord"] p code,
+[data-theme="nord"] li code,
+[data-theme="nord"] td code
+{
+  background-color: #444444;
+  border-color: #555;
+  color: #FFFFFF;
+}
+[data-theme="solarized-dark"] p code,
+[data-theme="solarized-dark"] li code,
+[data-theme="solarized-dark"] td code
+{
+  background-color: #444444;
+  border-color: #555;
+  color: #FFFFFF;
+}
+[data-theme="vulcan"] p code,
+[data-theme="vulcan"] li code,
+[data-theme="vulcan"] td code
+{
+  background-color: #444444;
+  border-color: #555;
+  color: #FFFFFF;
+}
+
 .lineNumber {
   ${lineNumber && 'display: block !important;'}
   font-family: '${codeBlockFontFamily.join("','")}';

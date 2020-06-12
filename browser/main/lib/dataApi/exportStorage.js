@@ -24,7 +24,7 @@ import formatHTML from './formatHTML'
  * ```
  */
 
-function exportStorage (storageKey, fileType, exportDir, config) {
+function exportStorage(storageKey, fileType, exportDir, config) {
   let targetStorage
   try {
     targetStorage = findStorage(storageKey)
@@ -36,7 +36,9 @@ function exportStorage (storageKey, fileType, exportDir, config) {
     .then(storage => {
       return resolveStorageNotes(storage).then(notes => ({
         storage,
-        notes: notes.filter(note => !note.isTrashed && note.type === 'MARKDOWN_NOTE')
+        notes: notes.filter(
+          note => !note.isTrashed && note.type === 'MARKDOWN_NOTE'
+        )
       }))
     })
     .then(({ storage, notes }) => {
@@ -68,7 +70,10 @@ function exportStorage (storageKey, fileType, exportDir, config) {
 
       const folderNamesMapping = {}
       storage.folders.forEach(folder => {
-        const folderExportedDir = path.join(exportDir, filenamify(folder.name, {replacement: '_'}))
+        const folderExportedDir = path.join(
+          exportDir,
+          filenamify(folder.name, { replacement: '_' })
+        )
 
         folderNamesMapping[folder.key] = folderExportedDir
 
@@ -78,17 +83,20 @@ function exportStorage (storageKey, fileType, exportDir, config) {
         } catch (e) {}
       })
 
-      return Promise
-        .all(notes.map(note => {
-          const targetPath = path.join(folderNamesMapping[note.folder], `${filenamify(note.title, {replacement: '_'})}.${fileType}`)
+      return Promise.all(
+        notes.map(note => {
+          const targetPath = path.join(
+            folderNamesMapping[note.folder],
+            `${filenamify(note.title, { replacement: '_' })}.${fileType}`
+          )
 
           return exportNote(storage.key, note, targetPath, contentFormatter)
-        }))
-        .then(() => ({
-          storage,
-          fileType,
-          exportDir
-        }))
+        })
+      ).then(() => ({
+        storage,
+        fileType,
+        exportDir
+      }))
     })
 }
 

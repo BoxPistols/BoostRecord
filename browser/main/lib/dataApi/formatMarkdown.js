@@ -12,14 +12,21 @@ const delimiterRegExp = /^\-{3}/
  * }
  * ```
  */
-export default function formatMarkdown (props) {
-  return function (note, targetPath, exportTasks) {
+export default function formatMarkdown(props) {
+  return function(note, targetPath, exportTasks) {
     let result = note.content
 
     if (props.storagePath && note.key) {
-      const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(result, props.storagePath)
+      const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
+        result,
+        props.storagePath
+      )
 
-      const destinationFolder = props.export.prefixAttachmentFolder ? `${path.parse(targetPath).name} - ${attachmentManagement.DESTINATION_FOLDER}` : attachmentManagement.DESTINATION_FOLDER
+      const destinationFolder = props.export.prefixAttachmentFolder
+        ? `${path.parse(targetPath).name} - ${
+            attachmentManagement.DESTINATION_FOLDER
+          }`
+        : attachmentManagement.DESTINATION_FOLDER
 
       attachmentsAbsolutePaths.forEach(attachment => {
         exportTasks.push({
@@ -28,7 +35,11 @@ export default function formatMarkdown (props) {
         })
       })
 
-      result = attachmentManagement.replaceStorageReferences(result, note.key, destinationFolder)
+      result = attachmentManagement.replaceStorageReferences(
+        result,
+        note.key,
+        destinationFolder
+      )
     }
 
     if (props.export.metadata === 'MERGE_HEADER') {
@@ -65,13 +76,12 @@ export default function formatMarkdown (props) {
   }
 }
 
-function getFrontMatter (markdown) {
+function getFrontMatter(markdown) {
   const lines = markdown.split('\n')
 
   if (delimiterRegExp.test(lines[0])) {
     let line = 0
-    while (++line < lines.length && !delimiterRegExp.test(lines[line])) {
-    }
+    while (++line < lines.length && !delimiterRegExp.test(lines[line])) {}
 
     return yaml.load(lines.slice(1, line).join('\n')) || {}
   } else {
@@ -79,13 +89,12 @@ function getFrontMatter (markdown) {
   }
 }
 
-function replaceFrontMatter (markdown, metadata) {
+function replaceFrontMatter(markdown, metadata) {
   const lines = markdown.split('\n')
 
   if (delimiterRegExp.test(lines[0])) {
     let line = 0
-    while (++line < lines.length && !delimiterRegExp.test(lines[line])) {
-    }
+    while (++line < lines.length && !delimiterRegExp.test(lines[line])) {}
 
     return `---\n${yaml.dump(metadata)}---\n${lines.slice(line + 1).join('\n')}`
   } else {

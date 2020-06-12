@@ -4,8 +4,6 @@ import { findStorage } from 'browser/lib/findStorage'
 const fs = require('fs')
 const path = require('path')
 
-const attachmentManagement = require('./attachmentManagement')
-
 /**
  * Export note together with attachments
  *
@@ -18,31 +16,38 @@ const attachmentManagement = require('./attachmentManagement')
  * @param {function} outputFormatter
  * @return {Promise.<*[]>}
  */
-function exportNote (storageKey, note, targetPath, outputFormatter) {
-  const storagePath = path.isAbsolute(storageKey) ? storageKey : findStorage(storageKey).path
+function exportNote(storageKey, note, targetPath, outputFormatter) {
+  const storagePath = path.isAbsolute(storageKey)
+    ? storageKey
+    : findStorage(storageKey).path
+
   const exportTasks = []
 
   if (!storagePath) {
     throw new Error('Storage path is not found')
   }
 
-  const exportedData = outputFormatter ? outputFormatter(note, targetPath, exportTasks) : note.content
+  const exportedData = Promise.resolve(
+    outputFormatter
+      ? outputFormatter(note, targetPath, exportTasks)
+      : note.content
+  )
 
   const tasks = prepareTasks(exportTasks, storagePath, path.dirname(targetPath))
 
-  return Promise
-  .all(tasks.map(task => copyFile(task.src, task.dst)))
-  .then(() => {
-    return saveToFile(exportedData, targetPath)
-  })
-  .catch(error => {
-    rollbackExport(tasks)
-    throw error
-  })
+  return Promise.all(tasks.map(task => copyFile(task.src, task.dst)))
+    .then(() => exportedData)
+    .then(data => {
+      return saveToFile(data, targetPath)
+    })
+    .catch(error => {
+      rollbackExport(tasks)
+      throw error
+    })
 }
 
-function prepareTasks (tasks, storagePath, targetPath) {
-  return tasks.map((task) => {
+function prepareTasks(tasks, storagePath, targetPath) {
+  return tasks.map(task => {
     if (!path.isAbsolute(task.src)) {
       task.src = path.join(storagePath, task.src)
     }
@@ -55,14 +60,12 @@ function prepareTasks (tasks, storagePath, targetPath) {
   })
 }
 
-function saveToFile (data, filename) {
+function saveToFile(data, filename) {
   return new Promise((resolve, reject) => {
-    fs.writeFile(filename, data, error => {
-      if (error) {
-        reject(error)
-      } else {
-        resolve(filename)
-      }
+    fs.writeFile(filename, data, err => {
+      if (err) return reject(err)
+
+      resolve(filename)
     })
   })
 }
@@ -71,9 +74,9 @@ function saveToFile (data, filename) {
  * Remove exported files
  * @param tasks Array of copy task objects. Object consists of two mandatory fields – `src` and `dst`
  */
-function rollbackExport (tasks) {
+function rollbackExport(tasks) {
   const folders = new Set()
-  tasks.forEach((task) => {
+  tasks.forEach(task => {
     let fullpath = task.dst
 
     if (!path.extname(task.dst)) {
@@ -86,7 +89,7 @@ function rollbackExport (tasks) {
     }
   })
 
-  folders.forEach((folder) => {
+  folders.forEach(folder => {
     if (fs.readdirSync(folder).length === 0) {
       fs.rmdirSync(folder)
     }

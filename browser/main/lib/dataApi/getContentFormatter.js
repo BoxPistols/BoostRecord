@@ -8,7 +8,7 @@ import formatPDF from './formatPDF'
  * @param {Object} config
  */
 
-export default function getContentFormatterr(storage, fileType, config) {
+export default function getContentFormatter(storage, fileType, config) {
   if (fileType === 'md') {
     return formatMarkdown({
       storagePath: storage.path,

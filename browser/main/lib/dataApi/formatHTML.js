@@ -6,6 +6,7 @@ import consts from 'browser/lib/consts'
 import Markdown from 'browser/lib/markdown'
 import attachmentManagement from './attachmentManagement'
 import { version as codemirrorVersion } from 'codemirror/package.json'
+import { escapeHtmlCharacters } from 'browser/lib/utils'
 
 const { app } = remote
 const appPath = fileUrl(
@@ -467,7 +468,13 @@ document.addEventListener('DOMContentLoaded', displaySequences);
       }
     })
 
-    let body = markdown.render(note.content)
+    let body = note.content
+
+    if (sanitize === 'NONE') {
+      body = escapeHtmlCharactersInCodeTag(body.split('```'))
+    }
+
+    body = markdown.render(note.content)
 
     const attachmentsAbsolutePaths = attachmentManagement.getAbsolutePathsOfAttachmentsInContent(
       note.content,
@@ -760,4 +767,30 @@ body p {
 
 ${allowCustomCSS ? customCSS : ''}
 `
+}
+
+/**
+ * @description Convert special characters between three ```
+ * @param {string[]} splitWithCodeTag Array of HTML strings separated by three ```
+ * @returns {string} HTML in which special characters between three ``` have been converted
+ */
+export function escapeHtmlCharactersInCodeTag(splitWithCodeTag) {
+  for (let index = 0; index < splitWithCodeTag.length; index++) {
+    const codeTagRequired =
+      splitWithCodeTag[index] !== '```' && index < splitWithCodeTag.length - 1
+    if (codeTagRequired) {
+      splitWithCodeTag.splice(index + 1, 0, '```')
+    }
+  }
+  let inCodeTag = false
+  let result = ''
+  for (let content of splitWithCodeTag) {
+    if (content === '```') {
+      inCodeTag = !inCodeTag
+    } else if (inCodeTag) {
+      content = escapeHtmlCharacters(content)
+    }
+    result += content
+  }
+  return result
 }

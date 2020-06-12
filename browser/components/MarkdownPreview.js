@@ -23,10 +23,10 @@ import formatHTML, {
   CSS_FILES,
   buildStyle,
   getCodeThemeLink,
-  getStyleParams
+  getStyleParams,
+  escapeHtmlCharactersInCodeTag
 } from 'browser/main/lib/dataApi/formatHTML'
 import formatPDF from 'browser/main/lib/dataApi/formatPDF'
-import { escapeHtmlCharacters } from 'browser/lib/utils'
 import yaml from 'js-yaml'
 import i18n from 'browser/lib/i18n'
 import path from 'path'
@@ -247,32 +247,6 @@ class MarkdownPreview extends React.Component {
     }
   }
 
-  /**
-   * @description Convert special characters between three ```
-   * @param {string[]} splitWithCodeTag Array of HTML strings separated by three ```
-   * @returns {string} HTML in which special characters between three ``` have been converted
-   */
-  escapeHtmlCharactersInCodeTag(splitWithCodeTag) {
-    for (let index = 0; index < splitWithCodeTag.length; index++) {
-      const codeTagRequired =
-        splitWithCodeTag[index] !== '```' && index < splitWithCodeTag.length - 1
-      if (codeTagRequired) {
-        splitWithCodeTag.splice(index + 1, 0, '```')
-      }
-    }
-    let inCodeTag = false
-    let result = ''
-    for (let content of splitWithCodeTag) {
-      if (content === '```') {
-        inCodeTag = !inCodeTag
-      } else if (inCodeTag) {
-        content = escapeHtmlCharacters(content)
-      }
-      result += content
-    }
-    return result
-  }
-
   getScrollBarStyle() {
     const { theme } = this.props
 
@@ -485,7 +459,7 @@ class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.body.setAttribute('data-theme', theme)
     if (sanitize === 'NONE') {
       const splitWithCodeTag = value.split('```')
-      value = this.escapeHtmlCharactersInCodeTag(splitWithCodeTag)
+      value = escapeHtmlCharactersInCodeTag(splitWithCodeTag)
     }
     const renderedHTML = this.markdown.render(value)
     attachmentManagement.migrateAttachments(value, storagePath, noteKey)

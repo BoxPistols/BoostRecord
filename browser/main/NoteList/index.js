@@ -720,33 +720,37 @@ class NoteList extends React.Component {
         {
           label: copyNoteLink,
           click: this.copyNoteLink.bind(this, note)
-        },
-        {
-          type: 'separator'
-        },
-        {
-          label: i18n.__('Export Note'),
-          submenu: [
-            {
-              label: i18n.__('Export as Plain Text (.txt)'),
-              click: e => this.handleExportClick(e, note, 'txt')
-            },
-            {
-              label: i18n.__('Export as Markdown (.md)'),
-              click: e => this.handleExportClick(e, note, 'md')
-            },
-            {
-              label: i18n.__('Export as HTML (.html)'),
-              click: e => this.handleExportClick(e, note, 'html')
-            },
-            {
-              label: i18n.__('Export as PDF (.pdf)'),
-              click: e => this.handleExportClick(e, note, 'pdf')
-            }
-          ]
         }
       )
+
       if (note.type === 'MARKDOWN_NOTE') {
+        templates.push(
+          {
+            type: 'separator'
+          },
+          {
+            label: i18n.__('Export Note'),
+            submenu: [
+              {
+                label: i18n.__('Export as Plain Text (.txt)'),
+                click: e => this.handleExportClick(e, note, 'txt')
+              },
+              {
+                label: i18n.__('Export as Markdown (.md)'),
+                click: e => this.handleExportClick(e, note, 'md')
+              },
+              {
+                label: i18n.__('Export as HTML (.html)'),
+                click: e => this.handleExportClick(e, note, 'html')
+              },
+              {
+                label: i18n.__('Export as PDF (.pdf)'),
+                click: e => this.handleExportClick(e, note, 'pdf')
+              }
+            ]
+          }
+        )
+
         if (note.blog && note.blog.blogLink && note.blog.blogId) {
           templates.push(
             {

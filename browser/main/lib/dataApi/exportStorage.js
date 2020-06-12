@@ -45,6 +45,8 @@ function exportStorage(storageKey, fileType, exportDir, config) {
       const contentFormatter = getContentFormatter(storage, fileType, config)
 
       const folderNamesMapping = {}
+      const deduplicators = {}
+
       storage.folders.forEach(folder => {
         const folderExportedDir = path.join(
           exportDir,
@@ -57,17 +59,17 @@ function exportStorage(storageKey, fileType, exportDir, config) {
         try {
           fs.mkdirSync(folderExportedDir)
         } catch (e) {}
-      })
 
-      const deduplicator = {}
+        deduplicators[folder.key] = {}
+      })
 
       return Promise.all(
         notes.map(note => {
           const targetPath = getFilename(
             note,
             fileType,
-            exportDir,
-            deduplicator
+            folderNamesMapping[note.folder],
+            deduplicators[note.folder]
           )
 
           return exportNote(storage.key, note, targetPath, contentFormatter)

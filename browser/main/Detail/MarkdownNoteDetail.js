@@ -460,7 +460,7 @@ class MarkdownNoteDetail extends React.Component {
           storageKey={note.storage}
           noteKey={note.key}
           linesHighlighted={note.linesHighlighted}
-          onChange={this.handleUpdateContent.bind(this)}
+          onChange={this.handleUpdateContent}
           ignorePreviewPointerEvents={ignorePreviewPointerEvents}
           getNote={this.getNote}
           RTL={config.editor.rtlEnabled && this.state.RTL}
@@ -475,7 +475,7 @@ class MarkdownNoteDetail extends React.Component {
           storageKey={note.storage}
           noteKey={note.key}
           linesHighlighted={note.linesHighlighted}
-          onChange={this.handleUpdateContent.bind(this)}
+          onChange={this.handleUpdateContent}
           ignorePreviewPointerEvents={ignorePreviewPointerEvents}
           getNote={this.getNote}
           RTL={config.editor.rtlEnabled && this.state.RTL}

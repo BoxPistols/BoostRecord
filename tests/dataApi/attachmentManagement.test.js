@@ -702,14 +702,15 @@ it('should remove the all ":storage" and noteKey references', function() {
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
-  const actual = systemUnderTest.removeStorageAndNoteReferences(
+  const actual = systemUnderTest.replaceStorageReferences(
     testInput,
-    noteKey
+    noteKey,
+    systemUnderTest.DESTINATION_FOLDER
   )
   expect(actual).toEqual(expectedOutput)
 })
 
-it('should make sure that "removeStorageAndNoteReferences" works with markdown content as well', function() {
+it('should make sure that "replaceStorageReferences" works with markdown content as well', function() {
   const noteKey = 'noteKey'
   const testInput =
     'Test input' +
@@ -736,9 +737,10 @@ it('should make sure that "removeStorageAndNoteReferences" works with markdown c
     systemUnderTest.DESTINATION_FOLDER +
     path.posix.sep +
     'pdf.pdf)'
-  const actual = systemUnderTest.removeStorageAndNoteReferences(
+  const actual = systemUnderTest.replaceStorageReferences(
     testInput,
-    noteKey
+    noteKey,
+    systemUnderTest.DESTINATION_FOLDER
   )
   expect(actual).toEqual(expectedOutput)
 })
@@ -803,7 +805,11 @@ it('should replace the all ":storage" references', function() {
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
-  const actual = systemUnderTest.replaceStorageReferences(testInput, noteKey)
+  const actual = systemUnderTest.replaceStorageReferences(
+    testInput,
+    noteKey,
+    systemUnderTest.DESTINATION_FOLDER
+  )
   expect(actual).toEqual(expectedOutput)
 })
 
@@ -811,30 +817,34 @@ it('should make sure that "replaceStorageReferences" works with markdown content
   const noteKey = 'noteKey'
   const testInput =
     'Test input' +
-    '![' +
+    '![imageName](' +
     systemUnderTest.STORAGE_FOLDER_PLACEHOLDER +
-    path.sep +
+    path.win32.sep +
     noteKey +
-    path.sep +
-    'image.jpg](imageName}) \n' +
-    '[' +
+    path.win32.sep +
+    'image.jpg) \n' +
+    '[pdf](' +
     systemUnderTest.STORAGE_FOLDER_PLACEHOLDER +
-    path.sep +
+    path.posix.sep +
     noteKey +
-    path.sep +
-    'pdf.pdf](pdf})'
+    path.posix.sep +
+    'pdf.pdf)'
 
   const expectedOutput =
     'Test input' +
-    '![' +
+    '![imageName](' +
     systemUnderTest.DESTINATION_FOLDER +
-    path.sep +
-    'image.jpg](imageName}) \n' +
-    '[' +
+    path.posix.sep +
+    'image.jpg) \n' +
+    '[pdf](' +
     systemUnderTest.DESTINATION_FOLDER +
-    path.sep +
-    'pdf.pdf](pdf})'
-  const actual = systemUnderTest.replaceStorageReferences(testInput, noteKey)
+    path.posix.sep +
+    'pdf.pdf)'
+  const actual = systemUnderTest.replaceStorageReferences(
+    testInput,
+    noteKey,
+    systemUnderTest.DESTINATION_FOLDER
+  )
   expect(actual).toEqual(expectedOutput)
 })
 

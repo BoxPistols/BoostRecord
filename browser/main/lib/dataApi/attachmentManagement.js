@@ -706,14 +706,15 @@ function replaceNoteKeyWithNewNoteKey(noteContent, oldNoteKey, newNoteKey) {
 }
 
 /**
- * @description Deletes all :storage and noteKey references from the given input.
- * @param input Input in which the references should be deleted
+ * @description replace all :storage references with given destination folder.
+ * @param input Input in which the references should be replaced
  * @param noteKey Key of the current note
+ * @param destinationFolder Destination folder of the attachements
  * @returns {String} Input without the references
  */
-function removeStorageAndNoteReferences(input, noteKey) {
+function replaceStorageReferences(input, noteKey, destinationFolder) {
   return input.replace(
-    new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '.*?("|\\))', 'g'),
+    new RegExp('/?' + STORAGE_FOLDER_PLACEHOLDER + '[^"\\)<\\s]+', 'g'),
     function(match) {
       return match
         .replace(new RegExp(mdurl.encode(path.win32.sep), 'g'), path.posix.sep)
@@ -735,30 +736,9 @@ function removeStorageAndNoteReferences(input, noteKey) {
               ')?',
             'g'
           ),
-          DESTINATION_FOLDER
+          destinationFolder
         )
     }
-  )
-}
-
-/**
- * @description replace all :storage references with given destination folder.
- * @param input Input in which the references should be replaced
- * @param noteKey Key of the current note
- * @param destinationFolder Destination folder of the attachements
- * @returns {String} Input without the references
- */
-function replaceStorageReferences(input, noteKey, destinationFolder) {
-  return input.replace(
-    new RegExp(
-      STORAGE_FOLDER_PLACEHOLDER +
-        '(' +
-        escapeStringRegexp(path.sep) +
-        noteKey +
-        ')?',
-      'g'
-    ),
-    destinationFolder || DESTINATION_FOLDER
   )
 }
 
@@ -1122,7 +1102,6 @@ module.exports = {
   getAttachmentsInMarkdownContent,
   getAbsolutePathsOfAttachmentsInContent,
   importAttachments,
-  removeStorageAndNoteReferences,
   removeAttachmentsByPaths,
   replaceStorageReferences,
   deleteAttachmentFolder,

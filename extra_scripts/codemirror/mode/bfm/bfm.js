@@ -1,10 +1,20 @@
-(function(mod) {
-  if (typeof exports == "object" && typeof module == "object") // CommonJS
-    mod(require("../codemirror/lib/codemirror"), require("../codemirror/mode/gfm/gfm"), require("../codemirror/mode/yaml-frontmatter/yaml-frontmatter"))
-  else if (typeof define == "function" && define.amd) // AMD
-    define(["../codemirror/lib/codemirror", "../codemirror/mode/gfm/gfm", "../codemirror/mode/yaml-frontmatter/yaml-frontmatter"], mod)
-  else // Plain browser env
-    mod(CodeMirror)
+;(function(mod) {
+  if (typeof exports == 'object' && typeof module == 'object')
+    // CommonJS
+    mod(
+      require('../codemirror/lib/codemirror'),
+      require('../codemirror/mode/gfm/gfm'),
+      require('../codemirror/mode/yaml-frontmatter/yaml-frontmatter')
+    )
+  else if (typeof define == 'function' && define.amd)
+    // AMD
+    define([
+      '../codemirror/lib/codemirror',
+      '../codemirror/mode/gfm/gfm',
+      '../codemirror/mode/yaml-frontmatter/yaml-frontmatter'
+    ], mod)
+  // Plain browser env
+  else mod(CodeMirror)
 })(function(CodeMirror) {
   'use strict'
 
@@ -211,8 +221,8 @@
   CodeMirror.defineMIME('text/x-bfm', 'bfm')
 
   CodeMirror.modeInfo.push({
-    name: "Boost Flavored Markdown",
-    mime: "text/x-bfm",
-    mode: "bfm"
+    name: 'Boost Flavored Markdown',
+    mime: 'text/x-bfm',
+    mode: 'bfm'
   })
 })

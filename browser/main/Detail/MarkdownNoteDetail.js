@@ -448,7 +448,7 @@ class MarkdownNoteDetail extends React.Component {
 
   renderEditor() {
     const { config, ignorePreviewPointerEvents } = this.props
-    const { note } = this.state
+    const { note, isStacking } = this.state
 
     if (this.state.editorType === 'EDITOR_PREVIEW') {
       return (

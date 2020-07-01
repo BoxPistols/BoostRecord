@@ -219,11 +219,19 @@ export default class CodeEditor extends React.Component {
       },
       [translateHotkey(hotkey.insertDate)]: function(cm) {
         const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleDateString())
+        if (self.props.dateFormatISO8601) {
+          cm.replaceSelection(dateNow.toISOString().split('T')[0])
+        } else {
+          cm.replaceSelection(dateNow.toLocaleDateString())
+        }
       },
       [translateHotkey(hotkey.insertDateTime)]: function(cm) {
         const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleString())
+        if (self.props.dateFormatISO8601) {
+          cm.replaceSelection(dateNow.toISOString())
+        } else {
+          cm.replaceSelection(dateNow.toLocaleString())
+        }
       },
       Enter: 'boostNewLineAndIndentContinueMarkdownList',
       'Ctrl-C': cm => {

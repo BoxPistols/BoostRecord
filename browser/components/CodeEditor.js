@@ -21,6 +21,8 @@ const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')
 import { createTurndownService } from '../lib/turndown'
 import { languageMaps } from '../lib/CMLanguageList'
 import snippetManager from '../lib/SnippetManager'
+import { findStorage } from 'browser/lib/findStorage'
+import { sendWakatimeHeartBeat } from 'browser/lib/wakatime-plugin'
 import {
   generateInEditor,
   tocExistsInEditor
@@ -113,6 +115,16 @@ export default class CodeEditor extends React.Component {
     this.editorActivityHandler = () => this.handleEditorActivity()
 
     this.turndownService = createTurndownService()
+
+    // wakatime
+    const { storageKey, noteKey } = this.props
+    const storage = findStorage(storageKey)
+    if (storage)
+      sendWakatimeHeartBeat(storage.path, noteKey, storage.name, {
+        isWrite: false,
+        hasFileChanges: false,
+        isFileChange: true
+      })
   }
 
   handleSearch(msg) {
@@ -801,8 +813,22 @@ export default class CodeEditor extends React.Component {
     this.updateHighlight(editor, changeObject)
 
     this.value = editor.getValue()
+
+    const { storageKey, noteKey } = this.props
+    const storage = findStorage(storageKey)
     if (this.props.onChange) {
       this.props.onChange(editor)
+    }
+
+    const isWrite = !!this.props.onChange
+    const hasFileChanges = isWrite
+
+    if (storage) {
+      sendWakatimeHeartBeat(storage.path, noteKey, storage.name, {
+        isWrite,
+        hasFileChanges,
+        isFileChange: false
+      })
     }
   }
 
@@ -931,6 +957,16 @@ export default class CodeEditor extends React.Component {
     this.restartHighlighting()
     this.editor.on('change', this.changeHandler)
     this.editor.refresh()
+
+    // wakatime
+    const { storageKey, noteKey } = this.props
+    const storage = findStorage(storageKey)
+    if (storage)
+      sendWakatimeHeartBeat(storage.path, noteKey, storage.name, {
+        isWrite: false,
+        hasFileChanges: false,
+        isFileChange: true
+      })
   }
 
   setValue(value) {

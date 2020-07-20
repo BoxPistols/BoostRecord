@@ -1145,17 +1145,18 @@ class MarkdownPreview extends React.Component {
 
   /**
    * @public
-   * @param {Number} targetRow
+   * @param {Number} targetLine
    */
-  scrollToRow(targetRow) {
+  scrollToLine(targetLine) {
     const blocks = this.getWindow().document.querySelectorAll(
-      'body>[data-line]'
+      'body [data-line]'
     )
 
     for (let index = 0; index < blocks.length; index++) {
       let block = blocks[index]
-      const row = parseInt(block.getAttribute('data-line'))
-      if (row > targetRow || index === blocks.length - 1) {
+      const line = parseInt(block.getAttribute('data-line'))
+
+      if (line > targetLine || index === blocks.length - 1) {
         block = blocks[index - 1]
         block != null && this.scrollTo(0, block.offsetTop)
         break

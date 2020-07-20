@@ -132,6 +132,7 @@ class UiTab extends React.Component {
         customMarkdownLintConfig: this.customMarkdownLintConfigCM
           .getCodeMirror()
           .getValue(),
+        dateFormatISO8601: this.refs.dateFormatISO8601.checked,
         prettierConfig: this.prettierConfigCM.getCodeMirror().getValue(),
         deleteUnusedAttachments: this.refs.deleteUnusedAttachments.checked,
         rtlEnabled: this.refs.rtlEnabled.checked
@@ -872,6 +873,19 @@ class UiTab extends React.Component {
               />
               &nbsp;
               {i18n.__('Enable right to left direction(RTL)')}
+            </label>
+          </div>
+
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input
+                onChange={e => this.handleUIChange(e)}
+                checked={this.state.config.editor.dateFormatISO8601}
+                ref='dateFormatISO8601'
+                type='checkbox'
+              />
+              &nbsp;
+              {i18n.__('Date shortcut use iso 8601 format')}
             </label>
           </div>
 

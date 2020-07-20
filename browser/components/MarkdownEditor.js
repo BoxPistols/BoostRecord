@@ -381,6 +381,7 @@ class MarkdownEditor extends React.Component {
           switchPreview={config.editor.switchPreview}
           enableMarkdownLint={config.editor.enableMarkdownLint}
           customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
+          dateFormatISO8601={config.editor.dateFormatISO8601}
           prettierConfig={config.editor.prettierConfig}
           deleteUnusedAttachments={config.editor.deleteUnusedAttachments}
           RTL={RTL}

@@ -280,6 +280,7 @@ class MarkdownSplitEditor extends React.Component {
           switchPreview={config.editor.switchPreview}
           enableMarkdownLint={config.editor.enableMarkdownLint}
           customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
+          dateFormatISO8601={config.editor.dateFormatISO8601}
           deleteUnusedAttachments={config.editor.deleteUnusedAttachments}
           RTL={RTL}
         />

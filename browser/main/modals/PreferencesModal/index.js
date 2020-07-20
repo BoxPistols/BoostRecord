@@ -8,6 +8,7 @@ import Crowdfunding from './Crowdfunding'
 import StoragesTab from './StoragesTab'
 import ExportTab from './ExportTab'
 import SnippetTab from './SnippetTab'
+import PluginsTab from './PluginsTab'
 import Blog from './Blog'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import CSSModules from 'browser/lib/CSSModules'
@@ -93,6 +94,14 @@ class Preferences extends React.Component {
         )
       case 'SNIPPET':
         return <SnippetTab dispatch={dispatch} config={config} data={data} />
+      case 'PLUGINS':
+        return (
+          <PluginsTab
+            dispatch={dispatch}
+            config={config}
+            haveToSave={alert => this.setState({ PluginsAlert: alert })}
+          />
+        )
       case 'STORAGES':
       default:
         return (
@@ -138,7 +147,8 @@ class Preferences extends React.Component {
         label: i18n.__('Export'),
         Export: this.state.ExportAlert
       },
-      { target: 'SNIPPET', label: i18n.__('Snippets') }
+      { target: 'SNIPPET', label: i18n.__('Snippets') },
+      { target: 'PLUGINS', label: i18n.__('Plugins') }
     ]
 
     const navButtons = tabs.map(tab => {

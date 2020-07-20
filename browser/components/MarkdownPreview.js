@@ -747,17 +747,18 @@ class MarkdownPreview extends React.Component {
 
   /**
    * @public
-   * @param {Number} targetRow
+   * @param {Number} targetLine
    */
-  scrollToRow(targetRow) {
+  scrollToLine(targetLine) {
     const blocks = this.getWindow().document.querySelectorAll(
-      'body>[data-line]'
+      'body [data-line]'
     )
 
     for (let index = 0; index < blocks.length; index++) {
       let block = blocks[index]
-      const row = parseInt(block.getAttribute('data-line'))
-      if (row > targetRow || index === blocks.length - 1) {
+      const line = parseInt(block.getAttribute('data-line'))
+
+      if (line > targetLine || index === blocks.length - 1) {
         block = blocks[index - 1]
         block != null && this.scrollTo(0, block.offsetTop)
         break
@@ -794,7 +795,10 @@ class MarkdownPreview extends React.Component {
     e.preventDefault()
     e.stopPropagation()
 
-    const rawHref = e.target.getAttribute('href')
+    const el = e.target.closest('a[href]')
+    if (!el) return
+
+    const rawHref = el.getAttribute('href')
     const { dispatch } = this.props
     if (!rawHref) return // not checked href because parser will create file://... string for [empty link]()
 

@@ -21,6 +21,8 @@ const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')
 import { createTurndownService } from '../lib/turndown'
 import { languageMaps } from '../lib/CMLanguageList'
 import snippetManager from '../lib/SnippetManager'
+import { findStorage } from 'browser/lib/findStorage'
+import { sendWakatimeHeartBeat } from 'browser/lib/wakatime-plugin'
 import {
   generateInEditor,
   tocExistsInEditor
@@ -113,6 +115,16 @@ export default class CodeEditor extends React.Component {
     this.editorActivityHandler = () => this.handleEditorActivity()
 
     this.turndownService = createTurndownService()
+
+    // wakatime
+    const { storageKey, noteKey } = this.props
+    const storage = findStorage(storageKey)
+    if (storage)
+      sendWakatimeHeartBeat(storage.path, noteKey, storage.name, {
+        isWrite: false,
+        hasFileChanges: false,
+        isFileChange: true
+      })
   }
 
   handleSearch(msg) {
@@ -158,6 +170,10 @@ export default class CodeEditor extends React.Component {
   }
 
   handleEditorActivity() {
+    if (this.props.onCursorActivity) {
+      this.props.onCursorActivity(this.editor)
+    }
+
     if (!this.textEditorInterface.transaction) {
       this.updateTableEditorState()
     }
@@ -219,11 +235,19 @@ export default class CodeEditor extends React.Component {
       },
       [translateHotkey(hotkey.insertDate)]: function(cm) {
         const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleDateString())
+        if (self.props.dateFormatISO8601) {
+          cm.replaceSelection(dateNow.toISOString().split('T')[0])
+        } else {
+          cm.replaceSelection(dateNow.toLocaleDateString())
+        }
       },
       [translateHotkey(hotkey.insertDateTime)]: function(cm) {
         const dateNow = new Date()
-        cm.replaceSelection(dateNow.toLocaleString())
+        if (self.props.dateFormatISO8601) {
+          cm.replaceSelection(dateNow.toISOString())
+        } else {
+          cm.replaceSelection(dateNow.toLocaleString())
+        }
       },
       Enter: 'boostNewLineAndIndentContinueMarkdownList',
       'Ctrl-C': cm => {
@@ -321,10 +345,18 @@ export default class CodeEditor extends React.Component {
         'CodeMirror-lint-markers'
       ],
       autoCloseBrackets: {
-        pairs: this.props.matchingPairs,
-        triples: this.props.matchingTriples,
-        explode: this.props.explodingPairs,
-        override: true
+        codeBlock: {
+          pairs: this.props.codeBlockMatchingPairs,
+          closeBefore: this.props.codeBlockMatchingCloseBefore,
+          triples: this.props.codeBlockMatchingTriples,
+          explode: this.props.codeBlockExplodingPairs
+        },
+        markdown: {
+          pairs: this.props.matchingPairs,
+          closeBefore: this.props.matchingCloseBefore,
+          triples: this.props.matchingTriples,
+          explode: this.props.explodingPairs
+        }
       },
       extraKeys: this.defaultKeyMap,
       prettierConfig: this.props.prettierConfig
@@ -352,6 +384,7 @@ export default class CodeEditor extends React.Component {
 
     eventEmitter.emit('code:init')
     this.editor.on('scroll', this.scrollHandler)
+    this.editor.on('cursorActivity', this.editorActivityHandler)
 
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.addEventListener('load', this.loadStyleHandler)
@@ -489,7 +522,6 @@ export default class CodeEditor extends React.Component {
     })
 
     if (this.props.enableTableEditor) {
-      this.editor.on('cursorActivity', this.editorActivityHandler)
       this.editor.on('changes', this.editorActivityHandler)
     }
 
@@ -548,12 +580,18 @@ export default class CodeEditor extends React.Component {
     this.editor.off('paste', this.pasteHandler)
     eventEmitter.off('top:search', this.searchHandler)
     this.editor.off('scroll', this.scrollHandler)
+    this.editor.off('cursorActivity', this.editorActivityHandler)
     this.editor.off('contextmenu', this.contextMenuHandler)
+
     const editorTheme = document.getElementById('editorTheme')
     editorTheme.removeEventListener('load', this.loadStyleHandler)
 
     spellcheck.setLanguage(null, spellcheck.SPELLCHECK_DISABLED)
     eventEmitter.off('code:format-table', this.formatTable)
+
+    if (this.props.enableTableEditor) {
+      this.editor.off('changes', this.editorActivityHandler)
+    }
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -629,16 +667,32 @@ export default class CodeEditor extends React.Component {
 
     if (
       prevProps.matchingPairs !== this.props.matchingPairs ||
+      prevProps.matchingCloseBefore !== this.props.matchingCloseBefore ||
       prevProps.matchingTriples !== this.props.matchingTriples ||
-      prevProps.explodingPairs !== this.props.explodingPairs
+      prevProps.explodingPairs !== this.props.explodingPairs ||
+      prevProps.codeBlockMatchingPairs !== this.props.codeBlockMatchingPairs ||
+      prevProps.codeBlockMatchingCloseBefore !==
+        this.props.codeBlockMatchingCloseBefore ||
+      prevProps.codeBlockMatchingTriples !==
+        this.props.codeBlockMatchingTriples ||
+      prevProps.codeBlockExplodingPairs !== this.props.codeBlockExplodingPairs
     ) {
-      const bracketObject = {
-        pairs: this.props.matchingPairs,
-        triples: this.props.matchingTriples,
-        explode: this.props.explodingPairs,
-        override: true
+      const autoCloseBrackets = {
+        codeBlock: {
+          pairs: this.props.codeBlockMatchingPairs,
+          closeBefore: this.props.codeBlockMatchingCloseBefore,
+          triples: this.props.codeBlockMatchingTriples,
+          explode: this.props.codeBlockExplodingPairs
+        },
+        markdown: {
+          pairs: this.props.matchingPairs,
+          closeBefore: this.props.matchingCloseBefore,
+          triples: this.props.matchingTriples,
+          explode: this.props.explodingPairs
+        }
       }
-      this.editor.setOption('autoCloseBrackets', bracketObject)
+
+      this.editor.setOption('autoCloseBrackets', autoCloseBrackets)
     }
 
     if (prevProps.enableTableEditor !== this.props.enableTableEditor) {
@@ -793,8 +847,22 @@ export default class CodeEditor extends React.Component {
     this.updateHighlight(editor, changeObject)
 
     this.value = editor.getValue()
+
+    const { storageKey, noteKey } = this.props
+    const storage = findStorage(storageKey)
     if (this.props.onChange) {
       this.props.onChange(editor)
+    }
+
+    const isWrite = !!this.props.onChange
+    const hasFileChanges = isWrite
+
+    if (storage) {
+      sendWakatimeHeartBeat(storage.path, noteKey, storage.name, {
+        isWrite,
+        hasFileChanges,
+        isFileChange: false
+      })
     }
   }
 
@@ -923,6 +991,16 @@ export default class CodeEditor extends React.Component {
     this.restartHighlighting()
     this.editor.on('change', this.changeHandler)
     this.editor.refresh()
+
+    // wakatime
+    const { storageKey, noteKey } = this.props
+    const storage = findStorage(storageKey)
+    if (storage)
+      sendWakatimeHeartBeat(storage.path, noteKey, storage.name, {
+        isWrite: false,
+        hasFileChanges: false,
+        isFileChange: true
+      })
   }
 
   setValue(value) {

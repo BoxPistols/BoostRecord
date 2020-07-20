@@ -1,10 +1,10 @@
 > [We've launched desktop and mobile app of the new Boost Note now.](https://github.com/BoostIO/BoostNote.next)
 
-> ### [Boost Note for Teams](https://hub.boostio.co/)
+> ### [Boost Note for Teams](https://boosthub.io/)
 >
-> We'll launch the clean and simple wiki specially optimized for developers called "Boost Hub" at June 2020!
+> We've developed a collaborative workspace app called "Boost Hub" for developer teams.
 >
-> Boost Hub will aim to be a collaborative wiki tool for teams to centralize and amplify the availability and search ability of both first-party and third-party information.
+> It's customizable and easy to optimize for your team like rego blocks and even lets you edit documents together in real-time!
 
 ![Boostnote app screenshot](./resources/repository/top.png)
 
@@ -52,6 +52,10 @@ Issues on Boostnote can be funded by anyone and the money will be distributed to
 - [Slack Group](https://join.slack.com/t/boostnote-group/shared_invite/zt-cun7pas3-WwkaezxHBB1lCbUHrwQLXw)
 - [Blog](https://medium.com/boostnote)
 - [Reddit](https://www.reddit.com/r/Boostnote/)
+
+### Boostnote mobile
+A community project developing a mobile cross-platform version of boostnote for iOS and Android can be found here: [NoteApp](https://github.com/T0M0F/NoteApp)
+
 
 #### More Information
 

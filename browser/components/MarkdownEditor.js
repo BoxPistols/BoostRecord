@@ -139,7 +139,7 @@ class MarkdownEditor extends React.Component {
         },
         () => {
           this.previewRef.current.focus()
-          this.previewRef.current.scrollToRow(cursorPosition.line)
+          this.previewRef.current.scrollToLine(cursorPosition.line)
         }
       )
       eventEmitter.emit('topbar:togglelockbutton', this.state.status)
@@ -366,8 +366,15 @@ class MarkdownEditor extends React.Component {
           displayLineNumbers={config.editor.displayLineNumbers}
           lineWrapping
           matchingPairs={config.editor.matchingPairs}
+          matchingCloseBefore={config.editor.matchingCloseBefore}
           matchingTriples={config.editor.matchingTriples}
           explodingPairs={config.editor.explodingPairs}
+          codeBlockMatchingPairs={config.editor.codeBlockMatchingPairs}
+          codeBlockMatchingCloseBefore={
+            config.editor.codeBlockMatchingCloseBefore
+          }
+          codeBlockMatchingTriples={config.editor.codeBlockMatchingTriples}
+          codeBlockExplodingPairs={config.editor.codeBlockExplodingPairs}
           scrollPastEnd={config.editor.scrollPastEnd}
           storageKey={storageKey}
           noteKey={noteKey}
@@ -382,6 +389,7 @@ class MarkdownEditor extends React.Component {
           switchPreview={config.editor.switchPreview}
           enableMarkdownLint={config.editor.enableMarkdownLint}
           customMarkdownLintConfig={config.editor.customMarkdownLintConfig}
+          dateFormatISO8601={config.editor.dateFormatISO8601}
           prettierConfig={config.editor.prettierConfig}
           deleteUnusedAttachments={config.editor.deleteUnusedAttachments}
           RTL={RTL}

@@ -86,8 +86,13 @@ export const DEFAULT_CONFIG = {
     rulers: [80, 120],
     displayLineNumbers: true,
     matchingPairs: '()[]{}\'\'""$$**``~~__',
+    matchingCloseBefore: ')]}\'":;>',
     matchingTriples: '```"""\'\'\'',
     explodingPairs: '[]{}``$$',
+    codeBlockMatchingPairs: '()[]{}\'\'""``',
+    codeBlockMatchingCloseBefore: ')]}\'":;>',
+    codeBlockMatchingTriples: '',
+    codeBlockExplodingPairs: '[]{}``',
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
     delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,
@@ -100,6 +105,7 @@ export const DEFAULT_CONFIG = {
     enableSmartPaste: false,
     enableMarkdownLint: false,
     customMarkdownLintConfig: DEFAULT_MARKDOWN_LINT_CONFIG,
+    dateFormatISO8601: false,
     prettierConfig: `{
       "trailingComma": "es5",
       "tabWidth": 2,
@@ -143,7 +149,10 @@ export const DEFAULT_CONFIG = {
     variable: 'boostnote',
     prefixAttachmentFolder: false
   },
-  coloredTags: {}
+  coloredTags: {},
+  wakatime: {
+    key: null
+  }
 }
 
 function validate(config) {
@@ -258,6 +267,12 @@ function assignConfigValues(originalConfig, rcConfig) {
     DEFAULT_CONFIG.hotkey,
     originalConfig.hotkey,
     rcConfig.hotkey
+  )
+  config.wakatime = Object.assign(
+    {},
+    DEFAULT_CONFIG.wakatime,
+    originalConfig.wakatime,
+    rcConfig.wakatime
   )
   config.blog = Object.assign(
     {},

@@ -1,4 +1,4 @@
-import mermaidAPI from 'mermaid'
+import mermaidAPI from 'mermaid/dist/mermaid.min.js'
 import uiThemes from 'browser/lib/ui-themes'
 
 // fixes bad styling in the mermaid dark theme

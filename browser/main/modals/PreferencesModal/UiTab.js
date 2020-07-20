@@ -124,14 +124,21 @@ class UiTab extends React.Component {
         enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
         frontMatterTitleField: this.refs.frontMatterTitleField.value,
         matchingPairs: this.refs.matchingPairs.value,
+        matchingCloseBefore: this.refs.matchingCloseBefore.value,
         matchingTriples: this.refs.matchingTriples.value,
         explodingPairs: this.refs.explodingPairs.value,
+        codeBlockMatchingPairs: this.refs.codeBlockMatchingPairs.value,
+        codeBlockMatchingCloseBefore: this.refs.codeBlockMatchingCloseBefore
+          .value,
+        codeBlockMatchingTriples: this.refs.codeBlockMatchingTriples.value,
+        codeBlockExplodingPairs: this.refs.codeBlockExplodingPairs.value,
         spellcheck: this.refs.spellcheck.checked,
         enableSmartPaste: this.refs.enableSmartPaste.checked,
         enableMarkdownLint: this.refs.enableMarkdownLint.checked,
         customMarkdownLintConfig: this.customMarkdownLintConfigCM
           .getCodeMirror()
           .getValue(),
+        dateFormatISO8601: this.refs.dateFormatISO8601.checked,
         prettierConfig: this.prettierConfigCM.getCodeMirror().getValue(),
         deleteUnusedAttachments: this.refs.deleteUnusedAttachments.checked,
         rtlEnabled: this.refs.rtlEnabled.checked
@@ -745,6 +752,126 @@ class UiTab extends React.Component {
             </div>
           </div>
 
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Matching character pairs')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                value={this.state.config.editor.matchingPairs}
+                ref='matchingPairs'
+                onChange={e => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label-right'>
+              {i18n.__('in code blocks')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                value={this.state.config.editor.codeBlockMatchingPairs}
+                ref='codeBlockMatchingPairs'
+                onChange={e => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Close pairs before')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                value={this.state.config.editor.matchingCloseBefore}
+                ref='matchingCloseBefore'
+                onChange={e => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label-right'>
+              {i18n.__('in code blocks')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                value={this.state.config.editor.codeBlockMatchingCloseBefore}
+                ref='codeBlockMatchingCloseBefore'
+                onChange={e => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Matching character triples')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                value={this.state.config.editor.matchingTriples}
+                ref='matchingTriples'
+                onChange={e => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label-right'>
+              {i18n.__('in code blocks')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                value={this.state.config.editor.codeBlockMatchingTriples}
+                ref='codeBlockMatchingTriples'
+                onChange={e => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Exploding character pairs')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                value={this.state.config.editor.explodingPairs}
+                ref='explodingPairs'
+                onChange={e => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label-right'>
+              {i18n.__('in code blocks')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                value={this.state.config.editor.codeBlockExplodingPairs}
+                ref='codeBlockExplodingPairs'
+                onChange={e => this.handleUIChange(e)}
+                type='text'
+              />
+            </div>
+          </div>
+
           <div styleName='group-checkBoxSection'>
             <label>
               <input
@@ -875,50 +1002,19 @@ class UiTab extends React.Component {
             </label>
           </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Matching character pairs')}
-            </div>
-            <div styleName='group-section-control'>
+          <div styleName='group-checkBoxSection'>
+            <label>
               <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.matchingPairs}
-                ref='matchingPairs'
                 onChange={e => this.handleUIChange(e)}
-                type='text'
+                checked={this.state.config.editor.dateFormatISO8601}
+                ref='dateFormatISO8601'
+                type='checkbox'
               />
-            </div>
+              &nbsp;
+              {i18n.__('Date shortcut use iso 8601 format')}
+            </label>
           </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Matching character triples')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.matchingTriples}
-                ref='matchingTriples'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Exploding character pairs')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.explodingPairs}
-                ref='explodingPairs'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('Custom MarkdownLint Rules')}

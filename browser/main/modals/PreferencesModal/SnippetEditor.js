@@ -35,10 +35,18 @@ class SnippetEditor extends React.Component {
       foldGutter: true,
       gutters: ['CodeMirror-linenumbers', 'CodeMirror-foldgutter'],
       autoCloseBrackets: {
-        pairs: this.props.matchingPairs,
-        triples: this.props.matchingTriples,
-        explode: this.props.explodingPairs,
-        override: true
+        codeBlock: {
+          pairs: this.props.codeBlockMatchingPairs,
+          closeBefore: this.props.codeBlockMatchingCloseBefore,
+          triples: this.props.codeBlockMatchingTriples,
+          explode: this.props.codeBlockExplodingPairs
+        },
+        markdown: {
+          pairs: this.props.matchingPairs,
+          closeBefore: this.props.matchingCloseBefore,
+          triples: this.props.matchingTriples,
+          explode: this.props.explodingPairs
+        }
       },
       mode: 'null'
     })

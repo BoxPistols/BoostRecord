@@ -187,7 +187,7 @@ module.exports = function(grunt) {
     }
 
     ChildProcess.exec(
-      `codesign --verbose --deep --force --sign \"${OSX_COMMON_NAME}\" dist/Boostnote-darwin-x64/Boostnote.app`,
+      `codesign --verbose --deep --force --timestamp=none --sign \"${OSX_COMMON_NAME}\" dist/Boostnote-darwin-x64/Boostnote.app`,
       function(err, stdout, stderr) {
         grunt.log.writeln(stdout)
         if (err) {

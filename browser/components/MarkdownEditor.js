@@ -365,8 +365,15 @@ class MarkdownEditor extends React.Component {
           displayLineNumbers={config.editor.displayLineNumbers}
           lineWrapping
           matchingPairs={config.editor.matchingPairs}
+          matchingCloseBefore={config.editor.matchingCloseBefore}
           matchingTriples={config.editor.matchingTriples}
           explodingPairs={config.editor.explodingPairs}
+          codeBlockMatchingPairs={config.editor.codeBlockMatchingPairs}
+          codeBlockMatchingCloseBefore={
+            config.editor.codeBlockMatchingCloseBefore
+          }
+          codeBlockMatchingTriples={config.editor.codeBlockMatchingTriples}
+          codeBlockExplodingPairs={config.editor.codeBlockExplodingPairs}
           scrollPastEnd={config.editor.scrollPastEnd}
           storageKey={storageKey}
           noteKey={noteKey}

@@ -859,8 +859,15 @@ class SnippetNoteDetail extends React.Component {
               indentSize={editorIndentSize}
               displayLineNumbers={config.editor.displayLineNumbers}
               matchingPairs={config.editor.matchingPairs}
+              matchingCloseBefore={config.editor.matchingCloseBefore}
               matchingTriples={config.editor.matchingTriples}
               explodingPairs={config.editor.explodingPairs}
+              codeBlockMatchingPairs={config.editor.codeBlockMatchingPairs}
+              codeBlockMatchingCloseBefore={
+                config.editor.codeBlockMatchingCloseBefore
+              }
+              codeBlockMatchingTriples={config.editor.codeBlockMatchingTriples}
+              codeBlockExplodingPairs={config.editor.codeBlockExplodingPairs}
               keyMap={config.editor.keyMap}
               scrollPastEnd={config.editor.scrollPastEnd}
               fetchUrlTitle={config.editor.fetchUrlTitle}

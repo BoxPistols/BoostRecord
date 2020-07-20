@@ -341,10 +341,18 @@ export default class CodeEditor extends React.Component {
         'CodeMirror-lint-markers'
       ],
       autoCloseBrackets: {
-        pairs: this.props.matchingPairs,
-        triples: this.props.matchingTriples,
-        explode: this.props.explodingPairs,
-        override: true
+        codeBlock: {
+          pairs: this.props.codeBlockMatchingPairs,
+          closeBefore: this.props.codeBlockMatchingCloseBefore,
+          triples: this.props.codeBlockMatchingTriples,
+          explode: this.props.codeBlockExplodingPairs
+        },
+        markdown: {
+          pairs: this.props.matchingPairs,
+          closeBefore: this.props.matchingCloseBefore,
+          triples: this.props.matchingTriples,
+          explode: this.props.explodingPairs
+        }
       },
       extraKeys: this.defaultKeyMap,
       prettierConfig: this.props.prettierConfig
@@ -649,16 +657,32 @@ export default class CodeEditor extends React.Component {
 
     if (
       prevProps.matchingPairs !== this.props.matchingPairs ||
+      prevProps.matchingCloseBefore !== this.props.matchingCloseBefore ||
       prevProps.matchingTriples !== this.props.matchingTriples ||
-      prevProps.explodingPairs !== this.props.explodingPairs
+      prevProps.explodingPairs !== this.props.explodingPairs ||
+      prevProps.codeBlockMatchingPairs !== this.props.codeBlockMatchingPairs ||
+      prevProps.codeBlockMatchingCloseBefore !==
+        this.props.codeBlockMatchingCloseBefore ||
+      prevProps.codeBlockMatchingTriples !==
+        this.props.codeBlockMatchingTriples ||
+      prevProps.codeBlockExplodingPairs !== this.props.codeBlockExplodingPairs
     ) {
-      const bracketObject = {
-        pairs: this.props.matchingPairs,
-        triples: this.props.matchingTriples,
-        explode: this.props.explodingPairs,
-        override: true
+      const autoCloseBrackets = {
+        codeBlock: {
+          pairs: this.props.codeBlockMatchingPairs,
+          closeBefore: this.props.codeBlockMatchingCloseBefore,
+          triples: this.props.codeBlockMatchingTriples,
+          explode: this.props.codeBlockExplodingPairs
+        },
+        markdown: {
+          pairs: this.props.matchingPairs,
+          closeBefore: this.props.matchingCloseBefore,
+          triples: this.props.matchingTriples,
+          explode: this.props.explodingPairs
+        }
       }
-      this.editor.setOption('autoCloseBrackets', bracketObject)
+
+      this.editor.setOption('autoCloseBrackets', autoCloseBrackets)
     }
 
     if (prevProps.enableTableEditor !== this.props.enableTableEditor) {

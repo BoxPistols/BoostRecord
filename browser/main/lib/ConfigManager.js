@@ -86,8 +86,13 @@ export const DEFAULT_CONFIG = {
     rulers: [80, 120],
     displayLineNumbers: true,
     matchingPairs: '()[]{}\'\'""$$**``~~__',
+    matchingCloseBefore: ')]}\'":;>',
     matchingTriples: '```"""\'\'\'',
     explodingPairs: '[]{}``$$',
+    codeBlockMatchingPairs: '()[]{}\'\'""``',
+    codeBlockMatchingCloseBefore: ')]}\'":;>',
+    codeBlockMatchingTriples: '',
+    codeBlockExplodingPairs: '[]{}``',
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
     delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,

@@ -144,6 +144,11 @@ export const DEFAULT_CONFIG = {
     username: '',
     password: ''
   },
+  export: {
+    metadata: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'
+    variable: 'boostnote',
+    prefixAttachmentFolder: false
+  },
   coloredTags: {},
   wakatime: {
     key: null

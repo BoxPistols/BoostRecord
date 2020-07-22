@@ -336,6 +336,7 @@ class MarkdownSplitEditor extends React.Component {
       storageKey,
       noteKey,
       linesHighlighted,
+      getNote,
       isStacking,
       RTL
     } = this.props
@@ -470,6 +471,7 @@ class MarkdownSplitEditor extends React.Component {
           codeBlockTheme={config.preview.codeBlockTheme}
           codeBlockFontFamily={config.editor.fontFamily}
           lineNumber={config.preview.lineNumber}
+          indentSize={editorIndentSize}
           scrollPastEnd={config.preview.scrollPastEnd}
           smartQuotes={config.preview.smartQuotes}
           smartArrows={config.preview.smartArrows}
@@ -486,6 +488,8 @@ class MarkdownSplitEditor extends React.Component {
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
           lineThroughCheckbox={config.preview.lineThroughCheckbox}
+          getNote={getNote}
+          export={config.export}
           RTL={RTL}
         />
       </div>

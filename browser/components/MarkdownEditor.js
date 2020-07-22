@@ -323,6 +323,7 @@ class MarkdownEditor extends React.Component {
       storageKey,
       noteKey,
       linesHighlighted,
+      getNote,
       RTL
     } = this.props
 
@@ -426,6 +427,8 @@ class MarkdownEditor extends React.Component {
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
           lineThroughCheckbox={config.preview.lineThroughCheckbox}
+          getNote={getNote}
+          export={config.export}
           onDrop={e => this.handleDropImage(e)}
           RTL={RTL}
         />

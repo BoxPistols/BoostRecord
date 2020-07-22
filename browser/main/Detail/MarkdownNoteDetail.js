@@ -57,10 +57,11 @@ class MarkdownNoteDetail extends React.Component {
 
     this.dispatchTimer = null
 
-    this.toggleLockButton = this.handleToggleLockButton.bind(this)
     this.generateToc = this.handleGenerateToc.bind(this)
+    this.toggleLockButton = this.handleToggleLockButton.bind(this)
     this.handleUpdateContent = this.handleUpdateContent.bind(this)
     this.handleSwitchStackDirection = this.handleSwitchStackDirection.bind(this)
+    this.getNote = this.getNote.bind(this)
   }
 
   focus() {
@@ -441,6 +442,10 @@ class MarkdownNoteDetail extends React.Component {
     this.updateNote(note)
   }
 
+  getNote() {
+    return this.state.note
+  }
+
   renderEditor() {
     const { config, ignorePreviewPointerEvents } = this.props
     const { note, isStacking } = this.state
@@ -456,8 +461,8 @@ class MarkdownNoteDetail extends React.Component {
           noteKey={note.key}
           linesHighlighted={note.linesHighlighted}
           onChange={this.handleUpdateContent}
-          isLocked={this.state.isLocked}
           ignorePreviewPointerEvents={ignorePreviewPointerEvents}
+          getNote={this.getNote}
           RTL={config.editor.rtlEnabled && this.state.RTL}
         />
       )
@@ -473,6 +478,7 @@ class MarkdownNoteDetail extends React.Component {
           linesHighlighted={note.linesHighlighted}
           onChange={this.handleUpdateContent}
           ignorePreviewPointerEvents={ignorePreviewPointerEvents}
+          getNote={this.getNote}
           RTL={config.editor.rtlEnabled && this.state.RTL}
         />
       )

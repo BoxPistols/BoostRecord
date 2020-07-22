@@ -18,257 +18,29 @@ import convertModeName from 'browser/lib/convertModeName'
 import copy from 'copy-to-clipboard'
 import mdurl from 'mdurl'
 import exportNote from 'browser/main/lib/dataApi/exportNote'
-import { escapeHtmlCharacters } from 'browser/lib/utils'
+import formatMarkdown from 'browser/main/lib/dataApi/formatMarkdown'
+import formatHTML, {
+  CSS_FILES,
+  buildStyle,
+  getCodeThemeLink,
+  getStyleParams,
+  escapeHtmlCharactersInCodeTag
+} from 'browser/main/lib/dataApi/formatHTML'
+import formatPDF from 'browser/main/lib/dataApi/formatPDF'
 import yaml from 'js-yaml'
+import i18n from 'browser/lib/i18n'
+import path from 'path'
+import { remote, shell } from 'electron'
+import attachmentManagement from '../main/lib/dataApi/attachmentManagement'
+import filenamify from 'filenamify'
 import { render } from 'react-dom'
 import Carousel from 'react-image-carousel'
 import { push } from 'connected-react-router'
 import ConfigManager from '../main/lib/ConfigManager'
 import uiThemes from 'browser/lib/ui-themes'
-import i18n from 'browser/lib/i18n'
-
-const { remote, shell } = require('electron')
-const attachmentManagement = require('../main/lib/dataApi/attachmentManagement')
-const buildMarkdownPreviewContextMenu = require('browser/lib/contextMenuBuilder')
-  .buildMarkdownPreviewContextMenu
-
-const { app } = remote
-const path = require('path')
-const fileUrl = require('file-url')
+import { buildMarkdownPreviewContextMenu } from 'browser/lib/contextMenuBuilder'
 
 const dialog = remote.dialog
-
-const markdownStyle = require('!!css!stylus?sourceMap!./markdown.styl')[0][1]
-const appPath = fileUrl(
-  process.env.NODE_ENV === 'production' ? app.getAppPath() : path.resolve()
-)
-const CSS_FILES = [
-  `${appPath}/node_modules/katex/dist/katex.min.css`,
-  `${appPath}/node_modules/codemirror/lib/codemirror.css`,
-  `${appPath}/node_modules/react-image-carousel/lib/css/main.min.css`
-]
-
-/**
- * @param {Object} opts
- * @param {String} opts.fontFamily
- * @param {Numberl} opts.fontSize
- * @param {String} opts.codeBlockFontFamily
- * @param {String} opts.theme
- * @param {Boolean} [opts.lineNumber] Should show line number
- * @param {Boolean} [opts.scrollPastEnd]
- * @param {Boolean} [opts.allowCustomCSS] Should add custom css
- * @param {String} [opts.customCSS] Will be added to bottom, only if `opts.allowCustomCSS` is truthy
- * @returns {String}
- */
-function buildStyle(opts) {
-  const {
-    fontFamily,
-    fontSize,
-    codeBlockFontFamily,
-    lineNumber,
-    scrollPastEnd,
-    theme,
-    allowCustomCSS,
-    customCSS,
-    RTL
-  } = opts
-  return `
-@font-face {
-  font-family: 'Lato';
-  src: url('${appPath}/resources/fonts/Lato-Regular.woff2') format('woff2'), /* Modern Browsers */
-       url('${appPath}/resources/fonts/Lato-Regular.woff') format('woff'), /* Modern Browsers */
-       url('${appPath}/resources/fonts/Lato-Regular.ttf') format('truetype');
-  font-style: normal;
-  font-weight: normal;
-  text-rendering: optimizeLegibility;
-}
-@font-face {
-  font-family: 'Lato';
-  src: url('${appPath}/resources/fonts/Lato-Black.woff2') format('woff2'), /* Modern Browsers */
-       url('${appPath}/resources/fonts/Lato-Black.woff') format('woff'), /* Modern Browsers */
-       url('${appPath}/resources/fonts/Lato-Black.ttf') format('truetype');
-  font-style: normal;
-  font-weight: 700;
-  text-rendering: optimizeLegibility;
-}
-@font-face {
-  font-family: 'Material Icons';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Material Icons'),
-       local('MaterialIcons-Regular'),
-       url('${appPath}/resources/fonts/MaterialIcons-Regular.woff2') format('woff2'),
-       url('${appPath}/resources/fonts/MaterialIcons-Regular.woff') format('woff'),
-       url('${appPath}/resources/fonts/MaterialIcons-Regular.ttf') format('truetype');
-}
-
-${markdownStyle}
-
-body {
-  font-family: '${fontFamily.join("','")}';
-  font-size: ${fontSize}px;
-
-  ${
-    scrollPastEnd
-      ? `
-    padding-bottom: 90vh;
-    box-sizing: border-box;
-    `
-      : ''
-  }
-  ${RTL ? 'direction: rtl;' : ''}
-  ${RTL ? 'text-align: right;' : ''}
-}
-@media print {
-  body {
-    padding-bottom: initial;
-  }
-}
-code {
-  font-family: '${codeBlockFontFamily.join("','")}';
-  background-color: rgba(0,0,0,0.04);
-  text-align: left;
-  direction: ltr;
-}
-
-p code,
-li code,
-td code
-{
-  padding: 2px;
-  border-width: 1px;
-  border-style: solid;
-  border-radius: 5px;
-}
-[data-theme="default"] p code,
-[data-theme="default"] li code,
-[data-theme="default"] td code
-{
-  background-color: #F4F4F4;
-  border-color: #d9d9d9;
-  color: inherit;
-}
-[data-theme="white"] p code,
-[data-theme="white"] li code,
-[data-theme="white"] td code
-{
-  background-color: #F4F4F4;
-  border-color: #d9d9d9;
-  color: inherit;
-}
-[data-theme="dark"] p code,
-[data-theme="dark"] li code,
-[data-theme="dark"] td code
-{
-  background-color: #444444;
-  border-color: #555;
-  color: #FFFFFF;
-}
-[data-theme="dracula"] p code,
-[data-theme="dracula"] li code,
-[data-theme="dracula"] td code
-{
-  background-color: #444444;
-  border-color: #555;
-  color: #FFFFFF;
-}
-[data-theme="monokai"] p code,
-[data-theme="monokai"] li code,
-[data-theme="monokai"] td code
-{
-  background-color: #444444;
-  border-color: #555;
-  color: #FFFFFF;
-}
-[data-theme="nord"] p code,
-[data-theme="nord"] li code,
-[data-theme="nord"] td code
-{
-  background-color: #444444;
-  border-color: #555;
-  color: #FFFFFF;
-}
-[data-theme="solarized-dark"] p code,
-[data-theme="solarized-dark"] li code,
-[data-theme="solarized-dark"] td code
-{
-  background-color: #444444;
-  border-color: #555;
-  color: #FFFFFF;
-}
-[data-theme="vulcan"] p code,
-[data-theme="vulcan"] li code,
-[data-theme="vulcan"] td code
-{
-  background-color: #444444;
-  border-color: #555;
-  color: #FFFFFF;
-}
-
-.lineNumber {
-  ${lineNumber && 'display: block !important;'}
-  font-family: '${codeBlockFontFamily.join("','")}';
-}
-
-.clipboardButton {
-  color: rgba(147,147,149,0.8);;
-  fill: rgba(147,147,149,1);;
-  border-radius: 50%;
-  margin: 0px 10px;
-  border: none;
-  background-color: transparent;
-  outline: none;
-  height: 15px;
-  width: 15px;
-  cursor: pointer;
-}
-
-.clipboardButton:hover {
-  transition: 0.2s;
-  color: #939395;
-  fill: #939395;
-  background-color: rgba(0,0,0,0.1);
-}
-
-h1, h2 {
-  border: none;
-}
-
-h3 {
-  margin: 1em 0 0.8em;
-}
-
-h4, h5, h6 {
-  margin: 1.1em 0 0.5em;
-}
-
-h1 {
-  padding: 0.2em 0 0.2em;
-  margin: 1em 0 8px;
-}
-
-h2 {
-  padding: 0.2em 0 0.2em;
-  margin: 1em 0 0.7em;
-}
-
-body p {
-  white-space: normal;
-}
-
-@media print {
-  body[data-theme="${theme}"] {
-    color: #000;
-    background-color: #fff;
-  }
-  .clipboardButton {
-    display: none
-  }
-}
-
-${allowCustomCSS ? customCSS : ''}
-`
-}
 
 const scrollBarStyle = `
 ::-webkit-scrollbar {
@@ -300,22 +72,6 @@ const scrollBarDarkStyle = `
   background-color: inherit;
 }
 `
-
-const OSX = global.process.platform === 'darwin'
-
-const defaultFontFamily = ['helvetica', 'arial', 'sans-serif']
-if (!OSX) {
-  defaultFontFamily.unshift('Microsoft YaHei')
-  defaultFontFamily.unshift('meiryo')
-}
-const defaultCodeBlockFontFamily = [
-  'Monaco',
-  'Menlo',
-  'Ubuntu Mono',
-  'Consolas',
-  'source-code-pro',
-  'monospace'
-]
 
 // return the line number of the line that used to generate the specified element
 // return -1 if the line is not found
@@ -430,94 +186,15 @@ class MarkdownPreview extends React.Component {
   }
 
   handleSaveAsMd() {
-    this.exportAsDocument('md')
-  }
-
-  htmlContentFormatter(noteContent, exportTasks, targetDir) {
-    const {
-      fontFamily,
-      fontSize,
-      codeBlockFontFamily,
-      lineNumber,
-      codeBlockTheme,
-      scrollPastEnd,
-      theme,
-      allowCustomCSS,
-      customCSS,
-      RTL
-    } = this.getStyleParams()
-
-    const inlineStyles = buildStyle({
-      fontFamily,
-      fontSize,
-      codeBlockFontFamily,
-      lineNumber,
-      scrollPastEnd,
-      theme,
-      allowCustomCSS,
-      customCSS,
-      RTL
-    })
-    let body = this.refs.root.contentWindow.document.body.innerHTML
-    body = attachmentManagement.fixLocalURLS(body, this.props.storagePath)
-    const files = [this.getCodeThemeLink(codeBlockTheme), ...CSS_FILES]
-    files.forEach(file => {
-      if (global.process.platform === 'win32') {
-        file = file.replace('file:///', '')
-      } else {
-        file = file.replace('file://', '')
-      }
-      exportTasks.push({
-        src: file,
-        dst: 'css'
-      })
-    })
-
-    let styles = ''
-    files.forEach(file => {
-      styles += `<link rel="stylesheet" href="../css/${path.basename(file)}">`
-    })
-
-    return `<html>
-               <head>
-                 <base href="file://${targetDir}/">
-                 <meta charset="UTF-8">
-                 <meta name = "viewport" content = "width = device-width, initial-scale = 1, maximum-scale = 1">
-                 <style id="style">${inlineStyles}</style>
-                 ${styles}
-               </head>
-               <body>${body}</body>
-            </html>`
+    this.exportAsDocument('md', formatMarkdown(this.props))
   }
 
   handleSaveAsHtml() {
-    this.exportAsDocument('html', (noteContent, exportTasks, targetDir) =>
-      Promise.resolve(
-        this.htmlContentFormatter(noteContent, exportTasks, targetDir)
-      )
-    )
+    this.exportAsDocument('html', formatHTML(this.props))
   }
 
   handleSaveAsPdf() {
-    this.exportAsDocument('pdf', (noteContent, exportTasks, targetDir) => {
-      const printout = new remote.BrowserWindow({
-        show: false,
-        webPreferences: { webSecurity: false, javascript: false }
-      })
-      printout.loadURL(
-        'data:text/html;charset=UTF-8,' +
-          this.htmlContentFormatter(noteContent, exportTasks, targetDir)
-      )
-      return new Promise((resolve, reject) => {
-        printout.webContents.on('did-finish-load', () => {
-          printout.webContents.printToPDF({}, (err, data) => {
-            if (err) reject(err)
-            else resolve(data)
-            printout.destroy()
-          })
-        })
-      })
-    })
+    this.exportAsDocument('pdf', formatPDF(this.props))
   }
 
   handlePrint() {
@@ -525,18 +202,21 @@ class MarkdownPreview extends React.Component {
   }
 
   exportAsDocument(fileType, contentFormatter) {
+    const note = this.props.getNote()
+
     const options = {
+      defaultPath: filenamify(note.title, {
+        replacement: '_'
+      }),
       filters: [{ name: 'Documents', extensions: [fileType] }],
       properties: ['openFile', 'createDirectory']
     }
 
     dialog.showSaveDialog(remote.getCurrentWindow(), options, filename => {
       if (filename) {
-        const content = this.props.value
-        const storage = this.props.storagePath
-        const nodeKey = this.props.noteKey
+        const storagePath = this.props.storagePath
 
-        exportNote(nodeKey, storage, content, filename, contentFormatter)
+        exportNote(storagePath, note, filename, contentFormatter)
           .then(res => {
             dialog.showMessageBox(remote.getCurrentWindow(), {
               type: 'info',
@@ -565,32 +245,6 @@ class MarkdownPreview extends React.Component {
 
       node.innerText = mdurl.decode(href) === innerText ? href : innerText
     }
-  }
-
-  /**
-   * @description Convert special characters between three ```
-   * @param {string[]} splitWithCodeTag Array of HTML strings separated by three ```
-   * @returns {string} HTML in which special characters between three ``` have been converted
-   */
-  escapeHtmlCharactersInCodeTag(splitWithCodeTag) {
-    for (let index = 0; index < splitWithCodeTag.length; index++) {
-      const codeTagRequired =
-        splitWithCodeTag[index] !== '```' && index < splitWithCodeTag.length - 1
-      if (codeTagRequired) {
-        splitWithCodeTag.splice(index + 1, 0, '```')
-      }
-    }
-    let inCodeTag = false
-    let result = ''
-    for (let content of splitWithCodeTag) {
-      if (content === '```') {
-        inCodeTag = !inCodeTag
-      } else if (inCodeTag) {
-        content = escapeHtmlCharacters(content)
-      }
-      result += content
-    }
-    return result
   }
 
   getScrollBarStyle() {
@@ -743,47 +397,6 @@ class MarkdownPreview extends React.Component {
     }
   }
 
-  getStyleParams() {
-    const {
-      fontSize,
-      lineNumber,
-      codeBlockTheme,
-      scrollPastEnd,
-      theme,
-      allowCustomCSS,
-      customCSS,
-      RTL
-    } = this.props
-    let { fontFamily, codeBlockFontFamily } = this.props
-    fontFamily =
-      _.isString(fontFamily) && fontFamily.trim().length > 0
-        ? fontFamily
-            .split(',')
-            .map(fontName => fontName.trim())
-            .concat(defaultFontFamily)
-        : defaultFontFamily
-    codeBlockFontFamily =
-      _.isString(codeBlockFontFamily) && codeBlockFontFamily.trim().length > 0
-        ? codeBlockFontFamily
-            .split(',')
-            .map(fontName => fontName.trim())
-            .concat(defaultCodeBlockFontFamily)
-        : defaultCodeBlockFontFamily
-
-    return {
-      fontFamily,
-      fontSize,
-      codeBlockFontFamily,
-      lineNumber,
-      codeBlockTheme,
-      scrollPastEnd,
-      theme,
-      allowCustomCSS,
-      customCSS,
-      RTL
-    }
-  }
-
   applyStyle() {
     const {
       fontFamily,
@@ -796,12 +409,13 @@ class MarkdownPreview extends React.Component {
       allowCustomCSS,
       customCSS,
       RTL
-    } = this.getStyleParams()
+    } = getStyleParams(this.props)
 
     this.getWindow().document.getElementById(
       'codeTheme'
-    ).href = this.getCodeThemeLink(codeBlockTheme)
-    this.getWindow().document.getElementById('style').innerHTML = buildStyle({
+    ).href = getCodeThemeLink(codeBlockTheme)
+
+    this.getWindow().document.getElementById('style').innerHTML = buildStyle(
       fontFamily,
       fontSize,
       codeBlockFontFamily,
@@ -811,15 +425,7 @@ class MarkdownPreview extends React.Component {
       allowCustomCSS,
       customCSS,
       RTL
-    })
-  }
-
-  getCodeThemeLink(name) {
-    const theme = consts.THEMES.find(theme => theme.name === name)
-
-    return theme != null
-      ? theme.path
-      : `${appPath}/node_modules/codemirror/theme/elegant.css`
+    )
   }
 
   rewriteIframe() {
@@ -853,7 +459,7 @@ class MarkdownPreview extends React.Component {
     this.refs.root.contentWindow.document.body.setAttribute('data-theme', theme)
     if (sanitize === 'NONE') {
       const splitWithCodeTag = value.split('```')
-      value = this.escapeHtmlCharactersInCodeTag(splitWithCodeTag)
+      value = escapeHtmlCharactersInCodeTag(splitWithCodeTag)
     }
     const renderedHTML = this.markdown.render(value)
     attachmentManagement.migrateAttachments(value, storagePath, noteKey)
@@ -916,13 +522,9 @@ class MarkdownPreview extends React.Component {
         })
       }
     )
+
     const opts = {}
-    // if (this.props.theme === 'dark') {
-    //   opts['font-color'] = '#DDD'
-    //   opts['line-color'] = '#DDD'
-    //   opts['element-color'] = '#DDD'
-    //   opts['fill'] = '#3A404C'
-    // }
+
     _.forEach(
       this.refs.root.contentWindow.document.querySelectorAll('.flowchart'),
       el => {

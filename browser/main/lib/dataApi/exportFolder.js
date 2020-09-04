@@ -1,15 +1,16 @@
 import { findStorage } from 'browser/lib/findStorage'
 import resolveStorageData from './resolveStorageData'
 import resolveStorageNotes from './resolveStorageNotes'
+import getFilename from './getFilename'
 import exportNote from './exportNote'
-import filenamify from 'filenamify'
-import * as path from 'path'
+import getContentFormatter from './getContentFormatter'
 
 /**
  * @param {String} storageKey
  * @param {String} folderKey
  * @param {String} fileType
  * @param {String} exportDir
+ * @param {Object} config
  *
  * @return {Object}
  * ```
@@ -22,7 +23,7 @@ import * as path from 'path'
  * ```
  */
 
-function exportFolder(storageKey, folderKey, fileType, exportDir) {
+function exportFolder(storageKey, folderKey, fileType, exportDir, config) {
   let targetStorage
   try {
     targetStorage = findStorage(storageKey)
@@ -30,39 +31,34 @@ function exportFolder(storageKey, folderKey, fileType, exportDir) {
     return Promise.reject(e)
   }
 
+  const deduplicator = {}
+
   return resolveStorageData(targetStorage)
-    .then(function assignNotes(storage) {
-      return resolveStorageNotes(storage).then(notes => {
-        return {
-          storage,
-          notes
-        }
-      })
+    .then(storage => {
+      return resolveStorageNotes(storage).then(notes => ({
+        storage,
+        notes: notes.filter(
+          note =>
+            note.folder === folderKey &&
+            !note.isTrashed &&
+            note.type === 'MARKDOWN_NOTE'
+        )
+      }))
     })
-    .then(function exportNotes(data) {
-      const { storage, notes } = data
+    .then(({ storage, notes }) => {
+      const contentFormatter = getContentFormatter(storage, fileType, config)
 
       return Promise.all(
-        notes
-          .filter(
-            note =>
-              note.folder === folderKey &&
-              note.isTrashed === false &&
-              note.type === 'MARKDOWN_NOTE'
+        notes.map(note => {
+          const targetPath = getFilename(
+            note,
+            fileType,
+            exportDir,
+            deduplicator
           )
-          .map(note => {
-            const notePath = path.join(
-              exportDir,
-              `${filenamify(note.title, { replacement: '_' })}.${fileType}`
-            )
-            return exportNote(
-              note.key,
-              storage.path,
-              note.content,
-              notePath,
-              null
-            )
-          })
+
+          return exportNote(storage.key, note, targetPath, contentFormatter)
+        })
       ).then(() => ({
         storage,
         folderKey,

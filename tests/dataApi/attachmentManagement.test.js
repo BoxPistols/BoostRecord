@@ -702,14 +702,15 @@ it('should remove the all ":storage" and noteKey references', function() {
     '        </p>\n' +
     '    </body>\n' +
     '</html>'
-  const actual = systemUnderTest.removeStorageAndNoteReferences(
+  const actual = systemUnderTest.replaceStorageReferences(
     testInput,
-    noteKey
+    noteKey,
+    systemUnderTest.DESTINATION_FOLDER
   )
   expect(actual).toEqual(expectedOutput)
 })
 
-it('should make sure that "removeStorageAndNoteReferences" works with markdown content as well', function() {
+it('should make sure that "replaceStorageReferences" works with markdown content as well', function() {
   const noteKey = 'noteKey'
   const testInput =
     'Test input' +
@@ -736,9 +737,113 @@ it('should make sure that "removeStorageAndNoteReferences" works with markdown c
     systemUnderTest.DESTINATION_FOLDER +
     path.posix.sep +
     'pdf.pdf)'
-  const actual = systemUnderTest.removeStorageAndNoteReferences(
+  const actual = systemUnderTest.replaceStorageReferences(
     testInput,
-    noteKey
+    noteKey,
+    systemUnderTest.DESTINATION_FOLDER
+  )
+  expect(actual).toEqual(expectedOutput)
+})
+
+it('should replace the all ":storage" references', function() {
+  const storageFolder = systemUnderTest.DESTINATION_FOLDER
+  const noteKey = 'noteKey'
+  const testInput =
+    '<html>\n' +
+    '    <head>\n' +
+    '        //header\n' +
+    '    </head>\n' +
+    '    <body data-theme="default">\n' +
+    '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
+    '        <p data-line="2">\n' +
+    '            <img src=":storage' +
+    mdurl.encode(path.sep) +
+    noteKey +
+    mdurl.encode(path.sep) +
+    '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
+    '        </p>\n' +
+    '        <p data-line="4">\n' +
+    '            <a href=":storage' +
+    mdurl.encode(path.sep) +
+    noteKey +
+    mdurl.encode(path.sep) +
+    '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
+    '        </p>\n' +
+    '        <p data-line="6">\n' +
+    '            <img src=":storage' +
+    mdurl.encode(path.sep) +
+    noteKey +
+    mdurl.encode(path.sep) +
+    'd6c5ee92.jpg" alt="dummyImage2.jpg">\n' +
+    '        </p>\n' +
+    '    </body>\n' +
+    '</html>'
+  const expectedOutput =
+    '<html>\n' +
+    '    <head>\n' +
+    '        //header\n' +
+    '    </head>\n' +
+    '    <body data-theme="default">\n' +
+    '        <h2 data-line="0" id="Headline">Headline</h2>\n' +
+    '        <p data-line="2">\n' +
+    '            <img src="' +
+    storageFolder +
+    path.sep +
+    '0.6r4zdgc22xp.png" alt="dummyImage.png" >\n' +
+    '        </p>\n' +
+    '        <p data-line="4">\n' +
+    '            <a href="' +
+    storageFolder +
+    path.sep +
+    '0.q2i4iw0fyx.pdf">dummyPDF.pdf</a>\n' +
+    '        </p>\n' +
+    '        <p data-line="6">\n' +
+    '            <img src="' +
+    storageFolder +
+    path.sep +
+    'd6c5ee92.jpg" alt="dummyImage2.jpg">\n' +
+    '        </p>\n' +
+    '    </body>\n' +
+    '</html>'
+  const actual = systemUnderTest.replaceStorageReferences(
+    testInput,
+    noteKey,
+    systemUnderTest.DESTINATION_FOLDER
+  )
+  expect(actual).toEqual(expectedOutput)
+})
+
+it('should make sure that "replaceStorageReferences" works with markdown content as well', function() {
+  const noteKey = 'noteKey'
+  const testInput =
+    'Test input' +
+    '![imageName](' +
+    systemUnderTest.STORAGE_FOLDER_PLACEHOLDER +
+    path.win32.sep +
+    noteKey +
+    path.win32.sep +
+    'image.jpg) \n' +
+    '[pdf](' +
+    systemUnderTest.STORAGE_FOLDER_PLACEHOLDER +
+    path.posix.sep +
+    noteKey +
+    path.posix.sep +
+    'pdf.pdf)'
+
+  const expectedOutput =
+    'Test input' +
+    '![imageName](' +
+    systemUnderTest.DESTINATION_FOLDER +
+    path.posix.sep +
+    'image.jpg) \n' +
+    '[pdf](' +
+    systemUnderTest.DESTINATION_FOLDER +
+    path.posix.sep +
+    'pdf.pdf)'
+  const actual = systemUnderTest.replaceStorageReferences(
+    testInput,
+    noteKey,
+    systemUnderTest.DESTINATION_FOLDER
   )
   expect(actual).toEqual(expectedOutput)
 })

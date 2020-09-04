@@ -202,7 +202,6 @@
   "Create new folder": "Ordner erstellen",
   "Folder name": "Ordnername",
   "Create": "Erstellen",
-  "Untitled": "Neuer Ordner",
   "Unlink Storage": "Speicherverknüpfung aufheben",
   "Unlinking removes this linked storage from Boostnote. No data is removed, please manually delete the folder from your hard drive if needed.": "Die Verknüpfung des Speichers mit Boostnote wird entfernt. Es werden keine Daten gelöscht. Um die Daten dauerhaft zu löschen musst du den Ordner auf der Festplatte manuell entfernen.",
   "Empty note": "Leere Notiz",

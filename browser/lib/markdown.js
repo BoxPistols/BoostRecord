@@ -31,7 +31,8 @@ class Markdown {
       html: true,
       xhtmlOut: true,
       breaks: config.preview.breaks,
-      sanitize: 'STRICT'
+      sanitize: 'STRICT',
+      onFence: () => {}
     }
 
     const updatedOptions = Object.assign(defaultOptions, options)
@@ -266,22 +267,26 @@ class Markdown {
             token.parameters.format = 'yaml'
           }
 
+          updatedOptions.onFence('chart', token.parameters.format)
+
           return `<pre class="fence" data-line="${token.map[0]}">
-          <span class="filename">${token.fileName}</span>
-          <div class="chart" data-height="${
-            token.parameters.height
-          }" data-format="${token.parameters.format || 'json'}">${
+            <span class="filename">${token.fileName}</span>
+            <div class="chart" data-height="${
+              token.parameters.height
+            }" data-format="${token.parameters.format || 'json'}">${
             token.content
           }</div>
-        </pre>`
+          </pre>`
         },
         flowchart: token => {
+          updatedOptions.onFence('flowchart')
+
           return `<pre class="fence" data-line="${token.map[0]}">
-          <span class="filename">${token.fileName}</span>
-          <div class="flowchart" data-height="${token.parameters.height}">${
+            <span class="filename">${token.fileName}</span>
+            <div class="flowchart" data-height="${token.parameters.height}">${
             token.content
           }</div>
-        </pre>`
+          </pre>`
         },
         gallery: token => {
           const content = token.content
@@ -298,35 +303,41 @@ class Markdown {
             .join('\n')
 
           return `<pre class="fence" data-line="${token.map[0]}">
-          <span class="filename">${token.fileName}</span>
-          <div class="gallery" data-autoplay="${
-            token.parameters.autoplay
-          }" data-height="${token.parameters.height}">${content}</div>
-        </pre>`
+              <span class="filename">${token.fileName}</span>
+              <div class="gallery" data-autoplay="${
+                token.parameters.autoplay
+              }" data-height="${token.parameters.height}">${content}</div>
+            </pre>`
         },
         mermaid: token => {
+          updatedOptions.onFence('mermaid')
+
           return `<pre class="fence" data-line="${token.map[0]}">
-          <span class="filename">${token.fileName}</span>
-          <div class="mermaid" data-height="${token.parameters.height}">${
+            <span class="filename">${token.fileName}</span>
+            <div class="mermaid" data-height="${token.parameters.height}">${
             token.content
           }</div>
-        </pre>`
+          </pre>`
         },
         sequence: token => {
+          updatedOptions.onFence('sequence')
+
           return `<pre class="fence" data-line="${token.map[0]}">
-          <span class="filename">${token.fileName}</span>
-          <div class="sequence" data-height="${token.parameters.height}">${
+            <span class="filename">${token.fileName}</span>
+            <div class="sequence" data-height="${token.parameters.height}">${
             token.content
           }</div>
-        </pre>`
+          </pre>`
         }
       },
       token => {
+        updatedOptions.onFence('code', token.langType)
+
         return `<pre class="code CodeMirror" data-line="${token.map[0]}">
-        <span class="filename">${token.fileName}</span>
-        ${createGutter(token.content, token.firstLineNumber)}
-        <code class="${token.langType}">${token.content}</code>
-      </pre>`
+          <span class="filename">${token.fileName}</span>
+          ${createGutter(token.content, token.firstLineNumber)}
+          <code class="${token.langType}">${token.content}</code>
+        </pre>`
       }
     )
 

@@ -35,7 +35,16 @@ test.serial('Export a storage', t => {
     acc[folder.key] = folder.name
     return acc
   }, {})
-  return exportStorage(storageKey, 'md', exportDir).then(() => {
+
+  const config = {
+    export: {
+      metadata: 'DONT_EXPORT',
+      variable: 'boostnote',
+      prefixAttachmentFolder: false
+    }
+  }
+
+  return exportStorage(storageKey, 'md', exportDir, config).then(() => {
     notes.forEach(note => {
       const noteDir = path.join(
         exportDir,

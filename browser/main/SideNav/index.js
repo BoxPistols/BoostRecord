@@ -26,6 +26,8 @@ import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import ColorPicker from 'browser/components/ColorPicker'
 import { every, sortBy } from 'lodash'
 
+const { dialog } = remote
+
 function matchActiveTags(tags, activeTags) {
   return every(activeTags, v => tags.indexOf(v) >= 0)
 }
@@ -63,15 +65,12 @@ class SideNav extends React.Component {
   }
 
   deleteTag(tag) {
-    const selectedButton = remote.dialog.showMessageBox(
-      remote.getCurrentWindow(),
-      {
-        type: 'warning',
-        message: i18n.__('Confirm tag deletion'),
-        detail: i18n.__('This will permanently remove this tag.'),
-        buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
-      }
-    )
+    const selectedButton = dialog.showMessageBox(remote.getCurrentWindow(), {
+      type: 'warning',
+      message: i18n.__('Confirm tag deletion'),
+      detail: i18n.__('This will permanently remove this tag.'),
+      buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
+    })
 
     if (selectedButton === 0) {
       const {
@@ -155,28 +154,80 @@ class SideNav extends React.Component {
   }
 
   handleTagContextMenu(e, tag) {
-    const menu = []
+    context.popup([
+      {
+        label: i18n.__('Rename Tag'),
+        click: this.handleRenameTagClick.bind(this, tag)
+      },
+      {
+        label: i18n.__('Customize Color'),
+        click: this.displayColorPicker.bind(
+          this,
+          tag,
+          e.target.getBoundingClientRect()
+        )
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: i18n.__('Export Tag'),
+        submenu: [
+          {
+            label: i18n.__('Export as Plain Text (.txt)'),
+            click: e => this.handleExportTagClick(e, tag, 'txt')
+          },
+          {
+            label: i18n.__('Export as Markdown (.md)'),
+            click: e => this.handleExportTagClick(e, tag, 'md')
+          },
+          {
+            label: i18n.__('Export as HTML (.html)'),
+            click: e => this.handleExportTagClick(e, tag, 'html')
+          },
+          {
+            label: i18n.__('Export as PDF (.pdf)'),
+            click: e => this.handleExportTagClick(e, tag, 'pdf')
+          }
+        ]
+      },
+      {
+        type: 'separator'
+      },
+      {
+        label: i18n.__('Delete Tag'),
+        click: this.deleteTag.bind(this, tag)
+      }
+    ])
+  }
 
-    menu.push({
-      label: i18n.__('Delete Tag'),
-      click: this.deleteTag.bind(this, tag)
+  handleExportTagClick(e, tag, fileType) {
+    const options = {
+      properties: ['openDirectory', 'createDirectory'],
+      buttonLabel: i18n.__('Select directory'),
+      title: i18n.__('Select a folder to export the files to'),
+      multiSelections: false
+    }
+    dialog.showOpenDialog(remote.getCurrentWindow(), options, paths => {
+      if (paths && paths.length === 1) {
+        const { data, config } = this.props
+        dataApi
+          .exportTag(data, tag, fileType, paths[0], config)
+          .then(data => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+              type: 'info',
+              message: `Exported to ${paths[0]}`
+            })
+          })
+          .catch(error => {
+            dialog.showErrorBox(
+              'Export error',
+              error ? error.message || error : 'Unexpected error during export'
+            )
+            throw error
+          })
+      }
     })
-
-    menu.push({
-      label: i18n.__('Customize Color'),
-      click: this.displayColorPicker.bind(
-        this,
-        tag,
-        e.target.getBoundingClientRect()
-      )
-    })
-
-    menu.push({
-      label: i18n.__('Rename Tag'),
-      click: this.handleRenameTagClick.bind(this, tag)
-    })
-
-    context.popup(menu)
   }
 
   dismissColorPicker() {
@@ -330,6 +381,7 @@ class SideNav extends React.Component {
             dispatch={dispatch}
             onSortEnd={this.onSortEnd.bind(this)(storage)}
             useDragHandle
+            config={config}
           />
         )
       })

@@ -6,6 +6,7 @@ import UiTab from './UiTab'
 import InfoTab from './InfoTab'
 import Crowdfunding from './Crowdfunding'
 import StoragesTab from './StoragesTab'
+import ExportTab from './ExportTab'
 import SnippetTab from './SnippetTab'
 import PluginsTab from './PluginsTab'
 import Blog from './Blog'
@@ -24,7 +25,8 @@ class Preferences extends React.Component {
       currentTab: 'STORAGES',
       UIAlert: '',
       HotkeyAlert: '',
-      BlogAlert: ''
+      BlogAlert: '',
+      ExportAlert: ''
     }
   }
 
@@ -81,6 +83,15 @@ class Preferences extends React.Component {
             haveToSave={alert => this.setState({ BlogAlert: alert })}
           />
         )
+      case 'EXPORT':
+        return (
+          <ExportTab
+            dispatch={dispatch}
+            config={config}
+            data={data}
+            haveToSave={alert => this.setState({ ExportAlert: alert })}
+          />
+        )
       case 'SNIPPET':
         return <SnippetTab dispatch={dispatch} config={config} data={data} />
       case 'PLUGINS':
@@ -131,6 +142,11 @@ class Preferences extends React.Component {
       { target: 'INFO', label: i18n.__('About') },
       { target: 'CROWDFUNDING', label: i18n.__('Crowdfunding') },
       { target: 'BLOG', label: i18n.__('Blog'), Blog: this.state.BlogAlert },
+      {
+        target: 'EXPORT',
+        label: i18n.__('Export'),
+        Export: this.state.ExportAlert
+      },
       { target: 'SNIPPET', label: i18n.__('Snippets') },
       { target: 'PLUGINS', label: i18n.__('Plugins') }
     ]

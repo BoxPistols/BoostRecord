@@ -43,12 +43,20 @@ class StorageItem extends React.Component {
         label: i18n.__('Export Storage'),
         submenu: [
           {
-            label: i18n.__('Export as txt'),
+            label: i18n.__('Export as Plain Text (.txt)'),
             click: e => this.handleExportStorageClick(e, 'txt')
           },
           {
-            label: i18n.__('Export as md'),
+            label: i18n.__('Export as Markdown (.md)'),
             click: e => this.handleExportStorageClick(e, 'md')
+          },
+          {
+            label: i18n.__('Export as HTML (.html)'),
+            click: e => this.handleExportStorageClick(e, 'html')
+          },
+          {
+            label: i18n.__('Export as PDF (.pdf)'),
+            click: e => this.handleExportStorageClick(e, 'pdf')
           }
         ]
       },
@@ -97,14 +105,28 @@ class StorageItem extends React.Component {
     }
     dialog.showOpenDialog(remote.getCurrentWindow(), options, paths => {
       if (paths && paths.length === 1) {
-        const { storage, dispatch } = this.props
-        dataApi.exportStorage(storage.key, fileType, paths[0]).then(data => {
-          dispatch({
-            type: 'EXPORT_STORAGE',
-            storage: data.storage,
-            fileType: data.fileType
+        const { storage, dispatch, config } = this.props
+        dataApi
+          .exportStorage(storage.key, fileType, paths[0], config)
+          .then(data => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+              type: 'info',
+              message: `Exported to ${paths[0]}`
+            })
+
+            dispatch({
+              type: 'EXPORT_STORAGE',
+              storage: data.storage,
+              fileType: data.fileType
+            })
           })
-        })
+          .catch(error => {
+            dialog.showErrorBox(
+              'Export error',
+              error ? error.message || error : 'Unexpected error during export'
+            )
+            throw error
+          })
       }
     })
   }
@@ -166,12 +188,20 @@ class StorageItem extends React.Component {
         label: i18n.__('Export Folder'),
         submenu: [
           {
-            label: i18n.__('Export as txt'),
+            label: i18n.__('Export as Plain Text (.txt)'),
             click: e => this.handleExportFolderClick(e, folder, 'txt')
           },
           {
-            label: i18n.__('Export as md'),
+            label: i18n.__('Export as Markdown (.md)'),
             click: e => this.handleExportFolderClick(e, folder, 'md')
+          },
+          {
+            label: i18n.__('Export as HTML (.html)'),
+            click: e => this.handleExportFolderClick(e, folder, 'html')
+          },
+          {
+            label: i18n.__('Export as PDF (.pdf)'),
+            click: e => this.handleExportFolderClick(e, folder, 'pdf')
           }
         ]
       },
@@ -202,30 +232,28 @@ class StorageItem extends React.Component {
     }
     dialog.showOpenDialog(remote.getCurrentWindow(), options, paths => {
       if (paths && paths.length === 1) {
-        const { storage, dispatch } = this.props
+        const { storage, dispatch, config } = this.props
         dataApi
-          .exportFolder(storage.key, folder.key, fileType, paths[0])
+          .exportFolder(storage.key, folder.key, fileType, paths[0], config)
           .then(data => {
+            dialog.showMessageBox(remote.getCurrentWindow(), {
+              type: 'info',
+              message: `Exported to ${paths[0]}`
+            })
+
             dispatch({
               type: 'EXPORT_FOLDER',
               storage: data.storage,
               folderKey: data.folderKey,
               fileType: data.fileType
             })
-            return data
           })
-          .then(data => {
-            dialog.showMessageBox(remote.getCurrentWindow(), {
-              type: 'info',
-              message: 'Exported to "' + data.exportDir + '"'
-            })
-          })
-          .catch(err => {
+          .catch(error => {
             dialog.showErrorBox(
               'Export error',
-              err ? err.message || err : 'Unexpected error during export'
+              error ? error.message || error : 'Unexpected error during export'
             )
-            throw err
+            throw error
           })
       }
     })

@@ -16,7 +16,10 @@ class InfoTab extends React.Component {
     super(props)
 
     this.state = {
-      config: this.props.config
+      config: this.props.config,
+      subscriptionFormStatus: 'idle',
+      subscriptionFormErrorMessage: null,
+      subscriptionFormEmail: ''
     }
   }
 
@@ -29,6 +32,48 @@ class InfoTab extends React.Component {
     const newConfig = { amaEnabled: this.refs.amaEnabled.checked }
 
     this.setState({ config: newConfig })
+  }
+
+  handleSubscriptionFormSubmit(e) {
+    e.preventDefault()
+    this.setState({
+      subscriptionFormStatus: 'sending',
+      subscriptionFormErrorMessage: null
+    })
+
+    fetch(
+      'https://boostmails.boostio.co/api/public/lists/5f434dccd05f3160b41c0d49/subscriptions',
+      {
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify({ email: this.state.subscriptionFormEmail })
+      }
+    )
+      .then(response => {
+        if (response.status >= 400) {
+          return response.text().then(text => {
+            throw new Error(text)
+          })
+        }
+        this.setState({
+          subscriptionFormStatus: 'done'
+        })
+      })
+      .catch(error => {
+        this.setState({
+          subscriptionFormStatus: 'idle',
+          subscriptionFormErrorMessage: error.message
+        })
+      })
+  }
+
+  handleSubscriptionFormEmailChange(e) {
+    this.setState({
+      subscriptionFormEmail: e.target.value
+    })
   }
 
   handleSaveButtonClick(e) {
@@ -132,6 +177,40 @@ class InfoTab extends React.Component {
           </ul>
         </div>
 
+        <hr />
+
+        <div styleName='group-header--sub'>Subscribe Update Notes</div>
+        {this.state.subscriptionFormStatus === 'done' ? (
+          <div>
+            <blockquote color={{ color: 'green' }}>
+              Thanks for the subscription!
+            </blockquote>
+          </div>
+        ) : (
+          <div>
+            {this.state.subscriptionFormErrorMessage != null && (
+              <blockquote style={{ color: 'red' }}>
+                {this.state.subscriptionFormErrorMessage}
+              </blockquote>
+            )}
+            <form onSubmit={e => this.handleSubscriptionFormSubmit(e)}>
+              <input
+                styleName='subscription-email-input'
+                placeholder='E-mail'
+                type='email'
+                onChange={e => this.handleSubscriptionFormEmailChange(e)}
+                disabled={this.state.subscriptionFormStatus === 'sending'}
+              />
+              <button
+                styleName='subscription-submit-button'
+                type='submit'
+                disabled={this.state.subscriptionFormStatus === 'sending'}
+              >
+                Subscribe
+              </button>
+            </form>
+          </div>
+        )}
         <hr />
 
         <div styleName='group-header--sub'>{i18n.__('About')}</div>

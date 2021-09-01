@@ -1,12 +1,26 @@
-> [We've launched desktop and mobile app of the new Boost Note now.](https://github.com/BoostIO/BoostNote.next)
-
-> ### [Boost Note for Teams](https://boosthub.io/)
+> # New Boost Note app is available!
 >
-> We've developed a collaborative workspace app called "Boost Hub" for developer teams.
+> We've launched a new Boost Note app which supports real-time collaborative writing.
 >
-> It's customizable and easy to optimize for your team like rego blocks and even lets you edit documents together in real-time!
+> And it is open sourced too! Please check it out! https://github.com/BoostIO/BoostNote-App
+>
+> ## 📦 Download App
+>
+> ### 🖥 Desktop
+>
+> - [🌎 Web App (boostnote.io)](https://boostnote.io)
+> - [🍎 macOS (.dmg)](https://github.com/BoostIO/BoostNote-App/releases/latest/download/boost-note-mac.dmg)
+> - [:framed_picture: Windows (.exe NSIS)](https://github.com/BoostIO/BoostNote-App/releases/latest/download/boost-note-win.exe)
+> - [🐧 Linux (.deb)](https://github.com/BoostIO/BoostNote-App/releases/latest/download/boost-note-linux.deb)
+> - [🐧 Linux (.rpm)](https://github.com/BoostIO/BoostNote-App/releases/latest/download/boost-note-linux.rpm)
+>
+> ### 📱 Mobile
+>
+> - [🌎 Mobile Web App (m.boostnote.io)](https://m.boostnote.io)
+> - [🍏 iOS (Apple App Store)](https://apps.apple.com/gb/app/boost-note-mobile/id1576176505)
+> - [🤖 Android (Google Play Store)](https://play.google.com/store/apps/details?id=com.boostio.boostnote2021)
 
-![Boostnote app screenshot](./resources/repository/top.png)
+<h1 align="center">BoostNote-Legacy</h1>
 
 <h4 align="center">Note-taking app for programmers. </h4>
 <h5 align="center">Apps available for Mac, Windows and Linux.</h5>

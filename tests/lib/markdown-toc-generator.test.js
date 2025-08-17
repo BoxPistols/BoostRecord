@@ -5,7 +5,6 @@
 import CodeMirror from 'codemirror'
 require('codemirror/addon/search/searchcursor.js')
 const markdownToc = require('browser/lib/markdown-toc-generator')
-const EOL = require('os').EOL
 
 test(() => {
   /**
@@ -255,7 +254,6 @@ this is a text
   ]
 
   testCases.forEach(testCase => {
-    const title = testCase[0]
     const inputMd = testCase[1].trim()
     const expectedToc = testCase[2].trim()
     const generatedToc = markdownToc.generate(inputMd)
@@ -652,7 +650,6 @@ this is a level one text
     ]
   ]
   testCases.forEach(testCase => {
-    const title = testCase[0]
     const cursor = testCase[1]
     const inputMd = testCase[2].trim()
     const expectedMd = testCase[3].trim()

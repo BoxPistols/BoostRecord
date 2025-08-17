@@ -18,7 +18,7 @@ class ColorPicker extends React.Component {
     this.handleConfirm = this.handleConfirm.bind(this)
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.onColorChange(nextProps.color)
   }
 

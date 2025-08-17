@@ -14,7 +14,9 @@
     "react/no-find-dom-node": "warn",
     "react/no-render-return-value": "warn",
     "react/no-deprecated": "warn",
-    "prettier/prettier": ["error"]
+    "prettier/prettier": ["error"],
+    "react/no-unknown-property": [ "error", { "ignore": ["styleName"] } ],
+    "camelcase": "off"
   },
   "globals": {
     "FileReader": true,
@@ -22,6 +24,11 @@
     "fetch": true,
     "Image": true,
     "MutationObserver": true
+  },
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
   },
   "env": {
     "jest": true

@@ -283,9 +283,7 @@ class Markdown {
 
           return `<pre class="fence" data-line="${token.map[0]}">
             <span class="filename">${token.fileName}</span>
-            <div class="flowchart" data-height="${token.parameters.height}">${
-            token.content
-          }</div>
+            <div class="flowchart" data-height="${token.parameters.height}">${token.content}</div>
           </pre>`
         },
         gallery: token => {
@@ -304,9 +302,7 @@ class Markdown {
 
           return `<pre class="fence" data-line="${token.map[0]}">
               <span class="filename">${token.fileName}</span>
-              <div class="gallery" data-autoplay="${
-                token.parameters.autoplay
-              }" data-height="${token.parameters.height}">${content}</div>
+              <div class="gallery" data-autoplay="${token.parameters.autoplay}" data-height="${token.parameters.height}">${content}</div>
             </pre>`
         },
         mermaid: token => {
@@ -314,9 +310,7 @@ class Markdown {
 
           return `<pre class="fence" data-line="${token.map[0]}">
             <span class="filename">${token.fileName}</span>
-            <div class="mermaid" data-height="${token.parameters.height}">${
-            token.content
-          }</div>
+            <div class="mermaid" data-height="${token.parameters.height}">${token.content}</div>
           </pre>`
         },
         sequence: token => {
@@ -324,9 +318,7 @@ class Markdown {
 
           return `<pre class="fence" data-line="${token.map[0]}">
             <span class="filename">${token.fileName}</span>
-            <div class="sequence" data-height="${token.parameters.height}">${
-            token.content
-          }</div>
+            <div class="sequence" data-height="${token.parameters.height}">${token.content}</div>
           </pre>`
         }
       },

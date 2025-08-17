@@ -78,7 +78,7 @@ class SnippetNoteDetail extends React.Component {
     ee.on('code:generate-toc', this.generateToc)
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (
       nextProps.note.key !== this.props.note.key &&
       !this.state.isMovingNote

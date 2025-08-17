@@ -125,7 +125,7 @@ class NoteList extends React.Component {
     ee.on('list:navigate', this.navigate)
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.location.pathname !== this.props.location.pathname) {
       this.resetScroll()
     }

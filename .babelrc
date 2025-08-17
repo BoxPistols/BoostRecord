@@ -1,5 +1,13 @@
 {
   "presets": ["react", "es2015"],
+  "plugins": [
+    ["react-css-modules", {
+      "generateScopedName": "[name]__[local]___[path]",
+      "filetypes": {
+        ".styl": "sugarss"
+      }
+    }]
+  ],
   "env": {
     "development": {
       "presets": ["react-hmre"]

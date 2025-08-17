@@ -1,3 +1,4 @@
+import _ from 'lodash'
 import path from 'path'
 import fileUrl from 'file-url'
 import fs from 'fs'

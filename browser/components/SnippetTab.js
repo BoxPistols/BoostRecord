@@ -14,7 +14,7 @@ class SnippetTab extends React.Component {
     }
   }
 
-  componentWillUpdate(nextProps) {
+  UNSAFE_componentWillUpdate(nextProps) {
     if (nextProps.snippet.name !== this.props.snippet.name) {
       this.setState({
         name: nextProps.snippet.name

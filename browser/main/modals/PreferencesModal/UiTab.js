@@ -468,7 +468,7 @@ class UiTab extends React.Component {
                 <input
                   onChange={e => this.handleUIChange(e)}
                   checked={this.state.config.ui.disableDirectWrite}
-                  refs='uiD2w'
+                  ref='uiD2w'
                   disabled={OSX}
                   type='checkbox'
                 />

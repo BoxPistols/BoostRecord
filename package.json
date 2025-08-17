@@ -218,5 +218,8 @@
     "hooks": {
       "pre-commit": "npm run lint"
     }
+  },
+  "volta": {
+    "node": "14.21.3"
   }
 }

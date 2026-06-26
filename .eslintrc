@@ -16,7 +16,14 @@
     "react/no-deprecated": "warn",
     "prettier/prettier": ["error"],
     "react/no-unknown-property": [ "error", { "ignore": ["styleName"] } ],
-    "camelcase": "off"
+    "camelcase": "off",
+    "react/jsx-space-before-closing": "off",
+    "react/jsx-tag-spacing": ["error", {
+      "beforeSelfClosing": "always",
+      "closingSlash": "allow",
+      "afterOpening": "allow",
+      "beforeClosing": "allow"
+    }]
   },
   "globals": {
     "FileReader": true,

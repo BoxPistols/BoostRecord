@@ -187,6 +187,7 @@
     "style-loader": "^0.12.4",
     "stylus": "^0.52.4",
     "stylus-loader": "^2.5.1",
+    "sugarss": "^1.0.1",
     "webpack": "^1.15.0",
     "webpack-dev-server": "^1.16.5"
   },

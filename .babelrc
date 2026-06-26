@@ -4,7 +4,9 @@
     ["react-css-modules", {
       "generateScopedName": "[name]__[local]___[path]",
       "filetypes": {
-        ".styl": "sugarss"
+        ".styl": {
+          "syntax": "sugarss"
+        }
       }
     }]
   ],

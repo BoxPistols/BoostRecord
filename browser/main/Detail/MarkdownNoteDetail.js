@@ -62,6 +62,17 @@ class MarkdownNoteDetail extends React.Component {
     this.handleUpdateContent = this.handleUpdateContent.bind(this)
     this.handleSwitchStackDirection = this.handleSwitchStackDirection.bind(this)
     this.getNote = this.getNote.bind(this)
+    // Stable listener refs so componentWillUnmount can remove every listener.
+    // Previously these were registered as inline/anonymous handlers that could
+    // never be removed, leaking a listener on every note switch (and making the
+    // toggle handlers fire multiple times).
+    this.handleSwitchDirection = this.handleSwitchDirection.bind(this)
+    this.handleDeleteNote = this.handleDeleteNote.bind(this)
+    this.handleToggleMode = () => {
+      const reversedType =
+        this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
+      this.handleSwitchMode(reversedType)
+    }
   }
 
   focus() {
@@ -71,13 +82,9 @@ class MarkdownNoteDetail extends React.Component {
   componentDidMount() {
     ee.on('editor:orientation', this.handleSwitchStackDirection)
     ee.on('topbar:togglelockbutton', this.toggleLockButton)
-    ee.on('topbar:toggledirectionbutton', () => this.handleSwitchDirection())
-    ee.on('topbar:togglemodebutton', () => {
-      const reversedType =
-        this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
-      this.handleSwitchMode(reversedType)
-    })
-    ee.on('hotkey:deletenote', this.handleDeleteNote.bind(this))
+    ee.on('topbar:toggledirectionbutton', this.handleSwitchDirection)
+    ee.on('topbar:togglemodebutton', this.handleToggleMode)
+    ee.on('hotkey:deletenote', this.handleDeleteNote)
     ee.on('code:generate-toc', this.generateToc)
   }
 
@@ -114,8 +121,11 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   componentWillUnmount() {
+    ee.off('editor:orientation', this.handleSwitchStackDirection)
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
-    ee.on('topbar:toggledirectionbutton', this.handleSwitchDirection)
+    ee.off('topbar:toggledirectionbutton', this.handleSwitchDirection)
+    ee.off('topbar:togglemodebutton', this.handleToggleMode)
+    ee.off('hotkey:deletenote', this.handleDeleteNote)
     ee.off('code:generate-toc', this.generateToc)
     if (this.saveQueue != null) this.saveNow()
   }

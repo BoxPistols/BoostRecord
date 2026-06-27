@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NoteItemSimple renders a markdown note 1`] = `
+<div
+  className="item-simple"
+  draggable="true"
+  onClick={[Function]}
+  onContextMenu={[Function]}
+  onDragStart={[Function]}
+>
+  <div
+    className="item-simple-title"
+  >
+    <i
+      className="fa fa-fw fa-file-text-o item-simple-title-icon"
+    />
+    
+    My note
+  </div>
+</div>
+`;

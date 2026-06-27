@@ -1,0 +1,75 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`SideNavFilter renders the All / Starred / Trash buttons 1`] = `
+<div
+  className="menu"
+>
+  <button
+    className="menu-button--active"
+    onClick={[MockFunction]}
+  >
+    <div
+      className="iconWrap"
+    >
+      <img
+        src="../resources/icon/icon-all-active.svg"
+      />
+    </div>
+    <span
+      className="menu-button-label"
+    >
+      All Notes
+    </span>
+    <span
+      className="counters"
+    >
+      10
+    </span>
+  </button>
+  <button
+    className="menu-button"
+    onClick={[MockFunction]}
+  >
+    <div
+      className="iconWrap"
+    >
+      <img
+        src="../resources/icon/icon-star-sidenav.svg"
+      />
+    </div>
+    <span
+      className="menu-button-label"
+    >
+      Starred
+    </span>
+    <span
+      className="counters"
+    >
+      3
+    </span>
+  </button>
+  <button
+    className="menu-button"
+    onClick={[MockFunction]}
+    onContextMenu={[MockFunction]}
+  >
+    <div
+      className="iconWrap"
+    >
+      <img
+        src="../resources/icon/icon-trash-sidenav.svg"
+      />
+    </div>
+    <span
+      className="menu-button-label"
+    >
+      Trash
+    </span>
+    <span
+      className="counters"
+    >
+      2
+    </span>
+  </button>
+</div>
+`;

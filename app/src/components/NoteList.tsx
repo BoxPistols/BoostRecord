@@ -1,5 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Note } from '../types'
+import { sortNotes, SORT_LABELS } from '../data/sort'
+import type { SortKey, SortDir } from '../data/sort'
+
+const SORT_STORE = 'theboosters_sort'
+
+function loadSort(): { key: SortKey; dir: SortDir } {
+  try {
+    const raw = JSON.parse(localStorage.getItem(SORT_STORE) || '')
+    if (raw && raw.key in SORT_LABELS && (raw.dir === 'asc' || raw.dir === 'desc')) {
+      return raw
+    }
+  } catch {
+    /* fall through to default */
+  }
+  return { key: 'updated', dir: 'desc' }
+}
 
 interface Props {
   notes: Note[]
@@ -31,11 +47,20 @@ export function NoteList({
   onQueryChange,
   onNewNote
 }: Props) {
+  const [sort, setSort] = useState(loadSort)
   const sorted = useMemo(
-    () =>
-      [...notes].sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt)),
-    [notes]
+    () => sortNotes(notes, sort.key, sort.dir),
+    [notes, sort]
   )
+
+  // Persist the sort choice so it survives reloads.
+  useEffect(() => {
+    try {
+      localStorage.setItem(SORT_STORE, JSON.stringify(sort))
+    } catch {
+      /* localStorage unavailable — non-fatal */
+    }
+  }, [sort])
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -83,7 +108,27 @@ export function NoteList({
         />
       </div>
       <div className="notelist-head">
-        <span>⌄ Updated</span>
+        <select
+          className="sort-select"
+          value={sort.key}
+          onChange={e => setSort(s => ({ ...s, key: e.target.value as SortKey }))}
+          title="並び替え"
+        >
+          {(Object.keys(SORT_LABELS) as SortKey[]).map(k => (
+            <option key={k} value={k}>
+              {SORT_LABELS[k]}
+            </option>
+          ))}
+        </select>
+        <button
+          className="sort-dir"
+          onClick={() =>
+            setSort(s => ({ ...s, dir: s.dir === 'asc' ? 'desc' : 'asc' }))
+          }
+          title={sort.dir === 'asc' ? '昇順' : '降順'}
+        >
+          {sort.dir === 'asc' ? '▲' : '▼'}
+        </button>
         <span className="sort" style={{ marginLeft: 'auto' }}>
           {total} notes
         </span>

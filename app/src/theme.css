@@ -181,3 +181,22 @@ body {
 .btn-primary:hover { filter: brightness(1.08); }
 .btn-ghost { background: transparent; color: var(--muted); width: 100%; }
 .btn-ghost:hover { background: #2a2e36; color: var(--fg); }
+
+/* ---- Overlay / modal -------------------------------------------------- */
+.overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  display: grid; place-items: center;
+}
+.overlay-card {
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: 8px; padding: 18px 22px; min-width: 320px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+.overlay-title { font-weight: 600; margin-bottom: 12px; }
+.shortcut-table { border-collapse: collapse; width: 100%; }
+.shortcut-table td { padding: 5px 10px 5px 0; color: var(--fg); }
+.shortcut-keys {
+  font-family: 'SFMono-Regular', Menlo, monospace; color: var(--muted);
+  white-space: nowrap; padding-right: 18px !important;
+}

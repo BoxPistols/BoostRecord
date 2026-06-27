@@ -9,6 +9,8 @@ interface Props {
   onPickStorage?: () => void
   /** When set (Electron), shows a button to permanently empty the trash. */
   onEmptyTrash?: () => void
+  /** Opens the keyboard-shortcut help overlay. */
+  onShowHelp?: () => void
 }
 
 export function Sidebar({
@@ -17,7 +19,8 @@ export function Sidebar({
   selection,
   onSelect,
   onPickStorage,
-  onEmptyTrash
+  onEmptyTrash,
+  onShowHelp
 }: Props) {
   const live = notes.filter(n => !n.isTrashed)
   const counts = {
@@ -100,11 +103,18 @@ export function Sidebar({
         </div>
       )}
 
-      {onPickStorage && (
+      {(onPickStorage || onShowHelp) && (
         <div className="side-section" style={{ marginTop: 'auto' }}>
-          <button className="btn-ghost" onClick={onPickStorage}>
-            ＋ ストレージを追加
-          </button>
+          {onPickStorage && (
+            <button className="btn-ghost" onClick={onPickStorage}>
+              ＋ ストレージを追加
+            </button>
+          )}
+          {onShowHelp && (
+            <button className="btn-ghost" onClick={onShowHelp}>
+              ⌨ ショートカット
+            </button>
+          )}
         </div>
       )}
     </nav>

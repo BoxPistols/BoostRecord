@@ -7,6 +7,7 @@ import { NoteList } from './components/NoteList'
 import { MarkdownEditor } from './components/MarkdownEditor'
 import { Preview } from './components/Preview'
 import { TagEditor } from './components/TagEditor'
+import { ShortcutHelp } from './components/ShortcutHelp'
 
 function firstTitle(content: string, fallback: string) {
   const line = content.split('\n').find(l => l.trim().length > 0)
@@ -28,6 +29,7 @@ export default function App() {
   const [pickError, setPickError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
+  const [showHelp, setShowHelp] = useState(false)
 
   const canPick = typeof repository.pickStorage === 'function'
   const canCreate = typeof repository.createNote === 'function'
@@ -275,6 +277,7 @@ export default function App() {
             ? handleEmptyTrash
             : undefined
         }
+        onShowHelp={() => setShowHelp(true)}
       />
       <NoteList
         notes={visible}
@@ -412,6 +415,7 @@ export default function App() {
           )}
         </div>
       )}
+      <ShortcutHelp open={showHelp} onClose={() => setShowHelp(false)} />
     </div>
   )
 }

@@ -74,7 +74,7 @@ class TopBar extends React.Component {
       search: '',
       isSearching: false
     })
-    this.refs.search.childNodes[0].blur
+    this.refs.search.childNodes[0].blur()
     dispatch(push('/searched'))
     e.preventDefault()
     this.debouncedUpdateKeyword('')

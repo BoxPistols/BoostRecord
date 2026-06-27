@@ -128,10 +128,6 @@ function updateNote(storageKey, noteKey, input) {
       noteData.isPinned = false
     }
 
-    if (noteData.type === 'SNIPPET_NOTE') {
-      noteData.title
-    }
-
     Object.assign(noteData, input, {
       key: noteKey,
       updatedAt: new Date(),

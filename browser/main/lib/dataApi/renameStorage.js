@@ -24,8 +24,6 @@ function renameStorage(key, name) {
   targetStorage.name = name
   localStorage.setItem('storages', JSON.stringify(cachedStorageList))
 
-  targetStorage.path
-
   return resolveStorageData(targetStorage)
 }
 

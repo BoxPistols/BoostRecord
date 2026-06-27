@@ -1,19 +1,23 @@
 import { useEffect, useMemo, useRef } from 'react'
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
+import katexPlugin from '@vscode/markdown-it-katex'
+import 'katex/dist/katex.min.css'
 
 /**
  * Markdown preview. Reuses the legacy app's pipeline (markdown-it) but renders
  * safely: raw HTML is disabled, output is sanitized with DOMPurify and injected
- * via a parsed fragment + replaceChildren (no innerHTML). KaTeX/mermaid plug in
- * here later as markdown-it plugins.
+ * via a parsed fragment + replaceChildren (no innerHTML). LaTeX math ($…$ and
+ * $$…$$) is rendered with KaTeX (output: 'html' so the markup is plain spans
+ * that survive sanitization); a sanitize test guards against regressions.
  */
 export function Preview({ content }: { content: string }) {
   const host = useRef<HTMLDivElement>(null)
-  const md = useMemo(
-    () => new MarkdownIt({ html: false, linkify: true, breaks: true }),
-    []
-  )
+  const md = useMemo(() => {
+    const m = new MarkdownIt({ html: false, linkify: true, breaks: true })
+    m.use(katexPlugin, { throwOnError: false, output: 'html' })
+    return m
+  }, [])
 
   useEffect(() => {
     if (!host.current) return

@@ -8,10 +8,13 @@ function validateInput(input) {
   const validatedInput = {}
 
   if (input.tags != null) {
+    // Guard against non-array tags: calling .filter() on a string/object
+    // throws. Coerce to [] instead, matching the title/content handling below.
     if (!_.isArray(input.tags)) validatedInput.tags = []
-    validatedInput.tags = input.tags.filter(
-      tag => _.isString(tag) && tag.trim().length > 0
-    )
+    else
+      validatedInput.tags = input.tags.filter(
+        tag => _.isString(tag) && tag.trim().length > 0
+      )
   }
 
   if (input.title != null) {

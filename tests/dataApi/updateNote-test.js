@@ -140,6 +140,37 @@ test.serial('Update a note', t => {
     })
 })
 
+test.serial(
+  'Update a note with non-array tags sanitises to an empty array',
+  t => {
+    const storageKey = t.context.storage.cache.key
+    const folderKey = t.context.storage.json.folders[0].key
+
+    const input = {
+      type: 'MARKDOWN_NOTE',
+      content: faker.lorem.lines(),
+      tags: ['real'],
+      folder: folderKey
+    }
+    input.title = input.content.split('\n').shift()
+
+    return createNote(storageKey, input)
+      .then(function update(note) {
+        // `tags` is not an array — validateInput must coerce it to [] rather
+        // than calling .filter() on a non-array and throwing a TypeError that
+        // rejects the whole update.
+        return updateNote(note.storage, note.key, {
+          type: 'MARKDOWN_NOTE',
+          content: faker.lorem.lines(),
+          tags: 'not-an-array'
+        })
+      })
+      .then(function assert(updated) {
+        t.deepEqual(updated.tags, [])
+      })
+  }
+)
+
 test.after(function after() {
   localStorage.clear()
   sander.rimrafSync(storagePath)

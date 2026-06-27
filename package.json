@@ -19,6 +19,9 @@
   "config": {
     "electron-version": "4.2.12"
   },
+  "engines": {
+    "node": ">=14.0.0 <17.0.0"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/BoostIO/Boostnote.git"

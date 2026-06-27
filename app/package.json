@@ -14,7 +14,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "test": "node --test test/*.test.mjs",
+    "test": "node --experimental-strip-types --test test/*.test.mjs",
     "lint": "oxlint",
     "preview": "vite preview",
     "electron": "electron .",

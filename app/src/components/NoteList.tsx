@@ -5,6 +5,8 @@ interface Props {
   notes: Note[]
   activeKey: string | null
   onSelect: (key: string) => void
+  query: string
+  onQueryChange: (q: string) => void
 }
 
 const ROW_H = 58 // fixed row height enables simple, fast windowing
@@ -19,7 +21,13 @@ function shortDate(iso: string) {
  * Virtualized note list: only the rows in (and just around) the viewport are
  * rendered, so hundreds of notes scroll smoothly. Sorted by Updated desc.
  */
-export function NoteList({ notes, activeKey, onSelect }: Props) {
+export function NoteList({
+  notes,
+  activeKey,
+  onSelect,
+  query,
+  onQueryChange
+}: Props) {
   const sorted = useMemo(
     () =>
       [...notes].sort((a, b) => +new Date(b.updatedAt) - +new Date(a.updatedAt)),
@@ -27,8 +35,22 @@ export function NoteList({ notes, activeKey, onSelect }: Props) {
   )
 
   const scrollRef = useRef<HTMLDivElement>(null)
+  const searchRef = useRef<HTMLInputElement>(null)
   const [scrollTop, setScrollTop] = useState(0)
   const [viewport, setViewport] = useState(800)
+
+  // Cmd/Ctrl+F focuses the search box (no native browser find in Electron).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+        e.preventDefault()
+        searchRef.current?.focus()
+        searchRef.current?.select()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
 
   useEffect(() => {
     const el = scrollRef.current
@@ -47,6 +69,16 @@ export function NoteList({ notes, activeKey, onSelect }: Props) {
 
   return (
     <section className="notelist">
+      <div className="notelist-search">
+        <input
+          ref={searchRef}
+          className="search-input"
+          type="search"
+          placeholder="検索…  (⌘/Ctrl+F)"
+          value={query}
+          onChange={e => onQueryChange(e.target.value)}
+        />
+      </div>
       <div className="notelist-head">
         <span>⌄ Updated</span>
         <span className="sort" style={{ marginLeft: 'auto' }}>
@@ -89,7 +121,9 @@ export function NoteList({ notes, activeKey, onSelect }: Props) {
             )
           })}
           {total === 0 && (
-            <div style={{ padding: 20, color: 'var(--faint)' }}>No notes</div>
+            <div style={{ padding: 20, color: 'var(--faint)' }}>
+              {query.trim() ? '一致するノートがありません' : 'No notes'}
+            </div>
           )}
         </div>
       </div>

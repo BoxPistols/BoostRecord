@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Note, Selection, Storage } from './types'
 import { createRepository } from './data/repository'
+import { filterByQuery } from './data/search'
 import { Sidebar } from './components/Sidebar'
 import { NoteList } from './components/NoteList'
 import { MarkdownEditor } from './components/MarkdownEditor'
@@ -24,6 +25,7 @@ export default function App() {
   })
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [pickError, setPickError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
 
   const canPick = typeof repository.pickStorage === 'function'
 
@@ -57,19 +59,25 @@ export default function App() {
 
   const visible = useMemo(() => {
     const live = notes.filter(n => !n.isTrashed)
+    let base: Note[] = live
     switch (selection.kind) {
       case 'smart':
-        if (selection.value === 'starred') return live.filter(n => n.isStarred)
-        if (selection.value === 'trashed') return notes.filter(n => n.isTrashed)
-        return live
+        if (selection.value === 'starred') base = live.filter(n => n.isStarred)
+        else if (selection.value === 'trashed')
+          base = notes.filter(n => n.isTrashed)
+        break
       case 'folder': {
         const [storage, folder] = selection.value.split('|')
-        return live.filter(n => n.storage === storage && n.folder === folder)
+        base = live.filter(n => n.storage === storage && n.folder === folder)
+        break
       }
       case 'tag':
-        return live.filter(n => n.tags.includes(selection.value))
+        base = live.filter(n => n.tags.includes(selection.value))
+        break
     }
-  }, [notes, selection])
+    // Refine the current view by the search query (AND across terms).
+    return filterByQuery(base, query)
+  }, [notes, selection, query])
 
   const active = notes.find(n => n.key === activeKey) ?? null
 
@@ -125,7 +133,13 @@ export default function App() {
         onSelect={selectView}
         onPickStorage={canPick ? handlePickStorage : undefined}
       />
-      <NoteList notes={visible} activeKey={activeKey} onSelect={setActiveKey} />
+      <NoteList
+        notes={visible}
+        activeKey={activeKey}
+        onSelect={setActiveKey}
+        query={query}
+        onQueryChange={setQuery}
+      />
       {active ? (
         <section className="detail">
           <div className="detail-head">

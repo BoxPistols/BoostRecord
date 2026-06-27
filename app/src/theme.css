@@ -61,6 +61,14 @@ body {
 
 /* ---- Note list -------------------------------------------------------- */
 .notelist { background: var(--bg-list); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
+.notelist-search { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.search-input {
+  width: 100%; font: inherit; color: var(--fg);
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 6px 10px;
+}
+.search-input::placeholder { color: var(--faint); }
+.search-input:focus { outline: none; border-color: var(--accent); }
 .notelist-head {
   display: flex; align-items: center; gap: 8px;
   padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--muted);

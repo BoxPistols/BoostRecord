@@ -67,7 +67,9 @@ function validateInput(input) {
         } else {
           validatedInput.snippets = input.snippets
         }
-        validatedInput.snippets.filter(snippet => {
+        // Assign the filtered result back; otherwise invalid snippets pass
+        // through and get written to disk.
+        validatedInput.snippets = validatedInput.snippets.filter(snippet => {
           if (!_.isString(snippet.name)) return false
           if (!_.isString(snippet.mode)) return false
           if (!_.isString(snippet.content)) return false

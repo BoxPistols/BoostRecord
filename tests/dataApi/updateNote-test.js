@@ -171,6 +171,43 @@ test.serial(
   }
 )
 
+test.serial(
+  'Update a snippet note drops snippets with non-string fields',
+  t => {
+    const storageKey = t.context.storage.cache.key
+    const folderKey = t.context.storage.json.folders[0].key
+
+    const createInput = {
+      type: 'SNIPPET_NOTE',
+      description: faker.lorem.lines(),
+      snippets: [
+        { name: 'valid', mode: 'text', content: 'ok', linesHighlighted: [] }
+      ],
+      tags: [],
+      folder: folderKey
+    }
+    createInput.title = createInput.description.split('\n').shift()
+
+    return createNote(storageKey, createInput)
+      .then(function update(note) {
+        // The second snippet has a non-string name; validateInput must filter it
+        // out instead of discarding the filter result and persisting it.
+        return updateNote(note.storage, note.key, {
+          type: 'SNIPPET_NOTE',
+          description: faker.lorem.lines(),
+          snippets: [
+            { name: 'keep', mode: 'text', content: 'ok', linesHighlighted: [] },
+            { name: 123, mode: 'text', content: 'bad', linesHighlighted: [] }
+          ]
+        })
+      })
+      .then(function assert(updated) {
+        t.is(updated.snippets.length, 1)
+        t.is(updated.snippets[0].name, 'keep')
+      })
+  }
+)
+
 test.after(function after() {
   localStorage.clear()
   sander.rimrafSync(storagePath)

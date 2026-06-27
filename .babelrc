@@ -1,18 +1,30 @@
 {
   "presets": ["react", "es2015"],
-  "plugins": [
-    ["react-css-modules", {
-      "generateScopedName": "[name]__[local]___[path]",
-      "filetypes": {
-        ".styl": {
-          "syntax": "sugarss"
-        }
-      }
-    }]
-  ],
   "env": {
     "development": {
-      "presets": ["react-hmre"]
+      "presets": ["react-hmre"],
+      "plugins": [
+        ["react-css-modules", {
+          "generateScopedName": "[name]__[local]___[path]",
+          "filetypes": {
+            ".styl": {
+              "syntax": "sugarss"
+            }
+          }
+        }]
+      ]
+    },
+    "production": {
+      "plugins": [
+        ["react-css-modules", {
+          "generateScopedName": "[name]__[local]___[path]",
+          "filetypes": {
+            ".styl": {
+              "syntax": "sugarss"
+            }
+          }
+        }]
+      ]
     },
     "test": {
       "presets": ["env" ,"react", "es2015"],

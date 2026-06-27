@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
-import type { Note, Selection } from './types'
-import { sampleNotes, sampleStorages } from './data/sampleNotes'
+import { useEffect, useMemo, useState } from 'react'
+import type { Note, Selection, Storage } from './types'
+import { createInMemoryRepository } from './data/repository'
 import { Sidebar } from './components/Sidebar'
 import { NoteList } from './components/NoteList'
 import { MarkdownEditor } from './components/MarkdownEditor'
@@ -12,15 +12,30 @@ function firstTitle(content: string, fallback: string) {
   return line.replace(/^#+\s*/, '').trim() || fallback
 }
 
+// The data-layer seam: swap this for the Electron `.cson` repository later.
+const repository = createInMemoryRepository()
+
 export default function App() {
-  const [notes, setNotes] = useState<Note[]>(sampleNotes)
+  const [notes, setNotes] = useState<Note[]>([])
+  const [storages, setStorages] = useState<Storage[]>([])
   const [selection, setSelection] = useState<Selection>({
     kind: 'smart',
     value: 'all'
   })
-  const [activeKey, setActiveKey] = useState<string | null>(
-    sampleNotes[0]?.key ?? null
-  )
+  const [activeKey, setActiveKey] = useState<string | null>(null)
+
+  useEffect(() => {
+    let alive = true
+    repository.load().then(({ storages, notes }) => {
+      if (!alive) return
+      setStorages(storages)
+      setNotes(notes)
+      setActiveKey(prev => prev ?? notes[0]?.key ?? null)
+    })
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const visible = useMemo(() => {
     const live = notes.filter(n => !n.isTrashed)
@@ -78,7 +93,7 @@ export default function App() {
   }
 
   const folderName = active
-    ? (sampleStorages
+    ? (storages
         .find(s => s.key === active.storage)
         ?.folders.find(f => f.key === active.folder)?.name ?? active.folder)
     : ''
@@ -86,7 +101,7 @@ export default function App() {
   return (
     <div className="app">
       <Sidebar
-        storages={sampleStorages}
+        storages={storages}
         notes={notes}
         selection={selection}
         onSelect={selectView}

@@ -1,0 +1,63 @@
+name: Modern workspaces
+
+# Type-checks/builds the modern app shell and runs the collab-core PoC tests
+# on Node 22. These workspaces are intentionally separate from the legacy
+# Electron app (which is pinned to Node 14 in ci.yml). Path filters keep this
+# from running on unrelated legacy changes. No untrusted event input is
+# referenced in any run: step.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'poc/**'
+      - '.github/workflows/modern.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - 'poc/**'
+      - '.github/workflows/modern.yml'
+  workflow_dispatch:
+
+jobs:
+  app-build:
+    name: app — type-check & build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Type-check & build
+        run: npm run build
+
+  poc-collab-core:
+    name: poc/collab-core — convergence test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: poc/collab-core
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: poc/collab-core/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Headless collab convergence test
+        run: npm test

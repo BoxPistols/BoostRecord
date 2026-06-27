@@ -1,9 +1,9 @@
 name: CI
 
-# Runs lint, the AVA data-layer suite, and the Jest suite on every push and
-# pull request to main. Pinned to Node 14.21.3 to match the Volta pin and
-# Electron 4 compatibility. No untrusted event input is referenced in any
-# run: step.
+# Runs lint, the AVA data-layer suite, the Jest suite, and the production
+# webpack build on every push and pull request to main. Pinned to Node
+# 14.21.3 to match the Volta pin and Electron 4 compatibility. No untrusted
+# event input is referenced in any run: step.
 
 on:
   push:
@@ -41,3 +41,11 @@ jobs:
 
       - name: Jest
         run: npx jest --ci
+
+      - name: Build (webpack production)
+        # webpack 1 exits 0 even on compilation errors, so use --bail to fail
+        # on the first error and assert the bundle was actually emitted.
+        run: |
+          rm -rf compiled
+          node ./node_modules/.bin/webpack --config webpack-production.config.js --bail
+          test -f compiled/main.js

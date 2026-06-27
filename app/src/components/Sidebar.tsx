@@ -7,6 +7,8 @@ interface Props {
   onSelect: (s: Selection) => void
   /** When set (Electron), shows a button to add a real storage folder. */
   onPickStorage?: () => void
+  /** When set (Electron), shows a button to permanently empty the trash. */
+  onEmptyTrash?: () => void
 }
 
 export function Sidebar({
@@ -14,7 +16,8 @@ export function Sidebar({
   notes,
   selection,
   onSelect,
-  onPickStorage
+  onPickStorage,
+  onEmptyTrash
 }: Props) {
   const live = notes.filter(n => !n.isTrashed)
   const counts = {
@@ -53,6 +56,11 @@ export function Sidebar({
         >
           <span>🗑</span> Trash <span className="count">{counts.trashed}</span>
         </div>
+        {onEmptyTrash && counts.trashed > 0 && (
+          <button className="empty-trash" onClick={onEmptyTrash}>
+            ゴミ箱を空にする
+          </button>
+        )}
       </div>
 
       {storages.map(storage => (

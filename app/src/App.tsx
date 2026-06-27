@@ -231,6 +231,28 @@ export default function App() {
     }
   }
 
+  async function handleEmptyTrash() {
+    if (!repository.deleteNote) return
+    const trashed = notes.filter(n => n.isTrashed)
+    if (trashed.length === 0) return
+    if (
+      !window.confirm(
+        `ゴミ箱の ${trashed.length} 件を完全に削除しますか？元に戻せません。`
+      )
+    ) {
+      return
+    }
+    try {
+      setSaveError(null)
+      for (const n of trashed) await repository.deleteNote(n.key)
+      const trashedKeys = new Set(trashed.map(n => n.key))
+      setNotes(prev => prev.filter(n => !trashedKeys.has(n.key)))
+      if (active && trashedKeys.has(active.key)) setActiveKey(null)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
   const activeFolders = active
     ? (storages.find(s => s.key === active.storage)?.folders ?? [])
     : []
@@ -248,6 +270,11 @@ export default function App() {
         selection={selection}
         onSelect={selectView}
         onPickStorage={canPick ? handlePickStorage : undefined}
+        onEmptyTrash={
+          typeof repository.deleteNote === 'function'
+            ? handleEmptyTrash
+            : undefined
+        }
       />
       <NoteList
         notes={visible}

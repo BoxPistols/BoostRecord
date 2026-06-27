@@ -1,6 +1,7 @@
-<h1 align="center">Boostnote（BoxPistols フォーク）</h1>
+<h1 align="center">The Boosters</h1>
 
-<h4 align="center">プログラマ向けノートアプリ Boostnote Legacy を、UI/UX を引き継ぎつつ最新スタックへモダン化中。</h4>
+<h4 align="center">プログラマ向けノートアプリ Boostnote Legacy の後継。UI/UX を引き継ぎつつ、リアルタイム共同編集・local-first・拡張性を備えた最新スタックへ。</h4>
+<h5 align="center">※ Boostnote はサービス終了済みのため、敬意を込めて「The Boosters」へ改名（GPL-3.0 継承）。</h5>
 
 <p align="center">
   <a href="https://github.com/BoxPistols/Boostnote/actions/workflows/ci.yml">
@@ -57,8 +58,15 @@ cd poc/collab-core && npm install && npm test
 git tag app-v0.1.0 && git push origin app-v0.1.0
 ```
 
-> ⚠️ 現状の配布ビルドは **未署名**（署名証明書未設定）のため、初回起動時に macOS / Windows の警告が出ます。
-> Apple Developer ID / Windows コード署名証明書を Secrets に追加して `release.yml` に配線すれば、署名・notarize 済みで配布できます。
+> ⚠️ 現状の配布ビルドは **未署名**（署名証明書未設定）のため、初回起動時に OS の警告が出ます。
+>
+> **macOS で「壊れているため開けません」と出る場合**（未署名＋ダウンロード隔離属性が原因）— アプリを `/Applications` 等へ移動してから、ターミナルで隔離属性を外すと起動できます:
+> ```bash
+> xattr -dr com.apple.quarantine "/Applications/The Boosters.app"
+> ```
+> **Windows** は SmartScreen の「詳細情報」→「実行」で起動できます。
+>
+> 恒久対応は **Apple Developer ID / Windows コード署名証明書**を GitHub Secrets に登録 → `release.yml` に配線して、署名・notarize 済み（警告なし）で配布します。
 
 レガシー本家ビルドは [BoostIO/boost-releases](https://github.com/BoostIO/boost-releases/releases/) から入手できます。
 

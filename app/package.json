@@ -1,9 +1,9 @@
 {
-  "name": "app",
+  "name": "the-boosters",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
-  "description": "Boostnote — modern, collaborative note app for programmers",
+  "description": "The Boosters — a modern, collaborative note app for programmers (successor to the discontinued Boostnote)",
   "author": "BoxPistols",
   "license": "GPL-3.0",
   "repository": {
@@ -49,9 +49,9 @@
     "vite": "^8.1.0"
   },
   "build": {
-    "appId": "io.boxpistols.boostnote",
-    "productName": "Boostnote",
-    "copyright": "GPL-3.0, inherited from BoostIO",
+    "appId": "io.boxpistols.theboosters",
+    "productName": "The Boosters",
+    "copyright": "GPL-3.0, inherited from BoostIO (Boostnote)",
     "publish": {
       "provider": "github",
       "owner": "BoxPistols",
@@ -68,8 +68,18 @@
     },
     "mac": {
       "target": [
-        "dmg",
-        "zip"
+        {
+          "target": "dmg",
+          "arch": [
+            "universal"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "universal"
+          ]
+        }
       ],
       "category": "public.app-category.productivity"
     },

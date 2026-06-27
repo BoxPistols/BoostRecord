@@ -1,8 +1,9 @@
-# app — modern Boostnote shell (foundation)
+# The Boosters — modern app (foundation)
 
-The modernized app foundation: **Vite + React 19 + TypeScript + CodeMirror 6**,
-reproducing the current Boostnote UI/UX (3-pane: sidebar / note list / split
-editor + live preview, dark theme) on a fast, stable, extensible base.
+**The Boosters** is the renamed successor to the discontinued Boostnote. This is
+its modern app foundation: **Vite + React 19 + TypeScript + CodeMirror 6**,
+reproducing Boostnote's UI/UX (3-pane: sidebar / note list / split editor + live
+preview, dark theme) on a fast, stable, extensible base.
 
 Direction (confirmed with the user): **inherit the current UX but evolve it**,
 and **prioritize a fast, stable foundation first** before new features. Inherits

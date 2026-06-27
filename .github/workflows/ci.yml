@@ -1,10 +1,9 @@
 name: CI
 
-# Runs lint and the Jest test suite on every push and pull request to main.
-# Pinned to Node 14.21.3 to match the Volta pin and Electron 4 compatibility.
-# No untrusted event input is referenced in any run: step.
-# The AVA data-layer suite is not run here yet (tracked separately); see the
-# modernization roadmap.
+# Runs lint, the AVA data-layer suite, and the Jest suite on every push and
+# pull request to main. Pinned to Node 14.21.3 to match the Volta pin and
+# Electron 4 compatibility. No untrusted event input is referenced in any
+# run: step.
 
 on:
   push:
@@ -40,6 +39,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      - name: AVA (data layer)
+        run: npm run ava
 
       - name: Jest
         run: npx jest --ci

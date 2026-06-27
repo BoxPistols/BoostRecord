@@ -1,7 +1,7 @@
 {
   "name": "the-boosters",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.1.2",
   "type": "module",
   "description": "The Boosters — a modern, collaborative note app for programmers (successor to the discontinued Boostnote)",
   "author": "BoxPistols",

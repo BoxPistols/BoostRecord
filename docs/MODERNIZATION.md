@@ -79,25 +79,44 @@ large config migrations. Do each on its own branch, one at a time.
 Highest risk. Each needs `npm run dev` + `npm run compile` validated by hand on
 a supported machine, plus smoke-testing the packaged app. Sequence matters.
 
-1. [ ] **Babel 6 → 7** — prerequisite for most modern tooling. Touches every
-       transform; `.babelrc` → `babel.config.js`, preset renames
-       (`babel-preset-es2015` → `@babel/preset-env`), `react-css-modules`
-       plugin 3 → 5.
-2. [ ] **Webpack 1 → 5** — the loader syntax in `webpack*.config.js`
-       (`style!css?modules!stylus`) is Webpack 1 era and must be fully
-       rewritten to the `module.rules` / loader-array form.
-3. [ ] **React 16 → 18/19** — audit class-lifecycle usage
+> **Verified coupling (spike, 2026-06).** A Babel 6→7 spike on a throwaway
+> branch proved these majors are a **coupled big-bang, not incremental**:
+> - **Jest works on Babel 7** by adding `babel-core@7.0.0-bridge.0` alongside
+>   `@babel/core` (lets jest 22's `babel-jest` load Babel 7). 128/128 passed.
+> - **AVA 0.25 is hard-bound to babel-core 6** — it bundles its own
+>   `babel-core@6` and rejects `"babel": false`, so it cannot process Babel-7
+>   presets. Babel 7 therefore forces an **AVA 0.25 → 4+** upgrade.
+> - **`babel-loader@8` requires webpack ≥ 2**; under webpack 1 it silently
+>   produces a broken ~29 KB bundle (vs the real ~13 MB / 1602 modules), even
+>   though webpack 1 still exits 0. Babel 7 therefore forces the **Webpack
+>   1 → 2+** upgrade too.
+> - The test-time `browser/...` import resolution (`babel-plugin-webpack-alias`)
+>   has a Babel-7 replacement that works: `babel-plugin-webpack-alias-7`.
+>
+> Net: **Babel 7 + Webpack 2+ + babel-loader 8 + AVA 4** must land together.
+> Do them on one branch, gated by the CI build + suite, with manual app
+> smoke-testing before merge.
+
+1. [ ] **Babel 6 → 7 + Webpack 1 → 5 + AVA 0.25 → 4 (one coordinated branch)**
+       — preset renames (`babel-preset-es2015` → `@babel/preset-env`,
+       `@babel/preset-react`), `@babel/register` for AVA, `babel-loader@8`,
+       `babel-core@7.0.0-bridge.0` for jest, `babel-plugin-webpack-alias-7`,
+       and rewriting the webpack-1 loader syntax
+       (`style!css?modules!stylus`) to `module.rules`. The dev HMR preset
+       (`react-hmre` / `babel-plugin-react-transform`) → `react-hot-loader`.
+2. [ ] **React 16 → 18/19** — audit class-lifecycle usage
        (`react/no-deprecated` is currently a warning), `ReactDOM.render` →
-       `createRoot`, and the `react-hot-loader` / `react-hmre` dev setup.
-4. [ ] **Electron 4 → latest** — the largest change: arm64 support, context
+       `createRoot`, and the dev hot-reload setup.
+3. [ ] **Electron 4 → latest** — the largest change: arm64 support, context
        isolation, `remote` module removal, `nodeIntegration` review, native
        module rebuilds, and security-model changes. Also unblocks running the
        app on Apple Silicon, which in turn makes Tier 3 verifiable locally.
 
 ## Suggested order
 
-Foundation (done) → Tier 1 → Tier 2 → Babel 7 → Webpack 5 → React 18 →
-Electron latest. Electron is listed last because every other upgrade is easier
-to verify once the app builds, but bringing Electron forward is also what
-finally enables local arm64 verification — so it may be worth a spike early to
-unblock the rest.
+Foundation (done) → Tier 1 → Tier 2 → **(Babel 7 + Webpack 5 + AVA 4 as one
+coordinated step)** → React 18 → Electron latest. The Babel/Webpack/AVA step is
+a single big-bang because of the coupling documented above. Electron is listed
+last because every other upgrade is easier to verify once the app builds, but
+bringing Electron forward is also what finally enables local arm64
+verification — so it may be worth a spike early to unblock the rest.

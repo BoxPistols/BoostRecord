@@ -40,7 +40,9 @@ jobs:
         run: npm run ava
 
       - name: Jest
-        run: npx jest --ci
+        # --coverage prints a coverage summary for the code exercised by the
+        # tests (informational; no threshold is enforced).
+        run: npx jest --ci --coverage --coverageReporters=text-summary
 
       - name: Build (webpack production)
         # webpack 1 exits 0 even on compilation errors, so use --bail to fail

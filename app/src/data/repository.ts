@@ -1,5 +1,6 @@
 import type { Note, Storage } from '../types'
 import { sampleNotes, sampleStorages } from './sampleNotes'
+import { exportFilename } from './exportMarkdown'
 
 /**
  * The data-layer seam. The renderer only ever talks to a NotesRepository;
@@ -17,6 +18,8 @@ export interface NotesRepository {
   createNote?(opts: { storage?: string; folder?: string }): Promise<Note>
   /** Permanently delete a note by key. */
   deleteNote?(key: string): Promise<void>
+  /** Export a note's content to a `.md` file (returns false if canceled). */
+  exportNote?(note: Note): Promise<boolean>
 }
 
 // Deterministic (no Math.random) generator so the list reaches realistic
@@ -96,6 +99,15 @@ export function createElectronRepository(): NotesRepository {
     async deleteNote(key) {
       const res = await window.boostnote!.deleteNote(key)
       if (!res.ok) throw new Error(res.error || 'ノートの削除に失敗しました')
+    },
+    async exportNote(note) {
+      const res = await window.boostnote!.exportNote({
+        filename: exportFilename(note),
+        content: note.content
+      })
+      if (res.canceled) return false
+      if (!res.ok) throw new Error(res.error || 'エクスポートに失敗しました')
+      return true
     }
   }
 }

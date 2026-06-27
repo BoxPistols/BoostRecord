@@ -10,5 +10,6 @@ contextBridge.exposeInMainWorld('boostnote', {
   pickStorage: () => ipcRenderer.invoke('notes:pickStorage'),
   saveNote: note => ipcRenderer.invoke('notes:save', note),
   createNote: opts => ipcRenderer.invoke('notes:create', opts),
-  deleteNote: key => ipcRenderer.invoke('notes:delete', key)
+  deleteNote: key => ipcRenderer.invoke('notes:delete', key),
+  exportNote: payload => ipcRenderer.invoke('notes:export', payload)
 })

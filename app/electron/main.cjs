@@ -75,6 +75,24 @@ ipcMain.handle('notes:create', (_event, opts) => {
   }
 })
 
+// Export a note's content to a user-chosen `.md` file.
+ipcMain.handle('notes:export', async (_event, payload) => {
+  try {
+    const { filename, content } = payload || {}
+    const res = await dialog.showSaveDialog({
+      title: 'Markdown としてエクスポート',
+      defaultPath: filename || 'untitled.md',
+      filters: [{ name: 'Markdown', extensions: ['md'] }]
+    })
+    if (res.canceled || !res.filePath) return { ok: false, canceled: true }
+    fs.writeFileSync(res.filePath, String(content ?? ''), 'utf8')
+    return { ok: true, file: res.filePath }
+  } catch (err) {
+    console.error('notes:export failed:', err)
+    return { ok: false, error: String(err) }
+  }
+})
+
 // Permanently delete a note's `.cson` file.
 ipcMain.handle('notes:delete', (_event, key) => {
   try {

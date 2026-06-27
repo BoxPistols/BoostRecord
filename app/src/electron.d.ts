@@ -24,6 +24,13 @@ export interface CreateNoteOptions {
   content?: string
 }
 
+export interface ExportResult {
+  ok: boolean
+  file?: string
+  canceled?: boolean
+  error?: string
+}
+
 // The preload bridge (electron/preload.cjs). Present only when running inside
 // Electron; the browser foundation falls back to the in-memory repository.
 declare global {
@@ -34,6 +41,10 @@ declare global {
       saveNote(note: Note): Promise<SaveResult>
       createNote(opts: CreateNoteOptions): Promise<CreateResult>
       deleteNote(key: string): Promise<SaveResult>
+      exportNote(payload: {
+        filename: string
+        content: string
+      }): Promise<ExportResult>
     }
   }
 }

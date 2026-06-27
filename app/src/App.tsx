@@ -31,6 +31,7 @@ export default function App() {
 
   const canPick = typeof repository.pickStorage === 'function'
   const canCreate = typeof repository.createNote === 'function'
+  const canExport = typeof repository.exportNote === 'function'
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const newNoteRef = useRef<() => void>(() => {})
 
@@ -206,6 +207,16 @@ export default function App() {
     setActiveKey(null) // the note leaves the current view
   }
 
+  async function handleExport() {
+    if (!active || !repository.exportNote) return
+    try {
+      setSaveError(null)
+      await repository.exportNote(active)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
   async function deleteActiveForever() {
     if (!active || !repository.deleteNote) return
     if (!window.confirm('このノートを完全に削除しますか？元に戻せません。')) return
@@ -303,6 +314,15 @@ export default function App() {
                 >
                   ★
                 </span>
+                {canExport && (
+                  <button
+                    className="head-btn"
+                    onClick={handleExport}
+                    title="Markdown でエクスポート"
+                  >
+                    ⬇ md
+                  </button>
+                )}
                 {repository.saveNote && (
                   <button
                     className="head-btn"

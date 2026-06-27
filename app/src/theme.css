@@ -59,6 +59,22 @@ body {
 .tag-chip:hover { color: var(--fg); }
 .tag-chip.active { background: var(--accent); color: #fff; }
 
+/* ---- Tag editor (detail) --------------------------------------------- */
+.tag-bar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+  padding: 6px 12px; border-bottom: 1px solid var(--border);
+}
+.tag-bar .tag-x {
+  font: inherit; cursor: pointer; border: none; background: none;
+  color: var(--faint); padding: 0 0 0 4px; line-height: 1;
+}
+.tag-bar .tag-x:hover { color: var(--accent); }
+.tag-input {
+  font: inherit; color: var(--fg); background: transparent;
+  border: none; outline: none; padding: 2px 6px; min-width: 80px;
+}
+.tag-input::placeholder { color: var(--faint); }
+
 /* ---- Note list -------------------------------------------------------- */
 .notelist { background: var(--bg-list); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
 .notelist-search { padding: 8px 10px; border-bottom: 1px solid var(--border); }

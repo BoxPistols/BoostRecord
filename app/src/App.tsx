@@ -6,6 +6,7 @@ import { Sidebar } from './components/Sidebar'
 import { NoteList } from './components/NoteList'
 import { MarkdownEditor } from './components/MarkdownEditor'
 import { Preview } from './components/Preview'
+import { TagEditor } from './components/TagEditor'
 
 function firstTitle(content: string, fallback: string) {
   const line = content.split('\n').find(l => l.trim().length > 0)
@@ -144,6 +145,17 @@ export default function App() {
     persist(updated) // immediate write-back (single action)
   }
 
+  function updateTags(tags: string[]) {
+    if (!active) return
+    const updated: Note = {
+      ...active,
+      tags,
+      updatedAt: new Date().toISOString()
+    }
+    setNotes(prev => prev.map(n => (n.key === updated.key ? updated : n)))
+    persist(updated)
+  }
+
   // Create a new note in the selected folder (or the first folder otherwise).
   async function handleNewNote() {
     if (!repository.createNote) return
@@ -271,6 +283,13 @@ export default function App() {
               </>
             )}
           </div>
+          {!active.isTrashed && (
+            <TagEditor
+              key={active.key}
+              tags={active.tags}
+              onChange={updateTags}
+            />
+          )}
           <div className="split">
             <div className="pane editor">
               <MarkdownEditor

@@ -23,7 +23,8 @@
       "closingSlash": "allow",
       "afterOpening": "allow",
       "beforeClosing": "allow"
-    }]
+    }],
+    "no-buffer-constructor": "error"
   },
   "globals": {
     "FileReader": true,

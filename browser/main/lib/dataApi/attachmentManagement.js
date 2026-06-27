@@ -493,7 +493,7 @@ function handlePasteImageEvent(
   reader.onloadend = function() {
     base64data = reader.result.replace(/^data:image\/png;base64,/, '')
     base64data += base64data.replace('+', ' ')
-    const binaryData = new Buffer(base64data, 'base64').toString('binary')
+    const binaryData = Buffer.from(base64data, 'base64').toString('binary')
     fs.writeFileSync(imagePath, binaryData, 'binary')
     const imageReferencePath = path.join(
       STORAGE_FOLDER_PLACEHOLDER,

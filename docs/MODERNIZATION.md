@@ -104,9 +104,14 @@ a supported machine, plus smoke-testing the packaged app. Sequence matters.
        and rewriting the webpack-1 loader syntax
        (`style!css?modules!stylus`) to `module.rules`. The dev HMR preset
        (`react-hmre` / `babel-plugin-react-transform`) → `react-hot-loader`.
-2. [ ] **React 16 → 18/19** — audit class-lifecycle usage
-       (`react/no-deprecated` is currently a warning), `ReactDOM.render` →
-       `createRoot`, and the dev hot-reload setup.
+2. [ ] **React 16 → 18 (feasible) / → 19 (gated)** — audit (2026-06):
+       - Class lifecycles are already migrated to `UNSAFE_` prefixes (no bare
+         `componentWillMount`/`WillReceiveProps`/`WillUpdate`), so they keep
+         working through React 18.
+       - Only **2** `ReactDOM.render` call sites → `createRoot`.
+       - **~229 string refs** (`this.refs.X`): deprecated but functional in
+         React 18, **removed in React 19** — so React 19 is gated on migrating
+         all of them to callback refs / `createRef`. Target React 18 first.
 3. [ ] **Electron 4 → latest** — the largest change: arm64 support, context
        isolation, `remote` module removal, `nodeIntegration` review, native
        module rebuilds, and security-model changes. Also unblocks running the

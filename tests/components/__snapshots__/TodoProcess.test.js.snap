@@ -1,0 +1,35 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TodoProcess renders the progress for a partially completed list 1`] = `
+<div
+  className="todo-process"
+  style={
+    Object {
+      "display": "",
+    }
+  }
+>
+  <div
+    className="todo-process-text"
+  >
+    <i
+      className="fa fa-fw fa-check-square-o"
+    />
+    1
+     of 
+    4
+  </div>
+  <div
+    className="todo-process-bar"
+  >
+    <div
+      className="todo-process-bar--inner"
+      style={
+        Object {
+          "width": "25%",
+        }
+      }
+    />
+  </div>
+</div>
+`;

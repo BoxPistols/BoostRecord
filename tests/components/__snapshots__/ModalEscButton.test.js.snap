@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`ModalEscButton renders correctly 1`] = `
+<button
+  className="escButton"
+  onClick={[MockFunction]}
+>
+  <div
+    className="esc-mark"
+  >
+    ×
+  </div>
+  <div>
+    esc
+  </div>
+</button>
+`;

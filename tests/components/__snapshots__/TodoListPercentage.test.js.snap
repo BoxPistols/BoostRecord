@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`TodoListPercentage renders the percentage bar 1`] = `
+<div
+  className="percentageBar"
+  style={
+    Object {
+      "display": "",
+    }
+  }
+>
+  <div
+    className="progressBar"
+    style={
+      Object {
+        "width": "42%",
+      }
+    }
+  >
+    <div
+      className="progressBarInner"
+    >
+      <p
+        className="percentageText"
+      >
+        42
+        %
+      </p>
+    </div>
+  </div>
+  <div
+    className="todoClear"
+  >
+    <p
+      className="todoClearText"
+      onClick={[Function]}
+    >
+      clear
+    </p>
+  </div>
+</div>
+`;

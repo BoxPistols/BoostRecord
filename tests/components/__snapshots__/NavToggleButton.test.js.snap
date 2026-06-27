@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`NavToggleButton renders the collapse icon when not folded 1`] = `
+<button
+  className="navToggle"
+  onClick={[Function]}
+>
+  <i
+    className="fa fa-angle-double-left fa-2x"
+  />
+</button>
+`;

@@ -24,7 +24,7 @@
 | `browser/`, `lib/` | **レガシー本体**（Electron 4 + React 16 + Redux + webpack 1、`.cson` ファイル保存）。保守モードで安定化中 | Node 14 |
 | `app/` | **モダンアプリ土台**（Vite + React 19 + TypeScript + CodeMirror 6）。3ペインUXを再現し、実 `.cson` の読込・新規作成・編集の書き戻し保存（オートセーブ）・タグ編集・フォルダ移動・ゴミ箱（移動/復元/完全削除）・全文検索・一覧ソート（更新/作成/タイトル）・KaTeX 数式プレビュー・コードのシンタックスハイライト・Markdown エクスポート・仮想化リスト・フォルダピッカーに対応。Electron 42 で配布 | Node 22 |
 | `poc/collab-core/` | **共同編集コアの実証**（Yjs + CodeMirror 6 + self-host Hocuspocus + `.cson` スナップショット、device-pairing 認証） | Node 22 |
-| `docs/` | モダナイゼーション設計判断書（スタック選定・脅威モデル・移行ロードマップ、事実検証済み） | — |
+| `docs/` | モダナイゼーション設計判断書（[スタック選定・脅威モデル](docs/MODERNIZATION-2026-stack-selection.md)・[As-Built アーキテクチャ](docs/MODERNIZATION-2026-app-architecture.md)） | — |
 | `.claude/skills/boostnote-modernize` | アーキテクチャ判断・作業方針をまとめた Claude Code スキル | — |
 
 ### キーボードショートカット（モダンアプリ）
@@ -79,6 +79,15 @@ git tag app-v0.1.0 && git push origin app-v0.1.0
 > 恒久対応は **Apple Developer ID / Windows コード署名証明書**を GitHub Secrets に登録 → `release.yml` に配線して、署名・notarize 済み（警告なし）で配布します。
 
 レガシー本家ビルドは [BoostIO/boost-releases](https://github.com/BoostIO/boost-releases/releases/) から入手できます。
+
+## 複数端末で同期する
+
+ノートは `<ストレージ>/notes/<key>.cson` の個別ファイルとしてローカルに保存されます。**追加実装なしで複数端末同期**ができます:
+
+1. ストレージフォルダを **OneDrive / iCloud Drive / Dropbox の同期フォルダ内**に置く。
+2. 各端末でアプリを起動し、サイドバーの「＋ ストレージを追加」（または空状態の「📂 ストレージフォルダを開く」）から同じフォルダを指定する。
+
+`.cson` が source of truth なのでオフラインでも完全動作します。同じノートを別端末で**同時に**編集した場合のみクラウド側で重複ファイルが生じ、手動解消が必要です（whole-file 同期の制約）。自動・ロスレスなリアルタイム共同編集は `poc/collab-core/`（Yjs CRDT）を配線するアップグレードパスとして用意しています。詳細は [As-Built アーキテクチャ](docs/MODERNIZATION-2026-app-architecture.md) を参照。
 
 ## モダナイゼーションの方針（要約）
 

@@ -92,7 +92,9 @@ export function data(state = defaultDataMap(), action) {
 
       if (oldNote != null) {
         updateTagChanges(oldNote, note, state, uniqueKey)
-      } else {
+      } else if (!note.isTrashed) {
+        // A brand-new note that is already trashed must stay out of the tag
+        // index, mirroring INIT_ALL's `if (!note.isTrashed)` guard.
         assignToTags(note.tags, state, uniqueKey)
       }
 
@@ -159,7 +161,9 @@ export function data(state = defaultDataMap(), action) {
         let noteSet = state.storageNoteMap.get(note.storage)
         noteSet = new Set(noteSet)
         noteSet.add(uniqueKey)
-        state.storageNoteMap.set(folderKey, noteSet)
+        // Index under the storage key, not the composite folder key, to match
+        // how storageNoteMap is keyed everywhere else (UPDATE_NOTE/INIT_ALL).
+        state.storageNoteMap.set(note.storage, noteSet)
       }
 
       // Update foldermap if folder changed or post created
@@ -317,12 +321,14 @@ export function data(state = defaultDataMap(), action) {
       state.storageMap = new Map(state.storageMap)
       state.storageMap.delete(action.storageKey)
 
-      // Remove folders from folderMap
+      // Remove folders from folderNoteMap. The state has no `folderMap` (only
+      // folderNoteMap), so the previous code mutated a phantom map and left
+      // the real folder index untouched.
       if (storage != null) {
-        state.folderMap = new Map(state.folderMap)
+        state.folderNoteMap = new Map(state.folderNoteMap)
         storage.folders.forEach(folder => {
           const folderKey = storage.key + '-' + folder.key
-          state.folderMap.delete(folderKey)
+          state.folderNoteMap.delete(folderKey)
         })
       }
 
@@ -346,6 +352,9 @@ export function data(state = defaultDataMap(), action) {
             let tagNoteSet = state.tagNoteMap.get(tag)
             tagNoteSet = new Set(tagNoteSet)
             tagNoteSet.delete(noteKey)
+            // Write the pruned set back; otherwise the deletion is discarded
+            // and the tag index keeps pointing at removed notes.
+            state.tagNoteMap.set(tag, tagNoteSet)
           })
         })
       }

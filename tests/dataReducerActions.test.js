@@ -88,3 +88,49 @@ it('UPDATE_FOLDER replaces the storage entry', () => {
   })
   expect(state.storageMap.get('s1').name).toBe('Renamed')
 })
+
+it('MOVE_NOTE across storages indexes the new key under the destination storage', () => {
+  let state = initWith(
+    [{ key: 's1', folders: [{ key: 'f1' }] }],
+    [makeNote({ key: 'n1', storage: 's1', folder: 'f1' })]
+  )
+  // Moving across storages mints a new note key, so oldNote is null.
+  state = data(state, {
+    type: 'MOVE_NOTE',
+    originNote: makeNote({ key: 'n1', storage: 's1', folder: 'f1' }),
+    note: makeNote({ key: 'n2', storage: 's2', folder: 'f2' })
+  })
+  // The new key must land under the destination *storage* key, not the
+  // composite "storage-folder" key.
+  expect(state.storageNoteMap.get('s2').toJS()).toContain('n2')
+  expect(state.storageNoteMap.has('s2-f2')).toBe(false)
+})
+
+it('REMOVE_STORAGE purges the storage notes from the tag index', () => {
+  let state = initWith(
+    [{ key: 's1', folders: [{ key: 'f1' }] }],
+    [makeNote({ key: 'n1', tags: ['t1'] })]
+  )
+  state = data(state, { type: 'REMOVE_STORAGE', storageKey: 's1' })
+  // The note is gone, so it must not linger in the tag-to-note index.
+  expect(state.tagNoteMap.get('t1').toJS()).not.toContain('n1')
+})
+
+it('REMOVE_STORAGE purges the storage folders from the folder index', () => {
+  let state = initWith(
+    [{ key: 's1', folders: [{ key: 'f1' }] }],
+    [makeNote({ key: 'n1', folder: 'f1' })]
+  )
+  state = data(state, { type: 'REMOVE_STORAGE', storageKey: 's1' })
+  expect(state.folderNoteMap.has('s1-f1')).toBe(false)
+})
+
+it('UPDATE_NOTE does not index a brand-new trashed note into the tag map', () => {
+  const state = data(defaultDataMap(), {
+    type: 'UPDATE_NOTE',
+    note: makeNote({ key: 'n1', isTrashed: true, tags: ['t1'] })
+  })
+  // Trashed notes are excluded from tag search (INIT_ALL enforces the same).
+  const tagged = state.tagNoteMap.get('t1')
+  expect(tagged == null || !tagged.toJS().includes('n1')).toBe(true)
+})

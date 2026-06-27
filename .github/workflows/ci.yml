@@ -1,0 +1,45 @@
+name: CI
+
+# Runs lint and the Jest test suite on every push and pull request to main.
+# Pinned to Node 14.21.3 to match the Volta pin and Electron 4 compatibility.
+# No untrusted event input is referenced in any run: step.
+# The AVA data-layer suite is not run here yet (tracked separately); see the
+# modernization roadmap.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 14.21.3
+        uses: actions/setup-node@v4
+        with:
+          node-version: '14.21.3'
+
+      - name: Rewrite git:// to https://
+        # A transitive dependency (eve, via Raphael/snap.svg) is referenced
+        # over the unauthenticated git:// protocol, which GitHub disabled in
+        # 2022. Rewriting to https:// lets the install resolve it.
+        run: git config --global url."https://github.com/".insteadOf "git://github.com/"
+
+      - name: Install dependencies
+        # package-lock.json is gitignored and yarn.lock is the tracked
+        # lockfile, so `npm ci` has no lockfile to read on a clean checkout.
+        # Use `npm install` (the historical Travis behaviour) to resolve
+        # from package.json directly.
+        run: npm install --no-audit --no-fund
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Jest
+        run: npx jest --ci

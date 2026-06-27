@@ -31,11 +31,7 @@ jobs:
         run: git config --global url."https://github.com/".insteadOf "git://github.com/"
 
       - name: Install dependencies
-        # package-lock.json is gitignored and yarn.lock is the tracked
-        # lockfile, so `npm ci` has no lockfile to read on a clean checkout.
-        # Use `npm install` (the historical Travis behaviour) to resolve
-        # from package.json directly.
-        run: npm install --no-audit --no-fund
+        run: npm ci
 
       - name: Lint
         run: npm run lint

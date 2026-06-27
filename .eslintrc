@@ -24,7 +24,10 @@
       "afterOpening": "allow",
       "beforeClosing": "allow"
     }],
-    "no-buffer-constructor": "error"
+    "no-buffer-constructor": "error",
+    "no-self-compare": "error",
+    "no-unmodified-loop-condition": "error",
+    "no-template-curly-in-string": "error"
   },
   "globals": {
     "FileReader": true,

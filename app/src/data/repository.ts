@@ -60,3 +60,25 @@ export function createInMemoryRepository(scaleTo = 280): NotesRepository {
     }
   }
 }
+
+/** Reads the user's real `.cson` storages over the Electron preload bridge. */
+export function createElectronRepository(): NotesRepository {
+  return {
+    async load() {
+      const res = await window.boostnote!.loadNotes()
+      return { storages: res.storages, notes: res.notes }
+    }
+  }
+}
+
+/**
+ * Pick the repository for the current runtime: real `.cson` files when running
+ * inside Electron (the preload exposed `window.boostnote`), otherwise the
+ * in-memory sample data for the browser foundation.
+ */
+export function createRepository(): NotesRepository {
+  if (typeof window !== 'undefined' && window.boostnote) {
+    return createElectronRepository()
+  }
+  return createInMemoryRepository()
+}

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Note, Selection, Storage } from './types'
-import { createInMemoryRepository } from './data/repository'
+import { createRepository } from './data/repository'
 import { Sidebar } from './components/Sidebar'
 import { NoteList } from './components/NoteList'
 import { MarkdownEditor } from './components/MarkdownEditor'
@@ -12,8 +12,8 @@ function firstTitle(content: string, fallback: string) {
   return line.replace(/^#+\s*/, '').trim() || fallback
 }
 
-// The data-layer seam: swap this for the Electron `.cson` repository later.
-const repository = createInMemoryRepository()
+// The data-layer seam: real `.cson` files in Electron, sample data in browser.
+const repository = createRepository()
 
 export default function App() {
   const [notes, setNotes] = useState<Note[]>([])

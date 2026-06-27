@@ -24,9 +24,26 @@ collab). This is **not** the legacy Electron app (the legacy lint/CI ignore `app
 ```bash
 # Node 22 (the legacy app uses Node 14; this is a separate modern workspace)
 npm install
-npm run dev      # Vite dev server
+npm run dev      # Vite dev server (browser; in-memory sample data)
 npm run build    # tsc -b && vite build (type-checked production build)
+npm test         # node --test: .cson data-layer tests
+
+# Desktop app (Electron 42), reading your REAL .cson notes:
+npm run build
+BOOSTNOTE_STORAGE="/path/to/your/storage" npm run electron
+#   BOOSTNOTE_STORAGE = path-separated list of legacy Boostnote storage roots
+#   (each a folder with boostnote.json + notes/*.cson). Inside Electron the app
+#   reads them via the preload bridge; in the browser it falls back to samples.
 ```
+
+## Architecture (data layer)
+
+- `electron/loadNotes.cjs` — pure Node reader: `boostnote.json` + `notes/*.cson`
+  → the app's `Note` shape (unit-tested, no Electron needed).
+- `electron/main.cjs` / `electron/preload.cjs` — secure shell (contextIsolation,
+  sandbox, no nodeIntegration); one IPC channel `notes:load`.
+- `src/data/repository.ts` — `createRepository()` picks the Electron reader when
+  `window.boostnote` exists, else the in-memory sample repo.
 
 ## Roadmap (next slices)
 

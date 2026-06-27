@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
+  "description": "Boostnote — modern, collaborative note app for programmers",
+  "author": "BoxPistols",
+  "license": "GPL-3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BoxPistols/Boostnote.git"
+  },
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
@@ -45,6 +52,12 @@
     "appId": "io.boxpistols.boostnote",
     "productName": "Boostnote",
     "copyright": "GPL-3.0, inherited from BoostIO",
+    "publish": {
+      "provider": "github",
+      "owner": "BoxPistols",
+      "repo": "Boostnote",
+      "releaseType": "release"
+    },
     "files": [
       "dist/**",
       "electron/**",

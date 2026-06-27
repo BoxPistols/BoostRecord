@@ -43,6 +43,7 @@
     "electron": "^42.5.0",
     "electron-builder": "^25.1.8",
     "happy-dom": "^20.10.6",
+    "highlight.js": "^11.11.1",
     "katex": "^0.17.0",
     "markdown-it": "^14.2.0",
     "oxlint": "^1.69.0",

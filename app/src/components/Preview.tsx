@@ -2,7 +2,9 @@ import { useEffect, useMemo, useRef } from 'react'
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
 import katexPlugin from '@vscode/markdown-it-katex'
+import { highlightCode } from '../markdown/highlight'
 import 'katex/dist/katex.min.css'
+import 'highlight.js/styles/github-dark.css'
 
 /**
  * Markdown preview. Reuses the legacy app's pipeline (markdown-it) but renders
@@ -14,7 +16,12 @@ import 'katex/dist/katex.min.css'
 export function Preview({ content }: { content: string }) {
   const host = useRef<HTMLDivElement>(null)
   const md = useMemo(() => {
-    const m = new MarkdownIt({ html: false, linkify: true, breaks: true })
+    const m = new MarkdownIt({
+      html: false,
+      linkify: true,
+      breaks: true,
+      highlight: highlightCode
+    })
     m.use(katexPlugin, { throwOnError: false, output: 'html' })
     return m
   }, [])

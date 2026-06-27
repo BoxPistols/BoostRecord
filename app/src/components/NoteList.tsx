@@ -7,6 +7,8 @@ interface Props {
   onSelect: (key: string) => void
   query: string
   onQueryChange: (q: string) => void
+  /** When set (Electron), shows a button to create a new note. */
+  onNewNote?: () => void
 }
 
 const ROW_H = 58 // fixed row height enables simple, fast windowing
@@ -26,7 +28,8 @@ export function NoteList({
   activeKey,
   onSelect,
   query,
-  onQueryChange
+  onQueryChange,
+  onNewNote
 }: Props) {
   const sorted = useMemo(
     () =>
@@ -84,6 +87,15 @@ export function NoteList({
         <span className="sort" style={{ marginLeft: 'auto' }}>
           {total} notes
         </span>
+        {onNewNote && (
+          <button
+            className="head-btn"
+            onClick={onNewNote}
+            title="新規ノート (⌘/Ctrl+N)"
+          >
+            ＋
+          </button>
+        )}
       </div>
       <div
         className="notelist-scroll"

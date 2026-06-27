@@ -7,6 +7,7 @@
 
 const fs = require('node:fs')
 const path = require('node:path')
+const crypto = require('node:crypto')
 const CSON = require('cson-parser')
 
 function readJson(file) {
@@ -99,6 +100,74 @@ function saveNote(roots, note) {
 }
 
 /**
+ * Create a new empty MARKDOWN note in a storage (matched by `opts.storage`,
+ * falling back to the first valid root) and return it in the Note shape.
+ * @param {string[]} roots
+ * @param {{ storage?: string, folder?: string, content?: string }} [opts]
+ * @returns {{ ok: boolean, note?: object, error?: string }}
+ */
+function createNote(roots, opts) {
+  const want = (opts && opts.storage) || ''
+  let root = null
+  let storageKey = ''
+  for (const r of roots) {
+    if (!r || !fs.existsSync(path.join(r, 'boostnote.json'))) continue
+    if (!root) {
+      root = r // first valid root is the fallback
+      storageKey = path.basename(r)
+    }
+    if (path.basename(r) === want) {
+      root = r
+      storageKey = want
+      break
+    }
+  }
+  if (!root) return { ok: false, error: 'no storage available' }
+
+  const notesDir = path.join(root, 'notes')
+  fs.mkdirSync(notesDir, { recursive: true })
+  const key = crypto.randomUUID().replace(/-/g, '')
+  const now = new Date().toISOString()
+  const raw = {
+    type: 'MARKDOWN_NOTE',
+    folder: (opts && opts.folder) || '',
+    title: '',
+    content: (opts && opts.content) || '',
+    tags: [],
+    isStarred: false,
+    isTrashed: false,
+    createdAt: now,
+    updatedAt: now
+  }
+  fs.writeFileSync(path.join(notesDir, `${key}.cson`), CSON.stringify(raw, null, 2))
+  return { ok: true, note: toNote(raw, key, storageKey) }
+}
+
+/**
+ * Permanently delete a note's `.cson` file (used by "完全に削除" from Trash).
+ * @param {string[]} roots
+ * @param {string} key
+ * @returns {{ ok: boolean, error?: string }}
+ */
+function deleteNote(roots, key) {
+  const k = String(key || '')
+  if (!k || /[/\\]/.test(k) || k.includes('..')) {
+    return { ok: false, error: 'invalid note key' }
+  }
+  for (const root of roots) {
+    if (!root) continue
+    const notesDir = path.join(root, 'notes')
+    const file = path.join(notesDir, `${k}.cson`)
+    if (path.dirname(file) !== notesDir) continue
+    if (fs.existsSync(file)) {
+      fs.unlinkSync(file)
+      return { ok: true }
+    }
+  }
+  return { ok: false, error: `note "${k}" not found in any storage` }
+}
+
+/**
  * Load several storage roots and aggregate them.
  * @param {string[]} roots
  * @returns {{ storages: object[], notes: object[] }}
@@ -115,4 +184,11 @@ function loadStorages(roots) {
   return { storages, notes }
 }
 
-module.exports = { loadStorage, loadStorages, toNote, saveNote }
+module.exports = {
+  loadStorage,
+  loadStorages,
+  toNote,
+  saveNote,
+  createNote,
+  deleteNote
+}

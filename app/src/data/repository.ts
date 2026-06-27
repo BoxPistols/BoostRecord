@@ -13,6 +13,10 @@ export interface NotesRepository {
   pickStorage?(): Promise<{ storages: Storage[]; notes: Note[] } | null>
   /** Persist an edited note. Present only when notes are backed by real files. */
   saveNote?(note: Note): Promise<void>
+  /** Create a new empty note in a storage/folder and return it. */
+  createNote?(opts: { storage?: string; folder?: string }): Promise<Note>
+  /** Permanently delete a note by key. */
+  deleteNote?(key: string): Promise<void>
 }
 
 // Deterministic (no Math.random) generator so the list reaches realistic
@@ -81,6 +85,17 @@ export function createElectronRepository(): NotesRepository {
     async saveNote(note) {
       const res = await window.boostnote!.saveNote(note)
       if (!res.ok) throw new Error(res.error || 'note の保存に失敗しました')
+    },
+    async createNote(opts) {
+      const res = await window.boostnote!.createNote(opts)
+      if (!res.ok || !res.note) {
+        throw new Error(res.error || 'ノートの作成に失敗しました')
+      }
+      return res.note
+    },
+    async deleteNote(key) {
+      const res = await window.boostnote!.deleteNote(key)
+      if (!res.ok) throw new Error(res.error || 'ノートの削除に失敗しました')
     }
   }
 }

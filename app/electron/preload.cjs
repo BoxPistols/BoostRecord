@@ -8,5 +8,7 @@ const { contextBridge, ipcRenderer } = require('electron')
 contextBridge.exposeInMainWorld('boostnote', {
   loadNotes: () => ipcRenderer.invoke('notes:load'),
   pickStorage: () => ipcRenderer.invoke('notes:pickStorage'),
-  saveNote: note => ipcRenderer.invoke('notes:save', note)
+  saveNote: note => ipcRenderer.invoke('notes:save', note),
+  createNote: opts => ipcRenderer.invoke('notes:create', opts),
+  deleteNote: key => ipcRenderer.invoke('notes:delete', key)
 })

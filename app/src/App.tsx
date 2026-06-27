@@ -29,7 +29,9 @@ export default function App() {
   const [saveError, setSaveError] = useState<string | null>(null)
 
   const canPick = typeof repository.pickStorage === 'function'
+  const canCreate = typeof repository.createNote === 'function'
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const newNoteRef = useRef<() => void>(() => {})
 
   // Persist a note; failures surface in the header rather than being swallowed.
   function persist(note: Note) {
@@ -73,6 +75,18 @@ export default function App() {
     return () => {
       alive = false
     }
+  }, [])
+
+  // Cmd/Ctrl+N creates a new note (ref keeps the handler fresh without re-binding).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault()
+        newNoteRef.current()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
   }, [])
 
   const visible = useMemo(() => {
@@ -130,6 +144,59 @@ export default function App() {
     persist(updated) // immediate write-back (single action)
   }
 
+  // Create a new note in the selected folder (or the first folder otherwise).
+  async function handleNewNote() {
+    if (!repository.createNote) return
+    let storage = storages[0]?.key
+    let folder = storages[0]?.folders[0]?.key
+    if (selection.kind === 'folder') {
+      const [s, f] = selection.value.split('|')
+      storage = s
+      folder = f
+    }
+    try {
+      setSaveError(null)
+      const note = await repository.createNote({ storage, folder })
+      setNotes(prev => [note, ...prev])
+      // Show the new (empty, untagged) note where it will actually appear.
+      setSelection(
+        storage && folder
+          ? { kind: 'folder', value: `${storage}|${folder}` }
+          : { kind: 'smart', value: 'all' }
+      )
+      setActiveKey(note.key)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e))
+    }
+  }
+  newNoteRef.current = handleNewNote
+
+  function setTrashed(isTrashed: boolean) {
+    if (!active) return
+    const updated: Note = {
+      ...active,
+      isTrashed,
+      updatedAt: new Date().toISOString()
+    }
+    setNotes(prev => prev.map(n => (n.key === updated.key ? updated : n)))
+    persist(updated)
+    setActiveKey(null) // the note leaves the current view
+  }
+
+  async function deleteActiveForever() {
+    if (!active || !repository.deleteNote) return
+    if (!window.confirm('このノートを完全に削除しますか？元に戻せません。')) return
+    const key = active.key
+    try {
+      setSaveError(null)
+      await repository.deleteNote(key)
+      setNotes(prev => prev.filter(n => n.key !== key))
+      setActiveKey(null)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
   const folderName = active
     ? (storages
         .find(s => s.key === active.storage)
@@ -151,6 +218,7 @@ export default function App() {
         onSelect={setActiveKey}
         query={query}
         onQueryChange={setQuery}
+        onNewNote={canCreate ? handleNewNote : undefined}
       />
       {active ? (
         <section className="detail">
@@ -162,14 +230,46 @@ export default function App() {
               </span>
             )}
             <span className="spacer" />
-            <span
-              className={`star ${active.isStarred ? 'on' : ''}`}
-              style={{ cursor: 'pointer' }}
-              onClick={toggleStar}
-              title="Star"
-            >
-              ★
-            </span>
+            {active.isTrashed ? (
+              <>
+                <button
+                  className="head-btn"
+                  onClick={() => setTrashed(false)}
+                  title="復元"
+                >
+                  ♻ 復元
+                </button>
+                {repository.deleteNote && (
+                  <button
+                    className="head-btn danger"
+                    onClick={deleteActiveForever}
+                    title="完全に削除"
+                  >
+                    ✕ 完全削除
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <span
+                  className={`star ${active.isStarred ? 'on' : ''}`}
+                  style={{ cursor: 'pointer' }}
+                  onClick={toggleStar}
+                  title="Star"
+                >
+                  ★
+                </span>
+                {repository.saveNote && (
+                  <button
+                    className="head-btn"
+                    onClick={() => setTrashed(true)}
+                    title="ゴミ箱へ移動"
+                  >
+                    🗑
+                  </button>
+                )}
+              </>
+            )}
           </div>
           <div className="split">
             <div className="pane editor">
@@ -203,7 +303,14 @@ export default function App() {
               )}
             </div>
           ) : (
-            'Select a note'
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ marginBottom: 12 }}>ノートを選択してください</div>
+              {canCreate && (
+                <button className="btn-primary" onClick={handleNewNote}>
+                  ＋ 新規ノート
+                </button>
+              )}
+            </div>
           )}
         </div>
       )}

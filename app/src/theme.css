@@ -99,6 +99,15 @@ body {
 .detail-head .spacer { margin-left: auto; }
 .detail-head .star.on { color: var(--accent); }
 .detail-head .save-error { color: var(--accent); font-size: 12px; cursor: default; }
+
+.head-btn {
+  font: inherit; font-size: 13px; cursor: pointer;
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 2px 9px; margin-left: 6px; line-height: 1.6;
+}
+.head-btn:hover { background: #2a2e36; color: var(--fg); }
+.head-btn.danger:hover { background: var(--accent); color: #fff; border-color: transparent; }
 .split { flex: 1; display: flex; min-height: 0; }
 .pane { flex: 1; min-width: 0; overflow: auto; }
 .pane.editor { border-right: 1px solid var(--border); }

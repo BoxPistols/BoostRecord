@@ -12,7 +12,12 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const fs = require('node:fs')
 const path = require('node:path')
-const { loadStorages, saveNote } = require('./loadNotes.cjs')
+const {
+  loadStorages,
+  saveNote,
+  createNote,
+  deleteNote
+} = require('./loadNotes.cjs')
 
 const configPath = () => path.join(app.getPath('userData'), 'config.json')
 
@@ -56,6 +61,26 @@ ipcMain.handle('notes:save', (_event, note) => {
     return saveNote(allRoots(), note)
   } catch (err) {
     console.error('notes:save failed:', err)
+    return { ok: false, error: String(err) }
+  }
+})
+
+// Create a new empty note in a storage.
+ipcMain.handle('notes:create', (_event, opts) => {
+  try {
+    return createNote(allRoots(), opts)
+  } catch (err) {
+    console.error('notes:create failed:', err)
+    return { ok: false, error: String(err) }
+  }
+})
+
+// Permanently delete a note's `.cson` file.
+ipcMain.handle('notes:delete', (_event, key) => {
+  try {
+    return deleteNote(allRoots(), key)
+  } catch (err) {
+    console.error('notes:delete failed:', err)
     return { ok: false, error: String(err) }
   }
 })

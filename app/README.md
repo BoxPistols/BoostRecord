@@ -45,6 +45,23 @@ BOOSTNOTE_STORAGE="/path/to/your/storage" npm run electron
 - `src/data/repository.ts` — `createRepository()` picks the Electron reader when
   `window.boostnote` exists, else the in-memory sample repo.
 
+## Packaging (download builds)
+
+`electron-builder` packages the app into installers (config in `package.json`
+`build`). `vite.config.ts` sets `base: './'` so `dist/` loads over `file://`.
+
+```bash
+npm run package:dir   # unpacked .app (fast, for local checks)
+npm run package:mac   # macOS .dmg + .zip
+npm run package:win   # Windows .exe (nsis)
+```
+
+Releases are automated: pushing an `app-v*` tag runs
+`.github/workflows/release.yml`, which builds on macOS + Windows runners and
+publishes installers to **GitHub Releases** (the user download links). Builds
+are currently **unsigned** (no certificates configured) — add `APPLE_*` /
+`WIN_CSC_*` secrets to ship signed + notarized artifacts.
+
 ## Roadmap (next slices)
 
 1. **Data layer:** Electron `.cson` reader/writer over the real notes folder

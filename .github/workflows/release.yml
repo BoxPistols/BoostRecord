@@ -1,0 +1,48 @@
+name: Release (modern app)
+
+# Builds the modern app/ into installers on macOS and Windows and publishes
+# them to a GitHub Release, producing the user-facing download links.
+#
+# Trigger by pushing a tag like `app-v0.1.0`:
+#   git tag app-v0.1.0 && git push origin app-v0.1.0
+#
+# Builds are currently UNSIGNED (no code-signing certificates configured), so
+# macOS/Windows will warn on first launch. Add APPLE_* / WIN_CSC_* secrets and
+# wire them here to ship signed + notarized artifacts. No untrusted event input
+# is referenced in any run: step; GITHUB_TOKEN is a repo secret.
+
+on:
+  push:
+    tags:
+      - 'app-v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build & publish (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - name: Install dependencies
+        run: npm ci
+      - name: Build & publish installers
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npm run build && npx electron-builder --publish always

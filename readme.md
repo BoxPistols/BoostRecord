@@ -49,11 +49,18 @@ cd poc/collab-core && npm install && npm test
 
 ## ダウンロード（配布ビルド）
 
-> 🚧 **準備中** — `app/` を Electron 42 で macOS / Windows 向けにパッケージング（署名・notarize・`electron-updater` 自動更新）し、
-> **GitHub Releases にダウンロードリンク**を用意する予定です（モダナイゼーションの配布フェーズ）。
-> 進捗は [Actions](https://github.com/BoxPistols/Boostnote/actions) と [Releases](https://github.com/BoxPistols/Boostnote/releases) を参照してください。
+**[📦 Releases ページ](https://github.com/BoxPistols/Boostnote/releases)** から最新のインストーラを入手できます（macOS `.dmg`/`.zip`・Windows `.exe`）。
 
-それまでは、レガシー本家ビルドは [BoostIO/boost-releases](https://github.com/BoostIO/boost-releases/releases/) から入手できます。
+リリースは `app-v*` タグの push で GitHub Actions（[release.yml](.github/workflows/release.yml)）が macOS / Windows ランナーでビルドし、自動で Releases に公開します:
+
+```bash
+git tag app-v0.1.0 && git push origin app-v0.1.0
+```
+
+> ⚠️ 現状の配布ビルドは **未署名**（署名証明書未設定）のため、初回起動時に macOS / Windows の警告が出ます。
+> Apple Developer ID / Windows コード署名証明書を Secrets に追加して `release.yml` に配線すれば、署名・notarize 済みで配布できます。
+
+レガシー本家ビルドは [BoostIO/boost-releases](https://github.com/BoostIO/boost-releases/releases/) から入手できます。
 
 ## モダナイゼーションの方針（要約）
 

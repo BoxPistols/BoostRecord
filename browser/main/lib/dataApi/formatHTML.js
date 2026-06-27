@@ -16,7 +16,7 @@ const appPath = fileUrl(
 
 let markdownStyle = ''
 try {
-  markdownStyle = require('!!css!stylus?sourceMap!../../../components/markdown.styl')[0][1]
+  markdownStyle = require('../../../components/markdown.styl?raw').default
 } catch (e) {}
 
 export const CSS_FILES = [

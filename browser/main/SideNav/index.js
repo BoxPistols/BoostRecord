@@ -94,28 +94,32 @@ class SideNav extends React.Component {
 
       Promise.all(
         notes.map(note => dataApi.updateNote(note.storage, note.key, note))
-      ).then(updatedNotes => {
-        updatedNotes.forEach(note => {
-          dispatch({
-            type: 'UPDATE_NOTE',
-            note
+      )
+        .then(updatedNotes => {
+          updatedNotes.forEach(note => {
+            dispatch({
+              type: 'UPDATE_NOTE',
+              note
+            })
           })
-        })
 
-        if (location.pathname.match('/tags')) {
-          const tags = params.tagname.split(' ')
-          const index = tags.indexOf(tag)
-          if (index !== -1) {
-            tags.splice(index, 1)
+          if (location.pathname.match('/tags')) {
+            const tags = params.tagname.split(' ')
+            const index = tags.indexOf(tag)
+            if (index !== -1) {
+              tags.splice(index, 1)
 
-            dispatch(
-              push(
-                `/tags/${tags.map(tag => encodeURIComponent(tag)).join(' ')}`
+              dispatch(
+                push(
+                  `/tags/${tags.map(tag => encodeURIComponent(tag)).join(' ')}`
+                )
               )
-            )
+            }
           }
-        }
-      })
+        })
+        .catch(err => {
+          console.error('Cannot update notes after removing tag: ' + err)
+        })
     }
   }
 

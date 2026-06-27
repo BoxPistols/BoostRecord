@@ -145,6 +145,7 @@ class NoteList extends React.Component {
     ee.off('list:isMarkdownNote', this.alertIfSnippetHandler)
     ee.off('import:file', this.importFromFileHandler)
     ee.off('list:jump', this.jumpNoteByHash)
+    ee.off('list:navigate', this.navigate)
   }
 
   componentDidUpdate(prevProps) {

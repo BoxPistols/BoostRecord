@@ -171,13 +171,18 @@ class MarkdownNoteDetail extends React.Component {
     clearTimeout(this.saveQueue)
     this.saveQueue = null
 
-    dataApi.updateNote(note.storage, note.key, this.state.note).then(note => {
-      dispatch({
-        type: 'UPDATE_NOTE',
-        note: note
+    dataApi
+      .updateNote(note.storage, note.key, this.state.note)
+      .then(note => {
+        dispatch({
+          type: 'UPDATE_NOTE',
+          note: note
+        })
+        AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
       })
-      AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
-    })
+      .catch(err => {
+        console.error('Cannot save note: ' + err)
+      })
   }
 
   handleFolderChange(e) {

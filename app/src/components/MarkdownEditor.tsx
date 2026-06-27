@@ -3,6 +3,29 @@ import { EditorView, keymap, lineNumbers } from '@codemirror/view'
 import { EditorState } from '@codemirror/state'
 import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
+import { toggleWrap, makeLink } from '../markdown/format'
+import type { FormatResult } from '../markdown/format'
+
+/** Build a CodeMirror command that applies a pure FormatResult transform. */
+function formatCommand(transform: (selected: string) => FormatResult) {
+  return (view: EditorView): boolean => {
+    const { from, to } = view.state.selection.main
+    const { text, selFrom, selTo } = transform(view.state.sliceDoc(from, to))
+    view.dispatch({
+      changes: { from, to, insert: text },
+      selection: { anchor: from + selFrom, head: from + selTo }
+    })
+    view.focus()
+    return true
+  }
+}
+
+// ⌘/Ctrl+B bold, +I italic, +K link. Placed before defaultKeymap to win.
+const formatKeymap = keymap.of([
+  { key: 'Mod-b', run: formatCommand(s => toggleWrap(s, '**')) },
+  { key: 'Mod-i', run: formatCommand(s => toggleWrap(s, '*')) },
+  { key: 'Mod-k', run: formatCommand(makeLink) }
+])
 
 const darkTheme = EditorView.theme(
   {
@@ -44,6 +67,7 @@ export function MarkdownEditor({ noteKey, value, onChange }: Props) {
       extensions: [
         lineNumbers(),
         history(),
+        formatKeymap,
         keymap.of([...defaultKeymap, ...historyKeymap]),
         markdown(),
         darkTheme,

@@ -292,7 +292,10 @@ export function data(state = defaultDataMap(), action) {
           state.starredSet.add(uniqueKey)
         }
 
-        const storageNoteList = getOrInitItem(state.tagNoteMap, note.storage)
+        const storageNoteList = getOrInitItem(
+          state.storageNoteMap,
+          note.storage
+        )
         storageNoteList.add(uniqueKey)
 
         let folderNoteSet = state.folderNoteMap.get(folderKey)

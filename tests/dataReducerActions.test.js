@@ -41,6 +41,18 @@ it('REMOVE_STORAGE removes the storage and its notes', () => {
   expect(state.noteMap.has('n1')).toBe(false)
 })
 
+it('ADD_STORAGE indexes its notes into storageNoteMap, not tagNoteMap', () => {
+  const state = data(defaultDataMap(), {
+    type: 'ADD_STORAGE',
+    storage: { key: 's1' },
+    notes: [makeNote({ key: 'n1', storage: 's1' })]
+  })
+  // The note must be registered under the storage's note set...
+  expect(state.storageNoteMap.get('s1').toJS()).toContain('n1')
+  // ...and the tag map must not be polluted with a storage-keyed entry.
+  expect(state.tagNoteMap.has('s1')).toBe(false)
+})
+
 it('DELETE_FOLDER removes the folder index and its notes', () => {
   let state = initWith(
     [{ key: 's1', folders: [{ key: 'f1' }] }],

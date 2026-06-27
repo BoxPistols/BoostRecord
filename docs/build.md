@@ -5,23 +5,23 @@ This page is also available in [Japanese](https://github.com/BoostIO/Boostnote/b
 ## Environments
 
 - npm: 6.x
-- node: 8.x
+- node: 14.x (see `.nvmrc` / the Volta pin in `package.json`)
 
 ## Development
 
 We use Webpack HMR to develop Boostnote.
 Running the following commands, at the top of the project directory, will start Boostnote with the default configurations.
 
-Install the required packages using yarn.
+Install the required packages using npm.
 
 ```
-$ yarn
+$ npm install
 ```
 
 Build and run.
 
 ```
-$ yarn run dev
+$ npm run dev
 ```
 
 > ### Notice
@@ -55,8 +55,8 @@ git checkout <PR>
 
 _To compile and run the code_
 ```
-yarn
-yarn run dev
+npm install
+npm run dev
 ```
 
 ## Deploy
@@ -83,7 +83,7 @@ Distribution packages are created by exec `grunt build` on Linux platform (e.g. 
 After installing the supported version of `node` and `npm`, install build dependency packages.
 
 ```
-$ yarn add --dev grunt-electron-installer-debian grunt-electron-installer-redhat
+$ npm install --save-dev grunt-electron-installer-debian grunt-electron-installer-redhat
 ```
 
 **Ubuntu/Debian:**

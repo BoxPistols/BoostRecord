@@ -26,8 +26,8 @@
 <h5 align="center">Apps available for Mac, Windows and Linux.</h5>
 <h5 align="center">Built with Electron, React + Redux, Webpack, and CSSModules.</h5>
 <p align="center">
-  <a href="https://travis-ci.org/BoostIO/Boostnote">
-    <img src="https://travis-ci.org/BoostIO/Boostnote.svg?branch=master" alt="Build Status" />
+  <a href="https://github.com/BoxPistols/Boostnote/actions/workflows/ci.yml">
+    <img src="https://github.com/BoxPistols/Boostnote/actions/workflows/ci.yml/badge.svg" alt="CI Status" />
   </a>
  </p>
 

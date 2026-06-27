@@ -15,3 +15,5 @@ config.json
 # Local-only Claude Code config / private project notes
 .claude/settings.local.json
 CLAUDE.local.md
+
+coverage/

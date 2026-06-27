@@ -12,7 +12,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const fs = require('node:fs')
 const path = require('node:path')
-const { loadStorages } = require('./loadNotes.cjs')
+const { loadStorages, saveNote } = require('./loadNotes.cjs')
 
 const configPath = () => path.join(app.getPath('userData'), 'config.json')
 
@@ -49,6 +49,16 @@ function load() {
 }
 
 ipcMain.handle('notes:load', () => load())
+
+// Persist an edited note back to its `.cson` file.
+ipcMain.handle('notes:save', (_event, note) => {
+  try {
+    return saveNote(allRoots(), note)
+  } catch (err) {
+    console.error('notes:save failed:', err)
+    return { ok: false, error: String(err) }
+  }
+})
 
 // Let the user pick a Boostnote storage folder; persist it and return notes.
 ipcMain.handle('notes:pickStorage', async () => {

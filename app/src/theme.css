@@ -98,6 +98,7 @@ body {
 .detail-head .folder { color: var(--fg); font-weight: 600; }
 .detail-head .spacer { margin-left: auto; }
 .detail-head .star.on { color: var(--accent); }
+.detail-head .save-error { color: var(--accent); font-size: 12px; cursor: default; }
 .split { flex: 1; display: flex; min-height: 0; }
 .pane { flex: 1; min-width: 0; overflow: auto; }
 .pane.editor { border-right: 1px solid var(--border); }

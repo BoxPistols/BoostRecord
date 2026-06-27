@@ -22,7 +22,7 @@
 | パス | 内容 | ランタイム |
 |---|---|---|
 | `browser/`, `lib/` | **レガシー本体**（Electron 4 + React 16 + Redux + webpack 1、`.cson` ファイル保存）。保守モードで安定化中 | Node 14 |
-| `app/` | **モダンアプリ土台**（Vite + React 19 + TypeScript + CodeMirror 6）。3ペインUXを再現、実 `.cson` を Electron 42 で読込 | Node 22 |
+| `app/` | **モダンアプリ土台**（Vite + React 19 + TypeScript + CodeMirror 6）。3ペインUXを再現し、実 `.cson` の読込・編集の書き戻し保存（オートセーブ）・全文検索・仮想化リスト・フォルダピッカーに対応。Electron 42 で配布 | Node 22 |
 | `poc/collab-core/` | **共同編集コアの実証**（Yjs + CodeMirror 6 + self-host Hocuspocus + `.cson` スナップショット、device-pairing 認証） | Node 22 |
 | `docs/` | モダナイゼーション設計判断書（スタック選定・脅威モデル・移行ロードマップ、事実検証済み） | — |
 | `.claude/skills/boostnote-modernize` | アーキテクチャ判断・作業方針をまとめた Claude Code スキル | — |

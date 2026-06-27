@@ -60,6 +60,44 @@ function loadStorage(rootDir, storageKey) {
   return { storage, notes }
 }
 
+// Fields the renderer may change; everything else in the raw `.cson` (e.g. a
+// SNIPPET_NOTE's `snippets` array, or any unknown keys) is preserved untouched.
+const EDITABLE = ['title', 'content', 'tags', 'isStarred', 'isTrashed', 'updatedAt']
+
+/**
+ * Write an edited note back to its `.cson` file, preserving every field the
+ * renderer doesn't own. The file is located by `note.key` (its filename) under
+ * one of the known storage roots; the write is atomic (temp file + rename).
+ * @param {string[]} roots
+ * @param {object} note  Note shape ({ key, title, content, tags, ... })
+ * @returns {{ ok: boolean, file?: string, error?: string }}
+ */
+function saveNote(roots, note) {
+  const key = String((note && note.key) || '')
+  // Defense in depth: a key must be a bare filename, never a path.
+  if (!key || /[/\\]/.test(key) || key.includes('..')) {
+    return { ok: false, error: 'invalid note key' }
+  }
+  for (const root of roots) {
+    if (!root) continue
+    const notesDir = path.join(root, 'notes')
+    const file = path.join(notesDir, `${key}.cson`)
+    if (path.dirname(file) !== notesDir) continue // reject traversal
+    if (!fs.existsSync(file)) continue
+
+    const raw = CSON.parse(fs.readFileSync(file, 'utf8'))
+    const merged = { ...raw }
+    for (const f of EDITABLE) {
+      if (note[f] !== undefined) merged[f] = note[f]
+    }
+    const tmp = `${file}.tmp`
+    fs.writeFileSync(tmp, CSON.stringify(merged, null, 2))
+    fs.renameSync(tmp, file) // atomic replace
+    return { ok: true, file }
+  }
+  return { ok: false, error: `note "${key}" not found in any storage` }
+}
+
 /**
  * Load several storage roots and aggregate them.
  * @param {string[]} roots
@@ -77,4 +115,4 @@ function loadStorages(roots) {
   return { storages, notes }
 }
 
-module.exports = { loadStorage, loadStorages, toNote }
+module.exports = { loadStorage, loadStorages, toNote, saveNote }

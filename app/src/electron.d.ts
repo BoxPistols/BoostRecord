@@ -6,6 +6,12 @@ export interface LoadResult {
   error?: string
 }
 
+export interface SaveResult {
+  ok: boolean
+  file?: string
+  error?: string
+}
+
 // The preload bridge (electron/preload.cjs). Present only when running inside
 // Electron; the browser foundation falls back to the in-memory repository.
 declare global {
@@ -13,6 +19,7 @@ declare global {
     boostnote?: {
       loadNotes(): Promise<LoadResult>
       pickStorage(): Promise<LoadResult | null>
+      saveNote(note: Note): Promise<SaveResult>
     }
   }
 }

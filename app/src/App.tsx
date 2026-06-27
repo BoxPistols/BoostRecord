@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Note, Selection, Storage } from './types'
 import { createRepository } from './data/repository'
 import { filterByQuery } from './data/search'
@@ -26,8 +26,26 @@ export default function App() {
   const [activeKey, setActiveKey] = useState<string | null>(null)
   const [pickError, setPickError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const canPick = typeof repository.pickStorage === 'function'
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Persist a note; failures surface in the header rather than being swallowed.
+  function persist(note: Note) {
+    if (!repository.saveNote) return
+    repository.saveNote(note).then(
+      () => setSaveError(null),
+      e => setSaveError(e instanceof Error ? e.message : String(e))
+    )
+  }
+
+  // Debounced autosave for rapid edits (typing); coalesces to the latest note.
+  function scheduleSave(note: Note) {
+    if (!repository.saveNote) return
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(() => persist(note), 600)
+  }
 
   async function handlePickStorage() {
     if (!repository.pickStorage) return
@@ -95,27 +113,21 @@ export default function App() {
 
   function updateActiveContent(content: string) {
     if (!active) return
-    setNotes(prev =>
-      prev.map(n =>
-        n.key === active.key
-          ? {
-              ...n,
-              content,
-              title: firstTitle(content, n.title),
-              updatedAt: new Date().toISOString()
-            }
-          : n
-      )
-    )
+    const updated: Note = {
+      ...active,
+      content,
+      title: firstTitle(content, active.title),
+      updatedAt: new Date().toISOString()
+    }
+    setNotes(prev => prev.map(n => (n.key === updated.key ? updated : n)))
+    scheduleSave(updated) // debounced write-back
   }
 
   function toggleStar() {
     if (!active) return
-    setNotes(prev =>
-      prev.map(n =>
-        n.key === active.key ? { ...n, isStarred: !n.isStarred } : n
-      )
-    )
+    const updated: Note = { ...active, isStarred: !active.isStarred }
+    setNotes(prev => prev.map(n => (n.key === updated.key ? updated : n)))
+    persist(updated) // immediate write-back (single action)
   }
 
   const folderName = active
@@ -144,6 +156,11 @@ export default function App() {
         <section className="detail">
           <div className="detail-head">
             <span className="folder">📁 {folderName}</span>
+            {saveError && (
+              <span className="save-error" title={saveError}>
+                ⚠ 保存に失敗しました
+              </span>
+            )}
             <span className="spacer" />
             <span
               className={`star ${active.isStarred ? 'on' : ''}`}

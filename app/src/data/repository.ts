@@ -11,6 +11,8 @@ export interface NotesRepository {
   load(): Promise<{ storages: Storage[]; notes: Note[] }>
   /** Present only when the runtime can pick a real storage folder (Electron). */
   pickStorage?(): Promise<{ storages: Storage[]; notes: Note[] } | null>
+  /** Persist an edited note. Present only when notes are backed by real files. */
+  saveNote?(note: Note): Promise<void>
 }
 
 // Deterministic (no Math.random) generator so the list reaches realistic
@@ -75,6 +77,10 @@ export function createElectronRepository(): NotesRepository {
       if (!res) return null
       if (res.error) throw new Error(res.error)
       return { storages: res.storages, notes: res.notes }
+    },
+    async saveNote(note) {
+      const res = await window.boostnote!.saveNote(note)
+      if (!res.ok) throw new Error(res.error || 'note の保存に失敗しました')
     }
   }
 }

@@ -4,3 +4,4 @@ dist/
 extra_scripts/
 coverage/
 poc/
+app/

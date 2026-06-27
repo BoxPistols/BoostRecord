@@ -1,0 +1,111 @@
+:root {
+  --bg: #1e2126;
+  --bg-rail: #16181c;
+  --bg-side: #23262d;
+  --bg-list: #1b1e23;
+  --bg-elev: #262a31;
+  --fg: #d7dae0;
+  --muted: #7f8694;
+  --faint: #5c6370;
+  --accent: #ff2d75;
+  --accent-2: #14b8a6;
+  --border: #2c313a;
+  --sel: #ff2d75;
+  --radius: 6px;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 13px/1.5 -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Hiragino Sans',
+    'Noto Sans JP', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ---- App grid: sidebar | note list | detail --------------------------- */
+.app {
+  display: grid;
+  grid-template-columns: 240px 300px 1fr;
+  height: 100%;
+}
+
+/* ---- Sidebar ---------------------------------------------------------- */
+.sidebar { background: var(--bg-side); border-right: 1px solid var(--border); overflow-y: auto; padding: 8px 0; }
+.side-section { padding: 6px 12px; }
+.side-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 12px; cursor: pointer; border-radius: var(--radius);
+  margin: 1px 6px; color: var(--fg);
+}
+.side-item:hover { background: #2a2e36; }
+.side-item.active { background: #31262e; color: #fff; }
+.side-item .count { margin-left: auto; color: var(--muted); font-size: 12px; }
+.side-item .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
+.side-head {
+  display: flex; align-items: center; gap: 6px;
+  padding: 10px 14px 4px; color: var(--muted);
+  font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+}
+.side-storage { padding: 8px 14px 2px; color: var(--fg); font-weight: 600; }
+.tag-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 2px 9px; margin: 2px; border-radius: 999px;
+  background: #2a2e36; color: var(--muted); cursor: pointer; font-size: 12px;
+}
+.tag-chip:hover { color: var(--fg); }
+.tag-chip.active { background: var(--accent); color: #fff; }
+
+/* ---- Note list -------------------------------------------------------- */
+.notelist { background: var(--bg-list); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-width: 0; }
+.notelist-head {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--muted);
+}
+.notelist-head .sort { font-size: 12px; }
+.notelist-scroll { overflow-y: auto; flex: 1; }
+.note-row {
+  padding: 10px 14px; border-bottom: 1px solid #20242b; cursor: pointer; min-width: 0;
+}
+.note-row:hover { background: #20242b; }
+.note-row.active { background: var(--sel); }
+.note-row.active .note-title, .note-row.active .note-meta { color: #fff; }
+.note-title {
+  font-size: 13px; color: var(--fg); white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;
+}
+.note-title .ic { color: var(--faint); flex: none; }
+.note-row.active .note-title .ic { color: #fff; }
+.note-meta { color: var(--muted); font-size: 11px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- Detail (editor + preview) --------------------------------------- */
+.detail { display: flex; flex-direction: column; min-width: 0; }
+.detail-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--muted);
+}
+.detail-head .folder { color: var(--fg); font-weight: 600; }
+.detail-head .spacer { margin-left: auto; }
+.detail-head .star.on { color: var(--accent); }
+.split { flex: 1; display: flex; min-height: 0; }
+.pane { flex: 1; min-width: 0; overflow: auto; }
+.pane.editor { border-right: 1px solid var(--border); }
+.cm-editor { height: 100%; font-size: 13px; }
+.cm-editor .cm-scroller { font-family: 'SFMono-Regular', Menlo, Consolas, monospace; }
+
+/* ---- Preview ---------------------------------------------------------- */
+.preview { padding: 14px 22px; }
+.preview > :first-child { margin-top: 0; }
+.preview h1, .preview h2, .preview h3 { border-bottom: 1px solid var(--border); padding-bottom: 4px; font-weight: 600; }
+.preview a { color: #60a5fa; }
+.preview pre { background: var(--bg-elev); padding: 10px 12px; border-radius: var(--radius); overflow: auto; }
+.preview code { background: var(--bg-elev); padding: 1px 5px; border-radius: 4px; font-family: 'SFMono-Regular', Menlo, monospace; }
+.preview pre code { background: none; padding: 0; }
+.preview table { border-collapse: collapse; }
+.preview th, .preview td { border: 1px solid var(--border); padding: 4px 10px; }
+.preview blockquote { border-left: 3px solid var(--border); margin: 0; padding-left: 12px; color: var(--muted); }
+
+.empty { display: grid; place-items: center; height: 100%; color: var(--faint); }

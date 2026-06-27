@@ -2007,3 +2007,45 @@ it('should test that handleAttachmentLinkPaste returns the correct modified past
       expect(returnedPastedText).toBe(expectedPastText)
     })
 })
+
+it('should test that handlePasteImageEvent writes the pasted image without corrupting the base64 data', done => {
+  findStorage.findStorage = jest.fn(() => ({ path: 'dummyStoragePath' }))
+  uniqueSlug.mockReturnValue('pastedimage')
+  fs.writeFileSync = jest.fn()
+
+  // 9 bytes: divisible by 3 so the base64 has no '=' padding. Without padding,
+  // the old `base64data += ...` doubling is not hidden by Node's decoder
+  // stopping at '=', so the corruption (≈double the bytes) becomes observable.
+  const pngBytes = Buffer.from([
+    0x89,
+    0x50,
+    0x4e,
+    0x47,
+    0x0d,
+    0x0a,
+    0x1a,
+    0x0a,
+    0xfb
+  ])
+  const blob = new Blob([pngBytes], { type: 'image/png' })
+  const dataTransferItem = { getAsFile: () => blob }
+
+  const codeEditor = {
+    insertAttachmentMd: () => {
+      // onloadend has run and the file has been written by now.
+      expect(fs.writeFileSync).toHaveBeenCalledTimes(1)
+      const writtenBinary = fs.writeFileSync.mock.calls[0][1]
+      // The bytes written must decode back to exactly the original image; the
+      // old `base64data += base64data.replace('+', ' ')` doubled/garbled them.
+      expect(Buffer.from(writtenBinary, 'binary').equals(pngBytes)).toBe(true)
+      done()
+    }
+  }
+
+  systemUnderTest.handlePasteImageEvent(
+    codeEditor,
+    'storageKey',
+    'noteKey',
+    dataTransferItem
+  )
+})

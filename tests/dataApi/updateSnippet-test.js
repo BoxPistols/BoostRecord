@@ -42,6 +42,24 @@ test.serial('Update a snippet', t => {
     })
 })
 
+test.serial(
+  'Updating a non-existent snippet resolves instead of hanging',
+  t => {
+    const missing = {
+      id: crypto.randomBytes(16).toString('hex'),
+      name: 'ghost',
+      prefix: [],
+      content: ''
+    }
+    // Before the fix the promise never settled when no snippet matched, so any
+    // caller awaiting it hung forever. It must resolve with the snippet list.
+    return updateSnippet(missing, snippetFile).then(snippets => {
+      t.true(Array.isArray(snippets))
+      t.is(snippets.length, 1)
+    })
+  }
+)
+
 test.after.always(() => {
   sander.rimrafSync(snippetFilePath)
 })

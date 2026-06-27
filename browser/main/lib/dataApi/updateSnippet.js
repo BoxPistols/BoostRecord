@@ -7,10 +7,12 @@ function updateSnippet(snippet, snippetFile) {
       fs.readFileSync(snippetFile || consts.SNIPPET_FILE, 'utf-8')
     )
 
+    let found = false
     for (let i = 0; i < snippets.length; i++) {
       const currentSnippet = snippets[i]
 
       if (currentSnippet.id === snippet.id) {
+        found = true
         if (
           currentSnippet.name === snippet.name &&
           currentSnippet.prefix === snippet.prefix &&
@@ -33,8 +35,12 @@ function updateSnippet(snippet, snippetFile) {
             }
           )
         }
+        break
       }
     }
+
+    // No snippet matched: settle the promise so callers don't hang forever.
+    if (!found) resolve(snippets)
   })
 }
 

@@ -23,6 +23,24 @@ export default function App() {
     value: 'all'
   })
   const [activeKey, setActiveKey] = useState<string | null>(null)
+  const [pickError, setPickError] = useState<string | null>(null)
+
+  const canPick = typeof repository.pickStorage === 'function'
+
+  async function handlePickStorage() {
+    if (!repository.pickStorage) return
+    try {
+      setPickError(null)
+      const res = await repository.pickStorage()
+      if (!res) return
+      setStorages(res.storages)
+      setNotes(res.notes)
+      setSelection({ kind: 'smart', value: 'all' })
+      setActiveKey(res.notes[0]?.key ?? null)
+    } catch (e) {
+      setPickError(e instanceof Error ? e.message : String(e))
+    }
+  }
 
   useEffect(() => {
     let alive = true
@@ -105,6 +123,7 @@ export default function App() {
         notes={notes}
         selection={selection}
         onSelect={selectView}
+        onPickStorage={canPick ? handlePickStorage : undefined}
       />
       <NoteList notes={visible} activeKey={activeKey} onSelect={setActiveKey} />
       {active ? (
@@ -133,7 +152,29 @@ export default function App() {
           </div>
         </section>
       ) : (
-        <div className="empty">Select a note</div>
+        <div className="empty">
+          {notes.length === 0 && canPick ? (
+            <div style={{ textAlign: 'center', maxWidth: 360 }}>
+              <div style={{ fontSize: 15, color: 'var(--fg)', marginBottom: 6 }}>
+                ノートがありません
+              </div>
+              <div style={{ marginBottom: 14 }}>
+                Boostnote のストレージフォルダ（<code>boostnote.json</code> が
+                あるフォルダ）を開くと、ノートが読み込まれます。
+              </div>
+              <button className="btn-primary" onClick={handlePickStorage}>
+                📂 ストレージフォルダを開く
+              </button>
+              {pickError && (
+                <div style={{ color: 'var(--accent)', marginTop: 10 }}>
+                  {pickError}
+                </div>
+              )}
+            </div>
+          ) : (
+            'Select a note'
+          )}
+        </div>
       )}
     </div>
   )

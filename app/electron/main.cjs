@@ -1,27 +1,77 @@
 'use strict'
 
-// Minimal, secure Electron shell for the modern app. Loads the Vite-built
-// renderer and bridges a single IPC channel that reads the user's real
-// `.cson` storages from disk (BOOSTNOTE_STORAGE = path-separated storage roots).
+// Secure Electron shell for The Boosters. Loads the Vite-built renderer and
+// bridges two IPC channels:
+//   notes:load        -> read the configured + env .cson storages
+//   notes:pickStorage -> let the user pick a storage folder (persisted)
 //
-//   npm run build && BOOSTNOTE_STORAGE=/path/to/storage npm run electron
+// Storage roots come from a persisted config (userData/config.json) and/or the
+// BOOSTNOTE_STORAGE env var (path-separated). A "storage" is a folder with a
+// boostnote.json + notes/*.cson.
 
-const { app, BrowserWindow, ipcMain } = require('electron')
+const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const fs = require('node:fs')
 const path = require('node:path')
 const { loadStorages } = require('./loadNotes.cjs')
 
-function storageRoots() {
+const configPath = () => path.join(app.getPath('userData'), 'config.json')
+
+function readConfig() {
+  try {
+    return JSON.parse(fs.readFileSync(configPath(), 'utf8'))
+  } catch {
+    return { storageRoots: [] }
+  }
+}
+
+function writeConfig(config) {
+  fs.mkdirSync(path.dirname(configPath()), { recursive: true })
+  fs.writeFileSync(configPath(), JSON.stringify(config, null, 2))
+}
+
+function envRoots() {
   const raw = process.env.BOOSTNOTE_STORAGE
   return raw ? raw.split(path.delimiter).filter(Boolean) : []
 }
 
-ipcMain.handle('notes:load', () => {
+function allRoots() {
+  const fromConfig = readConfig().storageRoots || []
+  return [...new Set([...fromConfig, ...envRoots()])]
+}
+
+function load() {
   try {
-    return loadStorages(storageRoots())
+    return loadStorages(allRoots())
   } catch (err) {
     console.error('notes:load failed:', err)
     return { storages: [], notes: [], error: String(err) }
   }
+}
+
+ipcMain.handle('notes:load', () => load())
+
+// Let the user pick a Boostnote storage folder; persist it and return notes.
+ipcMain.handle('notes:pickStorage', async () => {
+  const res = await dialog.showOpenDialog({
+    title: 'Boostnote ストレージフォルダを選択（boostnote.json があるフォルダ）',
+    properties: ['openDirectory', 'createDirectory']
+  })
+  if (res.canceled || res.filePaths.length === 0) return null
+
+  const picked = res.filePaths[0]
+  if (!fs.existsSync(path.join(picked, 'boostnote.json'))) {
+    return {
+      storages: [],
+      notes: [],
+      error: '選択したフォルダに boostnote.json が見つかりません。'
+    }
+  }
+
+  const config = readConfig()
+  const roots = new Set(config.storageRoots || [])
+  roots.add(picked)
+  writeConfig({ ...config, storageRoots: [...roots] })
+  return load()
 })
 
 function createWindow() {

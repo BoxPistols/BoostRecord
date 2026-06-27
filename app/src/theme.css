@@ -108,4 +108,17 @@ body {
 .preview th, .preview td { border: 1px solid var(--border); padding: 4px 10px; }
 .preview blockquote { border-left: 3px solid var(--border); margin: 0; padding-left: 12px; color: var(--muted); }
 
-.empty { display: grid; place-items: center; height: 100%; color: var(--faint); }
+.empty { display: grid; place-items: center; height: 100%; color: var(--muted); padding: 24px; }
+.empty code { background: var(--bg-elev); padding: 1px 5px; border-radius: 4px; }
+
+.btn-primary, .btn-ghost {
+  font: inherit;
+  cursor: pointer;
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+}
+.btn-primary { background: var(--accent); color: #fff; border-color: transparent; }
+.btn-primary:hover { filter: brightness(1.08); }
+.btn-ghost { background: transparent; color: var(--muted); width: 100%; }
+.btn-ghost:hover { background: #2a2e36; color: var(--fg); }

@@ -9,6 +9,8 @@ import { sampleNotes, sampleStorages } from './sampleNotes'
  */
 export interface NotesRepository {
   load(): Promise<{ storages: Storage[]; notes: Note[] }>
+  /** Present only when the runtime can pick a real storage folder (Electron). */
+  pickStorage?(): Promise<{ storages: Storage[]; notes: Note[] } | null>
 }
 
 // Deterministic (no Math.random) generator so the list reaches realistic
@@ -66,6 +68,12 @@ export function createElectronRepository(): NotesRepository {
   return {
     async load() {
       const res = await window.boostnote!.loadNotes()
+      return { storages: res.storages, notes: res.notes }
+    },
+    async pickStorage() {
+      const res = await window.boostnote!.pickStorage()
+      if (!res) return null
+      if (res.error) throw new Error(res.error)
       return { storages: res.storages, notes: res.notes }
     }
   }

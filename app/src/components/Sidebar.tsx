@@ -5,9 +5,17 @@ interface Props {
   notes: Note[]
   selection: Selection
   onSelect: (s: Selection) => void
+  /** When set (Electron), shows a button to add a real storage folder. */
+  onPickStorage?: () => void
 }
 
-export function Sidebar({ storages, notes, selection, onSelect }: Props) {
+export function Sidebar({
+  storages,
+  notes,
+  selection,
+  onSelect,
+  onPickStorage
+}: Props) {
   const live = notes.filter(n => !n.isTrashed)
   const counts = {
     all: live.length,
@@ -81,6 +89,14 @@ export function Sidebar({ storages, notes, selection, onSelect }: Props) {
               </span>
             ))}
           </div>
+        </div>
+      )}
+
+      {onPickStorage && (
+        <div className="side-section" style={{ marginTop: 'auto' }}>
+          <button className="btn-ghost" onClick={onPickStorage}>
+            ＋ ストレージを追加
+          </button>
         </div>
       )}
     </nav>

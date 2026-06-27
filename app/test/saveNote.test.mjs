@@ -64,6 +64,20 @@ test('saveNote updates editable fields and preserves the rest', () => {
   fs.rmSync(root, { recursive: true, force: true })
 })
 
+test('saveNote can move a note to another folder', () => {
+  const root = makeStorage({
+    type: 'MARKDOWN_NOTE',
+    folder: 'f1',
+    content: 'x',
+    createdAt: '2025-01-01T00:00:00.000Z'
+  })
+  const res = saveNote([root], { key: 'n1', folder: 'f2' })
+  assert.equal(res.ok, true)
+  const { notes } = loadStorage(root)
+  assert.equal(notes[0].folder, 'f2')
+  fs.rmSync(root, { recursive: true, force: true })
+})
+
 test('saveNote leaves no temp file behind (atomic)', () => {
   const root = makeStorage({ type: 'MARKDOWN_NOTE', content: 'x', createdAt: '2025-01-01' })
   saveNote([root], { key: 'n1', content: 'y' })

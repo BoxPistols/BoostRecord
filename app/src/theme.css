@@ -112,6 +112,12 @@ body {
   padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--muted);
 }
 .detail-head .folder { color: var(--fg); font-weight: 600; }
+.folder-select {
+  font: inherit; font-weight: 600; color: var(--fg);
+  background: var(--bg-elev); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 2px 6px; cursor: pointer;
+}
+.folder-select:focus { outline: none; border-color: var(--accent); }
 .detail-head .spacer { margin-left: auto; }
 .detail-head .star.on { color: var(--accent); }
 .detail-head .save-error { color: var(--accent); font-size: 12px; cursor: default; }

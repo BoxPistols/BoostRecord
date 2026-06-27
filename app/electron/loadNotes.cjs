@@ -63,7 +63,15 @@ function loadStorage(rootDir, storageKey) {
 
 // Fields the renderer may change; everything else in the raw `.cson` (e.g. a
 // SNIPPET_NOTE's `snippets` array, or any unknown keys) is preserved untouched.
-const EDITABLE = ['title', 'content', 'tags', 'isStarred', 'isTrashed', 'updatedAt']
+const EDITABLE = [
+  'title',
+  'content',
+  'tags',
+  'folder',
+  'isStarred',
+  'isTrashed',
+  'updatedAt'
+]
 
 /**
  * Write an edited note back to its `.cson` file, preserving every field the

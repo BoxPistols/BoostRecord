@@ -156,6 +156,17 @@ export default function App() {
     persist(updated)
   }
 
+  function moveToFolder(folder: string) {
+    if (!active || folder === active.folder) return
+    const updated: Note = {
+      ...active,
+      folder,
+      updatedAt: new Date().toISOString()
+    }
+    setNotes(prev => prev.map(n => (n.key === updated.key ? updated : n)))
+    persist(updated)
+  }
+
   // Create a new note in the selected folder (or the first folder otherwise).
   async function handleNewNote() {
     if (!repository.createNote) return
@@ -209,11 +220,14 @@ export default function App() {
     }
   }
 
-  const folderName = active
-    ? (storages
-        .find(s => s.key === active.storage)
-        ?.folders.find(f => f.key === active.folder)?.name ?? active.folder)
-    : ''
+  const activeFolders = active
+    ? (storages.find(s => s.key === active.storage)?.folders ?? [])
+    : []
+  const folderName =
+    activeFolders.find(f => f.key === active?.folder)?.name ??
+    active?.folder ??
+    ''
+  const canMove = typeof repository.saveNote === 'function' && activeFolders.length > 0
 
   return (
     <div className="app">
@@ -235,7 +249,25 @@ export default function App() {
       {active ? (
         <section className="detail">
           <div className="detail-head">
-            <span className="folder">📁 {folderName}</span>
+            {canMove && !active.isTrashed ? (
+              <label className="folder">
+                📁{' '}
+                <select
+                  className="folder-select"
+                  value={active.folder}
+                  onChange={e => moveToFolder(e.target.value)}
+                  title="フォルダを移動"
+                >
+                  {activeFolders.map(f => (
+                    <option key={f.key} value={f.key}>
+                      {f.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : (
+              <span className="folder">📁 {folderName}</span>
+            )}
             {saveError && (
               <span className="save-error" title={saveError}>
                 ⚠ 保存に失敗しました

@@ -1,7 +1,7 @@
 {
   "name": "the-boosters",
   "private": true,
-  "version": "0.1.2",
+  "version": "0.1.3",
   "type": "module",
   "description": "The Boosters — a modern, collaborative note app for programmers (successor to the discontinued Boostnote)",
   "author": "BoxPistols",
@@ -71,17 +71,20 @@
       "output": "release"
     },
     "mac": {
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",
           "arch": [
-            "universal"
+            "arm64",
+            "x64"
           ]
         },
         {
           "target": "zip",
           "arch": [
-            "universal"
+            "arm64",
+            "x64"
           ]
         }
       ],

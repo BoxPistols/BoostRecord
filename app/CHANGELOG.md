@@ -2,6 +2,15 @@
 
 [Boostnote Legacy](https://github.com/BoxPistols/Boostnote) を母体とするモダン版ノートアプリ（Vite + React 19 + TypeScript + CodeMirror 6 / Electron 42）の変更履歴です。
 
+## 0.1.3
+
+Apple Silicon ネイティブ配布を明示化。
+
+### 変更
+- **macOS ビルドを per-arch（arm64 / x64 別）に変更**。これまでの universal（fat）dmg も arm64 スライスを含みネイティブ起動していたが、Apple Silicon ユーザーに**明確にネイティブな arm64 専用 dmg**（約半分サイズ）を提供する。ファイル名に `-arm64` / `-x64` を明記。
+  - 自動更新の整合のため zip ターゲットは維持し、arm64/x64 を**単一 electron-builder 実行**でビルドして `latest-mac.yml` を 1 本にマージ（[electron-builder #5592](https://github.com/electron-userland/electron-builder/issues/5592) 回避）。
+- **レガシー本体（Electron 4.2.12）は arm64 ネイティブ化不可**（Electron 4 に darwin-arm64 配布が存在せず、arm64 対応は Electron 11+）。x64 + Rosetta 2 運用に固定し、ネイティブ arm64 を求める場合は本アプリ（The Boosters）を使う旨を README に明記。
+
 ## 0.1.2
 
 ノート管理とプレビューを実用レベルまで拡充。

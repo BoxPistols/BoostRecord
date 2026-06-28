@@ -39,8 +39,10 @@
 
 ## 開発
 
+> **Apple Silicon について**: モダンアプリ（`app/`）は **arm64 ネイティブ**です。一方レガシー本体は **Electron 4.2.12 に arm64 ビルドが存在しない**ため（arm64 対応は Electron 11+）、ネイティブ化できません。Apple Silicon でレガシーを動かす場合は x86_64 Node（Rosetta 2）で実行します（`arch -x86_64 zsh` → Volta/nvm の x86_64 Node 14）。ネイティブ arm64 が必要なら The Boosters（`app/`）を使ってください。
+
 ```bash
-# レガシー本体（Node 14 / Volta 推奨）
+# レガシー本体（Node 14 / Volta 推奨、Apple Silicon は Rosetta 2 / x86_64 Node）
 npm install --legacy-peer-deps
 npm run dev        # Electron 4 で起動
 npm test           # AVA + Jest
@@ -60,7 +62,15 @@ cd poc/collab-core && npm install && npm test
 
 ## ダウンロード（配布ビルド）
 
-**[📦 Releases ページ](https://github.com/BoxPistols/Boostnote/releases)** から最新のインストーラを入手できます（macOS `.dmg`/`.zip`・Windows `.exe`）。
+**[📦 Releases ページ](https://github.com/BoxPistols/Boostnote/releases)** から最新のインストーラを入手できます。
+
+| 環境 | ダウンロード |
+|---|---|
+| **macOS（Apple Silicon / M1〜）** | `The-Boosters-<ver>-arm64.dmg` — **ネイティブ arm64**（Rosetta 不要） |
+| **macOS（Intel）** | `The-Boosters-<ver>-x64.dmg` |
+| **Windows** | `The-Boosters-Setup-<ver>.exe` |
+
+> 🍏 **Apple Silicon はネイティブ対応です。** v0.1.3 から arm64 専用 dmg を配布（`lipo` で arm64 スライスを実機検証済み）。お使いの Mac のチップは  Appleメニュー →「この Mac について」で確認できます（Apple M1/M2/… なら arm64 を選択）。
 
 リリースは `app-v*` タグの push で GitHub Actions（[release.yml](.github/workflows/release.yml)）が macOS / Windows ランナーでビルドし、自動で Releases に公開します:
 

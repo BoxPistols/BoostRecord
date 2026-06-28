@@ -1,9 +1,9 @@
 {
-  "name": "boost",
-  "productName": "Boostnote",
+  "name": "the-boosters",
+  "productName": "The Boosters",
   "version": "0.16.1",
   "main": "index.js",
-  "description": "Boostnote",
+  "description": "The Boosters — a modernized, independent successor to Boostnote (originally © BoostIO, GPL-3.0)",
   "license": "GPL-3.0",
   "scripts": {
     "start": "electron ./index.js",
@@ -24,7 +24,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BoostIO/Boostnote.git"
+    "url": "git+https://github.com/BoxPistols/TheBoosters.git"
   },
   "keywords": [
     "boostnote",

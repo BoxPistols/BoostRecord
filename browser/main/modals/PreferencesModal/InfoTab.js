@@ -8,7 +8,8 @@ import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
 
 const electron = require('electron')
-const { shell, remote } = electron
+const { shell } = electron
+const remote = require('@electron/remote')
 const appVersion = remote.app.getVersion()
 
 class InfoTab extends React.Component {

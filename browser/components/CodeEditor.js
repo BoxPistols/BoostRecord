@@ -13,7 +13,8 @@ import iconv from 'iconv-lite'
 
 import { isMarkdownTitleURL } from 'browser/lib/utils'
 import styles from '../components/CodeEditor.styl'
-const { ipcRenderer, remote, clipboard } = require('electron')
+const { ipcRenderer, clipboard } = require('electron')
+const remote = require('@electron/remote')
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 const spellcheck = require('browser/lib/spellcheck')
 const buildEditorContextMenu = require('browser/lib/contextMenuBuilder')

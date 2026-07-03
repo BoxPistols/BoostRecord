@@ -2,7 +2,7 @@ const AWS = require('aws-sdk')
 const AMA = require('aws-sdk-mobile-analytics')
 const ConfigManager = require('browser/main/lib/ConfigManager')
 
-const remote = require('electron').remote
+const remote = require('@electron/remote')
 const os = require('os')
 let mobileAnalyticsClient
 

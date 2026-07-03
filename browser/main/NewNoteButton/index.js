@@ -9,7 +9,7 @@ import eventEmitter from 'browser/main/lib/eventEmitter'
 import i18n from 'browser/lib/i18n'
 import { createMarkdownNote, createSnippetNote } from 'browser/lib/newNote'
 
-const { remote } = require('electron')
+const remote = require('@electron/remote')
 const { dialog } = remote
 
 const OSX = window.process.platform === 'darwin'
@@ -97,7 +97,7 @@ class NewNoteButton extends React.Component {
   }
 
   showMessageBox(message) {
-    dialog.showMessageBox(remote.getCurrentWindow(), {
+    dialog.showMessageBoxSync(remote.getCurrentWindow(), {
       type: 'warning',
       message: message,
       buttons: ['OK']

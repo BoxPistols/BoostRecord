@@ -1,0 +1,16 @@
+diff --git a/jsdoc-toolkit/templates/bluelabel/.npmignore b/jsdoc-toolkit/templates/bluelabel/.npmignore
+deleted file mode 100644
+index 496ee2ca6a2f08396a4076fe43dedf3dc0da8b6d..0000000000000000000000000000000000000000
+diff --git a/package.json b/package.json
+index e496fc91b55512b815ddcf45997a8e21b0d5e010..07f037d9f7f7f63316155047b6c33be241074371 100644
+--- a/package.json
++++ b/package.json
+@@ -26,7 +26,7 @@
+ 			"url" : "git://github.com/garycourt/JSV.git"
+ 		}
+ 	],
+-	"dependencies" : [],
++	"dependencies" : {},
+ 	"main" : "lib/jsv.js",
+ 	"keywords" : ["json", "schema", "validator"]
+ }

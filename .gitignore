@@ -6,6 +6,8 @@ node_modules/*
 !node_modules/boost
 /dist
 /compiled
+/release
+app/release
 /secret
 *.log
 .idea

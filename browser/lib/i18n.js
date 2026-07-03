@@ -1,5 +1,5 @@
 const path = require('path')
-const { remote } = require('electron')
+const remote = require('@electron/remote')
 const { app } = remote
 const { getLocales } = require('./Languages.js')
 

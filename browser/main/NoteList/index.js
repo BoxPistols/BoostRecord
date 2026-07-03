@@ -24,7 +24,7 @@ import context from 'browser/lib/context'
 import filenamify from 'filenamify'
 import queryString from 'query-string'
 
-const { remote } = require('electron')
+const remote = require('@electron/remote')
 const { dialog } = remote
 const WP_POST_PATH = '/wp/v2/posts'
 
@@ -609,7 +609,7 @@ class NoteList extends React.Component {
 
     const targetIndex = this.getTargetIndex()
     if (this.notes[targetIndex].type === 'SNIPPET_NOTE') {
-      dialog.showMessageBox(remote.getCurrentWindow(), {
+      dialog.showMessageBoxSync(remote.getCurrentWindow(), {
         type: 'warning',
         message: i18n.__('Sorry!'),
         detail: i18n.__(
@@ -645,27 +645,30 @@ class NoteList extends React.Component {
       properties: ['openFile', 'createDirectory']
     }
 
-    dialog.showSaveDialog(remote.getCurrentWindow(), options, filename => {
-      if (filename) {
-        const { config } = this.props
+    dialog
+      .showSaveDialog(remote.getCurrentWindow(), options)
+      .then(({ canceled, filePath }) => {
+        const filename = filePath
+        if (!canceled && filename) {
+          const { config } = this.props
 
-        dataApi
-          .exportNoteAs(note, filename, fileType, config)
-          .then(res => {
-            dialog.showMessageBox(remote.getCurrentWindow(), {
-              type: 'info',
-              message: `Exported to ${filename}`
+          dataApi
+            .exportNoteAs(note, filename, fileType, config)
+            .then(res => {
+              dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+                type: 'info',
+                message: `Exported to ${filename}`
+              })
             })
-          })
-          .catch(err => {
-            dialog.showErrorBox(
-              'Export error',
-              err ? err.message || err : 'Unexpected error during export'
-            )
-            throw err
-          })
-      }
-    })
+            .catch(err => {
+              dialog.showErrorBox(
+                'Export error',
+                err ? err.message || err : 'Unexpected error during export'
+              )
+              throw err
+            })
+        }
+      })
   }
 
   handleNoteContextMenu(e, uniqueKey) {
@@ -1031,7 +1034,7 @@ class NoteList extends React.Component {
   }
 
   confirmPublishError() {
-    const { remote } = electron
+    const remote = require('@electron/remote')
     const { dialog } = remote
     const alertError = {
       type: 'warning',
@@ -1039,11 +1042,11 @@ class NoteList extends React.Component {
       detail: i18n.__('Check and update your blog setting and try again.'),
       buttons: [i18n.__('Confirm')]
     }
-    dialog.showMessageBox(remote.getCurrentWindow(), alertError)
+    dialog.showMessageBoxSync(remote.getCurrentWindow(), alertError)
   }
 
   confirmPublish(note) {
-    const buttonIndex = dialog.showMessageBox(remote.getCurrentWindow(), {
+    const buttonIndex = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
       type: 'warning',
       message: i18n.__('Publish Succeeded'),
       detail: `${note.title} is published at ${note.blog.blogLink}`,
@@ -1066,9 +1069,11 @@ class NoteList extends React.Component {
       properties: ['openFile', 'multiSelections']
     }
 
-    dialog.showOpenDialog(remote.getCurrentWindow(), options, filepaths => {
-      this.addNotesFromFiles(filepaths)
-    })
+    dialog
+      .showOpenDialog(remote.getCurrentWindow(), options)
+      .then(({ canceled, filePaths }) => {
+        if (!canceled) this.addNotesFromFiles(filePaths)
+      })
   }
 
   handleDrop(e) {
@@ -1163,7 +1168,7 @@ class NoteList extends React.Component {
   }
 
   showMessageBox(message) {
-    dialog.showMessageBox(remote.getCurrentWindow(), {
+    dialog.showMessageBoxSync(remote.getCurrentWindow(), {
       type: 'warning',
       message: message,
       buttons: [i18n.__('OK')]

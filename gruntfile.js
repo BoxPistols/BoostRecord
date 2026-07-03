@@ -10,11 +10,12 @@ module.exports = function(grunt) {
   try {
     authCode = grunt.file.readJSON('secret/auth_code.json')
   } catch (e) {
-    if (e.origError.code === 'ENOENT') {
-      console.warn(
-        'secret/auth_code.json is not found. CodeSigning is not available.'
-      )
-    }
+    // readJSON throws differently across grunt versions (e.origError may be
+    // undefined); a missing secret/auth_code.json is expected now that signing
+    // is handled by electron-builder, so just warn instead of crashing load.
+    console.warn(
+      'secret/auth_code.json is not found. Legacy grunt CodeSigning is unavailable (electron-builder handles signing).'
+    )
   }
   const OSX_COMMON_NAME = authCode != null ? authCode.OSX_COMMON_NAME : ''
   const WIN_CERT_PASSWORD = authCode != null ? authCode.WIN_CERT_PASSWORD : ''

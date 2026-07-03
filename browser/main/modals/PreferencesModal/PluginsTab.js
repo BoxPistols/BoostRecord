@@ -9,7 +9,7 @@ import i18n from 'browser/lib/i18n'
 import { sync as commandExists } from 'command-exists'
 const electron = require('electron')
 const ipc = electron.ipcRenderer
-const { remote } = electron
+const remote = require('@electron/remote')
 const { dialog } = remote
 class PluginsTab extends React.Component {
   constructor(props) {
@@ -66,7 +66,7 @@ class PluginsTab extends React.Component {
         ),
         buttons: [i18n.__('OK')]
       }
-      dialog.showMessageBox(remote.getCurrentWindow(), alertConfig)
+      dialog.showMessageBoxSync(remote.getCurrentWindow(), alertConfig)
     } else {
       this.setState({
         wakatimePluginAlert: null

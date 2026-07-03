@@ -152,6 +152,11 @@ export const DEFAULT_CONFIG = {
   coloredTags: {},
   wakatime: {
     key: null
+  },
+  ai: {
+    provider: 'openai', // 'openai' | 'gemini'
+    openai: { apiKey: '', model: 'gpt-5-mini' },
+    gemini: { apiKey: '', model: 'gemini-2.5-flash' }
   }
 }
 
@@ -297,6 +302,12 @@ function assignConfigValues(originalConfig, rcConfig) {
     DEFAULT_CONFIG.preview,
     originalConfig.preview,
     rcConfig.preview
+  )
+  config.ai = Object.assign(
+    {},
+    DEFAULT_CONFIG.ai,
+    originalConfig.ai,
+    rcConfig.ai
   )
 
   rewriteHotkey(config)

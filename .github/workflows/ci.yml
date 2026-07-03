@@ -1,9 +1,10 @@
 name: CI
 
 # Runs lint, the AVA data-layer suite, the Jest suite, and the production
-# webpack build on every push and pull request to main. Pinned to Node
-# 14.21.3 to match the Volta pin and Electron 4 compatibility. No untrusted
-# event input is referenced in any run: step.
+# webpack build on every push and pull request to main. Uses pnpm + Node 22 —
+# the toolchain the app was modernized to (pnpm 10 requires Node 18+, and
+# webpack 1 runs via --openssl-legacy-provider, baked into `pnpm run compile`).
+# No untrusted event input is referenced in any run: step.
 
 on:
   push:
@@ -19,35 +20,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js 14.21.3
+      - name: Install pnpm
+        # Reads the pnpm version from package.json "packageManager".
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: '14.21.3'
+          node-version: '22'
+          cache: pnpm
 
       - name: Rewrite git:// to https://
-        # A transitive dependency (eve, via Raphael/snap.svg) is referenced
-        # over the unauthenticated git:// protocol, which GitHub disabled in
-        # 2022. Rewriting to https:// lets the install resolve it.
+        # A transitive dependency (eve, via Raphael/snap.svg) is referenced over
+        # the unauthenticated git:// protocol, which GitHub disabled in 2022.
         run: git config --global url."https://github.com/".insteadOf "git://github.com/"
 
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: npm run lint
+        run: pnpm run lint
 
       - name: AVA (data layer)
-        run: npm run ava
+        run: pnpm run ava
 
       - name: Jest
-        # --coverage prints a coverage summary for the code exercised by the
-        # tests (informational; no threshold is enforced).
-        run: npx jest --ci --coverage --coverageReporters=text-summary
+        # --coverage prints a coverage summary (informational; no threshold).
+        run: pnpm exec jest --ci --coverage --coverageReporters=text-summary
 
       - name: Build (webpack production)
-        # webpack 1 exits 0 even on compilation errors, so use --bail to fail
-        # on the first error and assert the bundle was actually emitted.
+        # `pnpm run compile` runs webpack 1 with --openssl-legacy-provider (Node
+        # 18+) and BABEL_ENV=production (strips HMR); --bail is baked in. Assert
+        # the bundle was emitted.
         run: |
           rm -rf compiled
-          node ./node_modules/.bin/webpack --config webpack-production.config.js --bail
+          pnpm run compile
           test -f compiled/main.js

@@ -1,3 +1,6 @@
+// Must be first: aliases the removed electron.remote → @electron/remote before
+// any other module (electron-config, consts, …) reads electron.remote.*.
+import 'browser/lib/remoteShim'
 import { Provider } from 'react-redux'
 import Main from './Main'
 import { store, history } from './store'
@@ -16,7 +19,8 @@ import ConfigManager from './lib/ConfigManager'
 
 const electron = require('electron')
 
-const { remote, ipcRenderer } = electron
+const { ipcRenderer } = electron
+const remote = require('@electron/remote')
 const { dialog } = remote
 
 document.addEventListener('drop', function(e) {
@@ -96,7 +100,7 @@ function notify(...args) {
 }
 
 function updateApp() {
-  const index = dialog.showMessageBox(remote.getCurrentWindow(), {
+  const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
     type: 'warning',
     message: i18n.__('Update Boostnote'),
     detail: i18n.__('New Boostnote is ready to be installed.'),
@@ -109,7 +113,7 @@ function updateApp() {
 }
 
 function downloadUpdate() {
-  const index = dialog.showMessageBox(remote.getCurrentWindow(), {
+  const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
     type: 'warning',
     message: i18n.__('Update Boostnote'),
     detail: i18n.__('New Boostnote is ready to be downloaded.'),

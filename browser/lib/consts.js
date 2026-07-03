@@ -1,6 +1,6 @@
 const path = require('path')
 const fs = require('sander')
-const { remote } = require('electron')
+const remote = require('@electron/remote')
 const { app } = remote
 
 const CODEMIRROR_THEME_PATH = 'node_modules/codemirror/theme'

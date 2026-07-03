@@ -21,8 +21,8 @@
 
 | パス | 内容 | ランタイム |
 |---|---|---|
-| `browser/`, `lib/` | **レガシー本体**（Electron 4 + React 16 + Redux + webpack 1、`.cson` ファイル保存）。保守モードで安定化中 | Node 14 |
-| `app/` | **モダンアプリ土台**（Vite + React 19 + TypeScript + CodeMirror 6）。3ペインUXを再現し、実 `.cson` の読込・新規作成・編集の書き戻し保存（オートセーブ）・タグ編集・フォルダ移動・ゴミ箱（移動/復元/完全削除）・全文検索・一覧ソート（更新/作成/タイトル）・KaTeX 数式プレビュー・コードのシンタックスハイライト・Markdown エクスポート・仮想化リスト・フォルダピッカーに対応。Electron 42 で配布 | Node 22 |
+| `browser/`, `lib/` | **The Boosters 本体**（フル機能。React 16 + Redux + webpack 1、`.cson` ファイル保存）。**Electron 28 へ近代化**し electron-builder で OS App 配布 | Node 22 |
+| `app/` | **モダンアプリ土台**（Vite + React 19 + TypeScript + CodeMirror 6）。3ペインUXを再現し、実 `.cson` の読込・新規作成・編集の書き戻し保存（オートセーブ）・タグ編集・フォルダ移動・ゴミ箱（移動/復元/完全削除）・全文検索・一覧ソート（更新/作成/タイトル）・KaTeX 数式プレビュー・コードのシンタックスハイライト・Markdown エクスポート・仮想化リスト・フォルダピッカーに対応。Electron 42。**The Boosters Next** として配布 | Node 22 |
 | `poc/collab-core/` | **共同編集コアの実証**（Yjs + CodeMirror 6 + self-host Hocuspocus + `.cson` スナップショット、device-pairing 認証） | Node 22 |
 | `docs/` | モダナイゼーション設計判断書（[スタック選定・脅威モデル](docs/MODERNIZATION-2026-stack-selection.md)・[As-Built アーキテクチャ](docs/MODERNIZATION-2026-app-architecture.md)） | — |
 | `.claude/skills/boostnote-modernize` | アーキテクチャ判断・作業方針をまとめた Claude Code スキル | — |
@@ -39,13 +39,13 @@
 
 ## 開発
 
-> **Apple Silicon について**: モダンアプリ（`app/`）は **arm64 ネイティブ**です。一方レガシー本体は **Electron 4.2.12 に arm64 ビルドが存在しない**ため（arm64 対応は Electron 11+）、ネイティブ化できません。Apple Silicon でレガシーを動かす場合は x86_64 Node（Rosetta 2）で実行します（`arch -x86_64 zsh` → Volta/nvm の x86_64 Node 14）。ネイティブ arm64 が必要なら The Boosters（`app/`）を使ってください。
+> **Apple Silicon について**: 本体（`browser/`+`lib/`）も **Electron 28 へ近代化済みで arm64 ネイティブ**です（旧 Electron 4 時代の「arm64 ビルドが存在しない」制約は解消）。`The Boosters` / `The Boosters Next` いずれもネイティブ arm64 dmg を配布します。Rosetta は不要です。
 
 ```bash
-# レガシー本体（Node 14 / Volta 推奨、Apple Silicon は Rosetta 2 / x86_64 Node）
-npm install --legacy-peer-deps
-npm run dev        # Electron 4 で起動
-npm test           # AVA + Jest
+# The Boosters 本体（モダン化中: Node 22 / pnpm / Electron 42・arm64 ネイティブへ移行）
+pnpm install       # Volta が Node 22 を自動選択。postinstall で Electron 42(arm64) 取得
+pnpm dev           # webpack ビルド + Electron 42 起動
+pnpm test          # AVA + Jest
 npm run lint       # ESLint
 
 # モダンアプリ（Node 22）
@@ -62,7 +62,11 @@ cd poc/collab-core && npm install && npm test
 
 ## ダウンロード（配布ビルド）
 
-**[📦 Releases ページ](https://github.com/BoxPistols/Boostnote/releases)** から最新のインストーラを入手できます。
+**[📦 Releases ページ](https://github.com/BoxPistols/TheBoosters/releases)** から最新のインストーラを入手できます。**2つのプロダクト**を配布します（どちらも **ネイティブ arm64** 対応・現状 **未署名**）:
+
+### The Boosters（フル機能・推奨）
+
+レガシー本体を近代化したフル機能版（Electron 28）。タグ `v*` の push で [release-legacy.yml](.github/workflows/release-legacy.yml) が macOS / Windows ランナーでビルドし、自動で Releases に公開します。
 
 | 環境 | ダウンロード |
 |---|---|
@@ -70,12 +74,21 @@ cd poc/collab-core && npm install && npm test
 | **macOS（Intel）** | `The-Boosters-<ver>-x64.dmg` |
 | **Windows** | `The-Boosters-Setup-<ver>.exe` |
 
-> 🍏 **Apple Silicon はネイティブ対応です。** v0.1.3 から arm64 専用 dmg を配布（`lipo` で arm64 スライスを実機検証済み）。お使いの Mac のチップは  Appleメニュー →「この Mac について」で確認できます（Apple M1/M2/… なら arm64 を選択）。
+```bash
+git tag v0.16.1 && git push origin v0.16.1
+```
 
-リリースは `app-v*` タグの push で GitHub Actions（[release.yml](.github/workflows/release.yml)）が macOS / Windows ランナーでビルドし、自動で Releases に公開します:
+### The Boosters Next（モダン土台 `app/`）
+
+Vite + React 19 + CodeMirror 6 の次世代土台（機能は限定）。タグ `app-v*` の push で [release.yml](.github/workflows/release.yml) がビルドします。
+
+| 環境 | ダウンロード |
+|---|---|
+| **macOS** | `The-Boosters-Next-<ver>-arm64.dmg` / `-x64.dmg` |
+| **Windows** | `The-Boosters-Next-Setup-<ver>.exe` |
 
 ```bash
-git tag app-v0.1.0 && git push origin app-v0.1.0
+git tag app-v0.1.3 && git push origin app-v0.1.3
 ```
 
 > ⚠️ 現状の配布ビルドは **未署名**（署名証明書未設定）のため、初回起動時に OS の警告が出ます。

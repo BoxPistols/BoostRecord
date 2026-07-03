@@ -1,0 +1,69 @@
+name: Release (The Boosters — full/legacy app)
+
+# Builds the full-featured app (browser/ + lib/, Electron 28) into installers on
+# macOS (dmg/zip arm64+x64) and Windows (nsis) and publishes them to a GitHub
+# Release. This is the primary "The Boosters" product (io.boxpistols.theboosters).
+# The modern app/ shell ("The Boosters Next", io.boxpistols.theboosters.next)
+# ships separately via release.yml on `app-v*` tags.
+#
+# Trigger by pushing a tag like `v0.16.1` (the `v*` glob does NOT match `app-v*`):
+#   git tag v0.16.1 && git push origin v0.16.1
+#
+# Builds are currently UNSIGNED (no code-signing certificates configured), so
+# macOS/Windows warn on first launch — see the README for the quarantine /
+# SmartScreen workaround. Add APPLE_* / WIN_CSC_* secrets and wire them here to
+# ship signed + notarized artifacts. No untrusted event input is referenced in
+# any run: step; GITHUB_TOKEN is a repo secret.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: build & publish (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        # Reads the pnpm version from package.json "packageManager".
+        uses: pnpm/action-setup@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
+
+      - name: Rewrite git:// to https://
+        # A transitive dependency (eve, via Raphael/snap.svg) is referenced over
+        # the unauthenticated git:// protocol, which GitHub disabled in 2022.
+        run: git config --global url."https://github.com/".insteadOf "git://github.com/"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build renderer (webpack production)
+        # Produces compiled/main.js (BABEL_ENV=production strips the HMR transform;
+        # --openssl-legacy-provider lets webpack 1 run on Node 18+).
+        run: pnpm run compile
+
+      - name: Package & publish installers
+        # electron-builder targets the host platform: macOS runner -> dmg/zip
+        # (arm64 + x64), Windows runner -> nsis. Unsigned (identity is null and
+        # CSC auto-discovery is disabled).
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: pnpm exec electron-builder --publish always

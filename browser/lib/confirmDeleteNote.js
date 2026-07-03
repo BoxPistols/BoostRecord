@@ -1,6 +1,6 @@
 import electron from 'electron'
 import i18n from 'browser/lib/i18n'
-const { remote } = electron
+const remote = require('@electron/remote')
 const { dialog } = remote
 
 export function confirmDeleteNote(confirmDeletion, permanent) {
@@ -12,7 +12,7 @@ export function confirmDeleteNote(confirmDeletion, permanent) {
       buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
     }
 
-    const dialogButtonIndex = dialog.showMessageBox(
+    const dialogButtonIndex = dialog.showMessageBoxSync(
       remote.getCurrentWindow(),
       alertConfig
     )

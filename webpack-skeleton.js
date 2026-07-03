@@ -33,6 +33,10 @@ var config = {
     'prettier',
     'node-ipc',
     'electron',
+    // Must stay external: bundling @electron/remote breaks its access to the
+    // real renderer process bindings (process._linkedBinding), so it throws
+    // "Electron >=v13 required to support sandboxed renderers".
+    '@electron/remote',
     'lodash',
     'markdown-it',
     'moment',

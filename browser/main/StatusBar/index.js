@@ -8,7 +8,8 @@ import context from 'browser/lib/context'
 import EventEmitter from 'browser/main/lib/eventEmitter'
 
 const electron = require('electron')
-const { remote, ipcRenderer } = electron
+const { ipcRenderer } = electron
+const remote = require('@electron/remote')
 const { dialog } = remote
 
 const zoomOptions = [
@@ -48,7 +49,7 @@ class StatusBar extends React.Component {
   }
 
   updateApp() {
-    const index = dialog.showMessageBox(remote.getCurrentWindow(), {
+    const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
       type: 'warning',
       message: i18n.__('Update Boostnote'),
       detail: i18n.__('New Boostnote is ready to be installed.'),

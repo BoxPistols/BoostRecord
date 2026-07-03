@@ -8,7 +8,8 @@ import { store } from 'browser/main/store'
 import FolderList from './FolderList'
 import i18n from 'browser/lib/i18n'
 
-const { shell, remote } = require('electron')
+const { shell } = require('electron')
+const remote = require('@electron/remote')
 const { dialog } = remote
 
 class StorageItem extends React.Component {
@@ -46,7 +47,7 @@ class StorageItem extends React.Component {
   }
 
   handleUnlinkButtonClick(e) {
-    const index = dialog.showMessageBox(remote.getCurrentWindow(), {
+    const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
       type: 'warning',
       message: i18n.__('Unlink Storage'),
       detail: i18n.__(

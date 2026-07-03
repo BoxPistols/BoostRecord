@@ -5,22 +5,88 @@
   "main": "index.js",
   "description": "The Boosters — a modernized, independent successor to Boostnote (originally © BoostIO, GPL-3.0)",
   "license": "GPL-3.0",
+  "packageManager": "pnpm@10.14.0",
   "scripts": {
+    "postinstall": "node node_modules/electron/install.js",
     "start": "electron ./index.js",
-    "compile": "grunt compile",
+    "compile": "cross-env BABEL_ENV=production NODE_ENV=production NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack-production.config.js --bail",
     "test": "npm run ava && npm run jest",
     "ava": "cross-env NODE_ENV=test ava --serial",
     "jest": "jest",
     "fix": "eslint . --fix",
     "lint": "eslint .",
-    "dev": "cross-env NODE_ENV=development node dev-scripts/dev.js",
-    "watch": "webpack-dev-server --hot"
+    "dev": "cross-env NODE_ENV=development NODE_OPTIONS=--openssl-legacy-provider node dev-scripts/dev.js",
+    "watch": "cross-env NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --hot",
+    "dist": "npm run compile && electron-builder",
+    "dist:mac": "npm run compile && electron-builder --mac",
+    "dist:win": "npm run compile && electron-builder --win --x64",
+    "dist:dir": "npm run compile && electron-builder --dir"
   },
   "config": {
-    "electron-version": "4.2.12"
+    "electron-version": "28.3.3"
+  },
+  "build": {
+    "appId": "io.boxpistols.theboosters",
+    "productName": "The Boosters",
+    "copyright": "GPL-3.0, inherited from BoostIO (Boostnote)",
+    "asar": false,
+    "directories": {
+      "output": "release",
+      "app": "."
+    },
+    "files": [
+      "index.js",
+      "lib/**/*",
+      "compiled/**/*",
+      "resources/**/*",
+      "extra_scripts/**/*",
+      "dictionaries/**/*",
+      "locales/**/*",
+      "node_modules/**/*"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "BoxPistols",
+      "repo": "TheBoosters",
+      "releaseType": "release"
+    },
+    "mac": {
+      "icon": "resources/app.icns",
+      "category": "public.app-category.productivity",
+      "identity": null,
+      "artifactName": "The-Boosters-${version}-${arch}.${ext}",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ]
+    },
+    "win": {
+      "icon": "resources/app.ico",
+      "artifactName": "The-Boosters-Setup-${version}.${ext}",
+      "target": [
+        "nsis"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true
+    }
   },
   "engines": {
-    "node": ">=14.0.0 <17.0.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
@@ -53,7 +119,9 @@
   },
   "homepage": "https://boostnote.io",
   "dependencies": {
+    "@electron/remote": "^2.1.3",
     "@enyaxu/markdown-it-anchor": "^5.0.2",
+    "@google/genai": "^2.10.0",
     "@hikerpig/markdown-it-toc-and-anchor": "^4.5.0",
     "@rokt33r/js-sequence-diagrams": "^2.0.6-2",
     "@rokt33r/markdown-it-math": "^4.0.1",
@@ -106,6 +174,7 @@
     "mousetrap": "^1.6.2",
     "mousetrap-global-bind": "^1.1.0",
     "node-ipc": "^8.1.0",
+    "openai": "^6.45.0",
     "prettier": "^1.18.2",
     "prop-types": "^15.7.2",
     "query-string": "^6.5.0",
@@ -154,7 +223,8 @@
     "css-loader": "^0.19.0",
     "devtron": "^1.1.0",
     "dom-storage": "^2.0.2",
-    "electron": "^4.2.12",
+    "electron": "^28.3.3",
+    "electron-builder": "^25.1.8",
     "electron-debug": "^2.2.0",
     "electron-devtools-installer": "^2.2.4",
     "electron-packager": "^12.2.0",
@@ -226,6 +296,6 @@
     }
   },
   "volta": {
-    "node": "14.21.3"
+    "node": "22.22.3"
   }
 }

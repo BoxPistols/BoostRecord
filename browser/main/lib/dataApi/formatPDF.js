@@ -1,5 +1,5 @@
 import formatHTML from './formatHTML'
-import { remote } from 'electron'
+const remote = require('@electron/remote')
 
 export default function formatPDF(props) {
   return function(note, targetPath, exportTasks) {
@@ -15,11 +15,12 @@ export default function formatPDF(props) {
 
     return new Promise((resolve, reject) => {
       printout.webContents.on('did-finish-load', () => {
-        printout.webContents.printToPDF({}, (err, data) => {
-          if (err) reject(err)
-          else resolve(data)
-          printout.destroy()
-        })
+        // Electron 6+: printToPDF returns a Promise<Buffer> (was callback-based).
+        printout.webContents
+          .printToPDF({})
+          .then(data => resolve(data))
+          .catch(err => reject(err))
+          .finally(() => printout.destroy())
       })
     })
   }

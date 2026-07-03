@@ -30,7 +30,8 @@ import formatPDF from 'browser/main/lib/dataApi/formatPDF'
 import yaml from 'js-yaml'
 import i18n from 'browser/lib/i18n'
 import path from 'path'
-import { remote, shell } from 'electron'
+import { shell } from 'electron'
+const remote = require('@electron/remote')
 import attachmentManagement from '../main/lib/dataApi/attachmentManagement'
 import filenamify from 'filenamify'
 import { render } from 'react-dom'
@@ -212,27 +213,31 @@ class MarkdownPreview extends React.Component {
       properties: ['openFile', 'createDirectory']
     }
 
-    dialog.showSaveDialog(remote.getCurrentWindow(), options, filename => {
-      if (filename) {
-        const storagePath = this.props.storagePath
+    // Electron 6+: showSaveDialog returns a Promise<{canceled, filePath}>.
+    dialog
+      .showSaveDialog(remote.getCurrentWindow(), options)
+      .then(({ canceled, filePath }) => {
+        const filename = filePath
+        if (!canceled && filename) {
+          const storagePath = this.props.storagePath
 
-        exportNote(storagePath, note, filename, contentFormatter)
-          .then(res => {
-            dialog.showMessageBox(remote.getCurrentWindow(), {
-              type: 'info',
-              message: `Exported to ${filename}`,
-              buttons: [i18n.__('Ok')]
+          exportNote(storagePath, note, filename, contentFormatter)
+            .then(res => {
+              dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+                type: 'info',
+                message: `Exported to ${filename}`,
+                buttons: [i18n.__('Ok')]
+              })
             })
-          })
-          .catch(err => {
-            dialog.showErrorBox(
-              'Export error',
-              err ? err.message || err : 'Unexpected error during export'
-            )
-            throw err
-          })
-      }
-    })
+            .catch(err => {
+              dialog.showErrorBox(
+                'Export error',
+                err ? err.message || err : 'Unexpected error during export'
+              )
+              throw err
+            })
+        }
+      })
   }
 
   fixDecodedURI(node) {

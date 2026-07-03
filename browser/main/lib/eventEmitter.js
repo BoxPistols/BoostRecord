@@ -1,5 +1,6 @@
 const electron = require('electron')
-const { ipcRenderer, remote } = electron
+const { ipcRenderer } = electron
+const remote = require('@electron/remote')
 
 function on(name, listener) {
   ipcRenderer.on(name, listener)

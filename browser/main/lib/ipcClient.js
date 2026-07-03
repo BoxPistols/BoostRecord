@@ -1,7 +1,8 @@
 import ConfigManager from './ConfigManager'
 
 const nodeIpc = require('node-ipc')
-const { remote, ipcRenderer } = require('electron')
+const { ipcRenderer } = require('electron')
+const remote = require('@electron/remote')
 const { app } = remote
 const path = require('path')
 

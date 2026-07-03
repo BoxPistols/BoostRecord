@@ -22,7 +22,7 @@ import { ipcRenderer } from 'electron'
 
 const path = require('path')
 const electron = require('electron')
-const { remote } = electron
+const remote = require('@electron/remote')
 
 class Main extends React.Component {
   constructor(props) {

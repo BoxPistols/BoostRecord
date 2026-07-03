@@ -1,12 +1,65 @@
 import i18n from 'browser/lib/i18n'
 import fs from 'fs'
 
-const { remote } = require('electron')
+const remote = require('@electron/remote')
 const { Menu } = remote.require('electron')
 const { clipboard } = remote.require('electron')
 const { shell } = remote.require('electron')
 const spellcheck = require('./spellcheck')
 const uri2path = require('file-uri-to-path')
+
+// Inline AI writing-assist actions (OpenAI / Gemini). Labels are kept local so
+// this module — and its unit test — don't pull in ConfigManager at load time;
+// the provider logic is lazy-required only when an action is actually clicked.
+const AI_MENU_ITEMS = [
+  { key: 'summarize', label: '要約' },
+  { key: 'rewrite', label: '書き換え（簡潔・明快）' },
+  { key: 'translate', label: '翻訳（EN ⇄ JA）' },
+  { key: 'continue', label: '続きを書く' },
+  { key: 'explainCode', label: 'コードを説明' }
+]
+
+// Runs an AI action over the editor's selection and streams the result into the
+// editor (replace the selection, or insert after it, per the action's mode).
+function runEditorAiAction(editor, actionKey) {
+  if (editor == null) return
+  const selected = editor.getSelection()
+  if (!selected || !selected.trim()) return
+
+  const aiAssist = require('browser/main/lib/aiAssist')
+  const action = aiAssist.AI_ACTIONS[actionKey]
+  if (action == null) return
+
+  let idx
+  if (action.mode === 'replace') {
+    editor.replaceSelection('')
+    idx = editor.indexFromPos(editor.getCursor())
+  } else {
+    const end = editor.getCursor('to')
+    editor.setCursor(end)
+    if (actionKey !== 'continue') editor.replaceRange('\n\n', end)
+    idx = editor.indexFromPos(editor.getCursor())
+  }
+
+  const insert = text => {
+    const from = editor.posFromIndex(idx)
+    editor.replaceRange(text, from)
+    idx += text.length
+    editor.setCursor(editor.posFromIndex(idx))
+  }
+
+  // Surface failures in a dialog rather than writing the error into the note
+  // (which would corrupt the user's document). Fall back to console if the
+  // dialog API isn't available (e.g. unit tests).
+  aiAssist.runAiAction(actionKey, selected, insert).catch(err => {
+    const message = (err && err.message) || String(err)
+    try {
+      remote.require('electron').dialog.showErrorBox('AI', message)
+    } catch (e) {
+      console.error('[AI]', message)
+    }
+  })
+}
 
 /**
  * Creates the context menu that is shown when there is a right click in the editor of a (not-snippet) note.
@@ -84,6 +137,21 @@ const buildEditorContextMenu = function(editor, event) {
         })
     )
   }
+  template.push(
+    { type: 'separator' },
+    {
+      label: 'AI',
+      submenu: AI_MENU_ITEMS.map(function(item) {
+        return {
+          label: item.label,
+          click: function() {
+            runEditorAiAction(editor, item.key)
+          }
+        }
+      })
+    }
+  )
+
   return Menu.buildFromTemplate(template)
 }
 

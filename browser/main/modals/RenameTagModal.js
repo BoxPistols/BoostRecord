@@ -10,7 +10,7 @@ import ee from 'browser/main/lib/eventEmitter'
 import { isEmpty } from 'lodash'
 import electron from 'electron'
 
-const { remote } = electron
+const remote = require('@electron/remote')
 const { dialog } = remote
 
 class RenameTagModal extends React.Component {
@@ -94,7 +94,7 @@ class RenameTagModal extends React.Component {
         buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
       }
 
-      const dialogButtonIndex = dialog.showMessageBox(
+      const dialogButtonIndex = dialog.showMessageBoxSync(
         remote.getCurrentWindow(),
         alertConfig
       )

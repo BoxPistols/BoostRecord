@@ -1,7 +1,7 @@
 import ConfigManager from './ConfigManager'
 
 const electron = require('electron')
-const { remote } = electron
+const remote = require('@electron/remote')
 
 _init()
 

@@ -1,6 +1,11 @@
 {
   "extends": ["standard", "standard-jsx", "plugin:react/recommended", "prettier"],
   "plugins": ["react", "prettier"],
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module",
+    "ecmaFeatures": { "jsx": true }
+  },
   "rules": {
     "no-useless-escape": 0,
     "prefer-const": ["warn", {

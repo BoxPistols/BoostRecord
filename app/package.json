@@ -53,13 +53,13 @@
     "vite": "^8.1.0"
   },
   "build": {
-    "appId": "io.boxpistols.theboosters",
-    "productName": "The Boosters",
+    "appId": "io.boxpistols.theboosters.next",
+    "productName": "The Boosters Next",
     "copyright": "GPL-3.0, inherited from BoostIO (Boostnote)",
     "publish": {
       "provider": "github",
       "owner": "BoxPistols",
-      "repo": "Boostnote",
+      "repo": "TheBoosters",
       "releaseType": "release"
     },
     "files": [
@@ -71,7 +71,7 @@
       "output": "release"
     },
     "mac": {
-      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "artifactName": "The-Boosters-Next-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",
@@ -91,6 +91,7 @@
       "category": "public.app-category.productivity"
     },
     "win": {
+      "artifactName": "The-Boosters-Next-Setup-${version}.${ext}",
       "target": [
         "nsis"
       ]

@@ -49,7 +49,18 @@ function startServer() {
 }
 
 function startElectron() {
-  spawn(electron, ['--hot', './index.js'], { stdio: 'inherit' })
+  // webpack (this Node process) needs --openssl-legacy-provider in NODE_OPTIONS
+  // for its legacy md4 hashing, but Electron (BoringSSL) REJECTS that flag and
+  // refuses to start. Strip it from the child's env so only webpack keeps it.
+  const env = { ...process.env }
+  if (env.NODE_OPTIONS) {
+    env.NODE_OPTIONS = env.NODE_OPTIONS.replace(
+      /--openssl-legacy-provider/g,
+      ''
+    ).trim()
+    if (!env.NODE_OPTIONS) delete env.NODE_OPTIONS
+  }
+  spawn(electron, ['--hot', './index.js'], { stdio: 'inherit', env })
     .on('close', () => {
       server.close()
     })

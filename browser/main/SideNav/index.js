@@ -21,7 +21,7 @@ import TagButton from './TagButton'
 import { SortableContainer } from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
-import { remote } from 'electron'
+const remote = require('@electron/remote')
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import ColorPicker from 'browser/components/ColorPicker'
 import { every, sortBy } from 'lodash'
@@ -65,12 +65,15 @@ class SideNav extends React.Component {
   }
 
   deleteTag(tag) {
-    const selectedButton = dialog.showMessageBox(remote.getCurrentWindow(), {
-      type: 'warning',
-      message: i18n.__('Confirm tag deletion'),
-      detail: i18n.__('This will permanently remove this tag.'),
-      buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
-    })
+    const selectedButton = dialog.showMessageBoxSync(
+      remote.getCurrentWindow(),
+      {
+        type: 'warning',
+        message: i18n.__('Confirm tag deletion'),
+        detail: i18n.__('This will permanently remove this tag.'),
+        buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
+      }
+    )
 
     if (selectedButton === 0) {
       const {
@@ -212,26 +215,31 @@ class SideNav extends React.Component {
       title: i18n.__('Select a folder to export the files to'),
       multiSelections: false
     }
-    dialog.showOpenDialog(remote.getCurrentWindow(), options, paths => {
-      if (paths && paths.length === 1) {
-        const { data, config } = this.props
-        dataApi
-          .exportTag(data, tag, fileType, paths[0], config)
-          .then(data => {
-            dialog.showMessageBox(remote.getCurrentWindow(), {
-              type: 'info',
-              message: `Exported to ${paths[0]}`
+    dialog
+      .showOpenDialog(remote.getCurrentWindow(), options)
+      .then(({ canceled, filePaths }) => {
+        const paths = filePaths
+        if (!canceled && paths && paths.length === 1) {
+          const { data, config } = this.props
+          dataApi
+            .exportTag(data, tag, fileType, paths[0], config)
+            .then(data => {
+              dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+                type: 'info',
+                message: `Exported to ${paths[0]}`
+              })
             })
-          })
-          .catch(error => {
-            dialog.showErrorBox(
-              'Export error',
-              error ? error.message || error : 'Unexpected error during export'
-            )
-            throw error
-          })
-      }
-    })
+            .catch(error => {
+              dialog.showErrorBox(
+                'Export error',
+                error
+                  ? error.message || error
+                  : 'Unexpected error during export'
+              )
+              throw error
+            })
+        }
+      })
   }
 
   dismissColorPicker() {

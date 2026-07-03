@@ -2,7 +2,7 @@ import _ from 'lodash'
 import path from 'path'
 import fileUrl from 'file-url'
 import fs from 'fs'
-import { remote } from 'electron'
+const remote = require('@electron/remote')
 import consts from 'browser/lib/consts'
 import Markdown from 'browser/lib/markdown'
 import attachmentManagement from './attachmentManagement'

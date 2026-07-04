@@ -30,4 +30,4 @@ function createSnippet(snippetFile) {
   })
 }
 
-module.exports = createSnippet
+export default createSnippet

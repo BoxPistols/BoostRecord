@@ -43,7 +43,6 @@ export const DEFAULT_CONFIG = {
   sortTagsBy: 'ALPHABETICAL', // 'ALPHABETICAL', 'COUNTER'
   listStyle: 'DEFAULT', // 'DEFAULT', 'SMALL'
   listDirection: 'ASCENDING', // 'ASCENDING', 'DESCENDING'
-  amaEnabled: true,
   autoUpdateEnabled: true,
   hotkey: {
     toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
@@ -136,23 +135,12 @@ export const DEFAULT_CONFIG = {
     mermaidHTMLLabel: false,
     lineThroughCheckbox: true
   },
-  blog: {
-    type: 'wordpress', // Available value: wordpress, add more types in the future plz
-    address: 'http://wordpress.com/wp-json',
-    authMethod: 'JWT', // Available value: JWT, USER
-    token: '',
-    username: '',
-    password: ''
-  },
   export: {
     metadata: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'
     variable: 'boostnote',
     prefixAttachmentFolder: false
   },
   coloredTags: {},
-  wakatime: {
-    key: null
-  },
   ai: {
     provider: 'openai', // 'openai' | 'gemini'
     openai: { apiKey: '', model: 'gpt-5-mini' },
@@ -272,18 +260,6 @@ function assignConfigValues(originalConfig, rcConfig) {
     DEFAULT_CONFIG.hotkey,
     originalConfig.hotkey,
     rcConfig.hotkey
-  )
-  config.wakatime = Object.assign(
-    {},
-    DEFAULT_CONFIG.wakatime,
-    originalConfig.wakatime,
-    rcConfig.wakatime
-  )
-  config.blog = Object.assign(
-    {},
-    DEFAULT_CONFIG.blog,
-    originalConfig.blog,
-    rcConfig.blog
   )
   config.ui = Object.assign(
     {},

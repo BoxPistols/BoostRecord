@@ -23,4 +23,4 @@ function fetchSnippet(id, snippetFile) {
   })
 }
 
-module.exports = fetchSnippet
+export default fetchSnippet

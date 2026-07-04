@@ -1091,7 +1091,7 @@ function handleAttachmentLinkPaste(storageKey, noteKey, linkText) {
   }
 }
 
-module.exports = {
+export default {
   copyAttachment,
   fixLocalURLS,
   generateAttachmentMarkdown,

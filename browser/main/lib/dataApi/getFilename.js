@@ -34,4 +34,4 @@ function getFilename(note, fileType, directory, deduplicator) {
   return path.join(directory, `${basename}.${fileType}`)
 }
 
-module.exports = getFilename
+export default getFilename

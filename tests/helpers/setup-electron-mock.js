@@ -21,3 +21,11 @@ mock('@electron/remote', {
     getPath: noop
   }
 })
+
+// These deps moved to ESM-only majors (2026-07 dep wave). ava runs through
+// babel-register, whose require hook cannot execute ESM — point them at the
+// same CJS shims jest uses (see package.json jest.moduleNameMapper).
+mock('escape-string-regexp', require('../shims/escape-string-regexp'))
+mock('file-url', require('../shims/file-url'))
+mock('filenamify', require('../shims/filenamify'))
+mock('query-string', require('../shims/query-string'))

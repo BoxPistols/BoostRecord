@@ -53,7 +53,10 @@ const applyTheme = theme => {
   }
 }
 
-module.exports = {
+// Named exports for `import { chooseTheme, applyTheme }` consumers.
+export { chooseTheme, applyTheme }
+
+export default {
   chooseTheme,
   applyTheme
 }

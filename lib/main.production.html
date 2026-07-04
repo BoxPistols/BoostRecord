@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="../node_modules/katex/dist/katex.min.css">
   <link rel="stylesheet" href="../node_modules/codemirror/addon/dialog/dialog.css">
   <link rel="stylesheet" href="../node_modules/codemirror/addon/lint/lint.css">
+  <!-- Vite renderer build: extracted app styles (webpack used JS-injected style tags) -->
+  <link rel="stylesheet" href="../compiled/main.css">
   <link rel="stylesheet" href="../extra_scripts/codemirror/mode/bfm/bfm.css">
 
   <title>The Boosters</title>
@@ -92,7 +94,6 @@
 
   <script src="../node_modules/codemirror/lib/codemirror.js"></script>
   <script src="../node_modules/codemirror/mode/meta.js"></script>
-  <script src="../node_modules/codemirror-mode-elixir/dist/codemirror-mode-elixir.umd.js"></script>
   <script src="../node_modules/codemirror/addon/mode/overlay.js"></script>
   <script src="../node_modules/codemirror/addon/mode/loadmode.js"></script>
   <script src="../node_modules/codemirror/addon/mode/simple.js"></script>
@@ -151,6 +152,17 @@
     var scriptUrl = window._.find(require('@electron/remote').process.argv, (a) => a === '--hot')
       ? 'http://localhost:8080/assets/main.js'
       : '../compiled/main.js'
+    // remote-alias-for-legacy-deps: rollup hoists external require()s, so
+    // bundled deps that read electron.remote at require time (electron-config)
+    // would run before the in-bundle remoteShim. Alias it here, before main.js.
+    ;(function () {
+      var el = require('electron')
+      if (!el.remote) {
+        try {
+          Object.defineProperty(el, 'remote', { value: require('@electron/remote'), configurable: true })
+        } catch (e) {}
+      }
+    })()
     var scriptEl = document.createElement('script')
     scriptEl.setAttribute('type', 'text/javascript')
     scriptEl.setAttribute('src', scriptUrl)

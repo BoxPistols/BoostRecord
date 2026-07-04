@@ -4,12 +4,12 @@ import { connect } from 'react-redux'
 import HotkeyTab from './HotkeyTab'
 import UiTab from './UiTab'
 import InfoTab from './InfoTab'
-import Crowdfunding from './Crowdfunding'
+// Removed tabs (2026-07): Crowdfunding (obsolete upstream campaign),
+// Blog (WordPress-only publisher; a future Zenn integration will be new code),
+// Plugins (only hosted the wakatime tracker, which was dropped).
 import StoragesTab from './StoragesTab'
 import ExportTab from './ExportTab'
 import SnippetTab from './SnippetTab'
-import PluginsTab from './PluginsTab'
-import Blog from './Blog'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './PreferencesModal.styl'
@@ -25,7 +25,6 @@ class Preferences extends React.Component {
       currentTab: 'STORAGES',
       UIAlert: '',
       HotkeyAlert: '',
-      BlogAlert: '',
       ExportAlert: ''
     }
   }
@@ -73,16 +72,6 @@ class Preferences extends React.Component {
             haveToSave={alert => this.setState({ UIAlert: alert })}
           />
         )
-      case 'CROWDFUNDING':
-        return <Crowdfunding />
-      case 'BLOG':
-        return (
-          <Blog
-            dispatch={dispatch}
-            config={config}
-            haveToSave={alert => this.setState({ BlogAlert: alert })}
-          />
-        )
       case 'EXPORT':
         return (
           <ExportTab
@@ -94,14 +83,6 @@ class Preferences extends React.Component {
         )
       case 'SNIPPET':
         return <SnippetTab dispatch={dispatch} config={config} data={data} />
-      case 'PLUGINS':
-        return (
-          <PluginsTab
-            dispatch={dispatch}
-            config={config}
-            haveToSave={alert => this.setState({ PluginsAlert: alert })}
-          />
-        )
       case 'STORAGES':
       default:
         return (
@@ -140,15 +121,12 @@ class Preferences extends React.Component {
       },
       { target: 'UI', label: i18n.__('Interface'), UI: this.state.UIAlert },
       { target: 'INFO', label: i18n.__('About') },
-      { target: 'CROWDFUNDING', label: i18n.__('Crowdfunding') },
-      { target: 'BLOG', label: i18n.__('Blog'), Blog: this.state.BlogAlert },
       {
         target: 'EXPORT',
         label: i18n.__('Export'),
         Export: this.state.ExportAlert
       },
-      { target: 'SNIPPET', label: i18n.__('Snippets') },
-      { target: 'PLUGINS', label: i18n.__('Plugins') }
+      { target: 'SNIPPET', label: i18n.__('Snippets') }
     ]
 
     const navButtons = tabs.map(tab => {

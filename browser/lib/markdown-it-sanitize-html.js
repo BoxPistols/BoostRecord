@@ -4,7 +4,7 @@ import sanitizeHtml from 'sanitize-html'
 import { escapeHtmlCharacters } from './utils'
 import url from 'url'
 
-module.exports = function sanitizePlugin(md, options) {
+export default function sanitizePlugin(md, options) {
   options = options || {}
 
   md.core.ruler.after('linkify', 'sanitize_inline', state => {

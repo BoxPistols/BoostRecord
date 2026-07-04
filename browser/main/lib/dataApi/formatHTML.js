@@ -16,7 +16,10 @@ const appPath = fileUrl(
 
 let markdownStyle = ''
 try {
-  markdownStyle = require('!!css!stylus?sourceMap!../../../components/markdown.styl')[0][1]
+  // Vite `?inline` = the compiled CSS as a string (embedded into exported HTML).
+  // Under jest/ava this require fails and the catch keeps markdownStyle = ''.
+  const mod = require('../../../components/markdown.styl?inline')
+  markdownStyle = (mod && mod.default) || mod
 } catch (e) {}
 
 export const CSS_FILES = [

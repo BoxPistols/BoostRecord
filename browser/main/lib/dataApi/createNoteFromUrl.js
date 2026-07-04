@@ -99,4 +99,4 @@ function createNoteFromUrl(
   })
 }
 
-module.exports = createNoteFromUrl
+export default createNoteFromUrl

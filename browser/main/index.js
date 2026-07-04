@@ -6,7 +6,9 @@ import Main from './Main'
 import { store, history } from './store'
 import React, { Fragment } from 'react'
 import ReactDOM from 'react-dom'
-require('!!style!css!stylus?sourceMap!./global.styl')
+// Global (unscoped) stylesheet — Vite handles plain .styl imports globally;
+// the webpack-1 inline-loader chain (`!!style!css!stylus!`) is gone.
+require('./global.styl')
 import config from 'browser/main/lib/ConfigManager'
 import { Route, Switch, Redirect } from 'react-router-dom'
 import { ConnectedRouter } from 'connected-react-router'

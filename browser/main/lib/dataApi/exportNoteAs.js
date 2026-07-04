@@ -16,4 +16,4 @@ function exportNoteAs(note, filename, fileType, config) {
   return exportNote(storage.key, note, filename, contentFormatter)
 }
 
-module.exports = exportNoteAs
+export default exportNoteAs

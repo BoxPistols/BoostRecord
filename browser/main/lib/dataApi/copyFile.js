@@ -30,4 +30,4 @@ function copyFile(srcPath, dstPath) {
   })
 }
 
-module.exports = copyFile
+export default copyFile

@@ -20,4 +20,4 @@ function deleteSnippet(snippet, snippetFile) {
   })
 }
 
-module.exports = deleteSnippet
+export default deleteSnippet

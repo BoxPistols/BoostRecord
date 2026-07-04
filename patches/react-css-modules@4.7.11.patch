@@ -1,0 +1,87 @@
+diff --git a/dist/extendReactClass.js b/dist/extendReactClass.js
+index 13c0bc44e4fd9b1295b0269b7b6625ddc0ed1956..97afdd3365b303caf69c216f6f56352d1c6c9aee 100644
+--- a/dist/extendReactClass.js
++++ b/dist/extendReactClass.js
+@@ -41,73 +41,50 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function"
+  * @returns {ReactClass}
+  */
+ exports.default = function (Component, defaultStyles, options) {
+-  var WrappedComponent = function (_Component) {
+-    _inherits(WrappedComponent, _Component);
+-
+-    function WrappedComponent() {
+-      _classCallCheck(this, WrappedComponent);
+-
+-      return _possibleConstructorReturn(this, _Component.apply(this, arguments));
+-    }
+-
+-    WrappedComponent.prototype.render = function render() {
++  // Patched for native ES2015+ classes (esbuild/Vite build): the original
++  // Babel-ES5 _inherits/apply pattern cannot extend or invoke native classes.
++  class WrappedComponent extends Component {
++    render() {
+       var styles = void 0;
+-
+       var hasDefaultstyles = (0, _isObject3.default)(defaultStyles);
+-
+       var renderResult = void 0;
+-
+       if (this.props.styles || hasDefaultstyles) {
+         var props = Object.assign({}, this.props);
+-
+         if (props.styles) {
+           styles = props.styles;
+         } else if (hasDefaultstyles) {
+           styles = defaultStyles;
+           delete props.styles;
+         }
+-
+         Object.defineProperty(props, 'styles', {
+           configurable: true,
+           enumerable: false,
+           value: styles,
+           writable: false
+         });
+-
+         var originalProps = this.props;
+-
+         var renderIsSuccessful = false;
+-
+         try {
+           this.props = props;
+-
+-          renderResult = _Component.prototype.render.call(this);
+-
++          renderResult = Component.prototype.render.call(this);
+           renderIsSuccessful = true;
+         } finally {
+           this.props = originalProps;
+         }
+-
+         // @see https://github.com/facebook/react/issues/14224
+         if (!renderIsSuccessful) {
+-          renderResult = _Component.prototype.render.call(this);
++          renderResult = Component.prototype.render.call(this);
+         }
+       } else {
+         styles = {};
+-
+-        renderResult = _Component.prototype.render.call(this);
++        renderResult = Component.prototype.render.call(this);
+       }
+-
+       if (renderResult) {
+         return (0, _linkClass2.default)(renderResult, styles, options);
+       }
+-
+       return (0, _renderNothing2.default)(_react2.default.version);
+-    };
+-
+-    return WrappedComponent;
+-  }(Component);
+-
++    }
++  }
+   return (0, _hoistNonReactStatics2.default)(WrappedComponent, Component);
+ };
+ 

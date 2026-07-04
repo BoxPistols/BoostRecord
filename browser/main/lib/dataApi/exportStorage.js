@@ -82,4 +82,4 @@ function exportStorage(storageKey, fileType, exportDir, config) {
     })
 }
 
-module.exports = exportStorage
+export default exportStorage

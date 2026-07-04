@@ -1,5 +1,6 @@
 {
   "presets": ["react", "es2015"],
+  "plugins": ["add-module-exports"],
   "env": {
     "development": {
       "presets": ["react-hmre"]
@@ -7,6 +8,7 @@
     "test": {
       "presets": ["env" ,"react", "es2015"],
       "plugins": [
+        "add-module-exports",
         [ "babel-plugin-webpack-alias", { "config": "<rootDir>/webpack.config.js" } ]
       ]
     }

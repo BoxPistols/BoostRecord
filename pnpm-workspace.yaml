@@ -1,2 +1,3 @@
 patchedDependencies:
   JSV@4.0.2: patches/JSV@4.0.2.patch
+  react-css-modules@4.7.11: patches/react-css-modules@4.7.11.patch

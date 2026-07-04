@@ -44,4 +44,4 @@ function updateSnippet(snippet, snippetFile) {
   })
 }
 
-module.exports = updateSnippet
+export default updateSnippet

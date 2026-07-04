@@ -37,4 +37,4 @@ function applyShortcuts(shortcuts) {
 
 applyShortcuts(CM.get().hotkey)
 
-module.exports = applyShortcuts
+export default applyShortcuts

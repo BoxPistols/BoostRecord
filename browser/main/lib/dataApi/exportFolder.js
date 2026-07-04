@@ -68,4 +68,4 @@ function exportFolder(storageKey, folderKey, fileType, exportDir, config) {
     })
 }
 
-module.exports = exportFolder
+export default exportFolder

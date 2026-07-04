@@ -238,7 +238,7 @@ function getCSSClassName() {
   return styles[CSS_ERROR_CLASS]
 }
 
-module.exports = {
+export default {
   DICTIONARY_PATH,
   CSS_ERROR_CLASS,
   SPELLCHECK_DISABLED,

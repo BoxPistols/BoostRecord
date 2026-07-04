@@ -25,4 +25,4 @@ function exportTag(data, tag, fileType, exportDir, config) {
   )
 }
 
-module.exports = exportTag
+export default exportTag

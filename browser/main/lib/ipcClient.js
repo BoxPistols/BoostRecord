@@ -26,4 +26,4 @@ nodeIpc.connectTo(
   }
 )
 
-module.exports = nodeIpc
+export default nodeIpc

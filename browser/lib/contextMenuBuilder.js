@@ -214,7 +214,10 @@ const buildMarkdownPreviewContextMenu = function(markdownPreview, event) {
   return Menu.buildFromTemplate(template)
 }
 
-module.exports = {
+// Named exports for ESM consumers; default kept for require().prop callers.
+export { buildEditorContextMenu, buildMarkdownPreviewContextMenu }
+
+export default {
   buildEditorContextMenu: buildEditorContextMenu,
   buildMarkdownPreviewContextMenu: buildMarkdownPreviewContextMenu
 }

@@ -9,10 +9,11 @@ const { shell } = electron
 const remote = require('@electron/remote')
 const appVersion = remote.app.getVersion()
 
-// 2026-07: severed from upstream Boostnote — community/marketing links,
-// the newsletter subscription form, and the AWS analytics opt-in were all
-// removed (analytics itself is a no-op now, see AwsMobileAnalyticsConfig).
-// GPL attribution to BoostIO is kept: this app is an independent fork.
+// 2026-07: severed from upstream — community/marketing links, the newsletter
+// form, the AWS analytics opt-in, and the upstream brand name were removed
+// (analytics itself is a no-op now, see AwsMobileAnalyticsConfig).
+// The BoostIO copyright line stays: GPL v3 requires preserving legal notices
+// even though the product name changed.
 class InfoTab extends React.Component {
   constructor(props) {
     super(props)
@@ -74,9 +75,9 @@ class InfoTab extends React.Component {
             </a>
           </li>
           <li styleName='cc'>
-            Based on Boostnote — {i18n.__('Copyright (C) 2017 - 2020 BoostIO')}
+            {i18n.__('License: GPL v3')} — Copyright (C) 2017 - 2020 BoostIO /
+            2025 - 2026 BoxPistols
           </li>
-          <li styleName='cc'>{i18n.__('License: GPL v3')}</li>
         </ul>
 
         <div>

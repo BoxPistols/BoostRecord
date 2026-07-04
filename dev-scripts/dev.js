@@ -60,7 +60,9 @@ function startElectron() {
     ).trim()
     if (!env.NODE_OPTIONS) delete env.NODE_OPTIONS
   }
-  spawn(electron, ['--hot', './index.js'], { stdio: 'inherit', env })
+  // '.' (not './index.js'): pointing Electron at a file runs the "default
+  // app" wrapper, where app.getVersion() reports Electron's own version.
+  spawn(electron, ['--hot', '.'], { stdio: 'inherit', env })
     .on('close', () => {
       server.close()
     })

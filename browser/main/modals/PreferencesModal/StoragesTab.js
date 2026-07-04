@@ -265,7 +265,7 @@ class StoragesTab extends React.Component {
               <div styleName='addStorage-body-section-type-description'>
                 {i18n.__('Setting up 3rd-party cloud storage integration:')}{' '}
                 <a
-                  href='https://github.com/BoostIO/Boostnote/wiki/Cloud-Syncing-and-Backup'
+                  href='https://github.com/BoxPistols/TheBoosters/blob/main/docs/ONEDRIVE-DESKTOP-SETUP.md'
                   onClick={e => this.handleLinkClick(e)}
                 >
                   {i18n.__('Cloud-Syncing-and-Backup')}

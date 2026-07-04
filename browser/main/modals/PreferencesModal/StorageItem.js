@@ -51,7 +51,7 @@ class StorageItem extends React.Component {
       type: 'warning',
       message: i18n.__('Unlink Storage'),
       detail: i18n.__(
-        'Unlinking removes this linked storage from Boostnote. No data is removed, please manually delete the folder from your hard drive if needed.'
+        'Unlinking removes this linked storage from The Boosters. No data is removed, please manually delete the folder from your hard drive if needed.'
       ),
       buttons: [i18n.__('Unlink'), i18n.__('Cancel')]
     })

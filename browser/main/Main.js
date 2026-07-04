@@ -101,14 +101,14 @@ class Main extends React.Component {
                 name: 'example.html',
                 mode: 'html',
                 content:
-                  "<html>\n<body>\n<h1 id='hello'>Enjoy Boostnote!</h1>\n</body>\n</html>",
+                  "<html>\n<body>\n<h1 id='hello'>Enjoy The Boosters!</h1>\n</body>\n</html>",
                 linesHighlighted: []
               },
               {
                 name: 'example.js',
                 mode: 'javascript',
                 content:
-                  "var boostnote = document.getElementById('hello').innerHTML\n\nconsole.log(boostnote)",
+                  "var message = document.getElementById('hello').innerHTML\n\nconsole.log(message)",
                 linesHighlighted: []
               }
             ]
@@ -123,9 +123,9 @@ class Main extends React.Component {
           .createNote(data.storage.key, {
             type: 'MARKDOWN_NOTE',
             folder: data.storage.folders[0].key,
-            title: 'Welcome to Boostnote!',
+            title: 'Welcome to The Boosters!',
             content:
-              '# Welcome to Boostnote!\n## Click here to edit markdown :wave:\n\n<iframe width="560" height="315" src="https://www.youtube.com/embed/L0qNPLsvmyM" frameborder="0" allowfullscreen></iframe>\n\n## Docs :memo:\n- [Boostnote | Boost your happiness, productivity and creativity.](https://hackernoon.com/boostnote-boost-your-happiness-productivity-and-creativity-315034efeebe)\n- [Cloud Syncing & Backups](https://github.com/BoostIO/Boostnote/wiki/Cloud-Syncing-and-Backup)\n- [How to sync your data across Desktop and Mobile apps](https://github.com/BoostIO/Boostnote/wiki/Sync-Data-Across-Desktop-and-Mobile-apps)\n- [Convert data from **Evernote** to Boostnote.](https://github.com/BoostIO/Boostnote/wiki/Evernote)\n- [Keyboard Shortcuts](https://github.com/BoostIO/Boostnote/wiki/Keyboard-Shortcuts)\n- [Keymaps in Editor mode](https://github.com/BoostIO/Boostnote/wiki/Keymaps-in-Editor-mode)\n- [How to set syntax highlight in Snippet note](https://github.com/BoostIO/Boostnote/wiki/Syntax-Highlighting)\n\n---\n\n## Article Archive :books:\n- [Reddit English](http://bit.ly/2mOJPu7)\n- [Reddit Spanish](https://www.reddit.com/r/boostnote_es/)\n- [Reddit Chinese](https://www.reddit.com/r/boostnote_cn/)\n- [Reddit Japanese](https://www.reddit.com/r/boostnote_jp/)\n\n---\n\n## Community :beers:\n- [GitHub](http://bit.ly/2AWWzkD)\n- [Twitter](http://bit.ly/2z8BUJZ)\n- [Facebook Group](http://bit.ly/2jcca8t)'
+              '# Welcome to The Boosters! :guitar:\n## Click here to edit markdown :wave:\n\nThe Boosters is a local-first note-taking app for programmers.\n\n## Quick start :memo:\n- Press `Cmd/Ctrl + N` to create a new note\n- Press `Cmd/Ctrl + P` to jump to any note\n- Link notes with `[Title](:note:<note-key>)` — copy a note link from the note list context menu\n- Store code as **Snippet notes**, prose as **Markdown notes**\n\n## Docs :books:\n- [GitHub (BoxPistols/TheBoosters)](https://github.com/BoxPistols/TheBoosters)\n- [Cloud syncing via OneDrive](https://github.com/BoxPistols/TheBoosters/blob/main/docs/ONEDRIVE-DESKTOP-SETUP.md)'
           })
           .then(note => {
             store.dispatch({

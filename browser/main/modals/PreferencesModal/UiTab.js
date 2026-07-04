@@ -707,7 +707,7 @@ class UiTab extends React.Component {
               </select>
               <p styleName='note-for-keymap'>
                 {i18n.__(
-                  '⚠️ Please restart boostnote after you change the keymap'
+                  '⚠️ Please restart The Boosters after you change the keymap'
                 )}
               </p>
             </div>

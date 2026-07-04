@@ -13,7 +13,6 @@ import SnippetTab from './SnippetTab'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './PreferencesModal.styl'
-import RealtimeNotification from 'browser/components/RealtimeNotification'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
 
@@ -155,7 +154,7 @@ class Preferences extends React.Component {
         onKeyDown={e => this.handleKeyDown(e)}
       >
         <div styleName='top-bar'>
-          <p>{i18n.__('Your preferences for Boostnote')}</p>
+          <p>{i18n.__('Your preferences for The Boosters')}</p>
         </div>
         <ModalEscButton
           handleEscButtonClick={e => this.handleEscButtonClick(e)}
@@ -164,7 +163,6 @@ class Preferences extends React.Component {
         <div ref='content' styleName='content'>
           {content}
         </div>
-        <RealtimeNotification />
       </div>
     )
   }

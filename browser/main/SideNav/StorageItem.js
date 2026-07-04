@@ -75,7 +75,7 @@ class StorageItem extends React.Component {
       type: 'warning',
       message: i18n.__('Unlink Storage'),
       detail: i18n.__(
-        "This work will just detatches a storage from Boostnote. (Any data won't be deleted.)"
+        "This work will just detatches a storage from The Boosters. (Any data won't be deleted.)"
       ),
       buttons: [i18n.__('Confirm'), i18n.__('Cancel')]
     })

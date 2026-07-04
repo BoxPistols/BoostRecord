@@ -27,6 +27,11 @@ export default [
     isDark: true
   },
   {
+    name: 'rockabilly',
+    label: i18n.__('Rockabilly'),
+    isDark: true
+  },
+  {
     name: 'solarized-dark',
     label: i18n.__('Solarized Dark'),
     isDark: true

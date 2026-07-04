@@ -455,6 +455,37 @@ $ui-vulcan-table-even-backgroundColor = darken($ui-vulcan-noteDetail-backgroundC
 $ui-vulcan-table-head-backgroundColor = $ui-vulcan-table-even-backgroundColor
 $ui-vulcan-table-borderColor = lighten(darken(#21252B, 10%), 20%)
 
+/******* Rockabilly theme ********/
+// The Boosters brand theme (docs/UI-CONCEPT-classic-rock.md, direction A):
+// warm charcoal stage, vintage cream text, vermilion accent, tube amber hover.
+$ui-rockabilly-backgroundColor = #1C1A17
+$ui-rockabilly-noteList-backgroundColor = #26231F
+$ui-rockabilly-noteDetail-backgroundColor = #1C1A17
+$ui-rockabilly-tagList-backgroundColor = #F2E8D5
+
+$ui-rockabilly-text-color = #F2E8D5
+$ui-rockabilly-inactive-text-color = #8C8577
+$ui-rockabilly-active-color = #D7263D
+
+$ui-rockabilly-borderColor = #33302A
+
+$ui-rockabilly-tag-backgroundColor = #33302A
+
+$ui-rockabilly-button-backgroundColor = #2C2925
+$ui-rockabilly-button--active-color = #F2E8D5
+$ui-rockabilly-button--active-backgroundColor = #D7263D
+$ui-rockabilly-button--hover-color = #E8A33D
+$ui-rockabilly-button--hover-backgroundColor = lighten($ui-rockabilly-backgroundColor, 10%)
+$ui-rockabilly-button--focus-borderColor = lighten(#D7263D, 25%)
+
+$ui-rockabilly-kbd-backgroundColor = #14120F
+$ui-rockabilly-kbd-color = $ui-rockabilly-text-color
+
+$ui-rockabilly-table-odd-backgroundColor = $ui-rockabilly-noteDetail-backgroundColor
+$ui-rockabilly-table-even-backgroundColor = darken($ui-rockabilly-noteDetail-backgroundColor, 10%)
+$ui-rockabilly-table-head-backgroundColor = $ui-rockabilly-table-even-backgroundColor
+$ui-rockabilly-table-borderColor = #3D3831
+
 
 
 debug-theme-var(theme, suffix)
@@ -463,4 +494,4 @@ debug-theme-var(theme, suffix)
 get-theme-var(theme, suffix)
   lookup('$ui-' + theme + '-' + suffix)
 
-$themes = 'monokai' 'nord' 'vulcan'
+$themes = 'monokai' 'nord' 'vulcan' 'rockabilly'

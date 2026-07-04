@@ -1,6 +1,9 @@
 # The Boosters — UI コンセプト「クラシックロック」
 
-Status: Proposal (2026-07-05) / Owner: BoxPistols
+Status: **A 採用（カラーのみ）** (2026-07-05) / Owner: BoxPistols
+決定: カラー設計は A で確定。極端なコンセプト転換は行わない —— レトロフォント・
+レコード/チケット/VU メーター等のモチーフ演出（Phase 3）は見送り。
+実装: `ui.theme = 'rockabilly'`（browser/styles/index.styl + ui-themes.js）
 関連: docs/NEXT-STEPS-2026-06.md, .claude/skills/boostnote-modernize
 
 ## ねらい

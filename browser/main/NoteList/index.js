@@ -1259,6 +1259,7 @@ class NoteList extends React.Component {
         <div
           styleName='list'
           ref='list'
+          data-note-list
           tabIndex='-1'
           onKeyDown={e => this.handleNoteListKeyDown(e)}
           onKeyUp={this.handleNoteListKeyUp}

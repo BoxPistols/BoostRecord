@@ -3,6 +3,15 @@ import { Provider } from 'react-redux'
 import ReactDOM from 'react-dom'
 import { store } from '../store'
 
+// CSS-module class names differ per bundler (the old webpack selector
+// '.NoteList__list___…' matches nothing under Vite), so locate NoteList's
+// scroller by a stable data attribute — and never let a missing element
+// block opening/closing the modal.
+function setNoteListOverflow(value) {
+  const list = document.querySelector('[data-note-list]')
+  if (list != null) list.style.overflow = value
+}
+
 class ModalBase extends React.Component {
   constructor(props) {
     super(props)
@@ -20,11 +29,7 @@ class ModalBase extends React.Component {
         componentProps: null,
         isHidden: true
       })
-    // Toggle overflow style on NoteList
-    const list = document.querySelector(
-      '.NoteList__list___browser-main-NoteList-'
-    )
-    list.style.overflow = 'auto'
+    setNoteListOverflow('auto')
   }
 
   render() {
@@ -54,10 +59,7 @@ export function openModal(component, props) {
     return
   }
   // Hide scrollbar by removing overflow when modal opens
-  const list = document.querySelector(
-    '.NoteList__list___browser-main-NoteList-'
-  )
-  list.style.overflow = 'hidden'
+  setNoteListOverflow('hidden')
   document.body.setAttribute('data-modal', 'open')
   modalBase.setState({
     component: component,

@@ -4,6 +4,10 @@ Status: **A 採用（カラーのみ）** (2026-07-05) / Owner: BoxPistols
 決定: カラー設計は A で確定。極端なコンセプト転換は行わない —— レトロフォント・
 レコード/チケット/VU メーター等のモチーフ演出（Phase 3）は見送り。
 実装: `ui.theme = 'rockabilly'`（browser/styles/index.styl + ui-themes.js）
+改訂 (2026-07-05): セピア/暖色のオーバーレイは視認性を損ねるとの指摘により、
+ベース面をニュートラルチャコール（#1C1C1E / #242426、文字 #EAEAEA）へ変更。
+ブランドはバーミリオン #D7263D とアンバー #E8A33D のアクセントのみで表現。
+全ペア WCAG AA 実測済み（本文 14.1 : 1、非活性 6.1 : 1、アクセント上白 4.96 : 1）。
 関連: docs/NEXT-STEPS-2026-06.md, .claude/skills/boostnote-modernize
 
 ## ねらい

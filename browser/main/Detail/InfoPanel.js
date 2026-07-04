@@ -79,7 +79,10 @@ class InfoPanel extends React.Component {
           <input
             styleName='infoPanel-noteLink'
             ref='noteLink'
-            defaultValue={noteLink}
+            // defaultValue only applies at mount, so the link stayed stuck on
+            // the first-opened note after navigation — keep it controlled.
+            value={noteLink}
+            readOnly
             onClick={e => {
               e.target.select()
             }}

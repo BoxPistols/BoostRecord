@@ -225,7 +225,15 @@
   "Filter tags/folders...": "タグ/フォルダをフィルタ...",
   "Enable HTML label in mermaid flowcharts": "mermaid flowchartでHTMLラベルを有効にする  ⚠ このオプションには潜在的なXSSの危険性があります。",
   "Wrap line in Snippet Note": "行を右端で折り返す（Snippet Note）",
-  "These settings apply when you export a note as Markdown or plain text — from the File > Export as menu, the export buttons in the note info panel (i), or the note list context menu.": "この設定は、ノートを Markdown / プレーンテキストとして書き出すときに適用されます（メニューの File > Export as、ノート情報パネル (i) の書き出しボタン、ノート一覧の右クリックメニュー）。",
-  "Metadata: whether to include note information (title, tags, folder, created/updated dates) as YAML front matter at the top of the exported file. \"Merge with the header\" writes each field directly; \"Merge with a variable\" nests everything under the variable name below.": "Metadata: ノート情報（タイトル・タグ・フォルダ・作成/更新日時）を書き出しファイル先頭の YAML front matter に含めるかどうか。「Merge with the header」は各項目をそのまま、「Merge with a variable」は下で指定した変数名の下にまとめて書き込みます。",
-  "Prefix attachment folder: exported images and attachments are placed in a folder prefixed with the note title, so attachments from different notes do not overwrite each other.": "Prefix attachment folder: 画像などの添付ファイルを「ノート名 - attachments」フォルダに書き出し、複数ノートの添付ファイル同士が上書きし合わないようにします。"
+  "Where export happens:": "書き出しの入り口:",
+  "Menu: File > Export as": "メニュー: File > Export as",
+  "Note info panel (i) > export buttons (.md / .txt / .html / .pdf)": "ノート情報パネル (i) の書き出しボタン（.md / .txt / .html / .pdf）",
+  "Right-click a note in the note list": "ノート一覧でノートを右クリック",
+  "Metadata — include note info (title, tags, dates) at the top of the exported file:": "Metadata — ノート情報（タイトル・タグ・日時）を書き出しファイルの先頭に含めるか:",
+  "Don't export — body text only": "Don't export — 本文のみ（ノート情報を含めない）",
+  "Merge with the header — each field is written as-is": "Merge with the header — 各項目をそのまま YAML front matter として書き込む",
+  "Merge with a variable — everything is nested under the variable name below": "Merge with a variable — 下の「Variable Name」で指定した変数名の下にまとめて書き込む",
+  "Prefix attachment folder:": "Prefix attachment folder（添付フォルダにノート名を付ける）:",
+  "ON — attachments are exported to a per-note folder: \"Note title - attachments\"": "ON — 添付ファイルを「ノート名 - attachments」フォルダに書き出す（ノートごとに分かれる）",
+  "OFF — all notes share one \"attachments\" folder (files may overwrite each other)": "OFF — 全ノート共通の「attachments」フォルダに書き出す（同名ファイルが上書きされる恐れ）"
 }

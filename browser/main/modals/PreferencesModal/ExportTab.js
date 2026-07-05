@@ -113,21 +113,66 @@ class ExportTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Export')}</div>
 
           <div styleName='group-hint'>
+            <p>{i18n.__('Where export happens:')}</p>
+            <ul>
+              <li>{i18n.__('Menu: File > Export as')}</li>
+              <li>
+                {i18n.__(
+                  'Note info panel (i) > export buttons (.md / .txt / .html / .pdf)'
+                )}
+              </li>
+              <li>{i18n.__('Right-click a note in the note list')}</li>
+            </ul>
+
             <p>
               {i18n.__(
-                'These settings apply when you export a note as Markdown or plain text — from the File > Export as menu, the export buttons in the note info panel (i), or the note list context menu.'
+                'Metadata — include note info (title, tags, dates) at the top of the exported file:'
               )}
             </p>
-            <p>
-              {i18n.__(
-                'Metadata: whether to include note information (title, tags, folder, created/updated dates) as YAML front matter at the top of the exported file. "Merge with the header" writes each field directly; "Merge with a variable" nests everything under the variable name below.'
-              )}
-            </p>
-            <p>
-              {i18n.__(
-                'Prefix attachment folder: exported images and attachments are placed in a folder prefixed with the note title, so attachments from different notes do not overwrite each other.'
-              )}
-            </p>
+            <ul>
+              <li>{i18n.__("Don't export — body text only")}</li>
+              <li>
+                {i18n.__('Merge with the header — each field is written as-is')}
+              </li>
+              <li>
+                {i18n.__(
+                  'Merge with a variable — everything is nested under the variable name below'
+                )}
+              </li>
+            </ul>
+            <pre styleName='group-hint-code'>
+              {'# Merge with the header\n' +
+                '---\n' +
+                'title: 会議メモ\n' +
+                'tags:\n' +
+                '  - work\n' +
+                'createdAt: 2026-07-06T10:00:00.000Z\n' +
+                '---\n' +
+                '(本文)\n' +
+                '\n' +
+                '# Merge with a variable（変数名: note）\n' +
+                '---\n' +
+                'note:\n' +
+                '  title: 会議メモ\n' +
+                '  tags:\n' +
+                '    - work\n' +
+                '---\n' +
+                '(本文)'}
+            </pre>
+
+            <p>{i18n.__('Prefix attachment folder:')}</p>
+            <ul>
+              <li>
+                {i18n.__(
+                  'ON — attachments are exported to a per-note folder: "Note title - attachments"'
+                )}
+              </li>
+              <li>
+                {i18n.__(
+                  'OFF — all notes share one "attachments" folder (files may overwrite each other)'
+                )}
+              </li>
+            </ul>
           </div>
 
           <div styleName='group-section'>

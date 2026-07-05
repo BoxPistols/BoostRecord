@@ -194,7 +194,15 @@
   "Enable HTML label in mermaid flowcharts": "Enable HTML label in mermaid flowcharts ⚠ This option potentially has a risk of XSS.",
   "Wrap line in Snippet Note": "Wrap line in Snippet Note",
   "Enable Auto Update": "Enable Auto Update",
-  "These settings apply when you export a note as Markdown or plain text — from the File > Export as menu, the export buttons in the note info panel (i), or the note list context menu.": "These settings apply when you export a note as Markdown or plain text — from the File > Export as menu, the export buttons in the note info panel (i), or the note list context menu.",
-  "Metadata: whether to include note information (title, tags, folder, created/updated dates) as YAML front matter at the top of the exported file. \"Merge with the header\" writes each field directly; \"Merge with a variable\" nests everything under the variable name below.": "Metadata: whether to include note information (title, tags, folder, created/updated dates) as YAML front matter at the top of the exported file. \"Merge with the header\" writes each field directly; \"Merge with a variable\" nests everything under the variable name below.",
-  "Prefix attachment folder: exported images and attachments are placed in a folder prefixed with the note title, so attachments from different notes do not overwrite each other.": "Prefix attachment folder: exported images and attachments are placed in a folder prefixed with the note title, so attachments from different notes do not overwrite each other."
+  "Where export happens:": "Where export happens:",
+  "Menu: File > Export as": "Menu: File > Export as",
+  "Note info panel (i) > export buttons (.md / .txt / .html / .pdf)": "Note info panel (i) > export buttons (.md / .txt / .html / .pdf)",
+  "Right-click a note in the note list": "Right-click a note in the note list",
+  "Metadata — include note info (title, tags, dates) at the top of the exported file:": "Metadata — include note info (title, tags, dates) at the top of the exported file:",
+  "Don't export — body text only": "Don't export — body text only",
+  "Merge with the header — each field is written as-is": "Merge with the header — each field is written as-is",
+  "Merge with a variable — everything is nested under the variable name below": "Merge with a variable — everything is nested under the variable name below",
+  "Prefix attachment folder:": "Prefix attachment folder:",
+  "ON — attachments are exported to a per-note folder: \"Note title - attachments\"": "ON — attachments are exported to a per-note folder: \"Note title - attachments\"",
+  "OFF — all notes share one \"attachments\" folder (files may overwrite each other)": "OFF — all notes share one \"attachments\" folder (files may overwrite each other)"
 }

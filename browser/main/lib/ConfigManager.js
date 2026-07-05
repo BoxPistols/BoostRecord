@@ -59,7 +59,7 @@ export const DEFAULT_CONFIG = {
     toggleMenuBar: 'Alt'
   },
   ui: {
-    language: 'en',
+    language: 'ja',
     theme: 'default',
     defaultTheme: 'default',
     enableScheduleTheme: false,

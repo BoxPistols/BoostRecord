@@ -133,11 +133,11 @@ class InfoPanel extends React.Component {
           </button>
 
           <button
-            styleName='export--enable'
+            styleName='export--enable export--preview'
             onClick={e => previewAsPdf(e, 'preview-pdf')}
           >
             <i className='fa fa-eye' />
-            <p>{i18n.__('PDF プレビュー')}</p>
+            <p>{i18n.__('Preview')}</p>
           </button>
 
           <button styleName='export--enable' onClick={e => print(e, 'print')}>

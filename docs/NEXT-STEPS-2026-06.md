@@ -5,10 +5,13 @@
 ## 完了済み（参考）
 - **OS App化**: 本体を electron-builder 化（"The Boosters" / `io.boxpistols.theboosters` / `asar:false` / mac dmg+zip arm64+x64 / win nsis / 未署名）。arm64 dmg は実機動作確認済み。**PR #83**（main ← `modernize/electron-42`、CI 緑）。`app/` は "The Boosters Next"（別 appId / タグ `app-v*`）。
 - **CI**: `ci.yml` を pnpm + Node 22 化。`release-legacy.yml`（タグ `v*` で mac+win ビルド・Release 公開）。
-- **AI 執筆支援の土台**: 右クリック「AI」サブメニュー（要約/書き換え/翻訳/続き/コード説明）。**OpenAI + Gemini** マルチプロバイダ（Claude 不使用）。main プロセス service + IPC ストリーム。コミット `ca4a01f6`（**未 push**）。
+- **AI 執筆支援の土台**: 右クリック「AI」サブメニュー（要約/書き換え/翻訳/続き/コード説明）。**OpenAI + Gemini** マルチプロバイダ（Claude 不使用）。main プロセス service + IPC ストリーム。コミット `ca4a01f6`。
+- **PDF 改善（v0.16.5）**: 見出し下スペース調整（`@media print` margin 縮小）+ PDF Preview ボタン（A4プレビュー窓 + `@media print` ルールをスクリーンに昇格して Custom CSS も反映）。
+- **フォルダ色変更 UI**: 名称変更モーダルに 7色スウォッチを追加。確定時に色も同時保存。コミット `fdf0fd84`。
+- **クロスストレージ D&D 修正**: `dropNote` フィルターを `storage+folder` 複合キー判定に修正し、OneDrive 等で同一フォルダキーを持つ別ストレージへのドロップが正しく通るよう修正。コミット `fdf0fd84`。
 
 ## A. AI 執筆支援（継続）
-- [ ] **Preferences「AI」タブ**: provider 選択（OpenAI/Gemini）＋各キー入力＋モデル入力＋有効化。`browser/main/modals/PreferencesModal/` に `AITab.js` を追加し `index.js` の tabs / renderContent / state に登録。保存は `ConfigManager.set({ ai: {...} })`（`set` は `ai` を丸ごと置換するので完全な ai オブジェクトを渡す）。
+- [x] **Preferences「AI」タブ**: provider 選択（OpenAI/Gemini）＋各キー入力＋モデル入力。`AITab.js` を新規追加、`ConfigManager.set({ ai })` で保存。コミット `72e350eb`。
 - [ ] **モデル ID の生存確認**: 既定 `gpt-5-mini` / `gemini-2.5-flash`。保存時 or 起動時に OpenAI `/v1/models`・Gemini ListModels で生存 ID を裏取り（モデル名は頻繁に変わる）。
 - [ ] **ストリーム挿入 UX**: ローディング表示・キャンセル・エラー時ロールバック。現状は `lib/ai` 経由で CM5 へ素朴に差分挿入。
 - [ ] **トークン/usage 表示（任意）**: OpenAI は `stream_options:{include_usage:true}` で最終 chunk に usage。Gemini は `usageMetadata`。IPC done で返す。
@@ -41,7 +44,7 @@
   - **署名なし環境では `electron-updater` の自動 apply は mac で Gatekeeper に弾かれる**ため、Developer ID 取得が先決
 
 ## D. ブランチ / PR 衛生
-- [ ] AI コミット `ca4a01f6` は **`modernize/electron-42` にローカルのみ（未 push）**。PR #83（OS App化）に含めるか、別 PR に切り出すか判断。push すれば PR #83 に乗る。
+- [x] AI コミット `ca4a01f6` は main に含まれていることを 2026-07-06 に確認。ブランチ衛生問題なし。
 
 ## E. モダナイゼーション本流（別軸 / `boostnote-modernize` スキル参照）
 - Yjs CRDT 共同編集（別 peer が backend 調査中）、CM6 / React19 / Vite / Electron42 への段階移行。OS App化・AI は **Electron 28 上で出荷済み**のため、これらは独立トラックで後追い可。

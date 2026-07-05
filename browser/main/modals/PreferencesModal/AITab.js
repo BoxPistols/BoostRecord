@@ -6,6 +6,19 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
 
+// Non-empty keys must match their provider's known prefix pattern.
+const KEY_PATTERNS = {
+  openai: /^sk-[A-Za-z0-9\-_]{20,}$/,
+  gemini: /^AIza[A-Za-z0-9\-_]{30,}$/
+}
+
+function validateKey(provider, key) {
+  if (!key || !key.trim()) return null // empty = OK (uses env var)
+  return KEY_PATTERNS[provider] && !KEY_PATTERNS[provider].test(key.trim())
+    ? i18n.__('API key format looks incorrect')
+    : null
+}
+
 class AITab extends React.Component {
   constructor(props) {
     super(props)
@@ -29,10 +42,16 @@ class AITab extends React.Component {
       geminiKey,
       geminiModel
     } = this.state
+
+    // Block save if there are key format errors
+    if (validateKey('openai', openaiKey) || validateKey('gemini', geminiKey)) {
+      return
+    }
+
     const ai = {
       provider,
-      openai: { apiKey: openaiKey, model: openaiModel },
-      gemini: { apiKey: geminiKey, model: geminiModel }
+      openai: { apiKey: openaiKey.trim(), model: openaiModel.trim() },
+      gemini: { apiKey: geminiKey.trim(), model: geminiModel.trim() }
     }
     ConfigManager.set({ ai })
     store.dispatch({ type: 'SET_UI', config: { ai } })
@@ -49,6 +68,24 @@ class AITab extends React.Component {
       geminiModel,
       saved
     } = this.state
+
+    const openaiKeyError = validateKey('openai', openaiKey)
+    const geminiKeyError = validateKey('gemini', geminiKey)
+    const hasError = !!(openaiKeyError || geminiKeyError)
+
+    const inputStyle = hasErr => ({
+      width: 360,
+      padding: '4px 8px',
+      borderRadius: 4,
+      border: hasErr ? '1px solid #e74c3c' : '1px solid #aaa',
+      fontSize: 13
+    })
+
+    const errorStyle = {
+      color: '#e74c3c',
+      fontSize: 11,
+      marginTop: 2
+    }
 
     return (
       <div styleName='container'>
@@ -92,27 +129,28 @@ class AITab extends React.Component {
 
         <div
           styleName='box-minmax'
-          style={{ height: 'auto', marginBottom: 12 }}
+          style={{ height: 'auto', marginBottom: openaiKeyError ? 4 : 12 }}
         >
           <span>API Key</span>
-          <input
-            type='password'
-            value={openaiKey}
-            onChange={e => this.setState({ openaiKey: e.target.value })}
-            placeholder='sk-...'
-            style={{
-              width: 360,
-              padding: '4px 8px',
-              borderRadius: 4,
-              border: '1px solid #aaa',
-              fontSize: 13
-            }}
-          />
+          <div>
+            <input
+              type='password'
+              value={openaiKey}
+              onChange={e => this.setState({ openaiKey: e.target.value })}
+              placeholder='sk-...'
+              style={inputStyle(openaiKeyError)}
+            />
+            {openaiKeyError && <div style={errorStyle}>{openaiKeyError}</div>}
+          </div>
         </div>
 
         <div
           styleName='box-minmax'
-          style={{ height: 'auto', marginBottom: 20 }}
+          style={{
+            height: 'auto',
+            marginBottom: 20,
+            marginTop: openaiKeyError ? 8 : 0
+          }}
         >
           <span>{i18n.__('Model')}</span>
           <input
@@ -120,13 +158,7 @@ class AITab extends React.Component {
             value={openaiModel}
             onChange={e => this.setState({ openaiModel: e.target.value })}
             placeholder='gpt-5-mini'
-            style={{
-              width: 360,
-              padding: '4px 8px',
-              borderRadius: 4,
-              border: '1px solid #aaa',
-              fontSize: 13
-            }}
+            style={inputStyle(false)}
           />
         </div>
 
@@ -139,27 +171,28 @@ class AITab extends React.Component {
 
         <div
           styleName='box-minmax'
-          style={{ height: 'auto', marginBottom: 12 }}
+          style={{ height: 'auto', marginBottom: geminiKeyError ? 4 : 12 }}
         >
           <span>API Key</span>
-          <input
-            type='password'
-            value={geminiKey}
-            onChange={e => this.setState({ geminiKey: e.target.value })}
-            placeholder='AIza...'
-            style={{
-              width: 360,
-              padding: '4px 8px',
-              borderRadius: 4,
-              border: '1px solid #aaa',
-              fontSize: 13
-            }}
-          />
+          <div>
+            <input
+              type='password'
+              value={geminiKey}
+              onChange={e => this.setState({ geminiKey: e.target.value })}
+              placeholder='AIza...'
+              style={inputStyle(geminiKeyError)}
+            />
+            {geminiKeyError && <div style={errorStyle}>{geminiKeyError}</div>}
+          </div>
         </div>
 
         <div
           styleName='box-minmax'
-          style={{ height: 'auto', marginBottom: 28 }}
+          style={{
+            height: 'auto',
+            marginBottom: 28,
+            marginTop: geminiKeyError ? 8 : 0
+          }}
         >
           <span>{i18n.__('Model')}</span>
           <input
@@ -167,27 +200,22 @@ class AITab extends React.Component {
             value={geminiModel}
             onChange={e => this.setState({ geminiModel: e.target.value })}
             placeholder='gemini-2.5-flash'
-            style={{
-              width: 360,
-              padding: '4px 8px',
-              borderRadius: 4,
-              border: '1px solid #aaa',
-              fontSize: 13
-            }}
+            style={inputStyle(false)}
           />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <button
             onClick={() => this.handleSave()}
+            disabled={hasError}
             style={{
               padding: '8px 24px',
               borderRadius: 4,
               border: 'none',
-              background: '#6c5ce7',
+              background: hasError ? '#aaa' : '#6c5ce7',
               color: '#fff',
               fontSize: 14,
-              cursor: 'pointer'
+              cursor: hasError ? 'not-allowed' : 'pointer'
             }}
           >
             {i18n.__('Save')}

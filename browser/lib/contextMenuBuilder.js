@@ -30,10 +30,21 @@ function runEditorAiAction(editor, actionKey) {
   const action = aiAssist.AI_ACTIONS[actionKey]
   if (action == null) return
 
+  // Capture selection boundaries before any mutation for rollback on error.
+  const selectionFrom = editor.getCursor('from')
+
+  // replace mode: insert a placeholder instead of deleting the selection
+  // immediately. On first delta the placeholder is swapped out; on error the
+  // original text is restored. This prevents a half-deleted document.
+  const PLACEHOLDER = '…' // '…'
   let idx
+  let placeholderActive = false
+
   if (action.mode === 'replace') {
-    editor.replaceSelection('')
-    idx = editor.indexFromPos(editor.getCursor())
+    const selectionTo = editor.getCursor('to')
+    editor.replaceRange(PLACEHOLDER, selectionFrom, selectionTo)
+    idx = editor.indexFromPos(selectionFrom) // idx = START of placeholder
+    placeholderActive = true
   } else {
     const end = editor.getCursor('to')
     editor.setCursor(end)
@@ -42,16 +53,27 @@ function runEditorAiAction(editor, actionKey) {
   }
 
   const insert = text => {
-    const from = editor.posFromIndex(idx)
-    editor.replaceRange(text, from)
-    idx += text.length
+    if (placeholderActive) {
+      // Swap placeholder (1 char) for the first real delta
+      const from = editor.posFromIndex(idx)
+      const to = editor.posFromIndex(idx + 1) // placeholder is 1 char
+      editor.replaceRange(text, from, to)
+      idx += text.length // idx was at START; after replace end = start + new length
+      placeholderActive = false
+    } else {
+      editor.replaceRange(text, editor.posFromIndex(idx))
+      idx += text.length
+    }
     editor.setCursor(editor.posFromIndex(idx))
   }
 
-  // Surface failures in a dialog rather than writing the error into the note
-  // (which would corrupt the user's document). Fall back to console if the
-  // dialog API isn't available (e.g. unit tests).
   aiAssist.runAiAction(actionKey, selected, insert).catch(err => {
+    // Rollback: remove everything inserted (placeholder or partial AI text)
+    // and restore the original selection text.
+    if (action.mode === 'replace') {
+      const currentEnd = editor.posFromIndex(placeholderActive ? idx + 1 : idx)
+      editor.replaceRange(selected, selectionFrom, currentEnd)
+    }
     const message = (err && err.message) || String(err)
     try {
       remote.require('electron').dialog.showErrorBox('AI', message)

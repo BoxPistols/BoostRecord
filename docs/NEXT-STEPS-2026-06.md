@@ -20,9 +20,25 @@
 - peer `machining-fundamentals`（`/Users/ai/dev/Asagiri/Metal/machining-fundamentals`）に両方の知見あり（claude-peers で相談可）。
 
 ## C. 配信 / リリース
+
+### リリースフロー（現状）
+- **配信トリガーはタグ push のみ**。main へのマージでは配信されない
+  ```bash
+  git tag v0.16.5 && git push origin v0.16.5
+  ```
+  → `release-legacy.yml` が起動し、macOS arm64/x64 dmg + Windows exe を CI ビルドして GitHub Releases に公開
+
+- **アプリ内アップデート通知（v0.16.4 実装済み）**: 起動時に GitHub API で最新タグを取得、現行バージョンより新しければダイアログ表示 → Releases ページをブラウザで開く。手動 DL フロー。
+
+### 残タスク
 - [ ] **公開前スモーク**: AI 依存（`openai` / `@google/genai`）追加後にパッケージ再検証していない。`pnpm run dist:dir` → 起動スモークで同梱起動を最終確認（リスク低）。
-- [ ] **初回リリース**: `git tag v0.16.1 && git push origin v0.16.1` → CI が mac(arm64+x64)+win(.exe) を生成・Release 公開（未署名／初回警告は README の `xattr -dr com.apple.quarantine`・SmartScreen 手順）。
-- [ ] **コード署名 / notarize**: Apple Developer ID / Windows 証明書を入手後、GitHub Secrets に登録して `release-legacy.yml` に配線（`mac.identity` を解除 / `win.certificateFile`）。
+- [ ] **コード署名 / notarize → ワンクリック自動インストール化**:
+  - 現状: 未署名の ad-hoc ビルド。通知はあるが自動インストール不可
+  - 目標: Apple Developer ID（$99/年）+ Windows 証明書を取得し、GitHub Secrets に登録
+  - 実装: `release-legacy.yml` に署名ステップを追加、`electron-updater` を有効化すると「今すぐ更新」ワンクリックで自動インストール可能になる
+  - mac: `package.json` の `build.mac.identity: null` を解除、`notarize` フック追加
+  - win: `build.win.certificateFile` / `CSC_LINK` 環境変数を設定
+  - **署名なし環境では `electron-updater` の自動 apply は mac で Gatekeeper に弾かれる**ため、Developer ID 取得が先決
 
 ## D. ブランチ / PR 衛生
 - [ ] AI コミット `ca4a01f6` は **`modernize/electron-42` にローカルのみ（未 push）**。PR #83（OS App化）に含めるか、別 PR に切り出すか判断。push すれば PR #83 に乗る。

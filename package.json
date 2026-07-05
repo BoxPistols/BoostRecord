@@ -16,6 +16,7 @@
     "fix": "eslint . --fix",
     "lint": "eslint .",
     "dev": "cross-env NODE_ENV=development NODE_OPTIONS=--openssl-legacy-provider node dev-scripts/dev.js",
+    "restart": "pnpm run compile && pnpm start",
     "watch": "cross-env NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --hot",
     "dist": "npm run compile && electron-builder",
     "dist:mac": "npm run compile && electron-builder --mac",

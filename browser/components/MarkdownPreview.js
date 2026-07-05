@@ -212,17 +212,35 @@ class MarkdownPreview extends React.Component {
     )
 
     const html = formatHTML(this.props)(note, tmpFile, exportTasks)
-    // Wrap content in an A4-like white page card so the preview mimics print layout.
-    // Heading margins and background are forced to match @media print output.
-    const previewStyle = `<style>
+    // Inject preview wrapper (A4 card) + a script that promotes all @media print
+    // rules to screen rules so the window mirrors what the actual PDF will look like.
+    // Custom CSS @media print blocks (from Preferences) are included this way too.
+    const previewInjection = `<style>
 html, body { background: #cacaca !important; margin: 0 !important; padding: 20px !important; box-sizing: border-box; }
 .tb-print-page { background: #fff; max-width: 794px; margin: 0 auto; padding: 40px 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); min-height: 1123px; color: #000; }
-h1, h2, h3, h4, h5, h6 { margin-top: 0.5em !important; margin-bottom: 0.3em !important; page-break-after: avoid; }
 a { color: #1a0dab; }
-</style>`
+</style>
+<script>
+// Promote every @media print rule to a plain (screen) rule so the preview
+// accurately shows what printToPDF will render — including custom CSS.
+document.addEventListener('DOMContentLoaded', function () {
+  Array.from(document.styleSheets).forEach(function (sheet) {
+    var rules
+    try { rules = Array.from(sheet.cssRules) } catch (e) { return }
+    rules.forEach(function (rule) {
+      if (rule.type !== CSSRule.MEDIA_RULE) return
+      var media = rule.conditionText || (rule.media && rule.media.mediaText) || ''
+      if (!/\\bprint\\b/.test(media)) return
+      Array.from(rule.cssRules).forEach(function (inner) {
+        try { sheet.insertRule(inner.cssText, sheet.cssRules.length) } catch (e) {}
+      })
+    })
+  })
+})
+</script>`
 
     const previewHtml = html
-      .replace('</head>', `${previewStyle}</head>`)
+      .replace('</head>', `${previewInjection}</head>`)
       .replace(/<body([^>]*)>/, '<body$1><div class="tb-print-page">')
       .replace('</body>', '</div></body>')
 
@@ -232,7 +250,7 @@ a { color: #1a0dab; }
       width: 920,
       height: 1050,
       title: `${note.title || 'ノート'} — PDF プレビュー`,
-      webPreferences: { webSecurity: false, javascript: false }
+      webPreferences: { webSecurity: false }
     })
 
     win.loadFile(tmpFile)

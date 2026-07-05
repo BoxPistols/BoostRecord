@@ -10,6 +10,7 @@ import InfoTab from './InfoTab'
 import StoragesTab from './StoragesTab'
 import ExportTab from './ExportTab'
 import SnippetTab from './SnippetTab'
+import AITab from './AITab'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './PreferencesModal.styl'
@@ -82,6 +83,8 @@ class Preferences extends React.Component {
         )
       case 'SNIPPET':
         return <SnippetTab dispatch={dispatch} config={config} data={data} />
+      case 'AI':
+        return <AITab dispatch={dispatch} config={config} />
       case 'STORAGES':
       default:
         return (
@@ -125,7 +128,8 @@ class Preferences extends React.Component {
         label: i18n.__('Export'),
         Export: this.state.ExportAlert
       },
-      { target: 'SNIPPET', label: i18n.__('Snippets') }
+      { target: 'SNIPPET', label: i18n.__('Snippets') },
+      { target: 'AI', label: i18n.__('AI') }
     ]
 
     const navButtons = tabs.map(tab => {

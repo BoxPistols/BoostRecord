@@ -224,5 +224,8 @@
   "Auto Detect": "自動検出",
   "Filter tags/folders...": "タグ/フォルダをフィルタ...",
   "Enable HTML label in mermaid flowcharts": "mermaid flowchartでHTMLラベルを有効にする  ⚠ このオプションには潜在的なXSSの危険性があります。",
-  "Wrap line in Snippet Note": "行を右端で折り返す（Snippet Note）"
+  "Wrap line in Snippet Note": "行を右端で折り返す（Snippet Note）",
+  "These settings apply when you export a note as Markdown or plain text — from the File > Export as menu, the export buttons in the note info panel (i), or the note list context menu.": "この設定は、ノートを Markdown / プレーンテキストとして書き出すときに適用されます（メニューの File > Export as、ノート情報パネル (i) の書き出しボタン、ノート一覧の右クリックメニュー）。",
+  "Metadata: whether to include note information (title, tags, folder, created/updated dates) as YAML front matter at the top of the exported file. \"Merge with the header\" writes each field directly; \"Merge with a variable\" nests everything under the variable name below.": "Metadata: ノート情報（タイトル・タグ・フォルダ・作成/更新日時）を書き出しファイル先頭の YAML front matter に含めるかどうか。「Merge with the header」は各項目をそのまま、「Merge with a variable」は下で指定した変数名の下にまとめて書き込みます。",
+  "Prefix attachment folder: exported images and attachments are placed in a folder prefixed with the note title, so attachments from different notes do not overwrite each other.": "Prefix attachment folder: 画像などの添付ファイルを「ノート名 - attachments」フォルダに書き出し、複数ノートの添付ファイル同士が上書きし合わないようにします。"
 }

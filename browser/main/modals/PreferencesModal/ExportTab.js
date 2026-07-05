@@ -112,6 +112,24 @@ class ExportTab extends React.Component {
         <div styleName='group'>
           <div styleName='group-header'>{i18n.__('Export')}</div>
 
+          <div styleName='group-hint'>
+            <p>
+              {i18n.__(
+                'These settings apply when you export a note as Markdown or plain text — from the File > Export as menu, the export buttons in the note info panel (i), or the note list context menu.'
+              )}
+            </p>
+            <p>
+              {i18n.__(
+                'Metadata: whether to include note information (title, tags, folder, created/updated dates) as YAML front matter at the top of the exported file. "Merge with the header" writes each field directly; "Merge with a variable" nests everything under the variable name below.'
+              )}
+            </p>
+            <p>
+              {i18n.__(
+                'Prefix attachment folder: exported images and attachments are placed in a folder prefixed with the note title, so attachments from different notes do not overwrite each other.'
+              )}
+            </p>
+          </div>
+
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Metadata')}</div>
             <div styleName='group-section-control'>

@@ -193,5 +193,8 @@
   "Filter tags/folders...": "filter tags/folders...",
   "Enable HTML label in mermaid flowcharts": "Enable HTML label in mermaid flowcharts ⚠ This option potentially has a risk of XSS.",
   "Wrap line in Snippet Note": "Wrap line in Snippet Note",
-  "Enable Auto Update": "Enable Auto Update"
+  "Enable Auto Update": "Enable Auto Update",
+  "These settings apply when you export a note as Markdown or plain text — from the File > Export as menu, the export buttons in the note info panel (i), or the note list context menu.": "These settings apply when you export a note as Markdown or plain text — from the File > Export as menu, the export buttons in the note info panel (i), or the note list context menu.",
+  "Metadata: whether to include note information (title, tags, folder, created/updated dates) as YAML front matter at the top of the exported file. \"Merge with the header\" writes each field directly; \"Merge with a variable\" nests everything under the variable name below.": "Metadata: whether to include note information (title, tags, folder, created/updated dates) as YAML front matter at the top of the exported file. \"Merge with the header\" writes each field directly; \"Merge with a variable\" nests everything under the variable name below.",
+  "Prefix attachment folder: exported images and attachments are placed in a folder prefixed with the note title, so attachments from different notes do not overwrite each other.": "Prefix attachment folder: exported images and attachments are placed in a folder prefixed with the note title, so attachments from different notes do not overwrite each other."
 }

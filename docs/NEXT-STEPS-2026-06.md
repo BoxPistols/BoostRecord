@@ -35,3 +35,8 @@
 - SDK の API 表面は記憶でなく **node_modules の型定義 / context7 で実物検証**（バージョンで動く）。
 - 罠: GPT-5/o1/o3 = `max_completion_tokens`＋temperature 禁止 / Gemini はネイティブ `generateContentStream`＋reasoning buffer(+1200)。
 - レート制限/KV/ティアは public web 用 → 単一ユーザーのデスクトップでは作らない（env優先→Preferences 上書きの2段で十分）。
+
+## 拡張プラグイン機構（2026-07-05 追記・今後別途検討）
+- ユーザー意向: 拡張プラグインは今後別途検討したい（Obsidian 的な拡張性が新アプリのベンチマーク項目）
+- 旧 Boostnote の Plugins タブ/wakatime 連携は 2026-07 に撤去済み。復活ではなくゼロベースで設計する
+- 検討タイミング: CM6/React 19 モダナイズ（Phase 2）後。プラグイン API 表面はエディタ層の確定が先

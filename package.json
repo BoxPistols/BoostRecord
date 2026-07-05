@@ -32,6 +32,7 @@
     "productName": "The Boosters",
     "copyright": "GPL-3.0, inherited from BoostIO (Boostnote)",
     "asar": false,
+    "afterPack": "scripts/after-pack-adhoc-sign.js",
     "directories": {
       "output": "release",
       "app": "."

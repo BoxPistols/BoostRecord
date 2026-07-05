@@ -1,0 +1,91 @@
+# Windows 実起動スモークテスト:
+# リリース済みの NSIS インストーラを windows ランナーでサイレントインストールし、
+# 実際にアプリを起動して renderer がメイン UI まで到達したかを DOM プローブで
+# 機械検証する。「ビルドは通るが実機で splash 停止」(v0.16.2/0.16.3) の再発防止。
+name: win-smoke
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'テストするリリースタグ (例: v0.16.4)'
+        required: true
+        default: 'v0.16.4'
+
+jobs:
+  smoke:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Download installer from release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download $env:RELEASE_TAG --repo ${{ github.repository }} --pattern "The-Boosters-Setup-*.exe" --dir .
+          Get-ChildItem "The-Boosters-Setup-*.exe"
+
+      - name: Silent install (NSIS /S)
+        shell: pwsh
+        run: |
+          $setup = Get-ChildItem "The-Boosters-Setup-*.exe" | Select-Object -First 1
+          Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
+          Start-Sleep -Seconds 5
+
+      - name: Locate install dir and inject DOM probe
+        shell: pwsh
+        run: |
+          $candidates = @(
+            (Join-Path $env:LOCALAPPDATA "Programs\the-boosters"),
+            (Join-Path $env:LOCALAPPDATA "Programs\The Boosters")
+          )
+          $appDir = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $appDir) {
+            Get-ChildItem (Join-Path $env:LOCALAPPDATA "Programs")
+            throw "install dir not found"
+          }
+          Write-Host "APPDIR=$appDir"
+          "APPDIR=$appDir" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+          $idx = Join-Path $appDir "resources\app\index.js"
+          $probe = @'
+          const { app: probeApp } = require('electron')
+          const probeFs = require('fs')
+          const probeOut = require('path').join(require('os').tmpdir(), 'tb-verify-result.json')
+          probeApp.on('web-contents-created', (_e, wc) => {
+            wc.on('did-finish-load', () => {
+              setTimeout(() => {
+                wc.executeJavaScript('({cover: !!document.getElementById("loadingCover"), content: document.getElementById("content") ? document.getElementById("content").children.length : -1, sidenav: !!document.querySelector("[class*=SideNav]")})')
+                  .then(r => probeFs.writeFileSync(probeOut, JSON.stringify(r)))
+                  .catch(e => probeFs.writeFileSync(probeOut, 'ERR ' + e.message))
+              }, 10000)
+            })
+          })
+          '@
+          $orig = Get-Content -Raw $idx
+          Set-Content -Path $idx -Value ($probe + "`n" + $orig) -Encoding utf8
+
+      - name: Launch app and assert main UI reached
+        shell: pwsh
+        run: |
+          $exe = Join-Path $env:APPDIR "The Boosters.exe"
+          $proc = Start-Process -FilePath $exe -PassThru
+          $result = Join-Path $env:TEMP "tb-verify-result.json"
+          $deadline = (Get-Date).AddSeconds(90)
+          while (-not (Test-Path $result) -and (Get-Date) -lt $deadline) {
+            Start-Sleep -Seconds 3
+          }
+          Get-Process -Name "The Boosters" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+
+          if (-not (Test-Path $result)) {
+            throw "probe result not produced — app never reached did-finish-load"
+          }
+          $json = Get-Content -Raw $result
+          Write-Host "PROBE: $json"
+          $obj = $json | ConvertFrom-Json
+          if (($obj.cover -ne $false) -or ($obj.content -lt 1)) {
+            throw "renderer did not reach the main UI: $json"
+          }
+          Write-Host "WINDOWS SMOKE TEST PASSED"

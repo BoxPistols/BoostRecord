@@ -12,10 +12,10 @@
 
 ## A. AI 執筆支援（継続）
 - [x] **Preferences「AI」タブ**: provider 選択（OpenAI/Gemini）＋各キー入力＋モデル入力。`AITab.js` を新規追加、`ConfigManager.set({ ai })` で保存。コミット `72e350eb`。
-- [ ] **モデル ID の生存確認**: 既定 `gpt-5-mini` / `gemini-2.5-flash`。保存時 or 起動時に OpenAI `/v1/models`・Gemini ListModels で生存 ID を裏取り（モデル名は頻繁に変わる）。
-- [ ] **ストリーム挿入 UX**: ローディング表示・キャンセル・エラー時ロールバック。現状は `lib/ai` 経由で CM5 へ素朴に差分挿入。
-- [ ] **トークン/usage 表示（任意）**: OpenAI は `stream_options:{include_usage:true}` で最終 chunk に usage。Gemini は `usageMetadata`。IPC done で返す。
-- [ ] **キー検証**: Preferences 入力キーの空/typo を正規表現で早期検出。
+- [ ] **モデル ID の生存確認**: 既定 `gpt-5-mini` / `gemini-2.5-flash`。保存時 or 起動時に OpenAI `/v1/models`・Gemini ListModels で生存 ID を裏取り（モデル名は頻繁に変わる）。→ 実キーがないと検証不可。後回し
+- [x] **ストリーム挿入 UX**: `replace` モードで `…` プレースホルダを使い、初デルタ到着まで元テキストを保持。IPC エラー時は元テキストを復元（rollback）。コミット `64350b1a`。
+- [ ] **トークン/usage 表示（任意）**: OpenAI は `stream_options:{include_usage:true}` で最終 chunk に usage。Gemini は `usageMetadata`。IPC done で返す。（任意、後回し）
+- [x] **キー検証**: OpenAI `sk-...{20+}` / Gemini `AIza...{30+}` を正規表現チェック。形式不正は赤枠＋エラー表示＋Save を disabled に。コミット `64350b1a`。
 
 ## B. 読み上げ TTS（新規）
 - [ ] **VOICEVOX（ローカル）**: ★ HTTPS ブラウザから `http://localhost:50021` は mixed-content/CORS で死ぬが、**Electron main(Node) から叩けば回避**。`/audio_query` → `/synthesis` の2段（query JSON → wav 合成）。engine 同梱は `vv-engine/run` を bundle。
@@ -34,7 +34,7 @@
 - **アプリ内アップデート通知（v0.16.4 実装済み）**: 起動時に GitHub API で最新タグを取得、現行バージョンより新しければダイアログ表示 → Releases ページをブラウザで開く。手動 DL フロー。
 
 ### 残タスク
-- [ ] **公開前スモーク**: AI 依存（`openai` / `@google/genai`）追加後にパッケージ再検証していない。`pnpm run dist:dir` → 起動スモークで同梱起動を最終確認（リスク低）。
+- [x] **公開前スモーク**: `pnpm run dist:dir` 完走確認。`release/mac-arm64/The Boosters.app/Contents/Resources/app/node_modules/` に `openai` / `@google` の両フォルダが存在。2026-07-06 実施。
 - [ ] **コード署名 / notarize → ワンクリック自動インストール化**:
   - 現状: 未署名の ad-hoc ビルド。通知はあるが自動インストール不可
   - 目標: Apple Developer ID（$99/年）+ Windows 証明書を取得し、GitHub Secrets に登録

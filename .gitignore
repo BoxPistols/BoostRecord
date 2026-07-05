@@ -19,3 +19,6 @@ config.json
 CLAUDE.local.md
 
 coverage/
+
+# fable-emu: 計画ファイル置き場（公開 repo のため ephemeral、PR/配布物へ混入させない）
+plans/

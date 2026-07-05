@@ -103,6 +103,7 @@ class MarkdownPreview extends React.Component {
     this.saveAsMdHandler = () => this.handleSaveAsMd()
     this.saveAsHtmlHandler = () => this.handleSaveAsHtml()
     this.saveAsPdfHandler = () => this.handleSaveAsPdf()
+    this.previewAsPdfHandler = () => this.handlePreviewAsPdf()
     this.printHandler = () => this.handlePrint()
     this.resizeHandler = _.throttle(this.handleResize.bind(this), 100)
 
@@ -196,6 +197,50 @@ class MarkdownPreview extends React.Component {
 
   handleSaveAsPdf() {
     this.exportAsDocument('pdf', formatPDF(this.props))
+  }
+
+  handlePreviewAsPdf() {
+    const fs = require('fs')
+    const os = require('os')
+    const crypto = require('crypto')
+
+    const note = this.props.getNote()
+    const exportTasks = []
+    const tmpFile = path.join(
+      os.tmpdir(),
+      `tb-pdf-preview-${crypto.randomBytes(6).toString('hex')}.html`
+    )
+
+    const html = formatHTML(this.props)(note, tmpFile, exportTasks)
+    // Wrap content in an A4-like white page card so the preview mimics print layout.
+    // Heading margins and background are forced to match @media print output.
+    const previewStyle = `<style>
+html, body { background: #cacaca !important; margin: 0 !important; padding: 20px !important; box-sizing: border-box; }
+.tb-print-page { background: #fff; max-width: 794px; margin: 0 auto; padding: 40px 50px; box-shadow: 0 2px 8px rgba(0,0,0,0.25); min-height: 1123px; color: #000; }
+h1, h2, h3, h4, h5, h6 { margin-top: 0.5em !important; margin-bottom: 0.3em !important; page-break-after: avoid; }
+a { color: #1a0dab; }
+</style>`
+
+    const previewHtml = html
+      .replace('</head>', `${previewStyle}</head>`)
+      .replace(/<body([^>]*)>/, '<body$1><div class="tb-print-page">')
+      .replace('</body>', '</div></body>')
+
+    fs.writeFileSync(tmpFile, previewHtml, 'utf8')
+
+    const win = new remote.BrowserWindow({
+      width: 920,
+      height: 1050,
+      title: `${note.title || 'ノート'} — PDF プレビュー`,
+      webPreferences: { webSecurity: false, javascript: false }
+    })
+
+    win.loadFile(tmpFile)
+    win.on('closed', () => {
+      try {
+        fs.unlinkSync(tmpFile)
+      } catch (e) {}
+    })
   }
 
   handlePrint() {
@@ -315,6 +360,7 @@ class MarkdownPreview extends React.Component {
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
     eventEmitter.on('export:save-pdf', this.saveAsPdfHandler)
+    eventEmitter.on('export:preview-pdf', this.previewAsPdfHandler)
     eventEmitter.on('print', this.printHandler)
   }
 
@@ -357,6 +403,7 @@ class MarkdownPreview extends React.Component {
     eventEmitter.off('export:save-md', this.saveAsMdHandler)
     eventEmitter.off('export:save-html', this.saveAsHtmlHandler)
     eventEmitter.off('export:save-pdf', this.saveAsPdfHandler)
+    eventEmitter.off('export:preview-pdf', this.previewAsPdfHandler)
     eventEmitter.off('print', this.printHandler)
   }
 

@@ -23,6 +23,7 @@ class InfoPanel extends React.Component {
       exportAsTxt,
       exportAsHtml,
       exportAsPdf,
+      previewAsPdf,
       wordCount,
       letterCount,
       type,
@@ -131,6 +132,14 @@ class InfoPanel extends React.Component {
             <p>{i18n.__('.pdf')}</p>
           </button>
 
+          <button
+            styleName='export--enable'
+            onClick={e => previewAsPdf(e, 'preview-pdf')}
+          >
+            <i className='fa fa-eye' />
+            <p>{i18n.__('PDF プレビュー')}</p>
+          </button>
+
           <button styleName='export--enable' onClick={e => print(e, 'print')}>
             <i className='fa fa-print' />
             <p>{i18n.__('Print')}</p>
@@ -151,6 +160,7 @@ InfoPanel.propTypes = {
   exportAsTxt: PropTypes.func.isRequired,
   exportAsHtml: PropTypes.func.isRequired,
   exportAsPdf: PropTypes.func.isRequired,
+  previewAsPdf: PropTypes.func.isRequired,
   wordCount: PropTypes.number,
   letterCount: PropTypes.number,
   type: PropTypes.string.isRequired,

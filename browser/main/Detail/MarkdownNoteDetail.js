@@ -258,6 +258,10 @@ class MarkdownNoteDetail extends React.Component {
     ee.emit('export:save-pdf')
   }
 
+  previewAsPdf() {
+    ee.emit('export:preview-pdf')
+  }
+
   handleKeyDown(e) {
     switch (e.keyCode) {
       // tab key
@@ -632,6 +636,7 @@ class MarkdownNoteDetail extends React.Component {
             exportAsTxt={this.exportAsTxt}
             exportAsHtml={this.exportAsHtml}
             exportAsPdf={this.exportAsPdf}
+            previewAsPdf={this.previewAsPdf}
             wordCount={note.content.trim().split(/\s+/g).length}
             letterCount={note.content.replace(/\r?\n/g, '').length}
             type={note.type}

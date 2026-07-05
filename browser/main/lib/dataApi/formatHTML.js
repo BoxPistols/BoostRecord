@@ -767,6 +767,18 @@ body p {
   .clipboardButton {
     display: none
   }
+  h1, h2, h3, h4, h5, h6 {
+    margin-top: 0.5em;
+    margin-bottom: 0.3em;
+    page-break-after: avoid;
+  }
+  p, li {
+    orphans: 3;
+    widows: 3;
+  }
+  pre, blockquote {
+    page-break-inside: avoid;
+  }
 }
 
 ${allowCustomCSS ? customCSS : ''}

@@ -312,7 +312,12 @@ class StorageItem extends React.Component {
   }
 
   dropNote(storage, folder, dispatch, location, noteData) {
-    noteData = noteData.filter(note => folder.key !== note.folder)
+    // Keep notes that are NOT already in the exact target (storage + folder).
+    // The previous check only compared folder.key, silently blocking cross-storage
+    // moves when source and destination folders happened to share the same key.
+    noteData = noteData.filter(
+      note => note.storage !== storage.key || note.folder !== folder.key
+    )
     if (noteData.length === 0) return
 
     Promise.all(

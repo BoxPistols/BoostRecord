@@ -6,13 +6,15 @@ import dataApi from 'browser/main/lib/dataApi'
 import { store } from 'browser/main/store'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import i18n from 'browser/lib/i18n'
+import consts from 'browser/lib/consts'
 
 class RenameFolderModal extends React.Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      name: props.folder.name
+      name: props.folder.name,
+      color: props.folder.color
     }
   }
 
@@ -54,7 +56,7 @@ class RenameFolderModal extends React.Component {
       dataApi
         .updateFolder(storage.key, folder.key, {
           name: this.state.name,
-          color: folder.color
+          color: this.state.color
         })
         .then(data => {
           store.dispatch({
@@ -89,6 +91,35 @@ class RenameFolderModal extends React.Component {
             onChange={e => this.handleChange(e)}
             onKeyDown={e => this.handleInputKeyDown(e)}
           />
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              gap: '8px',
+              margin: '0 auto 15px'
+            }}
+          >
+            {consts.FOLDER_COLORS.map(c => (
+              <button
+                key={c}
+                title={c}
+                onClick={() => this.setState({ color: c })}
+                style={{
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  background: c,
+                  border:
+                    this.state.color === c
+                      ? '3px solid #fff'
+                      : '2px solid transparent',
+                  outline: this.state.color === c ? `2px solid ${c}` : 'none',
+                  cursor: 'pointer',
+                  padding: 0
+                }}
+              />
+            ))}
+          </div>
           <button
             styleName='control-confirmButton'
             onClick={e => this.handleConfirmButtonClick(e)}
@@ -107,7 +138,8 @@ RenameFolderModal.propTypes = {
   }),
   folder: PropTypes.shape({
     key: PropTypes.string,
-    name: PropTypes.string
+    name: PropTypes.string,
+    color: PropTypes.string
   })
 }
 

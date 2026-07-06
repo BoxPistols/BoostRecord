@@ -1,3 +1,4 @@
+import attachmentManagement from './attachmentManagement'
 const resolveStorageData = require('./resolveStorageData')
 const _ = require('lodash')
 const path = require('path')
@@ -5,7 +6,6 @@ const CSON = require('@rokt33r/season')
 const keygen = require('browser/lib/keygen')
 const sander = require('sander')
 const { findStorage } = require('browser/lib/findStorage')
-const attachmentManagement = require('./attachmentManagement')
 
 function moveNote(storageKey, noteKey, newStorageKey, newFolderKey) {
   let oldStorage, newStorage

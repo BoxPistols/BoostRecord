@@ -1,7 +1,7 @@
 {
   "name": "the-boosters",
   "productName": "The Boosters",
-  "version": "0.16.10",
+  "version": "0.16.11",
   "main": "index.js",
   "description": "The Boosters — a modernized, independent successor to Boostnote (originally © BoostIO, GPL-3.0)",
   "license": "GPL-3.0",
@@ -23,7 +23,8 @@
     "dist:win": "npm run compile && electron-builder --win --x64",
     "dist:dir": "npm run compile && electron-builder --dir",
     "compile:vite": "vite build --config vite.renderer.config.mjs",
-    "compile:webpack": "cross-env BABEL_ENV=production NODE_ENV=production NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack-production.config.js --bail"
+    "compile:webpack": "cross-env BABEL_ENV=production NODE_ENV=production NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack-production.config.js --bail",
+    "check-esm-cjs": "node scripts/check-esm-cjs-compat.mjs"
   },
   "config": {
     "electron-version": "28.3.3"

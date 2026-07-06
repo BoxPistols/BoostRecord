@@ -38,6 +38,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: ESM/CJS compat check
+        # Detects CJS consumers of ESM-default-only modules.
+        # babel-plugin-add-module-exports masks this in Jest/webpack dev,
+        # but the same code breaks in the Vite production build at runtime.
+        run: pnpm run check-esm-cjs
+
       - name: Lint
         run: pnpm run lint
 

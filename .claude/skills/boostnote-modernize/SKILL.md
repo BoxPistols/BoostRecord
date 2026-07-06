@@ -43,6 +43,40 @@ The CodeMirror 5→6 port is the only essential spike.
   fact-checked design judgment (stars/license/versions/pricing verified;
   threat model; decision matrices; roadmap; locked decisions section).
 
+## CI / Test infrastructure (legacy app)
+
+### Pipelines
+| Trigger | Workflow | Steps |
+|---|---|---|
+| push/PR to `main` | `ci.yml` | ESM/CJS check → lint → AVA → Jest → Vite build + size assert |
+| push `v*` tag | `release-legacy.yml` | mac universal + windows nsis → GitHub Release |
+| manual `win-smoke.yml -f tag=vX.Y.Z` | win-smoke | install NSIS, DOM probe, assert main UI renders |
+
+### Test layers
+| Layer | Tool | What it covers |
+|---|---|---|
+| Data API | AVA (`tests/dataApi/`) | CSON file operations on real tmp storage |
+| React components | Jest (`tests/components/`) | snapshot + props, identity-obj-proxy for .styl |
+| Library units | Jest (`tests/lib/`) | pure utils, ESM API contracts, AI IPC |
+| Static analysis | `check-esm-cjs-compat.mjs` | require() of ESM-default-only modules (Vite blind spot) |
+
+### Key mocks (auto-applied via `__mocks__/`)
+- `__mocks__/@electron/remote.js` — stubs all remote API so Jest never hits native bindings
+- `__mocks__/electron.js` — stubs `electron` module
+- `identity-obj-proxy` — returns class name strings for all `.styl` imports
+
+### Known test blind spot
+`babel-plugin-add-module-exports` makes `require(esm-default-module)` return the
+default object in Jest/webpack-dev, masking any CJS/ESM mismatch. The Vite build
+does NOT apply this patch — mismatches crash at runtime. **Always run
+`node scripts/check-esm-cjs-compat.mjs` before releasing.**
+
+### One-command pre-release gate
+```bash
+npm run pre-release
+```
+Runs: ESM/CJS → lint → AVA → Jest → Vite build → bundle size assert.
+
 ## Working rules
 
 - **PRs go ONLY to `BoxPistols/Boostnote`** (never upstream BoostIO). Verify

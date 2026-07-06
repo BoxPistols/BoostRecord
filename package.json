@@ -24,7 +24,8 @@
     "dist:dir": "npm run compile && electron-builder --dir",
     "compile:vite": "vite build --config vite.renderer.config.mjs",
     "compile:webpack": "cross-env BABEL_ENV=production NODE_ENV=production NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack-production.config.js --bail",
-    "check-esm-cjs": "node scripts/check-esm-cjs-compat.mjs"
+    "check-esm-cjs": "node scripts/check-esm-cjs-compat.mjs",
+    "pre-release": "node scripts/pre-release-check.mjs"
   },
   "config": {
     "electron-version": "28.3.3"

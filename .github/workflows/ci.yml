@@ -54,11 +54,13 @@ jobs:
         # --coverage prints a coverage summary (informational; no threshold).
         run: pnpm exec jest --ci --coverage --coverageReporters=text-summary
 
-      - name: Build (webpack production)
-        # `pnpm run compile` runs webpack 1 with --openssl-legacy-provider (Node
-        # 18+) and BABEL_ENV=production (strips HMR); --bail is baked in. Assert
-        # the bundle was emitted.
+      - name: Build (Vite production)
+        # Produces compiled/main.js. Assert the bundle was emitted and is not
+        # suspiciously small (a bad build can produce a near-empty file).
         run: |
           rm -rf compiled
           pnpm run compile
           test -f compiled/main.js
+          SIZE=$(wc -c < compiled/main.js)
+          echo "compiled/main.js: $((SIZE / 1024)) KB"
+          [ "$SIZE" -gt 500000 ] || { echo "Bundle too small — build may be broken"; exit 1; }

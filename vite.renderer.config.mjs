@@ -16,10 +16,13 @@ import { defineConfig } from 'vite'
 import path from 'node:path'
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
 
 const require = createRequire(import.meta.url)
 const nib = require('nib')
-const root = path.dirname(new URL(import.meta.url).pathname)
+// fileURLToPath handles Windows (file:///D:/... → D:\...) correctly;
+// new URL().pathname alone produces /D:/... which breaks path.join on Windows.
+const root = path.dirname(fileURLToPath(import.meta.url))
 
 // Legacy components import './Foo.styl' and expect CSS modules (react-css-modules
 // runtime HOC). Vite only treats *.module.styl as modules, so rewrite the resolved

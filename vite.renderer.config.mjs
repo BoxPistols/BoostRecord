@@ -43,7 +43,7 @@ function legacyStylusCssModules() {
       })
       if (!resolved) return null
       const id = resolved.id
-      if (!id.includes(`${path.sep}browser${path.sep}`)) return null
+      if (!toSlash(id).includes('/browser/')) return null
       if (id.endsWith('global.styl')) return null
       return id.replace(/\.styl$/, '.module.styl')
     },
@@ -126,24 +126,24 @@ export default defineConfig({
     // webpack packageMains had 'browser' before 'main'
     mainFields: ['browser', 'module', 'main'],
     alias: [
-      { find: /^browser\//, replacement: `${root}/browser/` },
-      { find: /^lib\//, replacement: `${root}/lib/` },
+      { find: /^browser\//, replacement: `${toSlash(root)}/browser/` },
+      { find: /^lib\//, replacement: `${toSlash(root)}/lib/` },
       {
         find: /^codemirror$/,
-        replacement: `${root}/browser/lib/vendorGlobals/codemirror.js`
+        replacement: `${toSlash(root)}/browser/lib/vendorGlobals/codemirror.js`
       },
       {
         find: /^raphael$/,
-        replacement: `${root}/browser/lib/vendorGlobals/raphael.js`
+        replacement: `${toSlash(root)}/browser/lib/vendorGlobals/raphael.js`
       },
       {
         find: /^flowchart$/,
-        replacement: `${root}/browser/lib/vendorGlobals/flowchart.js`
+        replacement: `${toSlash(root)}/browser/lib/vendorGlobals/flowchart.js`
       },
       {
         // order-pinning shim (see the file's comment)
         find: /^mousetrap-global-bind$/,
-        replacement: `${root}/browser/lib/vendorGlobals/mousetrapGlobalBind.js`
+        replacement: `${toSlash(root)}/browser/lib/vendorGlobals/mousetrapGlobalBind.js`
       },
       // NOTE: codemirror-mode-elixir is intentionally NOT aliased — it stays
       // in BUNDLED, so plugin-commonjs bundles its UMD and the inner
@@ -194,7 +194,7 @@ export default defineConfig({
       extensions: ['.js', '.jsx']
     },
     rollupOptions: {
-      input: path.join(root, 'browser/main/index.js'),
+      input: toSlash(path.join(root, 'browser/main/index.js')),
       external(source) {
         if (source.startsWith('.') || source.startsWith('/')) return false
         if (path.isAbsolute(source)) return false // Windows: C:\... paths are never external

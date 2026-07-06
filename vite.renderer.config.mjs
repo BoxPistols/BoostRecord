@@ -108,14 +108,17 @@ const ESM_ONLY_PREFIX = [
 
 // Same auto-imports the webpack stylus block provided (prepended to every
 // .styl source — the `imports` option isn't applied by Vite, so inject).
-// Stylus @import paths must use forward slashes — Windows backslashes contain
-// \n, \t etc. which Stylus interprets as escape sequences and breaks the path.
+// Forward-slash Windows paths (D:/...) in Stylus @import are NOT recognised as
+// absolute by Stylus's legacy isAbsolute check, so we avoid absolute paths and
+// instead use bare import names resolved via `paths` and the nib plugin.
 const toSlash = p => p.replace(/\\/g, '/')
 const stylusOptions = {
   use: [nib()],
+  // Add project root so `@import 'browser/styles/index'` resolves.
+  paths: [root],
   additionalData:
-    `@import '${toSlash(require.resolve('nib/lib/nib/index.styl'))}'\n` +
-    `@import '${toSlash(path.join(root, 'browser/styles/index.styl'))}'\n`
+    `@import 'nib'\n` +
+    `@import 'browser/styles/index'\n`
 }
 
 export default defineConfig({

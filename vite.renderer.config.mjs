@@ -191,6 +191,7 @@ export default defineConfig({
       input: path.join(root, 'browser/main/index.js'),
       external(source) {
         if (source.startsWith('.') || source.startsWith('/')) return false
+        if (path.isAbsolute(source)) return false // Windows: C:\... paths are never external
         if (SOURCE_PREFIX.test(source)) return false
         if (BUNDLED.has(source)) return false
         // ESM-only packages (and ESM helper subpaths of bundled deps) cannot

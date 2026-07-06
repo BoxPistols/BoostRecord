@@ -1,6 +1,7 @@
 import i18n from 'browser/lib/i18n'
 import fs from 'fs'
 import spellcheck from './spellcheck'
+import { speakText, stopSpeech } from 'browser/main/lib/ttsAssist'
 
 const remote = require('@electron/remote')
 const { Menu } = remote.require('electron')
@@ -171,6 +172,29 @@ const buildEditorContextMenu = function(editor, event) {
           }
         }
       })
+    },
+    {
+      label: '読み上げ (VOICEVOX)',
+      click: function() {
+        const text =
+          editor.getSelection() || editor.getLine(editor.getCursor().line)
+        if (!text || !text.trim()) return
+        speakText(text).catch(err => {
+          try {
+            remote
+              .require('electron')
+              .dialog.showErrorBox('読み上げ', err.message)
+          } catch (e) {
+            console.error('[TTS]', err.message)
+          }
+        })
+      }
+    },
+    {
+      label: '読み上げを止める',
+      click: function() {
+        stopSpeech()
+      }
     }
   )
 

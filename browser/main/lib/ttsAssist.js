@@ -5,7 +5,6 @@
 //
 // Requires the VOICEVOX engine to be running locally.
 const { ipcRenderer } = require('electron')
-import ConfigManager from 'browser/main/lib/ConfigManager'
 
 let currentAudio = null
 let currentObjectUrl = null
@@ -24,6 +23,8 @@ export function stopSpeech() {
 export async function speakText(text) {
   stopSpeech()
 
+  // Lazy require avoids loading electron-config at module init (breaks Jest).
+  const ConfigManager = require('browser/main/lib/ConfigManager').default
   const ttsCfg =
     (ConfigManager.getConfig() && ConfigManager.getConfig().tts) || {}
   const speakerId = ttsCfg.speakerId != null ? ttsCfg.speakerId : 1

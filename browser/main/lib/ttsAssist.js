@@ -24,11 +24,16 @@ export function stopSpeech() {
 export async function speakText(text) {
   stopSpeech()
 
-  const ttsCfg = (ConfigManager.getConfig() && ConfigManager.getConfig().tts) || {}
+  const ttsCfg =
+    (ConfigManager.getConfig() && ConfigManager.getConfig().tts) || {}
   const speakerId = ttsCfg.speakerId != null ? ttsCfg.speakerId : 1
   const port = ttsCfg.port || 50021
 
-  const result = await ipcRenderer.invoke('tts:speak', { text, speakerId, port })
+  const result = await ipcRenderer.invoke('tts:speak', {
+    text,
+    speakerId,
+    port
+  })
   if (!result.ok) {
     const isOffline = /ECONNREFUSED|ECONNRESET/.test(result.reason || '')
     throw new Error(

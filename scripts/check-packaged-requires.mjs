@@ -10,8 +10,12 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { builtinModules } from 'node:module'
+import { fileURLToPath } from 'node:url'
 
-const root = path.dirname(new URL(import.meta.url).pathname) + '/..'
+// fileURLToPath, NOT new URL().pathname — the latter yields "/D:/…" on
+// Windows and every existsSync() below silently misses (broke the v0.16.13
+// Windows release gate).
+const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 const candidates = process.argv.slice(2).length
   ? process.argv.slice(2)
   : [

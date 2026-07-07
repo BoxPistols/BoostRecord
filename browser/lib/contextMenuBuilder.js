@@ -20,6 +20,61 @@ const AI_MENU_ITEMS = [
   { key: 'explainCode', label: 'コードを説明' }
 ]
 
+// Whole-note actions: no selection required. Result streams into a fresh
+// "## 要約 (AI)" / "## 校閲 (AI)" section appended at the end of the note.
+const NOTE_AI_MENU_ITEMS = [
+  { key: 'summarizeNote', label: 'ページ要約（ノート全体）' },
+  { key: 'proofread', label: '校閲（選択 or ノート全体）' }
+]
+
+// Runs a whole-note AI action: sends the selection (when the action allows it
+// and one exists) or the entire note, appends the action's heading at the end
+// of the document, and streams the result under it. If the request fails
+// before any text arrived, the inserted heading is rolled back.
+function runNoteAiAction(editor, actionKey) {
+  if (editor == null) return
+  const aiAssist = require('browser/main/lib/aiAssist')
+  const action = aiAssist.AI_ACTIONS[actionKey]
+  if (action == null) return
+
+  const selected = editor.getSelection()
+  const useSelection =
+    action.scope === 'noteOrSelection' && selected && selected.trim()
+  const text = useSelection ? selected : editor.getValue()
+  if (!text || !text.trim()) return
+
+  const docEnd = () => {
+    const line = editor.lastLine()
+    return { line, ch: editor.getLine(line).length }
+  }
+  const headingStartIdx = editor.indexFromPos(docEnd())
+  editor.replaceRange('\n\n' + action.heading + '\n\n', docEnd())
+  let idx = editor.indexFromPos(docEnd())
+  const afterHeadingIdx = idx
+
+  const insert = t => {
+    editor.replaceRange(t, editor.posFromIndex(idx))
+    idx += t.length
+  }
+
+  aiAssist.runAiAction(actionKey, text, insert).catch(err => {
+    if (idx === afterHeadingIdx) {
+      // Nothing streamed: remove the empty heading block we inserted.
+      editor.replaceRange(
+        '',
+        editor.posFromIndex(headingStartIdx),
+        editor.posFromIndex(afterHeadingIdx)
+      )
+    }
+    const message = (err && err.message) || String(err)
+    try {
+      remote.require('electron').dialog.showErrorBox('AI', message)
+    } catch (e) {
+      console.error('[AI]', message)
+    }
+  })
+}
+
 // Runs an AI action over the editor's selection and streams the result into the
 // editor (replace the selection, or insert after it, per the action's mode).
 function runEditorAiAction(editor, actionKey) {
@@ -171,7 +226,17 @@ const buildEditorContextMenu = function(editor, event) {
             runEditorAiAction(editor, item.key)
           }
         }
-      })
+      }).concat(
+        [{ type: 'separator' }],
+        NOTE_AI_MENU_ITEMS.map(function(item) {
+          return {
+            label: item.label,
+            click: function() {
+              runNoteAiAction(editor, item.key)
+            }
+          }
+        })
+      )
     },
     {
       label: '読み上げ (VOICEVOX)',

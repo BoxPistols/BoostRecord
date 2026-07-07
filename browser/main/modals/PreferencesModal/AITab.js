@@ -5,11 +5,21 @@ import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
+import { MODEL_OPTIONS, DEFAULT_MODELS } from 'browser/main/lib/aiAssist'
 
 // Non-empty keys must match their provider's known prefix pattern.
 const KEY_PATTERNS = {
   openai: /^sk-[A-Za-z0-9\-_]{20,}$/,
   gemini: /^AIza[A-Za-z0-9\-_]{30,}$/
+}
+
+// The two cheapest models per provider (first = cheapest = default). A saved
+// model outside this list (from an older config) stays selectable so we never
+// silently rewrite the user's choice.
+function modelChoices(provider, current) {
+  const options = MODEL_OPTIONS[provider].slice()
+  if (current && options.indexOf(current) === -1) options.push(current)
+  return options
 }
 
 function validateKey(provider, key) {
@@ -27,9 +37,9 @@ class AITab extends React.Component {
     this.state = {
       provider: ai.provider || 'openai',
       openaiKey: (ai.openai && ai.openai.apiKey) || '',
-      openaiModel: (ai.openai && ai.openai.model) || 'gpt-5-mini',
+      openaiModel: (ai.openai && ai.openai.model) || DEFAULT_MODELS.openai,
       geminiKey: (ai.gemini && ai.gemini.apiKey) || '',
-      geminiModel: (ai.gemini && ai.gemini.model) || 'gemini-2.5-flash',
+      geminiModel: (ai.gemini && ai.gemini.model) || DEFAULT_MODELS.gemini,
       saved: false
     }
   }
@@ -153,13 +163,17 @@ class AITab extends React.Component {
           }}
         >
           <span>{i18n.__('Model')}</span>
-          <input
-            type='text'
+          <select
             value={openaiModel}
             onChange={e => this.setState({ openaiModel: e.target.value })}
-            placeholder='gpt-5-mini'
             style={inputStyle(false)}
-          />
+          >
+            {modelChoices('openai', openaiModel).map((m, i) => (
+              <option key={m} value={m}>
+                {m + (i === 0 ? '（最安・既定）' : '')}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div
@@ -195,13 +209,17 @@ class AITab extends React.Component {
           }}
         >
           <span>{i18n.__('Model')}</span>
-          <input
-            type='text'
+          <select
             value={geminiModel}
             onChange={e => this.setState({ geminiModel: e.target.value })}
-            placeholder='gemini-2.5-flash'
             style={inputStyle(false)}
-          />
+          >
+            {modelChoices('gemini', geminiModel).map((m, i) => (
+              <option key={m} value={m}>
+                {m + (i === 0 ? '（最安・既定）' : '')}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

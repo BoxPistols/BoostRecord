@@ -8,9 +8,24 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 
 let runCounter = 0
 
+// Selectable models = the two cheapest per provider (user decision 2026-07).
+// First entry is the default. Model IDs move fast — keep in sync with AITab.
+export const MODEL_OPTIONS = {
+  openai: ['gpt-5-nano', 'gpt-5-mini'],
+  gemini: ['gemini-2.5-flash-lite', 'gemini-2.5-flash']
+}
+export const DEFAULT_MODELS = {
+  openai: MODEL_OPTIONS.openai[0],
+  gemini: MODEL_OPTIONS.gemini[0]
+}
+
+// Whole-note actions can be huge; cap what we send to the API.
+const MAX_INPUT_CHARS = 20000
+
 // action -> { label, mode, system }.
-//   mode 'replace'  : overwrite the selection with the result
-//   mode 'append'   : keep the selection, insert the result after it
+//   mode 'replace'      : overwrite the selection with the result
+//   mode 'append'       : keep the selection, insert the result after it
+//   mode 'appendToEnd'  : whole-note scope; stream under `heading` at the end
 export const AI_ACTIONS = {
   summarize: {
     label: '要約',
@@ -41,6 +56,22 @@ export const AI_ACTIONS = {
     mode: 'append',
     system:
       "Explain what the user's code does, concisely, in Japanese. Output only the explanation."
+  },
+  summarizeNote: {
+    label: 'ページ要約',
+    mode: 'appendToEnd',
+    scope: 'note',
+    heading: '## 要約 (AI)',
+    system:
+      "Summarize the user's note concisely in the same language as the note. Start with one sentence stating the note's purpose, then a short bullet list of the key points. Output only the summary — no preamble, no headings."
+  },
+  proofread: {
+    label: '校閲',
+    mode: 'appendToEnd',
+    scope: 'noteOrSelection',
+    heading: '## 校閲 (AI)',
+    system:
+      "You are a careful proofreader. Review the user's text for typos, grammatical errors, unclear phrasing, and inconsistent terminology. Reply in the same language as the text, as a concise bullet list where each item shows the problematic fragment, the suggested fix, and a one-phrase reason. If there are no issues, say so in one line. Output only the review."
   }
 }
 
@@ -54,6 +85,8 @@ export function runAiAction(actionKey, text, onDelta) {
   const provider = ai.provider || 'openai'
   const providerCfg = ai[provider] || {}
   const runId = `ai-${++runCounter}-${Date.now()}`
+  const input =
+    text.length > MAX_INPUT_CHARS ? text.slice(0, MAX_INPUT_CHARS) : text
 
   const onChunk = (e, msg) => {
     if (msg && msg.runId === runId && onDelta) onDelta(msg.delta)
@@ -66,10 +99,10 @@ export function runAiAction(actionKey, text, onDelta) {
     .invoke('ai:run', {
       runId,
       provider,
-      model: providerCfg.model,
+      model: providerCfg.model || DEFAULT_MODELS[provider],
       apiKey: providerCfg.apiKey || '',
       system: action.system,
-      prompt: text
+      prompt: input
     })
     .then(
       full => {

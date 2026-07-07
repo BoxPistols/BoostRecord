@@ -64,3 +64,12 @@ jobs:
           SIZE=$(wc -c < compiled/main.js)
           echo "compiled/main.js: $((SIZE / 1024)) KB"
           [ "$SIZE" -gt 500000 ] || { echo "Bundle too small — build may be broken"; exit 1; }
+
+      - name: E2E (real renderer note flow)
+        # Boots the built app under Xvfb and drives the actual UI: create note
+        # → type markdown → wait for the debounced save → assert the note list
+        # shows the derived title. Catches renderer-only breakage (e.g. the
+        # ESM/CJS spellcheck crash) that unit tests structurally cannot see.
+        env:
+          ELECTRON_DISABLE_SANDBOX: '1'
+        run: xvfb-run --auto-servernum pnpm run e2e

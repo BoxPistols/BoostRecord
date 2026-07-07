@@ -68,6 +68,13 @@ if (allPassed) {
   }
 }
 
+// E2E: boot the real app on the fresh bundle and drive the core note flow
+// (create → type → save → note-list title). Catches "builds fine, breaks in
+// the real renderer" failures that unit tests structurally cannot see.
+if (allPassed) {
+  allPassed = run('E2E — real renderer note flow', 'pnpm', ['run', 'e2e'])
+}
+
 // Summary
 console.log('═'.repeat(42))
 if (allPassed) {

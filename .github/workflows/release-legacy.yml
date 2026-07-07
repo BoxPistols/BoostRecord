@@ -54,15 +54,55 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build renderer (webpack production)
-        # Produces compiled/main.js (BABEL_ENV=production strips the HMR transform;
-        # --openssl-legacy-provider lets webpack 1 run on Node 18+).
+      - name: Build renderer (Vite production)
+        # Produces compiled/main.js.
         run: pnpm run compile
 
+      - name: Package (unpacked, for pre-publish verification)
+        # Fast --dir build so the packaged app (devDependencies pruned) can be
+        # verified BEFORE anything is published.
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: pnpm exec electron-builder --dir
+
+      - name: Verify packaged runtime imports
+        # Every bare runtime import in the bundle must resolve inside the
+        # packaged node_modules (catches deps wrongly placed in devDependencies).
+        run: node scripts/check-packaged-requires.mjs
+
+      - name: E2E on packaged app (macOS)
+        if: runner.os == 'macOS'
+        # Boots the actual packaged .app and drives the real UI: create note →
+        # type → save → note-list title. Publishing is gated on this passing.
+        run: |
+          APP="$(find release -maxdepth 2 -name 'The Boosters.app' -print -quit)"
+          test -n "$APP" || { echo "packaged app not found"; exit 1; }
+          set +e
+          TB_E2E_PROBE="$PWD/dev-scripts/e2e-probe.js" \
+          TB_E2E_RESULT="$RUNNER_TEMP/tb-e2e.json" \
+            "$APP/Contents/MacOS/The Boosters"
+          CODE=$?
+          set -e
+          cat "$RUNNER_TEMP/tb-e2e.json" || true
+          exit $CODE
+
+      - name: E2E on packaged app (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $exe = "release\win-unpacked\The Boosters.exe"
+          if (-not (Test-Path $exe)) { throw "packaged app not found" }
+          $env:TB_E2E_PROBE = "$PWD\dev-scripts\e2e-probe.js"
+          $env:TB_E2E_RESULT = "$env:RUNNER_TEMP\tb-e2e.json"
+          $p = Start-Process -FilePath $exe -Wait -PassThru
+          Get-Content $env:TB_E2E_RESULT -ErrorAction SilentlyContinue
+          if ($p.ExitCode -ne 0) { throw "packaged e2e failed (exit $($p.ExitCode))" }
+
       - name: Package & publish installers
-        # electron-builder targets the host platform: macOS runner -> dmg/zip
-        # (arm64 + x64), Windows runner -> nsis. Unsigned (identity is null and
-        # CSC auto-discovery is disabled).
+        # Only reached when the packaged-app E2E passed. electron-builder
+        # targets the host platform: macOS runner -> dmg/zip (arm64 + x64),
+        # Windows runner -> nsis. Unsigned (identity is null and CSC
+        # auto-discovery is disabled).
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'

@@ -2,6 +2,13 @@ const { app } = require('electron')
 const ChildProcess = require('child_process')
 const path = require('path')
 
+// E2E probe hook: when TB_E2E_PROBE points to a main-process script, load it
+// before the app boots (used by `npm run e2e` and the CI smoke workflows to
+// drive the real renderer). No-op in normal runs.
+if (process.env.TB_E2E_PROBE) {
+  require(path.resolve(process.env.TB_E2E_PROBE))
+}
+
 var error = null
 
 function execMainApp() {

@@ -48,9 +48,20 @@ The CodeMirror 5→6 port is the only essential spike.
 ### Pipelines
 | Trigger | Workflow | Steps |
 |---|---|---|
-| push/PR to `main` | `ci.yml` | ESM/CJS check → lint → AVA → Jest → Vite build + size assert |
-| push `v*` tag | `release-legacy.yml` | mac universal + windows nsis → GitHub Release |
+| push/PR to `main` | `ci.yml` | ESM/CJS check → lint → AVA → Jest → Vite build + size assert → **E2E (xvfb)** |
+| push `v*` tag | `release-legacy.yml` | build → `--dir` pack → packaged-requires check → **packaged E2E (mac .app / win exe)** → publish（E2E FAIL なら公開されない） |
 | manual `win-smoke.yml -f tag=vX.Y.Z` | win-smoke | install NSIS, DOM probe, assert main UI renders |
+
+### E2E harness (real-renderer UI test)
+- `npm run e2e`（要 `pnpm run compile` 済み）。`index.js` の `TB_E2E_PROBE` フック
+  経由で `dev-scripts/e2e-probe.js` を main process にロード。
+- 隔離 tmp userData/home（実 `~/Boostnote` を汚さない）で実アプリを起動し、
+  新規ノート作成 → モーダル(ja/en両対応) → 空エディタ → CM setValue → 1s保存
+  デバウンス → ノートリストのタイトル反映、まで実 UI を駆動して検証。
+- レンダラー console を全採取 → サイレント失敗（`Cannot save note` 等）も出る。
+- exit code: 0 pass / 1 flow fail / 2 probe error / 3 watchdog(90s)。
+- packaged 検証: `pnpm run dist:dir` 後に
+  `TB_E2E_PROBE="$PWD/dev-scripts/e2e-probe.js" "release/mac-arm64/The Boosters.app/Contents/MacOS/The Boosters"`
 
 ### Test layers
 | Layer | Tool | What it covers |

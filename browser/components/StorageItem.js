@@ -56,6 +56,7 @@ const StorageItem = ({
       onMouseEnter={handleMouseEnter}
       onContextMenu={handleContextMenu}
       onDrop={handleDrop}
+      onDragOver={e => e.preventDefault()}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
     >

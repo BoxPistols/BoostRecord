@@ -18,7 +18,7 @@
 - [x] **キー検証**: OpenAI `sk-...{20+}` / Gemini `AIza...{30+}` を正規表現チェック。形式不正は赤枠＋エラー表示＋Save を disabled に。コミット `64350b1a`。
 
 ## B. 読み上げ TTS（新規）
-- [ ] **VOICEVOX（ローカル）**: ★ HTTPS ブラウザから `http://localhost:50021` は mixed-content/CORS で死ぬが、**Electron main(Node) から叩けば回避**。`/audio_query` → `/synthesis` の2段（query JSON → wav 合成）。engine 同梱は `vv-engine/run` を bundle。
+- [x] **VOICEVOX（ローカル）**: main プロセス → `/audio_query` → `/synthesis` → WAV → IPC → renderer Audio。v0.16.12 実装。v0.16.14 で Preferences（port/speakerId）追加。
 - [ ] **Grok voice（xAI）**: `api.x.ai`。main プロセスから直 fetch/SDK（プロキシ不要）。
 - peer `machining-fundamentals`（`/Users/ai/dev/Asagiri/Metal/machining-fundamentals`）に両方の知見あり（claude-peers で相談可）。
 

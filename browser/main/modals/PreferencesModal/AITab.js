@@ -29,17 +29,23 @@ function validateKey(provider, key) {
     : null
 }
 
+const DEFAULT_TTS_PORT = 50021
+const DEFAULT_TTS_SPEAKER = 1
+
 class AITab extends React.Component {
   constructor(props) {
     super(props)
 
     const ai = (props.config && props.config.ai) || {}
+    const tts = (props.config && props.config.tts) || {}
     this.state = {
       provider: ai.provider || 'openai',
       openaiKey: (ai.openai && ai.openai.apiKey) || '',
       openaiModel: (ai.openai && ai.openai.model) || DEFAULT_MODELS.openai,
       geminiKey: (ai.gemini && ai.gemini.apiKey) || '',
       geminiModel: (ai.gemini && ai.gemini.model) || DEFAULT_MODELS.gemini,
+      ttsPort: tts.port || DEFAULT_TTS_PORT,
+      ttsSpeakerId: tts.speakerId != null ? tts.speakerId : DEFAULT_TTS_SPEAKER,
       saved: false
     }
   }
@@ -50,7 +56,9 @@ class AITab extends React.Component {
       openaiKey,
       openaiModel,
       geminiKey,
-      geminiModel
+      geminiModel,
+      ttsPort,
+      ttsSpeakerId
     } = this.state
 
     // Block save if there are key format errors
@@ -63,8 +71,12 @@ class AITab extends React.Component {
       openai: { apiKey: openaiKey.trim(), model: openaiModel.trim() },
       gemini: { apiKey: geminiKey.trim(), model: geminiModel.trim() }
     }
-    ConfigManager.set({ ai })
-    store.dispatch({ type: 'SET_UI', config: { ai } })
+    const tts = {
+      port: parseInt(ttsPort, 10) || DEFAULT_TTS_PORT,
+      speakerId: parseInt(ttsSpeakerId, 10) || DEFAULT_TTS_SPEAKER
+    }
+    ConfigManager.set({ ai, tts })
+    store.dispatch({ type: 'SET_UI', config: { ai, tts } })
     this.setState({ saved: true })
     setTimeout(() => this.setState({ saved: false }), 2000)
   }
@@ -76,6 +88,8 @@ class AITab extends React.Component {
       openaiModel,
       geminiKey,
       geminiModel,
+      ttsPort,
+      ttsSpeakerId,
       saved
     } = this.state
 
@@ -220,6 +234,44 @@ class AITab extends React.Component {
               </option>
             ))}
           </select>
+        </div>
+
+        <div
+          styleName='header'
+          style={{ fontSize: 18, marginBottom: 12, marginTop: 8 }}
+        >
+          VOICEVOX TTS
+        </div>
+
+        <div
+          styleName='box-minmax'
+          style={{ height: 'auto', marginBottom: 12 }}
+        >
+          <span>{i18n.__('Port')}</span>
+          <input
+            type='number'
+            value={ttsPort}
+            min={1}
+            max={65535}
+            onChange={e => this.setState({ ttsPort: e.target.value })}
+            onWheel={e => e.currentTarget.blur()}
+            style={inputStyle(false)}
+          />
+        </div>
+
+        <div
+          styleName='box-minmax'
+          style={{ height: 'auto', marginBottom: 28 }}
+        >
+          <span>{i18n.__('Speaker ID')}</span>
+          <input
+            type='number'
+            value={ttsSpeakerId}
+            min={0}
+            onChange={e => this.setState({ ttsSpeakerId: e.target.value })}
+            onWheel={e => e.currentTarget.blur()}
+            style={inputStyle(false)}
+          />
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>

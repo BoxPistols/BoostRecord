@@ -1,10 +1,11 @@
 // Renderer-side wrapper for VOICEVOX text-to-speech.
 //
-// speakText(text, speakerId?)  – plays the text via VOICEVOX (localhost:50021).
-// stopSpeech()                 – stops any currently playing audio.
+// speakText(text)  – plays the text via VOICEVOX; reads port/speakerId from config.
+// stopSpeech()     – stops any currently playing audio.
 //
 // Requires the VOICEVOX engine to be running locally.
 const { ipcRenderer } = require('electron')
+import ConfigManager from 'browser/main/lib/ConfigManager'
 
 let currentAudio = null
 let currentObjectUrl = null
@@ -20,15 +21,19 @@ export function stopSpeech() {
   }
 }
 
-export async function speakText(text, speakerId = 1) {
+export async function speakText(text) {
   stopSpeech()
 
-  const result = await ipcRenderer.invoke('tts:speak', { text, speakerId })
+  const ttsCfg = (ConfigManager.getConfig() && ConfigManager.getConfig().tts) || {}
+  const speakerId = ttsCfg.speakerId != null ? ttsCfg.speakerId : 1
+  const port = ttsCfg.port || 50021
+
+  const result = await ipcRenderer.invoke('tts:speak', { text, speakerId, port })
   if (!result.ok) {
     const isOffline = /ECONNREFUSED|ECONNRESET/.test(result.reason || '')
     throw new Error(
       isOffline
-        ? 'VOICEVOX エンジンが起動していません。\nhttp://localhost:50021 で起動してください。'
+        ? `VOICEVOX エンジンが起動していません。\nhttp://localhost:${port} で起動してください。`
         : result.reason || 'TTS failed'
     )
   }

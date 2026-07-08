@@ -137,6 +137,8 @@
   "Clone Note": "ノート複製",
   "Copy Note Link": "ノートのリンクをコピー",
   "Move to Folder": "フォルダへ移動",
+  "selected": "件選択中",
+  "Clear": "選択解除",
   "Image Manager": "画像マネージャ",
   "Scanning…": "スキャン中…",
   "images": "枚",

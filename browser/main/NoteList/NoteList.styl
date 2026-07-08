@@ -61,6 +61,55 @@ $control-height = 30px
   top $control-height
   overflow auto
 
+// Bulk-action bar shown when 2+ notes are selected (multi-select via
+// cmd/shift-click). Overlays just below the sort/view header.
+$bulk-bar-height = 34px
+.bulk-bar
+  absolute left right
+  top $control-height
+  height $bulk-bar-height
+  z-index 5
+  display flex
+  align-items center
+  justify-content space-between
+  padding 0 14px
+  font-size 12px
+  background-color alpha($ui-button--active-backgroundColor, 90%)
+  color $ui-text-color
+  border-bottom $ui-border
+
+.bulk-count
+  font-weight 700
+
+.bulk-actions
+  display flex
+
+.bulk-delete
+  background-color #c0392b
+  border none
+  color #fff
+  padding 4px 12px
+  border-radius 4px
+  cursor pointer
+  font-size 12px
+  margin-left 8px
+  &:hover
+    background-color #e74c3c
+
+.bulk-clear
+  background transparent
+  border 1px solid alpha($ui-text-color, 40%)
+  color $ui-text-color
+  padding 4px 12px
+  border-radius 4px
+  cursor pointer
+  font-size 12px
+  margin-left 8px
+
+.list--bulk
+  @extend .list
+  top $control-height + $bulk-bar-height
+
 apply-theme(theme)
   body[data-theme={theme}]
     .root

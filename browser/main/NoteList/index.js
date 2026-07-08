@@ -1306,8 +1306,26 @@ class NoteList extends React.Component {
             </button>
           </div>
         </div>
+        {selectedNoteKeys.length > 1 && (
+          <div styleName='bulk-bar'>
+            <span styleName='bulk-count'>
+              {selectedNoteKeys.length} {i18n.__('selected')}
+            </span>
+            <div styleName='bulk-actions'>
+              <button styleName='bulk-delete' onClick={this.deleteNote}>
+                {i18n.__('Delete')}
+              </button>
+              <button
+                styleName='bulk-clear'
+                onClick={() => this.setState({ selectedNoteKeys: [] })}
+              >
+                {i18n.__('Clear')}
+              </button>
+            </div>
+          </div>
+        )}
         <div
-          styleName='list'
+          styleName={selectedNoteKeys.length > 1 ? 'list--bulk' : 'list'}
           ref='list'
           data-note-list
           tabIndex='-1'

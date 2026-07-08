@@ -481,7 +481,12 @@ class NoteList extends React.Component {
   handleNoteClick(e, uniqueKey) {
     const { dispatch, location } = this.props
     let { selectedNoteKeys, prevShiftNoteIndex } = this.state
-    const { ctrlKeyDown, shiftKeyDown } = this.state
+    // Read modifiers straight off the click event. The keydown-tracked
+    // ctrlKeyDown state is never set for Cmd on macOS (handleNoteListKeyDown
+    // early-returns on metaKey), which broke Cmd-click cherry-pick /
+    // toggle-in-the-middle. metaKey = Cmd (mac), ctrlKey = Ctrl (win/linux).
+    const ctrlKeyDown = e.metaKey || e.ctrlKey
+    const shiftKeyDown = e.shiftKey
     const hasSelectedNoteKey = selectedNoteKeys.length > 0
 
     if (ctrlKeyDown && selectedNoteKeys.includes(uniqueKey)) {

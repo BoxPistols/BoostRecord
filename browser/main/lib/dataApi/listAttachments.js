@@ -10,20 +10,17 @@ const {
 } = attachmentManagement
 
 /**
- * Enumerate every attachment file across the given storages, tagging each with
- * whether any note still references it (orphan detection). Powers the Image
- * Manager. Read-only.
+ * Enumerate every attachment across the given storages and classify each:
+ *   - referenced: a note points at it and the file exists (healthy)
+ *   - orphan:     the file exists but no note references it (safe to purge)
+ *   - broken:     a note references it but the file is missing (unstable)
+ * Each item also carries the list of notes that reference it. Read-only.
  *
- * On-disk layout: <storagePath>/attachments/<noteKey>/<file>. A note references
- * an attachment via a ":storage/<noteKey>/<file>" placeholder in its markdown.
- *
- * @param {Array<Object>} storageList raw storages (from state.data.storageMap.toJS())
+ * @param {Array<Object>} storageList raw storages (state.data.storageMap.toJS() values)
  * @returns {Promise<{attachments: Array, noteLoadFailed: boolean}>}
- *   attachments: [{ storageKey, storageName, noteKey, noteTitle|null, noteExists,
- *                   fileName, absPath, size, referenced }]
- *   noteLoadFailed: true if any storage's notes could not be fully read — in
- *                   that case the referenced set is incomplete, so callers must
- *                   NOT trust "orphan" for bulk deletion.
+ *   attachment = { storageKey, storageName, noteKey, fileName, absPath, size,
+ *                  referenced, broken, referencingNotes: [{storageKey,noteKey,title}] }
+ *   noteLoadFailed: some .cson could not be read -> referenced/orphan is unreliable
  */
 function listAttachments(storageList) {
   let noteLoadFailed = false
@@ -37,7 +34,6 @@ function listAttachments(storageList) {
           )
         )
         .catch(() => {
-          // A storage that fails to resolve at all — skip it but flag the gap.
           noteLoadFailed = true
           return []
         })
@@ -50,42 +46,45 @@ function listAttachments(storageList) {
   function collectForStorage(storage, notes) {
     const attachmentsDir = path.join(storage.path, DESTINATION_FOLDER)
 
-    // Safety: if some .cson notes failed to parse (e.g. OneDrive-corrupted
-    // files), resolveStorageNotes silently returns fewer notes, so the
-    // referenced set is incomplete and "orphan" cannot be trusted. Detect the
-    // gap by comparing the on-disk .cson count with the notes we got back.
+    // Detect partial note loads (OneDrive-corrupted .cson etc.): the referenced
+    // set is then incomplete, so "orphan" must not be trusted for bulk delete.
     try {
       const csonCount = fs
         .readdirSync(path.join(storage.path, 'notes'))
         .filter(f => /\.cson$/.test(f)).length
       if (notes.length < csonCount) noteLoadFailed = true
     } catch (e) {
-      // no notes dir — nothing referenced, every attachment is an orphan, but
-      // we can't be sure notes didn't exist elsewhere; stay conservative.
       noteLoadFailed = true
     }
 
-    // Referenced absolute paths + noteKey -> note lookup.
-    const referenced = new Set()
-    const noteByKey = {}
+    // Map normalized absolute path -> [notes that reference it].
+    const referencedBy = new Map()
     notes.forEach(note => {
-      noteByKey[note.key] = note
-      if (typeof note.content === 'string') {
-        getAbsolutePathsOfAttachmentsInContent(
-          note.content,
-          storage.path
-        ).forEach(p => referenced.add(path.normalize(p)))
+      if (typeof note.content !== 'string') return
+      const ref = {
+        storageKey: storage.key,
+        noteKey: note.key,
+        title: note.title
       }
+      getAbsolutePathsOfAttachmentsInContent(
+        note.content,
+        storage.path
+      ).forEach(p => {
+        const key = path.normalize(p)
+        if (!referencedBy.has(key)) referencedBy.set(key, [])
+        referencedBy.get(key).push(ref)
+      })
     })
 
-    let noteKeyDirs
+    const result = []
+    const seenOnDisk = new Set()
+
+    let noteKeyDirs = []
     try {
       noteKeyDirs = fs.readdirSync(attachmentsDir)
     } catch (e) {
-      return [] // storage has no attachments folder yet
+      noteKeyDirs = []
     }
-
-    const result = []
     noteKeyDirs.forEach(noteKey => {
       const noteDir = path.join(attachmentsDir, noteKey)
       let files
@@ -105,20 +104,39 @@ function listAttachments(storageList) {
         } catch (e) {
           return
         }
-        const note = noteByKey[noteKey]
+        const norm = path.normalize(absPath)
+        seenOnDisk.add(norm)
+        const refs = referencedBy.get(norm) || []
         result.push({
           storageKey: storage.key,
           storageName: storage.name,
           noteKey,
-          noteTitle: note ? note.title : null,
-          noteExists: !!note,
           fileName,
           absPath,
           size,
-          referenced: referenced.has(path.normalize(absPath))
+          referenced: refs.length > 0,
+          broken: false,
+          referencingNotes: refs
         })
       })
     })
+
+    // Broken: referenced by a note but no file on disk (existence-unstable).
+    referencedBy.forEach((refs, norm) => {
+      if (seenOnDisk.has(norm)) return
+      result.push({
+        storageKey: storage.key,
+        storageName: storage.name,
+        noteKey: path.basename(path.dirname(norm)),
+        fileName: path.basename(norm),
+        absPath: norm,
+        size: 0,
+        referenced: true,
+        broken: true,
+        referencingNotes: refs
+      })
+    })
+
     return result
   }
 }

@@ -1312,6 +1312,11 @@ class NoteList extends React.Component {
               {selectedNoteKeys.length} {i18n.__('selected')}
             </span>
             <div styleName='bulk-actions'>
+              {this.props.location.pathname.match(/\/trash/) && (
+                <button styleName='bulk-restore' onClick={this.restoreNote}>
+                  {i18n.__('Restore')}
+                </button>
+              )}
               <button styleName='bulk-delete' onClick={this.deleteNote}>
                 {i18n.__('Delete')}
               </button>

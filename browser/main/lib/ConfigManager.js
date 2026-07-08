@@ -56,7 +56,8 @@ export const DEFAULT_CONFIG = {
     sortLines: OSX ? 'Command + Shift + S' : 'Ctrl + Shift + S',
     insertDate: OSX ? 'Command + /' : 'Ctrl + /',
     insertDateTime: OSX ? 'Command + Alt + /' : 'Ctrl + Shift + /',
-    toggleMenuBar: 'Alt'
+    toggleMenuBar: 'Alt',
+    toggleFullscreen: OSX ? 'Command + Alt + F' : 'Ctrl + Alt + F'
   },
   ui: {
     language: 'ja',

@@ -33,7 +33,8 @@ class HotkeyTab extends React.Component {
       if (
         this.state.config.hotkey.toggleMain === '' ||
         this.state.config.hotkey.toggleMode === '' ||
-        this.state.config.hotkey.toggleDirection === ''
+        this.state.config.hotkey.toggleDirection === '' ||
+        this.state.config.hotkey.toggleFullscreen === ''
       ) {
         this.setState({
           keymapAlert: {
@@ -93,7 +94,8 @@ class HotkeyTab extends React.Component {
       prettifyMarkdown: this.refs.prettifyMarkdown.value,
       toggleMenuBar: this.refs.toggleMenuBar.value,
       insertDate: this.refs.insertDate.value,
-      insertDateTime: this.refs.insertDateTime.value
+      insertDateTime: this.refs.insertDateTime.value,
+      toggleFullscreen: this.refs.toggleFullscreen.value
     })
     this.setState({
       config
@@ -181,6 +183,20 @@ class HotkeyTab extends React.Component {
                 onChange={e => this.handleHotkeyChange(e)}
                 ref='toggleDirection'
                 value={config.hotkey.toggleDirection}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Toggle Full Preview')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                onChange={e => this.handleHotkeyChange(e)}
+                ref='toggleFullscreen'
+                value={config.hotkey.toggleFullscreen || ''}
                 type='text'
               />
             </div>

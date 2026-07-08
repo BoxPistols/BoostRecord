@@ -110,6 +110,21 @@ modalBackColor = white
   background #B1D7FE
 ::selection
   background #B1D7FE
+
+body[data-theme="dark"],
+body[data-theme="solarized-dark"],
+body[data-theme="dracula"]
+  .CodeMirror-focused .CodeMirror-selected
+    background rgba(100, 140, 255, 0.35)
+  .CodeMirror-line::selection,
+  .CodeMirror-line > span::selection,
+  .CodeMirror-line > span > span::selection
+    background rgba(100, 140, 255, 0.35)
+  .CodeMirror-line::-moz-selection,
+  .CodeMirror-line > span::-moz-selection,
+  .CodeMirror-line > span > span::-moz-selection
+    background rgba(100, 140, 255, 0.35)
+
 .CodeMirror-foldmarker
   font-family: arial
 

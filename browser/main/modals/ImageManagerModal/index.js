@@ -202,6 +202,30 @@ class ImageManagerModal extends React.Component {
       .catch(err => this.setState({ busy: false, error: String(err) }))
   }
 
+  fixBrokenDetail() {
+    const a = this.state.detail
+    if (!a || !a.broken) return
+    if (
+      !window.confirm(
+        i18n
+          .__(
+            'Remove all references to this missing file from %n note(s)? A backup will be saved.'
+          )
+          .replace('%n', a.referencingNotes.length)
+      )
+    )
+      return
+    this.setState({ busy: true, notice: null })
+    dataApi
+      .removeBrokenReferences({
+        storageKey: a.storageKey,
+        noteKey: a.noteKey,
+        fileName: a.fileName
+      })
+      .then(res => this.finishOp(res, i18n.__('Fixed')))
+      .catch(err => this.setState({ busy: false, error: String(err) }))
+  }
+
   replaceDetail() {
     const a = this.state.detail
     if (!a || a.broken) return
@@ -448,6 +472,15 @@ class ImageManagerModal extends React.Component {
                       onClick={() => this.deletePaths([detail])}
                     >
                       {i18n.__('Delete')}
+                    </button>
+                  )}
+                  {detail.broken && detail.referencingNotes.length > 0 && (
+                    <button
+                      styleName='detail-btn--danger'
+                      disabled={busy}
+                      onClick={() => this.fixBrokenDetail()}
+                    >
+                      {i18n.__('Fix (remove reference)')}
                     </button>
                   )}
                 </div>

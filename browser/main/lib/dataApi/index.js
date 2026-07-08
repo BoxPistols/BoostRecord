@@ -41,6 +41,7 @@ const dataApi = {
   renameAttachment: attachmentOps.renameAttachment,
   moveAttachment: attachmentOps.moveAttachment,
   replaceAttachment: attachmentOps.replaceAttachment,
+  removeBrokenReferences: attachmentOps.removeBrokenReferences,
   removeAttachmentsByPaths: attachmentManagement.removeAttachmentsByPaths,
   exportNoteAs,
   migrateFromV5Storage: require('./migrateFromV5Storage'),

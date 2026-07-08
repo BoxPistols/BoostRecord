@@ -234,5 +234,8 @@
   "Merge with a variable — everything is nested under the variable name below": "Merge with a variable — everything is nested under the variable name below",
   "Prefix attachment folder:": "Prefix attachment folder:",
   "ON — attachments are exported to a per-note folder: \"Note title - attachments\"": "ON — attachments are exported to a per-note folder: \"Note title - attachments\"",
-  "OFF — all notes share one \"attachments\" folder (files may overwrite each other)": "OFF — all notes share one \"attachments\" folder (files may overwrite each other)"
+  "OFF — all notes share one \"attachments\" folder (files may overwrite each other)": "OFF — all notes share one \"attachments\" folder (files may overwrite each other)",
+  "Fix (remove reference)": "Fix (remove reference)",
+  "Remove all references to this missing file from %n note(s)? A backup will be saved.": "Remove all references to this missing file from %n note(s)? A backup will be saved.",
+  "Fixed": "Fixed"
 }

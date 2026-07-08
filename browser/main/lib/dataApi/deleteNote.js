@@ -16,10 +16,17 @@ function deleteNote(storageKey, noteKey) {
     .then(function deleteNoteFile(storage) {
       const notePath = path.join(storage.path, 'notes', noteKey + '.cson')
 
+      const fss = require('fs')
       try {
         sander.unlinkSync(notePath)
       } catch (err) {
-        console.warn('Failed to delete note cson', err)
+        if (err.code !== 'ENOENT') throw err
+        // File already gone before we tried — treat as success.
+      }
+      if (fss.existsSync(notePath)) {
+        throw new Error(
+          'Could not delete note file (permission denied?): ' + notePath
+        )
       }
       return {
         noteKey,

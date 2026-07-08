@@ -142,8 +142,38 @@ function replaceAttachment({ absPath, newFilePath }) {
   return Promise.resolve({ backupDir: dir })
 }
 
+/**
+ * Remove every in-note markdown reference to a broken (missing) attachment.
+ * Strips `![alt](:storage/noteKey/file)` entirely, degrades
+ * `[text](:storage/noteKey/file)` to bare text, and removes any
+ * remaining bare placeholders. Backs up affected notes first.
+ */
+function removeBrokenReferences({ storageKey, noteKey, fileName }) {
+  return resolve(storageKey).then(({ storage, notes }) => {
+    const placeholder = placeholderFor(noteKey, fileName)
+    const affected = referencing(notes, placeholder)
+    if (affected.length === 0) return { updatedNotes: [], backupDir: null }
+    const backupDir = backupNotes(storage.path, affected)
+    const escaped = placeholder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    const reImg = new RegExp('!\\[[^\\]]*\\]\\(' + escaped + '\\)', 'g')
+    const reLink = new RegExp('\\[([^\\]]*)\\]\\(' + escaped + '\\)', 'g')
+    const reBare = new RegExp(escaped, 'g')
+    return Promise.all(
+      affected.map(note => {
+        let content = note.content
+        content = content.replace(reImg, '')
+        content = content.replace(reLink, '$1')
+        content = content.replace(reBare, '')
+        const next = Object.assign({}, note, { content })
+        return updateNote(storage.key, note.key, next)
+      })
+    ).then(updated => ({ updatedNotes: updated, backupDir }))
+  })
+}
+
 export default {
   renameAttachment,
   moveAttachment,
-  replaceAttachment
+  replaceAttachment,
+  removeBrokenReferences
 }

@@ -105,7 +105,8 @@ class NoteList extends React.Component {
       ctrlKeyDown: false,
       shiftKeyDown: false,
       prevShiftNoteIndex: -1,
-      selectedNoteKeys: []
+      selectedNoteKeys: [],
+      movingFolder: false
     }
 
     this.contextNotes = []
@@ -805,7 +806,10 @@ class NoteList extends React.Component {
     const { dispatch } = this.props
     const { selectedNoteKeys } = this.state
     const notes = findNotesByKeys(this.notes, selectedNoteKeys)
+    this.setState({ movingFolder: true })
     moveNotesToFolder(notes, storageKey, folderKey, dispatch)
+      .then(() => this.setState({ movingFolder: false, selectedNoteKeys: [] }))
+      .catch(() => this.setState({ movingFolder: false }))
   }
 
   updateSelectedNotes(updateFunc, cleanSelection = true) {
@@ -1174,6 +1178,9 @@ class NoteList extends React.Component {
       }
     })
 
+    const { movingFolder } = this.state
+    const isLoading = this.props.loading
+
     const viewType = this.getViewType()
 
     const autoSelectFirst =
@@ -1242,6 +1249,12 @@ class NoteList extends React.Component {
         style={this.props.style}
         onDrop={e => this.handleDrop(e)}
       >
+        {isLoading && (
+          <div styleName='loading-overlay'>
+            <div styleName='loading-spinner' />
+            <span>{i18n.__('Loading…')}</span>
+          </div>
+        )}
         <div styleName='control'>
           <div styleName='control-sortBy'>
             <i className='fa fa-angle-down' />
@@ -1311,7 +1324,13 @@ class NoteList extends React.Component {
             </button>
           </div>
         </div>
-        {selectedNoteKeys.length > 1 && (
+        {movingFolder && (
+          <div styleName='moving-bar'>
+            <div styleName='moving-spinner' />
+            {i18n.__('Moving…')}
+          </div>
+        )}
+        {selectedNoteKeys.length > 1 && !movingFolder && (
           <div styleName='bulk-bar'>
             <span styleName='bulk-count'>
               {selectedNoteKeys.length} {i18n.__('selected')}
@@ -1335,7 +1354,13 @@ class NoteList extends React.Component {
           </div>
         )}
         <div
-          styleName={selectedNoteKeys.length > 1 ? 'list--bulk' : 'list'}
+          styleName={
+            movingFolder
+              ? 'list--bulk'
+              : selectedNoteKeys.length > 1
+              ? 'list--bulk'
+              : 'list'
+          }
           ref='list'
           data-note-list
           tabIndex='-1'
@@ -1356,6 +1381,7 @@ NoteList.contextTypes = {
 NoteList.propTypes = {
   dispatch: PropTypes.func,
   repositories: PropTypes.array,
+  loading: PropTypes.bool,
   style: PropTypes.shape({
     width: PropTypes.number
   })

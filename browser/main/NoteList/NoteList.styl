@@ -122,6 +122,54 @@ $bulk-bar-height = 34px
   @extend .list
   top $control-height + $bulk-bar-height
 
+$moving-bar-height = 28px
+.moving-bar
+  absolute left right
+  top $control-height
+  height $moving-bar-height
+  z-index 6
+  display flex
+  align-items center
+  justify-content center
+  gap 6px
+  font-size 11px
+  background-color alpha(#2ecc71, 12%)
+  color #2ecc71
+  border-bottom 1px solid alpha(#2ecc71, 25%)
+
+.moving-spinner
+  width 10px
+  height 10px
+  border-radius 50%
+  border 1.5px solid alpha(#2ecc71, 35%)
+  border-top-color #2ecc71
+  animation notelist-spin 0.6s linear infinite
+
+.loading-overlay
+  absolute top left right bottom
+  z-index 10
+  display flex
+  flex-direction column
+  align-items center
+  justify-content center
+  gap 8px
+  color $ui-inactive-text-color
+  font-size 12px
+  background-color alpha($ui-noteList-backgroundColor, 85%)
+  pointer-events none
+
+.loading-spinner
+  width 20px
+  height 20px
+  border-radius 50%
+  border 2px solid alpha($ui-inactive-text-color, 25%)
+  border-top-color $ui-inactive-text-color
+  animation notelist-spin 0.7s linear infinite
+
+@keyframes notelist-spin
+  to
+    transform rotate(360deg)
+
 apply-theme(theme)
   body[data-theme={theme}]
     .root

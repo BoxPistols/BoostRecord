@@ -163,6 +163,8 @@
   "Permanently delete the selected image files? This cannot be undone.": "Permanently delete the selected image files? This cannot be undone.",
   "This updates %n note(s). A backup will be saved. Proceed?": "This updates %n note(s). A backup will be saved. Proceed?",
   "Scanning…": "Scanning…",
+  "Loading…": "Loading…",
+  "Moving…": "Moving…",
   "unused": "unused",
   "Delete all unused": "Delete all unused",
   "No images": "No images",

@@ -41,7 +41,8 @@ class Main extends React.Component {
       isLeftSliderFocused: false,
       fullScreen: false,
       noteDetailWidth: 0,
-      mainBodyWidth: 0
+      mainBodyWidth: 0,
+      isLoading: true
     }
 
     this.toggleFullScreen = () => this.handleFullScreenButton()
@@ -170,6 +171,7 @@ class Main extends React.Component {
         storages: data.storages,
         notes: data.notes
       })
+      this.setState({ isLoading: false })
 
       if (data.storages.length < 1) {
         this.init()
@@ -377,6 +379,7 @@ class Main extends React.Component {
           />
           <NoteList
             style={{ width: this.state.listWidth }}
+            loading={this.state.isLoading}
             {..._.pick(this.props, [
               'dispatch',
               'data',

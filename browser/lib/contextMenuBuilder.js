@@ -50,20 +50,35 @@ function runNoteAiAction(editor, actionKey) {
   const headingStartIdx = editor.indexFromPos(docEnd())
   editor.replaceRange('\n\n' + action.heading + '\n\n', docEnd())
   let idx = editor.indexFromPos(docEnd())
-  const afterHeadingIdx = idx
+
+  // Show ⏳ immediately after heading while waiting for first token.
+  editor.replaceRange('⏳', docEnd())
+  idx = editor.indexFromPos(docEnd()) - 1 // idx = position of ⏳
+  let headingLoadingActive = true
 
   const insert = t => {
-    editor.replaceRange(t, editor.posFromIndex(idx))
-    idx += t.length
+    if (headingLoadingActive) {
+      // Swap ⏳ out for first streamed token.
+      editor.replaceRange(
+        t,
+        editor.posFromIndex(idx),
+        editor.posFromIndex(idx + 1)
+      )
+      idx += t.length
+      headingLoadingActive = false
+    } else {
+      editor.replaceRange(t, editor.posFromIndex(idx))
+      idx += t.length
+    }
   }
 
   aiAssist.runAiAction(actionKey, text, insert).catch(err => {
-    if (idx === afterHeadingIdx) {
-      // Nothing streamed: remove the empty heading block we inserted.
+    if (headingLoadingActive) {
+      // Nothing streamed: remove the heading block + ⏳.
       editor.replaceRange(
         '',
         editor.posFromIndex(headingStartIdx),
-        editor.posFromIndex(afterHeadingIdx)
+        editor.posFromIndex(idx + 1)
       )
     }
     const message = (err && err.message) || String(err)
@@ -89,12 +104,13 @@ function runEditorAiAction(editor, actionKey) {
   // Capture selection boundaries before any mutation for rollback on error.
   const selectionFrom = editor.getCursor('from')
 
-  // replace mode: insert a placeholder instead of deleting the selection
-  // immediately. On first delta the placeholder is swapped out; on error the
-  // original text is restored. This prevents a half-deleted document.
-  const PLACEHOLDER = '…' // '…'
+  // replace mode: insert a loading placeholder immediately. On first delta
+  // the placeholder is swapped out; on error the original text is restored.
+  const PLACEHOLDER = '⏳'
   let idx
   let placeholderActive = false
+  let appendLoadingActive = false
+  let insertStartIdx = -1
 
   if (action.mode === 'replace') {
     const selectionTo = editor.getCursor('to')
@@ -104,18 +120,32 @@ function runEditorAiAction(editor, actionKey) {
   } else {
     const end = editor.getCursor('to')
     editor.setCursor(end)
-    if (actionKey !== 'continue') editor.replaceRange('\n\n', end)
-    idx = editor.indexFromPos(editor.getCursor())
+    if (actionKey !== 'continue') {
+      // Insert ⏳ loading indicator; swap out on first streamed token.
+      insertStartIdx = editor.indexFromPos(end)
+      editor.replaceRange('\n\n⏳', end)
+      idx = editor.indexFromPos(editor.getCursor()) - 1 // position of ⏳
+      appendLoadingActive = true
+    } else {
+      idx = editor.indexFromPos(editor.getCursor())
+    }
   }
 
   const insert = text => {
     if (placeholderActive) {
-      // Swap placeholder (1 char) for the first real delta
+      // Swap ⏳ (1 char) for the first real delta.
       const from = editor.posFromIndex(idx)
-      const to = editor.posFromIndex(idx + 1) // placeholder is 1 char
+      const to = editor.posFromIndex(idx + 1)
       editor.replaceRange(text, from, to)
-      idx += text.length // idx was at START; after replace end = start + new length
+      idx += text.length
       placeholderActive = false
+    } else if (appendLoadingActive) {
+      // Swap ⏳ (1 char) for the first streamed token.
+      const from = editor.posFromIndex(idx)
+      const to = editor.posFromIndex(idx + 1)
+      editor.replaceRange(text, from, to)
+      idx += text.length
+      appendLoadingActive = false
     } else {
       editor.replaceRange(text, editor.posFromIndex(idx))
       idx += text.length
@@ -124,11 +154,17 @@ function runEditorAiAction(editor, actionKey) {
   }
 
   aiAssist.runAiAction(actionKey, selected, insert).catch(err => {
-    // Rollback: remove everything inserted (placeholder or partial AI text)
-    // and restore the original selection text.
+    // Rollback inserted content on failure.
     if (action.mode === 'replace') {
       const currentEnd = editor.posFromIndex(placeholderActive ? idx + 1 : idx)
       editor.replaceRange(selected, selectionFrom, currentEnd)
+    } else if (appendLoadingActive && insertStartIdx >= 0) {
+      // Nothing was streamed: remove \n\n⏳ to avoid leaving debris.
+      editor.replaceRange(
+        '',
+        editor.posFromIndex(insertStartIdx),
+        editor.posFromIndex(idx + 1)
+      )
     }
     const message = (err && err.message) || String(err)
     try {

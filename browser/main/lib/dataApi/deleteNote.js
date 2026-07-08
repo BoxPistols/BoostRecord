@@ -35,4 +35,7 @@ function deleteNote(storageKey, noteKey) {
     })
 }
 
-module.exports = deleteNote
+// ESM export: this file is parsed as ESM (it has an import above), so a
+// `module.exports =` assignment would be silently dropped by the Vite build
+// and dataApi.deleteNote would be undefined at runtime.
+export default deleteNote

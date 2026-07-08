@@ -72,6 +72,20 @@ for (const f of files) {
 const REQUIRE_RE = /\brequire\(\s*['"]([^'"]+)['"]\s*\)/g
 const errors = []
 
+// Check 1: a file containing a top-level `import` is parsed as ESM, so a
+// `module.exports =` assignment in the SAME file is silently dropped by the
+// Vite build — the module ends up exporting nothing (this is how
+// dataApi.moveNote became undefined at runtime while Jest/AVA kept passing).
+for (const file of files) {
+  const src = readFile(file)
+  if (/^import\s/m.test(src) && /^module\.exports\s*=/m.test(src)) {
+    const rel = file.replace(root + '/', '')
+    errors.push(
+      `  ${rel}\n    → mixes top-level "import" with "module.exports =" — the export is silently dropped by Vite; use "export default" instead`
+    )
+  }
+}
+
 for (const file of files) {
   const src = readFile(file)
   // Skip files that don't use require() at all

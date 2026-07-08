@@ -8,6 +8,12 @@ import updateSnippet from './updateSnippet'
 import fetchSnippet from './fetchSnippet'
 import exportTag from './exportTag'
 import getFilename from './getFilename'
+// These three are ESM-default-only (they contain imports, so their old
+// `module.exports =` was silently dropped by the Vite build — require() here
+// yielded an empty module and e.g. dataApi.moveNote crashed at runtime).
+import deleteFolder from './deleteFolder'
+import deleteNote from './deleteNote'
+import moveNote from './moveNote'
 
 const dataApi = {
   init: require('./init'),
@@ -17,15 +23,15 @@ const dataApi = {
   removeStorage: require('./removeStorage'),
   createFolder: require('./createFolder'),
   updateFolder: require('./updateFolder'),
-  deleteFolder: require('./deleteFolder'),
+  deleteFolder,
   reorderFolder: require('./reorderFolder'),
   exportFolder,
   exportStorage,
   createNote: require('./createNote'),
   createNoteFromUrl,
   updateNote: require('./updateNote'),
-  deleteNote: require('./deleteNote'),
-  moveNote: require('./moveNote'),
+  deleteNote,
+  moveNote,
   exportNoteAs,
   migrateFromV5Storage: require('./migrateFromV5Storage'),
   createSnippet,

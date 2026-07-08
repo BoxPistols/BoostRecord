@@ -1,10 +1,12 @@
+// deleteNote is ESM-default-only, so it must be imported (a require() would
+// yield the module namespace object in the Vite build — see check-esm-cjs).
+import deleteSingleNote from './deleteNote'
 const _ = require('lodash')
 const path = require('path')
 const resolveStorageData = require('./resolveStorageData')
 const resolveStorageNotes = require('./resolveStorageNotes')
 const CSON = require('@rokt33r/season')
 const { findStorage } = require('browser/lib/findStorage')
-const deleteSingleNote = require('./deleteNote')
 
 /**
  * @param {String} storageKey
@@ -65,4 +67,6 @@ function deleteFolder(storageKey, folderKey) {
     })
 }
 
-module.exports = deleteFolder
+// ESM export required — with the import above, `module.exports =` would be
+// silently dropped by the Vite build.
+export default deleteFolder

@@ -107,4 +107,7 @@ function moveNote(storageKey, noteKey, newStorageKey, newFolderKey) {
   })
 }
 
-module.exports = moveNote
+// ESM export: this file is parsed as ESM (it has an import above), so a
+// `module.exports =` assignment would be silently dropped by the Vite build
+// and dataApi.moveNote would be undefined at runtime.
+export default moveNote

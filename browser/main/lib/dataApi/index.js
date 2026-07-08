@@ -14,6 +14,8 @@ import getFilename from './getFilename'
 import deleteFolder from './deleteFolder'
 import deleteNote from './deleteNote'
 import moveNote from './moveNote'
+import listAttachments from './listAttachments'
+import attachmentManagement from './attachmentManagement'
 
 const dataApi = {
   init: require('./init'),
@@ -32,6 +34,8 @@ const dataApi = {
   updateNote: require('./updateNote'),
   deleteNote,
   moveNote,
+  listAttachments,
+  removeAttachmentsByPaths: attachmentManagement.removeAttachmentsByPaths,
   exportNoteAs,
   migrateFromV5Storage: require('./migrateFromV5Storage'),
   createSnippet,

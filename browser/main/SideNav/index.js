@@ -6,6 +6,7 @@ import dataApi from 'browser/main/lib/dataApi'
 import styles from './SideNav.styl'
 import { openModal } from 'browser/main/lib/modal'
 import PreferencesModal from '../modals/PreferencesModal'
+import ImageManagerModal from '../modals/ImageManagerModal'
 import RenameTagModal from 'browser/main/modals/RenameTagModal'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import StorageItem from './StorageItem'
@@ -15,6 +16,7 @@ import StorageList from 'browser/components/StorageList'
 import NavToggleButton from 'browser/components/NavToggleButton'
 import EventEmitter from 'browser/main/lib/eventEmitter'
 import PreferenceButton from './PreferenceButton'
+import ImageManagerButton from './ImageManagerButton'
 import SearchButton from './SearchButton'
 import ListButton from './ListButton'
 import TagButton from './TagButton'
@@ -128,6 +130,13 @@ class SideNav extends React.Component {
 
   handleMenuButtonClick(e) {
     openModal(PreferencesModal)
+  }
+
+  handleImageManagerClick(e) {
+    const { data } = this.props
+    openModal(ImageManagerModal, {
+      storageList: Object.values(data.storageMap.toJS())
+    })
   }
 
   handleSearchButtonClick(e) {
@@ -668,6 +677,9 @@ class SideNav extends React.Component {
             <SearchButton
               onClick={this.handleSearchButtonClick}
               isActive={showSearch}
+            />
+            <ImageManagerButton
+              onClick={this.handleImageManagerClick.bind(this)}
             />
             <PreferenceButton onClick={this.handleMenuButtonClick} />
           </div>

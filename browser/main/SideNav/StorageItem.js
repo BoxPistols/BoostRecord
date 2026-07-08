@@ -6,6 +6,7 @@ import modal from 'browser/main/lib/modal'
 import CreateFolderModal from 'browser/main/modals/CreateFolderModal'
 import RenameFolderModal from 'browser/main/modals/RenameFolderModal'
 import dataApi from 'browser/main/lib/dataApi'
+import { moveNotesToFolder } from 'browser/main/lib/moveNotes'
 import StorageItemChild from 'browser/components/StorageItem'
 import _ from 'lodash'
 import { SortableElement } from 'react-sortable-hoc'
@@ -312,33 +313,7 @@ class StorageItem extends React.Component {
   }
 
   dropNote(storage, folder, dispatch, location, noteData) {
-    // Keep notes that are NOT already in the exact target (storage + folder).
-    // The previous check only compared folder.key, silently blocking cross-storage
-    // moves when source and destination folders happened to share the same key.
-    noteData = noteData.filter(
-      note => note.storage !== storage.key || note.folder !== folder.key
-    )
-    if (noteData.length === 0) return
-
-    Promise.all(
-      noteData.map(note =>
-        dataApi.moveNote(note.storage, note.key, storage.key, folder.key)
-      )
-    )
-      .then(createdNoteData => {
-        createdNoteData.forEach(newNote => {
-          dispatch({
-            type: 'MOVE_NOTE',
-            originNote: noteData.find(
-              note => note.content === newNote.oldContent
-            ),
-            note: newNote
-          })
-        })
-      })
-      .catch(err => {
-        console.error(`error on delete notes: ${err}`)
-      })
+    moveNotesToFolder(noteData, storage.key, folder.key, dispatch)
   }
 
   handleDrop(e, storage, folder, dispatch, location) {
@@ -348,7 +323,15 @@ class StorageItem extends React.Component {
         draggedOver: null
       })
     }
-    const noteData = JSON.parse(e.dataTransfer.getData('note'))
+    let noteData
+    try {
+      // An empty/invalid payload (e.g. a non-note drag) throws — ignore the drop.
+      noteData = JSON.parse(e.dataTransfer.getData('note'))
+    } catch (err) {
+      return
+    }
+    // Only our own note drags carry an array of notes; ignore anything else.
+    if (!Array.isArray(noteData)) return
     this.dropNote(storage, folder, dispatch, location, noteData)
   }
 

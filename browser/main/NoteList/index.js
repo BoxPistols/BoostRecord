@@ -10,6 +10,7 @@ import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import NoteItem from 'browser/components/NoteItem'
 import NoteItemSimple from 'browser/components/NoteItemSimple'
+import { moveNotesToFolder } from 'browser/main/lib/moveNotes'
 import searchFromNotes from 'browser/lib/search'
 import fs from 'fs'
 import path from 'path'
@@ -630,7 +631,11 @@ class NoteList extends React.Component {
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const noteData = JSON.stringify(selectedNotes)
     e.dataTransfer.setData('note', noteData)
-    this.selectNextNote()
+    // NOTE: do NOT change selection here. Calling selectNextNote() during
+    // dragstart runs setState + a router push, which re-renders the note row and
+    // makes Chromium abort the native drag session (drop never fires) — and it
+    // visually pulls the next note into the selection. Selection settling after a
+    // move is handled by the MOVE_NOTE reducer.
   }
 
   handleExportClick(e, note, fileType) {
@@ -721,6 +726,19 @@ class NoteList extends React.Component {
         }
       )
 
+      const moveToFolderSubmenu = this.buildMoveToFolderSubmenu(note)
+      if (moveToFolderSubmenu.length > 0) {
+        templates.push(
+          {
+            type: 'separator'
+          },
+          {
+            label: i18n.__('Move to Folder'),
+            submenu: moveToFolderSubmenu
+          }
+        )
+      }
+
       if (note.type === 'MARKDOWN_NOTE') {
         templates.push(
           {
@@ -751,6 +769,38 @@ class NoteList extends React.Component {
       }
     }
     context.popup(templates)
+  }
+
+  // Build the "Move to Folder" submenu. One storage -> folders listed flat; many
+  // storages -> nested per storage. The context note's own folder is disabled.
+  buildMoveToFolderSubmenu(contextNote) {
+    const { data } = this.props
+    const storages = Object.values(data.storageMap.toJS())
+    const folderItems = storage =>
+      storage.folders.map(folder => ({
+        label: folder.name,
+        enabled: !(
+          contextNote.storage === storage.key &&
+          contextNote.folder === folder.key
+        ),
+        click: () => this.moveSelectedNotesToFolder(storage.key, folder.key)
+      }))
+    if (storages.length === 1) {
+      return folderItems(storages[0])
+    }
+    return storages.map(storage => ({
+      label: storage.name,
+      submenu: folderItems(storage)
+    }))
+  }
+
+  // Move all currently selected notes into the given folder (procedural path,
+  // shared with drag-and-drop via moveNotesToFolder).
+  moveSelectedNotesToFolder(storageKey, folderKey) {
+    const { dispatch } = this.props
+    const { selectedNoteKeys } = this.state
+    const notes = findNotesByKeys(this.notes, selectedNoteKeys)
+    moveNotesToFolder(notes, storageKey, folderKey, dispatch)
   }
 
   updateSelectedNotes(updateFunc, cleanSelection = true) {

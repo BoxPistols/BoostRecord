@@ -10,9 +10,12 @@ import styles from './ImageManagerModal.styl'
 import i18n from 'browser/lib/i18n'
 import dataApi from 'browser/main/lib/dataApi'
 import { store } from 'browser/main/store'
-import fileUrl from 'file-url'
-
+const { pathToFileURL } = require('url')
 const remote = require('@electron/remote')
+
+function fileUrl(absPath) {
+  return pathToFileURL(absPath).href
+}
 
 function humanSize(bytes) {
   if (!bytes) return '0 B'

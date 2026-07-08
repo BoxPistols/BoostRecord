@@ -101,8 +101,10 @@ class AITab extends React.Component {
       width: 360,
       padding: '4px 8px',
       borderRadius: 4,
-      border: hasErr ? '1px solid #e74c3c' : '1px solid #aaa',
-      fontSize: 13
+      border: hasErr ? '1px solid #e74c3c' : '1px solid #555',
+      fontSize: 13,
+      background: 'rgba(255,255,255,0.06)',
+      color: 'inherit'
     })
 
     const errorStyle = {
@@ -113,7 +115,9 @@ class AITab extends React.Component {
 
     return (
       <div styleName='container'>
-        <div styleName='header'>{i18n.__('AI Settings')}</div>
+        <div styleName='header' style={{ fontSize: 22, marginBottom: 24 }}>
+          {i18n.__('AI Settings')}
+        </div>
 
         <div
           styleName='box-minmax'

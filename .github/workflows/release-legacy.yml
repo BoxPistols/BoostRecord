@@ -30,6 +30,12 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # Run the two OS jobs SEQUENTIALLY. Both call `electron-builder --publish
+      # always`, which creates the GitHub Release for the tag; run in parallel
+      # they race to POST /releases and the loser fails with
+      # "422 already_exists (tag_name)". Sequential = the first job creates the
+      # release, the second finds it and just uploads its installers.
+      max-parallel: 1
       matrix:
         os: [macos-latest, windows-latest]
     steps:

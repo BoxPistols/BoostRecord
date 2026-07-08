@@ -302,6 +302,11 @@ body[data-theme="dark"]
   .rs-label
     color $ui-dark-text-color
 
+  // Row containers must be transparent so the dark modal background shows through.
+  .box-minmax
+    background transparent
+    border-color rgba(255, 255, 255, 0.1)
+
 
 apply-theme(theme)
   body[data-theme={theme}]
@@ -334,6 +339,10 @@ apply-theme(theme)
         colorThemedControl(theme)
     .rs-label
       color get-theme-var(theme, 'text-color')
+
+    .box-minmax
+      background transparent
+      border-color rgba(255, 255, 255, 0.1)
 
 for theme in 'solarized-dark' 'dracula'
   apply-theme(theme)

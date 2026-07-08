@@ -101,9 +101,9 @@ class AITab extends React.Component {
       width: 360,
       padding: '4px 8px',
       borderRadius: 4,
-      border: hasErr ? '1px solid #e74c3c' : '1px solid #555',
+      border: hasErr ? '1px solid #e74c3c' : '1px solid rgba(128,128,128,0.4)',
       fontSize: 13,
-      background: 'rgba(255,255,255,0.06)',
+      background: 'rgba(128,128,128,0.15)',
       color: 'inherit'
     })
 

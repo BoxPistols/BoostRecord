@@ -16,6 +16,7 @@ import deleteNote from './deleteNote'
 import moveNote from './moveNote'
 import listAttachments from './listAttachments'
 import deleteAttachmentsVerified from './deleteAttachmentsVerified'
+import attachmentOps from './attachmentOps'
 import attachmentManagement from './attachmentManagement'
 
 const dataApi = {
@@ -37,6 +38,9 @@ const dataApi = {
   moveNote,
   listAttachments,
   deleteAttachmentsVerified,
+  renameAttachment: attachmentOps.renameAttachment,
+  moveAttachment: attachmentOps.moveAttachment,
+  replaceAttachment: attachmentOps.replaceAttachment,
   removeAttachmentsByPaths: attachmentManagement.removeAttachmentsByPaths,
   exportNoteAs,
   migrateFromV5Storage: require('./migrateFromV5Storage'),

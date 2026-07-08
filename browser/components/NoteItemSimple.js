@@ -33,7 +33,7 @@ const NoteItemSimple = ({
     onDragStart={e => handleDragStart(e, note)}
     draggable='true'
   >
-    <div styleName='item-simple-title'>
+    <div styleName='item-simple-title' title={note.title}>
       {note.type === 'SNIPPET_NOTE' ? (
         <i styleName='item-simple-title-icon' className='fa fa-fw fa-code' />
       ) : (

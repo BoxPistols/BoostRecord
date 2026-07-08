@@ -96,7 +96,7 @@ const NoteItem = ({
       ) : (
         <i styleName='item-title-icon' className='fa fa-fw fa-file-text-o' />
       )}
-      <div styleName='item-title'>
+      <div styleName='item-title' title={note.title}>
         {note.title.trim().length > 0 ? (
           <Emoji text={note.title} />
         ) : (

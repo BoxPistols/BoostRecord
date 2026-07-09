@@ -45,6 +45,16 @@ class AITab extends React.Component {
     }
   }
 
+  handleFormKeyDown(e) {
+    // IME composition in progress — do not intercept
+    if (e.nativeEvent && e.nativeEvent.isComposing) return
+    // Cmd+Enter (Mac) or Ctrl+Enter (Win) = Save
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      e.preventDefault()
+      this.handleSave()
+    }
+  }
+
   handleSave() {
     const {
       provider,
@@ -219,8 +229,12 @@ class AITab extends React.Component {
       fontFamily: 'inherit'
     })
 
+    const isMac =
+      typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent)
+    const saveShortcut = isMac ? '⌘ + Enter' : 'Ctrl + Enter'
+
     return (
-      <div style={outerStyle}>
+      <div style={outerStyle} onKeyDown={e => this.handleFormKeyDown(e)}>
         <div style={innerStyle}>
           <div style={pageTitleStyle}>AI Settings</div>
 
@@ -362,6 +376,7 @@ class AITab extends React.Component {
             >
               {i18n.__('Save')}
             </button>
+            <span style={{ color: c.muted, fontSize: 11 }}>{saveShortcut}</span>
             {saved && (
               <span style={{ color: c.success, fontSize: 13 }}>
                 {i18n.__('Successfully applied!')}

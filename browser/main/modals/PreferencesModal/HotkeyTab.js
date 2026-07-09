@@ -126,6 +126,9 @@ class HotkeyTab extends React.Component {
         <p className={`alert ${keymapAlert.type}`}>{keymapAlert.message}</p>
       ) : null
     const { config } = this.state
+    const isMac = /Mac|iPhone|iPad|iPod/.test(
+      typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    )
 
     return (
       <div styleName='root'>
@@ -286,6 +289,23 @@ class HotkeyTab extends React.Component {
           </div>
           {this.state.isHotkeyHintOpen && (
             <div styleName='group-hint'>
+              <p>
+                {isMac ? (
+                  <span>
+                    <strong>Mac キー名:</strong> <code>Command</code> (⌘) &nbsp;
+                    <code>Alt</code> = Option (⌥) &nbsp;
+                    <code>Ctrl</code> = Control (⌃) &nbsp;
+                    <code>Shift</code> (⇧)
+                  </span>
+                ) : (
+                  <span>
+                    <strong>Windows キー名:</strong> <code>Ctrl</code> &nbsp;
+                    <code>Alt</code> &nbsp;
+                    <code>Shift</code> &nbsp;
+                    <code>Super</code> (Win キー)
+                  </span>
+                )}
+              </p>
               <p>{i18n.__('Available Keys')}</p>
               <ul>
                 <li>

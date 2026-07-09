@@ -57,7 +57,7 @@ export const DEFAULT_CONFIG = {
     insertDate: OSX ? 'Command + /' : 'Ctrl + /',
     insertDateTime: OSX ? 'Command + Alt + /' : 'Ctrl + Shift + /',
     toggleMenuBar: 'Alt',
-    toggleFullscreen: OSX ? 'Command + Alt + F' : 'Ctrl + Alt + F'
+    toggleFullscreen: OSX ? 'Command + Shift + E' : 'Ctrl + Shift + E'
   },
   ui: {
     language: 'ja',

@@ -182,6 +182,7 @@ class Main extends React.Component {
     delete CodeMirror.keyMap.emacs['Ctrl-V']
 
     eventEmitter.on('editor:fullscreen', this.toggleFullScreen)
+    ipcRenderer.on('editor:fullscreen', this.toggleFullScreen)
     eventEmitter.on(
       'menubar:togglemenubar',
       this.toggleMenuBarVisible.bind(this)
@@ -192,6 +193,7 @@ class Main extends React.Component {
 
   componentWillUnmount() {
     eventEmitter.off('editor:fullscreen', this.toggleFullScreen)
+    ipcRenderer.removeListener('editor:fullscreen', this.toggleFullScreen)
     eventEmitter.off(
       'menubar:togglemenubar',
       this.toggleMenuBarVisible.bind(this)

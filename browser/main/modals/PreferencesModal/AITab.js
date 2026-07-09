@@ -88,145 +88,164 @@ class AITab extends React.Component {
     const geminiKeyError = validateKey('gemini', geminiKey)
     const hasError = !!(openaiKeyError || geminiKeyError)
 
-    // Detect dark vs light theme to use appropriate token values.
     const isDark =
       typeof document !== 'undefined' &&
       ['dark', 'solarized-dark', 'dracula'].indexOf(
         document.body.dataset.theme
       ) !== -1
 
-    const tok = isDark
+    // Design tokens — dark values use light-on-dark with sufficient contrast
+    const c = isDark
       ? {
-          text: 'rgba(255,255,255,0.88)',
-          dim: 'rgba(255,255,255,0.40)',
-          card: 'rgba(255,255,255,0.05)',
-          cardBorder: 'rgba(255,255,255,0.09)',
-          divider: 'rgba(255,255,255,0.07)',
-          inputBg: 'rgba(0,0,0,0.30)',
-          inputBorder: 'rgba(255,255,255,0.16)',
+          text: 'rgba(255,255,255,0.90)',
+          dim: 'rgba(255,255,255,0.60)',
+          muted: 'rgba(255,255,255,0.38)',
+          cardBg: 'rgba(255,255,255,0.07)',
+          cardBorder: 'rgba(255,255,255,0.13)',
+          inputBg: 'rgba(255,255,255,0.10)',
+          inputBorder: 'rgba(255,255,255,0.22)',
+          divider: 'rgba(255,255,255,0.09)',
           accent: '#7c6cf0',
-          accentText: '#fff',
-          secLabel: 'rgba(255,255,255,0.28)',
-          placeholder: 'rgba(255,255,255,0.22)'
+          success: '#00b894',
+          danger: '#e74c3c'
         }
       : {
-          text: 'rgba(0,0,0,0.82)',
-          dim: 'rgba(0,0,0,0.44)',
-          card: 'rgba(0,0,0,0.03)',
-          cardBorder: 'rgba(0,0,0,0.1)',
-          divider: 'rgba(0,0,0,0.06)',
-          inputBg: '#fff',
-          inputBorder: 'rgba(0,0,0,0.18)',
+          text: 'rgba(0,0,0,0.85)',
+          dim: 'rgba(0,0,0,0.55)',
+          muted: 'rgba(0,0,0,0.38)',
+          cardBg: 'rgba(0,0,0,0.03)',
+          cardBorder: 'rgba(0,0,0,0.12)',
+          inputBg: '#ffffff',
+          inputBorder: 'rgba(0,0,0,0.22)',
+          divider: 'rgba(0,0,0,0.08)',
           accent: '#6c5ce7',
-          accentText: '#fff',
-          secLabel: 'rgba(0,0,0,0.32)',
-          placeholder: 'rgba(0,0,0,0.28)'
+          success: '#00b894',
+          danger: '#e74c3c'
         }
 
-    // --- shared style helpers ---
+    // Layout: outer center wrapper avoids inheriting ConfigTab.styl flex rules
+    const outerStyle = {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '20px 16px 32px'
+    }
+
+    const innerStyle = {
+      width: '100%',
+      maxWidth: 500,
+      boxSizing: 'border-box'
+    }
+
+    const pageTitleStyle = {
+      fontSize: 15,
+      fontWeight: 600,
+      color: c.text,
+      marginBottom: 20,
+      letterSpacing: '-0.01em'
+    }
+
     const cardStyle = {
-      background: tok.card,
-      border: `1px solid ${tok.cardBorder}`,
+      background: c.cardBg,
+      border: `1px solid ${c.cardBorder}`,
       borderRadius: 8,
-      padding: '18px 20px',
+      padding: '16px 18px',
       marginBottom: 10
     }
 
-    const secLabelStyle = {
-      fontSize: 10,
-      fontWeight: 700,
-      letterSpacing: '0.10em',
-      textTransform: 'uppercase',
-      color: tok.secLabel,
-      marginBottom: 14,
-      paddingBottom: 10,
-      borderBottom: `1px solid ${tok.divider}`
-    }
-
-    const fieldStyle = { marginBottom: 12 }
-
-    const fieldLabelStyle = {
+    const cardTitleStyle = {
       display: 'block',
       fontSize: 11,
+      fontWeight: 700,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      color: c.muted,
+      marginBottom: 14,
+      paddingBottom: 10,
+      borderBottom: `1px solid ${c.divider}`
+    }
+
+    const fieldStyle = { marginBottom: 14 }
+    const fieldLastStyle = { marginBottom: 0 }
+
+    const labelStyle = {
+      display: 'block',
+      fontSize: 12,
       fontWeight: 600,
-      letterSpacing: '0.04em',
-      color: tok.dim,
-      marginBottom: 5
+      color: c.dim,
+      marginBottom: 6
     }
 
     const inputStyle = hasErr => ({
       display: 'block',
       width: '100%',
       boxSizing: 'border-box',
-      padding: '7px 11px',
-      background: tok.inputBg,
-      border: `1px solid ${hasErr ? '#e74c3c' : tok.inputBorder}`,
-      borderRadius: 5,
-      color: tok.text,
+      padding: '8px 12px',
+      background: c.inputBg,
+      border: `1px solid ${hasErr ? c.danger : c.inputBorder}`,
+      borderRadius: 6,
+      color: c.text,
       fontSize: 13,
+      lineHeight: '1.4',
       outline: 'none',
       fontFamily: 'inherit'
     })
 
-    const errStyle = { color: '#e74c3c', fontSize: 11, marginTop: 3 }
+    const errStyle = {
+      display: 'block',
+      color: c.danger,
+      fontSize: 11,
+      marginTop: 5
+    }
 
-    // Provider pill buttons
-    const pillStyle = active => ({
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 6,
-      padding: '6px 18px',
-      borderRadius: 20,
-      border: `1px solid ${active ? tok.accent : tok.inputBorder}`,
-      background: active ? tok.accent : 'transparent',
-      color: active ? tok.accentText : tok.text,
+    // Provider: segmented control (two halves sharing a border)
+    const segWrapStyle = {
+      display: 'flex',
+      border: `1px solid ${c.cardBorder}`,
+      borderRadius: 6,
+      overflow: 'hidden'
+    }
+
+    const segBtnStyle = active => ({
+      flex: 1,
+      padding: '9px 0',
+      textAlign: 'center',
       fontSize: 13,
       fontWeight: active ? 600 : 400,
+      background: active ? c.accent : 'transparent',
+      color: active ? '#fff' : c.dim,
       cursor: 'pointer',
-      marginRight: 8
+      border: 'none',
+      outline: 'none',
+      fontFamily: 'inherit'
     })
 
     return (
-      <div styleName='container'>
-        <div style={{ width: 540, paddingBottom: 32 }}>
-          {/* Page title */}
-          <div
-            style={{
-              fontSize: 16,
-              fontWeight: 600,
-              color: tok.text,
-              marginBottom: 18,
-              letterSpacing: '-0.01em'
-            }}
-          >
-            AI Settings
-          </div>
+      <div style={outerStyle}>
+        <div style={innerStyle}>
+          <div style={pageTitleStyle}>AI Settings</div>
 
           {/* Provider */}
           <div style={cardStyle}>
-            <div style={secLabelStyle}>Provider</div>
-            <div style={{ display: 'flex' }}>
+            <span style={cardTitleStyle}>Provider</span>
+            <div style={segWrapStyle}>
               {['openai', 'gemini'].map(p => (
-                <label key={p} style={pillStyle(provider === p)}>
-                  <input
-                    type='radio'
-                    name='ai-provider'
-                    value={p}
-                    checked={provider === p}
-                    onChange={() => this.setState({ provider: p })}
-                    style={{ display: 'none' }}
-                  />
+                <button
+                  key={p}
+                  type='button'
+                  style={segBtnStyle(provider === p)}
+                  onClick={() => this.setState({ provider: p })}
+                >
                   {p === 'openai' ? 'OpenAI' : 'Gemini'}
-                </label>
+                </button>
               ))}
             </div>
           </div>
 
           {/* OpenAI */}
           <div style={cardStyle}>
-            <div style={secLabelStyle}>OpenAI</div>
+            <span style={cardTitleStyle}>OpenAI</span>
             <div style={fieldStyle}>
-              <span style={fieldLabelStyle}>API Key</span>
+              <label style={labelStyle}>API Key</label>
               <input
                 type='password'
                 value={openaiKey}
@@ -234,10 +253,10 @@ class AITab extends React.Component {
                 placeholder='sk-...'
                 style={inputStyle(openaiKeyError)}
               />
-              {openaiKeyError && <div style={errStyle}>{openaiKeyError}</div>}
+              {openaiKeyError && <span style={errStyle}>{openaiKeyError}</span>}
             </div>
-            <div style={{ ...fieldStyle, marginBottom: 0 }}>
-              <span style={fieldLabelStyle}>{i18n.__('Model')}</span>
+            <div style={fieldLastStyle}>
+              <label style={labelStyle}>{i18n.__('Model')}</label>
               <select
                 value={openaiModel}
                 onChange={e => this.setState({ openaiModel: e.target.value })}
@@ -245,7 +264,8 @@ class AITab extends React.Component {
               >
                 {modelChoices('openai', openaiModel).map((m, i) => (
                   <option key={m} value={m}>
-                    {m + (i === 0 ? '（最安・既定）' : '')}
+                    {m}
+                    {i === 0 ? ' （既定）' : ''}
                   </option>
                 ))}
               </select>
@@ -254,9 +274,9 @@ class AITab extends React.Component {
 
           {/* Gemini */}
           <div style={cardStyle}>
-            <div style={secLabelStyle}>Gemini</div>
+            <span style={cardTitleStyle}>Gemini</span>
             <div style={fieldStyle}>
-              <span style={fieldLabelStyle}>API Key</span>
+              <label style={labelStyle}>API Key</label>
               <input
                 type='password'
                 value={geminiKey}
@@ -264,10 +284,10 @@ class AITab extends React.Component {
                 placeholder='AIza...'
                 style={inputStyle(geminiKeyError)}
               />
-              {geminiKeyError && <div style={errStyle}>{geminiKeyError}</div>}
+              {geminiKeyError && <span style={errStyle}>{geminiKeyError}</span>}
             </div>
-            <div style={{ ...fieldStyle, marginBottom: 0 }}>
-              <span style={fieldLabelStyle}>{i18n.__('Model')}</span>
+            <div style={fieldLastStyle}>
+              <label style={labelStyle}>{i18n.__('Model')}</label>
               <select
                 value={geminiModel}
                 onChange={e => this.setState({ geminiModel: e.target.value })}
@@ -275,7 +295,8 @@ class AITab extends React.Component {
               >
                 {modelChoices('gemini', geminiModel).map((m, i) => (
                   <option key={m} value={m}>
-                    {m + (i === 0 ? '（最安・既定）' : '')}
+                    {m}
+                    {i === 0 ? ' （既定）' : ''}
                   </option>
                 ))}
               </select>
@@ -284,9 +305,9 @@ class AITab extends React.Component {
 
           {/* VOICEVOX TTS */}
           <div style={cardStyle}>
-            <div style={secLabelStyle}>VOICEVOX TTS</div>
+            <span style={cardTitleStyle}>VOICEVOX TTS</span>
             <div style={fieldStyle}>
-              <span style={fieldLabelStyle}>{i18n.__('Port')}</span>
+              <label style={labelStyle}>{i18n.__('Port')}</label>
               <input
                 type='number'
                 value={ttsPort}
@@ -297,8 +318,8 @@ class AITab extends React.Component {
                 style={inputStyle(false)}
               />
             </div>
-            <div style={{ ...fieldStyle, marginBottom: 0 }}>
-              <span style={fieldLabelStyle}>{i18n.__('Speaker ID')}</span>
+            <div style={fieldLastStyle}>
+              <label style={labelStyle}>{i18n.__('Speaker ID')}</label>
               <input
                 type='number'
                 value={ttsSpeakerId}
@@ -320,32 +341,29 @@ class AITab extends React.Component {
             }}
           >
             <button
+              type='button'
               onClick={() => this.handleSave()}
               disabled={hasError}
               style={{
-                padding: '8px 28px',
-                borderRadius: 5,
+                padding: '9px 28px',
+                borderRadius: 6,
                 border: 'none',
                 background: hasError
                   ? isDark
-                    ? 'rgba(255,255,255,0.1)'
-                    : 'rgba(0,0,0,0.12)'
-                  : tok.accent,
-                color: hasError
-                  ? isDark
-                    ? 'rgba(255,255,255,0.25)'
-                    : 'rgba(0,0,0,0.25)'
-                  : '#fff',
+                    ? 'rgba(255,255,255,0.08)'
+                    : 'rgba(0,0,0,0.10)'
+                  : c.accent,
+                color: hasError ? c.muted : '#fff',
                 fontSize: 13,
                 fontWeight: 600,
                 cursor: hasError ? 'not-allowed' : 'pointer',
-                letterSpacing: '0.02em'
+                fontFamily: 'inherit'
               }}
             >
               {i18n.__('Save')}
             </button>
             {saved && (
-              <span style={{ color: '#00b894', fontSize: 13 }}>
+              <span style={{ color: c.success, fontSize: 13 }}>
                 {i18n.__('Successfully applied!')}
               </span>
             )}

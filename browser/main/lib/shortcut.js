@@ -15,8 +15,5 @@ export default {
   },
   toggleMenuBar: () => {
     ee.emit('menubar:togglemenubar')
-  },
-  toggleFullscreen: () => {
-    ee.emit('editor:fullscreen')
   }
 }

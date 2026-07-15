@@ -14,15 +14,17 @@ const MODES = [
 ]
 
 const ModeSwitcher = ({ viewMode, onChange }) => (
-  <div styleName='switcher'>
+  <div styleName='switcher' role='group' aria-label={i18n.__('Toggle Mode')}>
     {MODES.map(mode => (
       <button
         key={mode.key}
         styleName={viewMode === mode.key ? 'seg--active' : 'seg'}
         title={i18n.__(mode.label)}
+        aria-label={i18n.__(mode.label)}
+        aria-pressed={viewMode === mode.key}
         onMouseDown={() => onChange(mode.key)}
       >
-        <i className={`fa ${mode.icon}`} />
+        <i className={`fa ${mode.icon}`} aria-hidden='true' />
       </button>
     ))}
   </div>

@@ -99,6 +99,10 @@ class NoteList extends React.Component {
     this.restoreNote = this.restoreNote.bind(this)
     this.copyNoteLink = this.copyNoteLink.bind(this)
     this.navigate = this.navigate.bind(this)
+    this.toggleBulkTagEditor = this.toggleBulkTagEditor.bind(this)
+    this.addTagToSelectedNotes = this.addTagToSelectedNotes.bind(this)
+    this.removeTagFromSelectedNotes = this.removeTagFromSelectedNotes.bind(this)
+    this.handleBulkTagInputKeyDown = this.handleBulkTagInputKeyDown.bind(this)
 
     // TODO: not Selected noteKeys but SelectedNote(for reusing)
     this.state = {
@@ -106,7 +110,9 @@ class NoteList extends React.Component {
       shiftKeyDown: false,
       prevShiftNoteIndex: -1,
       selectedNoteKeys: [],
-      movingFolder: false
+      movingFolder: false,
+      bulkTagEditorOpen: false,
+      bulkNewTag: ''
     }
 
     this.contextNotes = []
@@ -858,6 +864,59 @@ class NoteList extends React.Component {
     })
   }
 
+  toggleBulkTagEditor() {
+    this.setState({ bulkTagEditorOpen: !this.state.bulkTagEditorOpen })
+  }
+
+  // Union of tags across the currently selected notes, shown in the bulk tag
+  // editor. Removing one removes it from every selected note that has it.
+  getSelectedTagsUnion() {
+    const { selectedNoteKeys } = this.state
+    const selectedNotes = findNotesByKeys(this.notes || [], selectedNoteKeys)
+    return _.uniq(
+      _.flatten(
+        selectedNotes.map(note => (_.isArray(note.tags) ? note.tags : []))
+      )
+    ).sort()
+  }
+
+  // Add one tag (union) to all selected notes. Keeps the selection so the user
+  // can keep editing tags. Normalisation mirrors TagSelect.addNewTag.
+  addTagToSelectedNotes(rawTag) {
+    let tag = (rawTag || '').trim().replace(/ +/g, '_')
+    if (tag.charAt(0) === '#') tag = tag.substring(1)
+    if (tag.length <= 0) {
+      this.setState({ bulkNewTag: '' })
+      return
+    }
+    this.updateSelectedNotes(note => {
+      const tags = _.isArray(note.tags) ? note.tags.slice() : []
+      if (!_.includes(tags, tag)) tags.push(tag)
+      note.tags = tags
+      return note
+    }, false)
+    this.setState({ bulkNewTag: '' })
+  }
+
+  removeTagFromSelectedNotes(tag) {
+    this.updateSelectedNotes(note => {
+      const tags = _.isArray(note.tags) ? note.tags.slice() : []
+      note.tags = tags.filter(t => t !== tag)
+      return note
+    }, false)
+  }
+
+  handleBulkTagInputKeyDown(e) {
+    if (e.keyCode === 13 || e.keyCode === 9) {
+      // Enter or Tab commits the current tag
+      e.preventDefault()
+      this.addTagToSelectedNotes(this.state.bulkNewTag)
+    } else if (e.keyCode === 27) {
+      // Escape closes the editor
+      this.setState({ bulkTagEditorOpen: false })
+    }
+  }
+
   deleteNote() {
     const { dispatch } = this.props
     const { selectedNoteKeys } = this.state
@@ -1178,8 +1237,11 @@ class NoteList extends React.Component {
       }
     })
 
-    const { movingFolder } = this.state
+    const { movingFolder, bulkTagEditorOpen, bulkNewTag } = this.state
     const isLoading = this.props.loading
+    const isTrashView = !!location.pathname.match(/\/trash/)
+    const bulkTags =
+      selectedNoteKeys.length > 1 ? this.getSelectedTagsUnion() : []
 
     const viewType = this.getViewType()
 
@@ -1336,21 +1398,75 @@ class NoteList extends React.Component {
               {selectedNoteKeys.length} {i18n.__('selected')}
             </span>
             <div styleName='bulk-actions'>
-              {this.props.location.pathname.match(/\/trash/) && (
-                <button styleName='bulk-restore' onClick={this.restoreNote}>
-                  {i18n.__('Restore')}
+              <button
+                styleName={
+                  bulkTagEditorOpen ? 'bulk-action--active' : 'bulk-action'
+                }
+                onClick={this.toggleBulkTagEditor}
+                title={i18n.__('Edit Tags')}
+                aria-label={i18n.__('Edit Tags')}
+                aria-pressed={bulkTagEditorOpen}
+              >
+                <i className='fa fa-tag' aria-hidden='true' />
+              </button>
+              {isTrashView && (
+                <button
+                  styleName='bulk-action--restore'
+                  onClick={this.restoreNote}
+                  title={i18n.__('Restore')}
+                  aria-label={i18n.__('Restore')}
+                >
+                  <i className='fa fa-undo' aria-hidden='true' />
                 </button>
               )}
-              <button styleName='bulk-delete' onClick={this.deleteNote}>
-                {i18n.__('Delete')}
+              <button
+                styleName='bulk-action--danger'
+                onClick={this.deleteNote}
+                title={i18n.__('Delete')}
+                aria-label={i18n.__('Delete')}
+              >
+                <i className='fa fa-trash-o' aria-hidden='true' />
               </button>
               <button
-                styleName='bulk-clear'
-                onClick={() => this.setState({ selectedNoteKeys: [] })}
+                styleName='bulk-action'
+                onClick={() =>
+                  this.setState({
+                    selectedNoteKeys: [],
+                    bulkTagEditorOpen: false
+                  })
+                }
+                title={i18n.__('Clear')}
+                aria-label={i18n.__('Clear')}
               >
-                {i18n.__('Clear')}
+                <i className='fa fa-times' aria-hidden='true' />
               </button>
             </div>
+          </div>
+        )}
+        {selectedNoteKeys.length > 1 && !movingFolder && bulkTagEditorOpen && (
+          <div styleName='bulk-tag-editor'>
+            <div styleName='bulk-tag-list'>
+              {bulkTags.map(tag => (
+                <span styleName='bulk-tag' key={tag}>
+                  <span styleName='bulk-tag-label'>#{tag}</span>
+                  <button
+                    styleName='bulk-tag-remove'
+                    onClick={() => this.removeTagFromSelectedNotes(tag)}
+                    title={i18n.__('Remove tag')}
+                    aria-label={`${i18n.__('Remove tag')}: ${tag}`}
+                  >
+                    <i className='fa fa-times' aria-hidden='true' />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <input
+              styleName='bulk-tag-input'
+              value={bulkNewTag}
+              placeholder={i18n.__('Add tag to selected...')}
+              onChange={e => this.setState({ bulkNewTag: e.target.value })}
+              onKeyDown={this.handleBulkTagInputKeyDown}
+            />
           </div>
         )}
         <div

@@ -87,3 +87,11 @@ jobs:
         env:
           ELECTRON_DISABLE_SANDBOX: '1'
         run: xvfb-run --auto-servernum pnpm run e2e:theme
+
+      - name: E2E (bulk selection bar + bulk tagging)
+        # Regression gate for the multi-select action bar layout and bulk tag
+        # add/remove. Multi-selects two notes, tags them, and asserts against the
+        # persisted .cson files that exactly the selected notes were changed.
+        env:
+          ELECTRON_DISABLE_SANDBOX: '1'
+        run: xvfb-run --auto-servernum pnpm run e2e:bulktag

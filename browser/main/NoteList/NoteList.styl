@@ -80,43 +80,127 @@ $bulk-bar-height = 34px
 
 .bulk-count
   font-weight 700
+  min-width 0
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
 
 .bulk-actions
   display flex
+  align-items center
+  flex-shrink 0
+  gap 4px
 
-.bulk-restore
-  background-color #27ae60
-  border none
-  color #fff
-  padding 4px 12px
-  border-radius 4px
-  cursor pointer
-  font-size 12px
-  margin-left 8px
-  &:hover
-    background-color #2ecc71
-
-.bulk-delete
-  background-color #c0392b
-  border none
-  color #fff
-  padding 4px 12px
-  border-radius 4px
-  cursor pointer
-  font-size 12px
-  margin-left 8px
-  &:hover
-    background-color #e74c3c
-
-.bulk-clear
+// Compact icon buttons so 3-4 actions fit the narrow (~280px) note panel
+// without wrapping/overlapping. Labels are exposed via title + aria-label.
+.bulk-action
+  width 26px
+  height 24px
+  display flex
+  align-items center
+  justify-content center
   background transparent
-  border 1px solid alpha($ui-text-color, 40%)
-  color $ui-text-color
-  padding 4px 12px
+  border 1px solid alpha($ui-text-color, 22%)
   border-radius 4px
+  color $ui-text-color
   cursor pointer
   font-size 12px
-  margin-left 8px
+  padding 0
+  &:hover
+    background-color alpha($ui-text-color, 10%)
+  &:focus-visible
+    outline 2px solid #1EC38B
+    outline-offset -2px
+
+.bulk-action--active
+  @extend .bulk-action
+  background-color #1EC38B
+  border-color #1EC38B
+  color #ffffff
+  &:hover
+    background-color #1EC38B
+
+.bulk-action--danger
+  @extend .bulk-action
+  color #c0392b
+  border-color alpha(#c0392b, 45%)
+  &:hover
+    background-color alpha(#c0392b, 12%)
+
+.bulk-action--restore
+  @extend .bulk-action
+  color #27ae60
+  border-color alpha(#27ae60, 45%)
+  &:hover
+    background-color alpha(#27ae60, 12%)
+
+// Floating tag editor for bulk-selected notes. Overlays the top of the list
+// as a dropdown so the fixed list offset stays correct regardless of how many
+// tag chips wrap.
+.bulk-tag-editor
+  absolute left right
+  top $control-height + $bulk-bar-height
+  z-index 6
+  display flex
+  flex-direction column
+  gap 6px
+  padding 8px 12px
+  max-height 170px
+  overflow-y auto
+  background-color $ui-noteList-backgroundColor
+  border-bottom $ui-border
+  box-shadow 0 4px 8px alpha(#000000, 12%)
+
+.bulk-tag-list
+  display flex
+  flex-wrap wrap
+  gap 5px
+
+.bulk-tag
+  display inline-flex
+  align-items center
+  max-width 100%
+  padding 2px 4px 2px 7px
+  border-radius 4px
+  font-size 12px
+  color $ui-text-color
+  background-color alpha($ui-button--active-backgroundColor, 90%)
+
+.bulk-tag-label
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+
+.bulk-tag-remove
+  display inline-flex
+  align-items center
+  justify-content center
+  margin-left 4px
+  width 16px
+  height 16px
+  padding 0
+  border none
+  border-radius 3px
+  background transparent
+  color alpha($ui-text-color, 60%)
+  cursor pointer
+  font-size 10px
+  &:hover
+    color $ui-text-color
+    background-color alpha($ui-text-color, 12%)
+
+.bulk-tag-input
+  width 100%
+  box-sizing border-box
+  padding 5px 8px
+  border 1px solid alpha($ui-text-color, 22%)
+  border-radius 4px
+  background-color $ui-backgroundColor
+  color $ui-text-color
+  font-size 12px
+  outline none
+  &:focus
+    border-color #1EC38B
 
 .list--bulk
   @extend .list
@@ -195,6 +279,23 @@ apply-theme(theme)
       color get-theme-var(theme, 'text-color')
       &:active
         color get-theme-var(theme, 'text-color')
+
+    .bulk-action
+      color get-theme-var(theme, 'text-color')
+      border-color get-theme-var(theme, 'borderColor')
+
+    .bulk-tag-editor
+      background-color get-theme-var(theme, 'noteList-backgroundColor')
+      border-color get-theme-var(theme, 'borderColor')
+
+    .bulk-tag
+      color get-theme-var(theme, 'text-color')
+      background-color get-theme-var(theme, 'button--active-backgroundColor')
+
+    .bulk-tag-input
+      background-color get-theme-var(theme, 'backgroundColor')
+      color get-theme-var(theme, 'text-color')
+      border-color get-theme-var(theme, 'borderColor')
 
 for theme in 'white' 'dark' 'solarized-dark' 'dracula'
   apply-theme(theme)

@@ -26,6 +26,7 @@
     "compile:webpack": "cross-env BABEL_ENV=production NODE_ENV=production NODE_OPTIONS=--openssl-legacy-provider webpack --config webpack-production.config.js --bail",
     "check-esm-cjs": "node scripts/check-esm-cjs-compat.mjs",
     "e2e": "cross-env TB_E2E_PROBE=dev-scripts/e2e-probe.js electron .",
+    "e2e:preview": "cross-env TB_E2E_PROBE=dev-scripts/e2e-preview-probe.js electron .",
     "pre-release": "node scripts/pre-release-check.mjs"
   },
   "config": {

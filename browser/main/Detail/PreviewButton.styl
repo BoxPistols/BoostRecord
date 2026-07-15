@@ -1,0 +1,29 @@
+.control-previewButton
+  topBarButtonRight()
+  &:hover .tooltip
+    opacity 1
+
+.control-previewButton[data-active="true"]
+  color $ui-button-color
+  fill $ui-button-color
+
+.tooltip
+  tooltip()
+  position absolute
+  pointer-events none
+  top 50px
+  right 20px
+  z-index 200
+  padding 5px
+  line-height normal
+  border-radius 2px
+  opacity 0
+  transition 0.1s
+
+.tooltip:lang(ja)
+  @extend .tooltip
+  right 10px
+
+body[data-theme="dark"]
+  .control-previewButton
+    topBarButtonDark()

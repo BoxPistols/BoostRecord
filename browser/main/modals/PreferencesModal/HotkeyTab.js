@@ -88,6 +88,7 @@ class HotkeyTab extends React.Component {
     config.hotkey = Object.assign({}, config.hotkey, {
       toggleMain: this.refs.toggleMain.value,
       toggleMode: this.refs.toggleMode.value,
+      togglePreview: this.refs.togglePreview.value,
       toggleDirection: this.refs.toggleDirection.value,
       deleteNote: this.refs.deleteNote.value,
       pasteSmartly: this.refs.pasteSmartly.value,
@@ -172,6 +173,20 @@ class HotkeyTab extends React.Component {
                 onChange={e => this.handleHotkeyChange(e)}
                 ref='toggleMode'
                 value={config.hotkey.toggleMode}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Toggle Preview')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                onChange={e => this.handleHotkeyChange(e)}
+                ref='togglePreview'
+                value={config.hotkey.togglePreview || ''}
                 type='text'
               />
             </div>

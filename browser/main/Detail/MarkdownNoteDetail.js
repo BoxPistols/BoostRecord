@@ -19,6 +19,7 @@ import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
 import FullscreenButton from './FullscreenButton'
+import PreviewButton from './PreviewButton'
 import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
@@ -52,6 +53,9 @@ class MarkdownNoteDetail extends React.Component {
       isLocked: false,
       editorType: props.config.editor.type,
       switchPreview: props.config.editor.switchPreview,
+      // Transient preview-only view (editor hidden). Not persisted to config, so
+      // it never changes how new notes open — it's a per-session view toggle.
+      previewOnly: false,
       RTL: false
     }
 
@@ -73,6 +77,15 @@ class MarkdownNoteDetail extends React.Component {
         this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
       this.handleSwitchMode(reversedType)
     }
+    this.handleTogglePreview = () => {
+      this.setState(
+        prevState => ({ previewOnly: !prevState.previewOnly }),
+        () => {
+          // Returning to an editable view: put the caret back in the editor.
+          if (!this.state.previewOnly) this.focus()
+        }
+      )
+    }
   }
 
   focus() {
@@ -84,6 +97,7 @@ class MarkdownNoteDetail extends React.Component {
     ee.on('topbar:togglelockbutton', this.toggleLockButton)
     ee.on('topbar:toggledirectionbutton', this.handleSwitchDirection)
     ee.on('topbar:togglemodebutton', this.handleToggleMode)
+    ee.on('topbar:togglepreviewbutton', this.handleTogglePreview)
     ee.on('hotkey:deletenote', this.handleDeleteNote)
     ee.on('code:generate-toc', this.generateToc)
   }
@@ -125,6 +139,7 @@ class MarkdownNoteDetail extends React.Component {
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
     ee.off('topbar:toggledirectionbutton', this.handleSwitchDirection)
     ee.off('topbar:togglemodebutton', this.handleToggleMode)
+    ee.off('topbar:togglepreviewbutton', this.handleTogglePreview)
     ee.off('hotkey:deletenote', this.handleDeleteNote)
     ee.off('code:generate-toc', this.generateToc)
     if (this.saveQueue != null) this.saveNow()
@@ -467,9 +482,11 @@ class MarkdownNoteDetail extends React.Component {
 
   renderEditor() {
     const { config, ignorePreviewPointerEvents } = this.props
-    const { note, isStacking } = this.state
+    const { note, isStacking, previewOnly } = this.state
 
-    if (this.state.editorType === 'EDITOR_PREVIEW') {
+    // previewOnly overrides any mode: render the single-pane editor pinned to
+    // the preview (editor hidden). Otherwise fall back to the persisted mode.
+    if (previewOnly || this.state.editorType === 'EDITOR_PREVIEW') {
       return (
         <MarkdownEditor
           ref='content'
@@ -483,6 +500,7 @@ class MarkdownNoteDetail extends React.Component {
           ignorePreviewPointerEvents={ignorePreviewPointerEvents}
           getNote={this.getNote}
           RTL={config.editor.rtlEnabled && this.state.RTL}
+          forcePreview={previewOnly}
         />
       )
     } else {
@@ -586,6 +604,10 @@ class MarkdownNoteDetail extends React.Component {
           <ToggleModeButton
             onClick={e => this.handleSwitchMode(e)}
             editorType={editorType}
+          />
+          <PreviewButton
+            onClick={this.handleTogglePreview}
+            active={this.state.previewOnly}
           />
           {this.props.config.editor.rtlEnabled && (
             <ToggleDirectionButton

@@ -21,13 +21,16 @@ class MarkdownEditor extends React.Component {
     this.supportMdSelectionBold = [16, 17, 186]
 
     this.state = {
-      status:
-        props.config.editor.switchPreview === 'RIGHTCLICK'
-          ? props.config.editor.delfaultStatus
-          : 'CODE',
+      // forcePreview (preview-only toolbar toggle) pins the pane to the rendered
+      // preview and locks it so blur/click/double-click can't flip back to code.
+      status: props.forcePreview
+        ? 'PREVIEW'
+        : props.config.editor.switchPreview === 'RIGHTCLICK'
+        ? props.config.editor.delfaultStatus
+        : 'CODE',
       renderValue: props.value,
       keyPressed: new Set(),
-      isLocked: props.isLocked
+      isLocked: props.forcePreview || props.isLocked
     }
 
     this.lockEditorCode = this.handleLockEditor.bind(this)
@@ -49,6 +52,14 @@ class MarkdownEditor extends React.Component {
   UNSAFE_componentWillReceiveProps(props) {
     if (props.value !== this.props.value) {
       this.queueRendering(props.value)
+    }
+    // React to the preview-only toolbar toggle without remounting (the parent
+    // keeps the same MarkdownEditor instance when already in EDITOR_PREVIEW).
+    if (props.forcePreview !== this.props.forcePreview) {
+      this.setState({
+        status: props.forcePreview ? 'PREVIEW' : 'CODE',
+        isLocked: props.forcePreview
+      })
     }
   }
 

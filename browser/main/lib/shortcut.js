@@ -4,6 +4,9 @@ export default {
   toggleMode: () => {
     ee.emit('topbar:togglemodebutton')
   },
+  togglePreview: () => {
+    ee.emit('topbar:togglepreviewbutton')
+  },
   toggleDirection: () => {
     ee.emit('topbar:toggledirectionbutton')
   },

@@ -5,8 +5,12 @@ import styles from './TrashButton.styl'
 import i18n from 'browser/lib/i18n'
 
 const TrashButton = ({ onClick }) => (
-  <button styleName='control-trashButton' onClick={e => onClick(e)}>
-    <img src='../resources/icon/icon-trash.svg' />
+  <button
+    styleName='control-trashButton'
+    aria-label={i18n.__('Trash')}
+    onClick={e => onClick(e)}
+  >
+    <img src='../resources/icon/icon-trash.svg' aria-hidden='true' />
     <span lang={i18n.locale} styleName='tooltip'>
       {i18n.__('Trash')}
     </span>

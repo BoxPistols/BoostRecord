@@ -1052,7 +1052,7 @@ export default class CodeEditor extends React.Component {
         return true
       }
 
-      let line = (line = cursor.line - 1)
+      let line = cursor.line - 1
       while (line >= 0) {
         token = editor.getTokenAt({
           ch: 3,

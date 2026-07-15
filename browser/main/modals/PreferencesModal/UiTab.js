@@ -86,10 +86,15 @@ class UiTab extends React.Component {
       ui: {
         theme: this.refs.uiTheme.value,
         defaultTheme: this.refs.uiTheme.value,
-        enableScheduleTheme: this.refs.enableScheduleTheme.checked,
-        scheduledTheme: this.refs.uiScheduledTheme.value,
-        scheduleStart: this.refs.scheduleStart.value,
-        scheduleEnd: this.refs.scheduleEnd.value,
+        // The scheduled-theme UI was removed, so there are no refs to read for
+        // these fields. Reading them (this.refs.enableScheduleTheme.checked …)
+        // threw "Cannot read properties of undefined" and aborted the whole
+        // handler before setState — so NO Interface setting (theme included)
+        // ever applied. Preserve the existing config values instead.
+        enableScheduleTheme: this.state.config.ui.enableScheduleTheme,
+        scheduledTheme: this.state.config.ui.scheduledTheme,
+        scheduleStart: this.state.config.ui.scheduleStart,
+        scheduleEnd: this.state.config.ui.scheduleEnd,
         language: this.refs.uiLanguage.value,
         defaultNote: this.refs.defaultNote.value,
         tagNewNoteWithFilteringTags: this.refs.tagNewNoteWithFilteringTags

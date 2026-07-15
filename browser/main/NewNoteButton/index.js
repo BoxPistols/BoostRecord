@@ -8,6 +8,9 @@ import NewNoteModal from 'browser/main/modals/NewNoteModal'
 import eventEmitter from 'browser/main/lib/eventEmitter'
 import i18n from 'browser/lib/i18n'
 import { createMarkdownNote, createSnippetNote } from 'browser/lib/newNote'
+import dataApi from 'browser/main/lib/dataApi'
+import queryString from 'query-string'
+import { push } from 'connected-react-router'
 
 const remote = require('@electron/remote')
 const { dialog } = remote
@@ -21,14 +24,17 @@ class NewNoteButton extends React.Component {
     this.state = {}
 
     this.handleNewNoteButtonClick = this.handleNewNoteButtonClick.bind(this)
+    this.handleExampleNoteClick = this.handleExampleNoteClick.bind(this)
   }
 
   componentDidMount() {
     eventEmitter.on('top:new-note', this.handleNewNoteButtonClick)
+    eventEmitter.on('top:example-note', this.handleExampleNoteClick)
   }
 
   componentWillUnmount() {
     eventEmitter.off('top:new-note', this.handleNewNoteButtonClick)
+    eventEmitter.off('top:example-note', this.handleExampleNoteClick)
   }
 
   handleNewNoteButtonClick(e) {
@@ -67,6 +73,75 @@ class NewNoteButton extends React.Component {
         config
       })
     }
+  }
+
+  handleExampleNoteClick() {
+    const { dispatch, location } = this.props
+    const { storage, folder } = this.resolveTargetFolder()
+    const content = [
+      '# The Boosters — Feature Example',
+      '',
+      '## YAML Front Matter',
+      'Export this note with **File › Export as › .md** and choose',
+      '"Merge with the header" to get standard YAML front matter —',
+      'compatible with Jekyll, Hugo, Next.js MDX, Obsidian, CLAUDE.md.',
+      '',
+      '## Mermaid Diagram',
+      '',
+      '```mermaid',
+      'graph TD',
+      '  A[Write Notes] --> B[Export as .md]',
+      '  B --> C{Format?}',
+      '  C -->|YAML header| D[Jekyll / Hugo / Obsidian]',
+      '  C -->|Mermaid block| E[GitHub / GitLab / Notion]',
+      '  C -->|AI doc| F[CLAUDE.md / Skills.md]',
+      '```',
+      '',
+      '## Code Block',
+      '',
+      '```js',
+      '// Cmd/Ctrl+N → new note  |  Cmd/Ctrl+P → jump to note',
+      "const note = { title: 'Example', tags: ['demo', 'mermaid'] }",
+      '```',
+      '',
+      '## Markdown Syntax',
+      '',
+      '- **Bold**, *italic*, ~~strikethrough~~, `inline code`',
+      '- [The Boosters on GitHub](https://github.com/BoxPistols/TheBoosters)',
+      '',
+      '> Blockquote: export as .md with Mermaid blocks and the diagrams',
+      '> render on GitHub, GitLab, Notion, and Obsidian automatically.',
+      '',
+      '## Keyboard Shortcuts',
+      '',
+      '| Action | Mac | Windows/Linux |',
+      '|--------|-----|---------------|',
+      '| New note | ⌘N | Ctrl+N |',
+      '| Jump to note | ⌘P | Ctrl+P |',
+      '| Export | File › Export as | File › Export as |',
+      '| Split view | Mode switcher (toolbar) | Mode switcher (toolbar) |',
+      '| Example note | ⌘⇧H | Ctrl+Shift+H |'
+    ].join('\n')
+
+    dataApi
+      .createNote(storage.key, {
+        type: 'MARKDOWN_NOTE',
+        folder: folder.key,
+        title: 'The Boosters — Feature Example',
+        tags: ['example', 'mermaid'],
+        content,
+        linesHighlighted: []
+      })
+      .then(note => {
+        dispatch({ type: 'UPDATE_NOTE', note })
+        dispatch(
+          push({
+            pathname: location.pathname,
+            search: queryString.stringify({ key: note.key })
+          })
+        )
+        eventEmitter.emit('list:jump', note.key)
+      })
   }
 
   resolveTargetFolder() {

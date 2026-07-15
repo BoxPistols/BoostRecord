@@ -18,7 +18,6 @@ import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
-import FullscreenButton from './FullscreenButton'
 import PreviewButton from './PreviewButton'
 import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
@@ -367,10 +366,6 @@ class MarkdownNoteDetail extends React.Component {
     )
   }
 
-  handleFullScreenButton(e) {
-    ee.emit('editor:fullscreen')
-  }
-
   handleLockButtonMouseDown(e) {
     e.preventDefault()
     ee.emit('editor:lock')
@@ -639,8 +634,6 @@ class MarkdownNoteDetail extends React.Component {
 
             return this.state.isLockButtonShown ? lockButtonComponent : ''
           })()}
-
-          <FullscreenButton onClick={e => this.handleFullScreenButton(e)} />
 
           <TrashButton onClick={e => this.handleTrashButtonClick(e)} />
 

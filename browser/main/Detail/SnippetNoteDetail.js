@@ -18,7 +18,6 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 import _ from 'lodash'
 import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
-import FullscreenButton from './FullscreenButton'
 import TrashButton from './TrashButton'
 import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
@@ -277,10 +276,6 @@ class SnippetNoteDetail extends React.Component {
         ee.emit('list:next')
       }
     )
-  }
-
-  handleFullScreenButton(e) {
-    ee.emit('editor:fullscreen')
   }
 
   handleTabMoveLeftButtonClick(e) {
@@ -962,8 +957,6 @@ class SnippetNoteDetail extends React.Component {
             onClick={e => this.handleStarButtonClick(e)}
             isActive={note.isStarred}
           />
-
-          <FullscreenButton onClick={e => this.handleFullScreenButton(e)} />
 
           <TrashButton onClick={e => this.handleTrashButtonClick(e)} />
 

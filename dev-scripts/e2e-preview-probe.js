@@ -143,7 +143,8 @@ function setupSource() {
   })()`
 }
 
-// Step 2: toggle preview off, expect the editor back.
+// Step 2: switch back to the Editor segment of the 3-way switcher, expect the
+// editor visible again.
 function toggleBackSource() {
   return `(async () => {
     const sleep = ms => new Promise(r => setTimeout(r, ms))
@@ -152,9 +153,9 @@ function toggleBackSource() {
         const el = document.querySelector('.CodeEditor')
         return !!el && /hide/.test(el.className)
       }
-      const previewBtn = Array.from(document.querySelectorAll('button'))
-        .find(b => b.querySelector('.fa-eye, .fa-eye-slash'))
-      previewBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+      const editorBtn = Array.from(document.querySelectorAll('button'))
+        .find(b => b.querySelector('.fa-pencil'))
+      editorBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
       await sleep(500)
       return { editorVisibleAfterToggleBack: !editorHidden() }
     } catch (err) {

@@ -21,16 +21,17 @@ class MarkdownEditor extends React.Component {
     this.supportMdSelectionBold = [16, 17, 186]
 
     this.state = {
-      // forcePreview (preview-only toolbar toggle) pins the pane to the rendered
-      // preview and locks it so blur/click/double-click can't flip back to code.
-      status: props.forcePreview
-        ? 'PREVIEW'
+      // pinnedStatus (from the 3-way view switcher) pins the single pane to
+      // 'CODE' (editor only) or 'PREVIEW' (preview only) and locks it so
+      // blur/click/double-click can't flip it. null = legacy flip behaviour.
+      status: props.pinnedStatus
+        ? props.pinnedStatus
         : props.config.editor.switchPreview === 'RIGHTCLICK'
         ? props.config.editor.delfaultStatus
         : 'CODE',
       renderValue: props.value,
       keyPressed: new Set(),
-      isLocked: props.forcePreview || props.isLocked
+      isLocked: props.pinnedStatus != null || props.isLocked
     }
 
     this.lockEditorCode = this.handleLockEditor.bind(this)
@@ -53,12 +54,12 @@ class MarkdownEditor extends React.Component {
     if (props.value !== this.props.value) {
       this.queueRendering(props.value)
     }
-    // React to the preview-only toolbar toggle without remounting (the parent
-    // keeps the same MarkdownEditor instance when already in EDITOR_PREVIEW).
-    if (props.forcePreview !== this.props.forcePreview) {
+    // React to the view switcher (editor-only ↔ preview-only) without remounting
+    // when the parent keeps the same MarkdownEditor instance.
+    if (props.pinnedStatus !== this.props.pinnedStatus) {
       this.setState({
-        status: props.forcePreview ? 'PREVIEW' : 'CODE',
-        isLocked: props.forcePreview
+        status: props.pinnedStatus || 'CODE',
+        isLocked: props.pinnedStatus != null
       })
     }
   }

@@ -1,0 +1,59 @@
+.switcher
+  height 25px
+  border-radius 50px
+  background-color #F4F4F4
+  display inline-flex
+  align-items center
+  position relative
+  top 2px
+  padding 2px
+  -webkit-user-drag none
+  user-select none
+
+.seg
+  width 26px
+  height 21px
+  border none
+  background transparent
+  border-radius 50px
+  display flex
+  align-items center
+  justify-content center
+  cursor pointer
+  color rgba(90, 90, 90, 0.55)
+  font-size 12px
+  padding 0
+  &:hover
+    color rgba(90, 90, 90, 0.9)
+
+.seg--active
+  @extend .seg
+  background-color #1EC38B
+  color #ffffff
+  box-shadow 0 0 6px rgba(0, 0, 0, 0.12)
+  &:hover
+    color #ffffff
+
+body[data-theme="dark"]
+  .switcher
+    background-color #3A404C
+  .seg
+    color rgba(200, 200, 200, 0.55)
+  .seg--active
+    background-color #1EC38B
+    color #ffffff
+
+body[data-theme="solarized-dark"]
+  .switcher
+    background-color #002B36
+
+apply-theme(theme)
+  body[data-theme={theme}]
+    .switcher
+      background-color get-theme-var(theme, 'borderColor')
+    .seg--active
+      background-color get-theme-var(theme, 'active-color')
+      color #ffffff
+
+for theme in $themes
+  apply-theme(theme)

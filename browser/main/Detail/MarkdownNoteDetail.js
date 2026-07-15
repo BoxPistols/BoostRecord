@@ -18,11 +18,10 @@ import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
-import PreviewButton from './PreviewButton'
 import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
-import ToggleModeButton from './ToggleModeButton'
+import ModeSwitcher from './ModeSwitcher'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
@@ -48,7 +47,9 @@ class MarkdownNoteDetail extends React.Component {
         },
         props.note
       ),
-      isLockButtonShown: props.config.editor.type !== 'SPLIT',
+      // Lock button retired: the 3-way ModeSwitcher (Editor/Split/Preview)
+      // makes the editor/preview lock redundant.
+      isLockButtonShown: false,
       isLocked: false,
       editorType: props.config.editor.type,
       switchPreview: props.config.editor.switchPreview,
@@ -71,20 +72,46 @@ class MarkdownNoteDetail extends React.Component {
     // toggle handlers fire multiple times).
     this.handleSwitchDirection = this.handleSwitchDirection.bind(this)
     this.handleDeleteNote = this.handleDeleteNote.bind(this)
+    // The 3-way view switcher (ModeSwitcher) drives everything below.
+    // viewMode is derived from (editorType, previewOnly) so no new persisted
+    // state is needed: SPLIT/EDITOR persist via editor.type, PREVIEW is the
+    // transient previewOnly override.
+    this.handleSetViewMode = mode => {
+      if (mode === 'PREVIEW') {
+        this.setState({ previewOnly: true })
+      } else if (mode === 'SPLIT') {
+        this.setState({ previewOnly: false }, () =>
+          this.handleSwitchMode('SPLIT')
+        )
+      } else {
+        this.setState({ previewOnly: false }, () => {
+          this.handleSwitchMode('EDITOR_PREVIEW')
+          this.focus()
+        })
+      }
+    }
+    // Cmd/Ctrl+Alt+M cycles Editor → Split → Preview → Editor.
     this.handleToggleMode = () => {
-      const reversedType =
-        this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
-      this.handleSwitchMode(reversedType)
+      const order = ['EDITOR', 'SPLIT', 'PREVIEW']
+      const next = order[(order.indexOf(this.getViewMode()) + 1) % order.length]
+      this.handleSetViewMode(next)
     }
+    // Cmd/Ctrl+Alt+P toggles Preview on/off.
     this.handleTogglePreview = () => {
-      this.setState(
-        prevState => ({ previewOnly: !prevState.previewOnly }),
-        () => {
-          // Returning to an editable view: put the caret back in the editor.
-          if (!this.state.previewOnly) this.focus()
-        }
-      )
+      if (this.state.previewOnly) {
+        this.handleSetViewMode(
+          this.state.editorType === 'SPLIT' ? 'SPLIT' : 'EDITOR'
+        )
+      } else {
+        this.handleSetViewMode('PREVIEW')
+      }
     }
+  }
+
+  // Current view as one of the 3 switcher values.
+  getViewMode() {
+    if (this.state.previewOnly) return 'PREVIEW'
+    return this.state.editorType === 'SPLIT' ? 'SPLIT' : 'EDITOR'
   }
 
   focus() {
@@ -413,16 +440,12 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleSwitchMode(type) {
-    // If in split mode, hide the lock button
-    this.setState(
-      { editorType: type, isLockButtonShown: type !== 'SPLIT' },
-      () => {
-        this.focus()
-        const newConfig = Object.assign({}, this.props.config)
-        newConfig.editor.type = type
-        ConfigManager.set(newConfig)
-      }
-    )
+    this.setState({ editorType: type, isLockButtonShown: false }, () => {
+      this.focus()
+      const newConfig = Object.assign({}, this.props.config)
+      newConfig.editor.type = type
+      ConfigManager.set(newConfig)
+    })
   }
 
   handleSwitchStackDirection() {
@@ -495,7 +518,7 @@ class MarkdownNoteDetail extends React.Component {
           ignorePreviewPointerEvents={ignorePreviewPointerEvents}
           getNote={this.getNote}
           RTL={config.editor.rtlEnabled && this.state.RTL}
-          forcePreview={previewOnly}
+          pinnedStatus={previewOnly ? 'PREVIEW' : 'CODE'}
         />
       )
     } else {
@@ -519,7 +542,7 @@ class MarkdownNoteDetail extends React.Component {
 
   render() {
     const { data, dispatch, location, config } = this.props
-    const { note, editorType } = this.state
+    const { note } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -596,13 +619,9 @@ class MarkdownNoteDetail extends React.Component {
           />
         </div>
         <div styleName='info-right'>
-          <ToggleModeButton
-            onClick={e => this.handleSwitchMode(e)}
-            editorType={editorType}
-          />
-          <PreviewButton
-            onClick={this.handleTogglePreview}
-            active={this.state.previewOnly}
+          <ModeSwitcher
+            viewMode={this.getViewMode()}
+            onChange={this.handleSetViewMode}
           />
           {this.props.config.editor.rtlEnabled && (
             <ToggleDirectionButton
@@ -614,26 +633,6 @@ class MarkdownNoteDetail extends React.Component {
             onClick={e => this.handleStarButtonClick(e)}
             isActive={note.isStarred}
           />
-
-          {(() => {
-            const imgSrc = `${this.getToggleLockButton()}`
-            const lockButtonComponent = (
-              <button
-                styleName='control-lockButton'
-                onFocus={e => this.handleFocus(e)}
-                onMouseDown={e => this.handleLockButtonMouseDown(e)}
-              >
-                <img src={imgSrc} />
-                {this.state.isLocked ? (
-                  <span styleName='tooltip'>Unlock</span>
-                ) : (
-                  <span styleName='tooltip'>Lock</span>
-                )}
-              </button>
-            )
-
-            return this.state.isLockButtonShown ? lockButtonComponent : ''
-          })()}
 
           <TrashButton onClick={e => this.handleTrashButtonClick(e)} />
 

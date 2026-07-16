@@ -76,7 +76,21 @@ class NewNoteButton extends React.Component {
   }
 
   handleExampleNoteClick() {
-    const { dispatch, location } = this.props
+    const { dispatch, location, data } = this.props
+    const EXAMPLE_TITLE = 'The Boosters — Feature Example'
+
+    const existing = data.noteMap.find(note => note.title === EXAMPLE_TITLE)
+    if (existing) {
+      dispatch(
+        push({
+          pathname: location.pathname,
+          search: queryString.stringify({ key: existing.key })
+        })
+      )
+      eventEmitter.emit('list:jump', existing.key)
+      return
+    }
+
     const { storage, folder } = this.resolveTargetFolder()
     const content = [
       '# The Boosters — Feature Example',
@@ -127,7 +141,7 @@ class NewNoteButton extends React.Component {
       .createNote(storage.key, {
         type: 'MARKDOWN_NOTE',
         folder: folder.key,
-        title: 'The Boosters — Feature Example',
+        title: EXAMPLE_TITLE,
         tags: ['example', 'mermaid'],
         content,
         linesHighlighted: []
@@ -142,6 +156,7 @@ class NewNoteButton extends React.Component {
         )
         eventEmitter.emit('list:jump', note.key)
       })
+      .catch(err => this.showMessageBox(err.message || String(err)))
   }
 
   resolveTargetFolder() {

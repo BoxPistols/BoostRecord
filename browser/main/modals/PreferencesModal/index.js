@@ -87,7 +87,7 @@ class Preferences extends React.Component {
       case 'AI':
         return <AITab dispatch={dispatch} config={config} />
       case 'IMAGES':
-        return <ImagesTab dispatch={dispatch} data={data} />
+        return <ImagesTab data={data} />
       case 'STORAGES':
       default:
         return (

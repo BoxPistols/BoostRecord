@@ -1,3 +1,5 @@
+$seg-brand-color = $seg-brand-color
+
 .switcher
   height 32px
   border-radius 50px
@@ -26,12 +28,12 @@
   &:hover
     color rgba(90, 90, 90, 0.9)
   &:focus-visible
-    outline 2px solid #1EC38B
+    outline 2px solid $seg-brand-color
     outline-offset -2px
 
 .seg--active
   @extend .seg
-  background-color #1EC38B
+  background-color $seg-brand-color
   color #ffffff
   box-shadow 0 0 6px rgba(0, 0, 0, 0.12)
   &:hover
@@ -43,7 +45,7 @@ body[data-theme="dark"]
   .seg
     color rgba(200, 200, 200, 0.55)
   .seg--active
-    background-color #1EC38B
+    background-color $seg-brand-color
     color #ffffff
 
 body[data-theme="solarized-dark"]

@@ -131,33 +131,70 @@ class ImageManagerModal extends React.Component {
   // ---- destructive / mutating actions ----
 
   deletePaths(items) {
-    const paths = items.filter(a => !a.broken).map(a => a.absPath)
-    if (paths.length === 0) {
+    // Broken items have no file to delete — "deleting" one means removing its
+    // dangling reference from the note(s). Handle both in one bulk action so a
+    // selected broken entry can actually be cleared (previously it silently
+    // reported "Nothing to delete").
+    const realFiles = items.filter(a => !a.broken)
+    const brokenItems = items.filter(a => a.broken)
+    const paths = realFiles.map(a => a.absPath)
+    if (paths.length === 0 && brokenItems.length === 0) {
       this.setState({ notice: i18n.__('Nothing to delete') })
       return
     }
+    const parts = []
+    if (paths.length)
+      parts.push(
+        i18n
+          .__('Permanently delete %n image file(s).')
+          .replace('%n', paths.length)
+      )
+    if (brokenItems.length)
+      parts.push(
+        i18n
+          .__('Remove %n broken reference(s) from notes (a backup is saved).')
+          .replace('%n', brokenItems.length)
+      )
     if (
       !window.confirm(
-        i18n.__(
-          'Permanently delete the selected image files? This cannot be undone.'
-        )
+        parts.join('\n') + '\n\n' + i18n.__('This cannot be undone.')
       )
     )
       return
     this.setState({ busy: true, notice: null })
-    dataApi
-      .deleteAttachmentsVerified(paths)
-      .then(({ deleted, failed }) => {
-        this.setState({
-          busy: false,
-          notice:
-            i18n.__('Deleted') +
-            ': ' +
-            deleted.length +
-            (failed.length
-              ? ' / ' + i18n.__('Failed') + ': ' + failed.length
-              : '')
-        })
+    const jobs = []
+    if (paths.length) jobs.push(dataApi.deleteAttachmentsVerified(paths))
+    brokenItems.forEach(a =>
+      jobs.push(
+        dataApi
+          .removeBrokenReferences({
+            storageKey: a.storageKey,
+            noteKey: a.noteKey,
+            fileName: a.fileName
+          })
+          .then(res => {
+            if (res && res.updatedNotes)
+              res.updatedNotes.forEach(note =>
+                store.dispatch({ type: 'UPDATE_NOTE', note })
+              )
+            return res
+          })
+      )
+    )
+    Promise.all(jobs)
+      .then(results => {
+        const del = (paths.length && results[0] && results[0].deleted) || []
+        const failed = (paths.length && results[0] && results[0].failed) || []
+        const notice = [
+          paths.length ? i18n.__('Deleted') + ': ' + del.length : '',
+          failed.length ? i18n.__('Failed') + ': ' + failed.length : '',
+          brokenItems.length
+            ? i18n.__('References removed') + ': ' + brokenItems.length
+            : ''
+        ]
+          .filter(Boolean)
+          .join(' · ')
+        this.setState({ busy: false, notice })
         this.load()
       })
       .catch(err => this.setState({ busy: false, error: String(err) }))
@@ -186,6 +223,17 @@ class ImageManagerModal extends React.Component {
     if (!raw) return
     const newName = raw.endsWith(ext) ? raw : raw + ext
     if (newName === a.fileName) return this.cancelRename()
+    // Only allow characters the storage-reference parser understands; anything
+    // else (spaces, slashes, parens…) would desync the note reference from the
+    // file and orphan the image. Keep the input open so the user can fix it.
+    if (!/^[\w.-]+$/.test(newName)) {
+      this.setState({
+        notice: i18n.__(
+          'File name may only contain letters, numbers, ".", "-" and "_".'
+        )
+      })
+      return
+    }
     const args = {
       storageKey: a.storageKey,
       noteKey: a.noteKey,

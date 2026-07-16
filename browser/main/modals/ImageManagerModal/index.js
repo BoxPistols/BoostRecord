@@ -80,7 +80,9 @@ class ImageManagerModal extends React.Component {
       selected: {}, // absPath -> true (bulk)
       detail: null, // the focused attachment
       busy: false,
-      notice: null
+      notice: null,
+      renaming: false, // inline rename mode for the detail pane
+      renameValue: '' // the base name being edited (extension appended on commit)
     }
     this.gridRef = React.createRef()
   }
@@ -161,23 +163,36 @@ class ImageManagerModal extends React.Component {
       .catch(err => this.setState({ busy: false, error: String(err) }))
   }
 
-  renameDetail() {
+  // Enter inline rename mode. window.prompt() is disabled in Electron
+  // (returns null), so the rename is done with an in-app text field instead.
+  startRename() {
     const a = this.state.detail
     if (!a || a.broken) return
     const dot = a.fileName.lastIndexOf('.')
     const base = dot > 0 ? a.fileName.slice(0, dot) : a.fileName
+    this.setState({ renaming: true, renameValue: base, notice: null })
+  }
+
+  cancelRename() {
+    this.setState({ renaming: false, renameValue: '' })
+  }
+
+  commitRename() {
+    const a = this.state.detail
+    if (!a || a.broken) return this.cancelRename()
+    const dot = a.fileName.lastIndexOf('.')
     const ext = dot > 0 ? a.fileName.slice(dot) : ''
-    const input = window.prompt(i18n.__('New file name'), base)
-    if (input == null) return
-    const newName = input.trim() + (input.trim().endsWith(ext) ? '' : ext)
-    if (!newName || newName === a.fileName) return
+    const raw = (this.state.renameValue || '').trim()
+    if (!raw) return
+    const newName = raw.endsWith(ext) ? raw : raw + ext
+    if (newName === a.fileName) return this.cancelRename()
     const args = {
       storageKey: a.storageKey,
       noteKey: a.noteKey,
       oldName: a.fileName,
       newName
     }
-    this.setState({ busy: true, notice: null })
+    this.setState({ busy: true, renaming: false, notice: null })
     dataApi
       .renameAttachment(Object.assign({ dryRun: true }, args))
       .then(({ affected }) => {
@@ -379,7 +394,7 @@ class ImageManagerModal extends React.Component {
                       ? 'card--selected'
                       : 'card'
                   }
-                  onClick={() => this.setState({ detail: a })}
+                  onClick={() => this.setState({ detail: a, renaming: false })}
                 >
                   <div styleName='thumb'>
                     {a.broken ? (
@@ -430,9 +445,43 @@ class ImageManagerModal extends React.Component {
                     <img src={fileUrl(detail.absPath)} alt={detail.fileName} />
                   )}
                 </div>
-                <div styleName='detail-name' title={detail.fileName}>
-                  {detail.fileName}
-                </div>
+                {this.state.renaming ? (
+                  <div styleName='detail-rename'>
+                    <input
+                      styleName='detail-rename-input'
+                      value={this.state.renameValue}
+                      autoFocus
+                      onChange={e =>
+                        this.setState({ renameValue: e.target.value })
+                      }
+                      onKeyDown={e => {
+                        if (e.nativeEvent && e.nativeEvent.isComposing) return
+                        if (e.key === 'Enter') this.commitRename()
+                        if (e.key === 'Escape') this.cancelRename()
+                      }}
+                    />
+                    <span styleName='detail-rename-ext'>
+                      {detail.fileName.slice(detail.fileName.lastIndexOf('.'))}
+                    </span>
+                    <button
+                      styleName='detail-btn'
+                      disabled={busy}
+                      onClick={() => this.commitRename()}
+                    >
+                      {i18n.__('OK')}
+                    </button>
+                    <button
+                      styleName='detail-btn'
+                      onClick={() => this.cancelRename()}
+                    >
+                      {i18n.__('Cancel')}
+                    </button>
+                  </div>
+                ) : (
+                  <div styleName='detail-name' title={detail.fileName}>
+                    {detail.fileName}
+                  </div>
+                )}
                 <div styleName='detail-row'>
                   {detail.broken
                     ? i18n.__('Missing file (referenced but not on disk)')
@@ -458,8 +507,8 @@ class ImageManagerModal extends React.Component {
                   {!detail.broken && (
                     <button
                       styleName='detail-btn'
-                      disabled={busy}
-                      onClick={() => this.renameDetail()}
+                      disabled={busy || this.state.renaming}
+                      onClick={() => this.startRename()}
                     >
                       {i18n.__('Rename')}
                     </button>

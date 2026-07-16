@@ -22,6 +22,8 @@ import TrashButton from './TrashButton'
 import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
+import FontSizeControl from './FontSizeControl'
+import ZoomManager from 'browser/main/lib/ZoomManager'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
@@ -201,6 +203,12 @@ class SnippetNoteDetail extends React.Component {
           }
         )
       })
+  }
+
+  handleFontSizeChange(zoom) {
+    // App-wide text size = webFrame zoom factor (see MarkdownNoteDetail).
+    ZoomManager.setZoom(zoom)
+    this.props.dispatch({ type: 'SET_ZOOM', zoom })
   }
 
   handleStarButtonClick(e) {
@@ -953,6 +961,10 @@ class SnippetNoteDetail extends React.Component {
           />
         </div>
         <div styleName='info-right'>
+          <FontSizeControl
+            zoom={config.zoom}
+            onChange={zoom => this.handleFontSizeChange(zoom)}
+          />
           <StarButton
             onClick={e => this.handleStarButtonClick(e)}
             isActive={note.isStarred}

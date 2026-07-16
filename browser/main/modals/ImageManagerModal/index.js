@@ -290,9 +290,17 @@ class ImageManagerModal extends React.Component {
       <div styleName='root'>
         <div styleName='header'>
           <div styleName='title'>{i18n.__('Image Manager')}</div>
-          <button styleName='close' onClick={() => close()}>
-            ×
-          </button>
+          {/* close is only supplied via openModal; omitted when embedded in
+              the Preferences Images tab, so render the × only when present. */}
+          {close && (
+            <button
+              styleName='close'
+              aria-label={i18n.__('Close')}
+              onClick={() => close()}
+            >
+              ×
+            </button>
+          )}
         </div>
 
         <div styleName='summary'>
@@ -494,7 +502,8 @@ class ImageManagerModal extends React.Component {
 }
 
 ImageManagerModal.propTypes = {
-  close: PropTypes.func.isRequired,
+  // Optional: supplied by openModal, absent when embedded in the Images tab.
+  close: PropTypes.func,
   storageList: PropTypes.array.isRequired
 }
 

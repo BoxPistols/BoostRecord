@@ -207,8 +207,11 @@ topBarButtonRight()
     .control-lockButton-tooltip
       opacity 1
   &:focus-visible
-    outline 2px solid $ui-button-color
-    outline-offset 1px
+    // Double ring (dark outer + light inner) clears the 3:1 non-text contrast
+    // threshold on both light and dark detail backgrounds; the single mid-gray
+    // outline failed 3:1 on light themes.
+    outline none
+    box-shadow 0 0 0 2px alpha(#ffffff, 0.9), 0 0 0 4px #333333
 
 // White theme
 $ui-white-noteList-backgroundColor = #F3F3F3

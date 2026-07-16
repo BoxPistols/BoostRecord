@@ -58,10 +58,15 @@ class SideNav extends React.Component {
 
   componentDidMount() {
     EventEmitter.on('side:preferences', this.handleMenuButtonClick)
+    // View menu "Toggle Side Bar" (Cmd/Ctrl+B) → fold/unfold the sidebar.
+    // Arrow wrapper keeps `this` bound and drops the IPC event arg (unused).
+    this.toggleSideNavHandler = () => this.handleToggleButtonClick()
+    EventEmitter.on('sidenav:togglesidenav', this.toggleSideNavHandler)
   }
 
   componentWillUnmount() {
     EventEmitter.off('side:preferences', this.handleMenuButtonClick)
+    EventEmitter.off('sidenav:togglesidenav', this.toggleSideNavHandler)
   }
 
   deleteTag(tag) {

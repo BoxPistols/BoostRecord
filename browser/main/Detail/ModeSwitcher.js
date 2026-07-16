@@ -22,7 +22,7 @@ const ModeSwitcher = ({ viewMode, onChange }) => (
         title={i18n.__(mode.label)}
         aria-label={i18n.__(mode.label)}
         aria-pressed={viewMode === mode.key}
-        onMouseDown={() => onChange(mode.key)}
+        onClick={() => onChange(mode.key)}
       >
         <i className={`fa ${mode.icon}`} aria-hidden='true' />
       </button>

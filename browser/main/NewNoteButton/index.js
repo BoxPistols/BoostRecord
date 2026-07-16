@@ -79,7 +79,11 @@ class NewNoteButton extends React.Component {
     const { dispatch, location, data } = this.props
     const EXAMPLE_TITLE = 'The Boosters — Feature Example'
 
-    const existing = data.noteMap.find(note => note.title === EXAMPLE_TITLE)
+    // data.noteMap is a MutableMap (browser/lib/Mutable.js), which has no
+    // .find(); materialize values first, per the NoteList/Detail convention.
+    const existing = data.noteMap
+      .map(note => note)
+      .find(note => note.title === EXAMPLE_TITLE)
     if (existing) {
       dispatch(
         push({
@@ -134,7 +138,7 @@ class NewNoteButton extends React.Component {
       '| Jump to note | ⌘P | Ctrl+P |',
       '| Export | File › Export as | File › Export as |',
       '| Split view | Mode switcher (toolbar) | Mode switcher (toolbar) |',
-      '| Example note | ⌘⇧H | Ctrl+Shift+H |'
+      '| Example note | ⌘⇧E | Ctrl+Shift+E |'
     ].join('\n')
 
     dataApi
@@ -222,7 +226,10 @@ NewNoteButton.propTypes = {
   dispatch: PropTypes.func,
   config: PropTypes.shape({
     isSideNavFolded: PropTypes.bool
-  })
+  }),
+  data: PropTypes.object,
+  location: PropTypes.object,
+  match: PropTypes.object
 }
 
 export default CSSModules(NewNoteButton, styles)

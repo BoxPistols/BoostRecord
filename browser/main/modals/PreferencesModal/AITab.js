@@ -6,6 +6,7 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
 import { MODEL_OPTIONS, DEFAULT_MODELS } from 'browser/main/lib/aiAssist'
+import uiThemes from 'browser/lib/ui-themes'
 
 const KEY_PATTERNS = {
   openai: /^sk-[A-Za-z0-9\-_]{20,}$/,
@@ -98,11 +99,14 @@ class AITab extends React.Component {
     const geminiKeyError = validateKey('gemini', geminiKey)
     const hasError = !!(openaiKeyError || geminiKeyError)
 
-    const isDark =
-      typeof document !== 'undefined' &&
-      ['dark', 'solarized-dark', 'dracula'].indexOf(
-        document.body.dataset.theme
-      ) !== -1
+    // Derive darkness from the theme metadata, not a hardcoded name list — the
+    // old list omitted rockabilly/monokai/nord/vulcan, so those dark themes got
+    // the light palette (dark text on a dark modal = invisible labels).
+    const themeName =
+      (typeof document !== 'undefined' && document.body.dataset.theme) ||
+      'default'
+    const themeMeta = uiThemes.find(t => t.name === themeName)
+    const isDark = themeMeta ? themeMeta.isDark : false
 
     // Design tokens — dark values use light-on-dark with sufficient contrast
     const c = isDark

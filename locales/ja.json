@@ -44,6 +44,8 @@
   "Editor": "エディタ",
   "Split": "分割",
   "Interface Theme": "インターフェーステーマ",
+  "Open Example Note": "サンプルノートを開く",
+  "Create a full example note (YAML front matter + Mermaid + code blocks) to see all of the above in action:": "上記すべてを実際に確認できる全部入りサンプルノート（YAML front matter + Mermaid + コードブロック）を作成します:",
   "App Font Size (Zoom)": "全体の文字サイズ（ズーム）",
   "Decrease font size": "文字サイズを縮小",
   "Increase font size": "文字サイズを拡大",

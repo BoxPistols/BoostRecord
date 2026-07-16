@@ -138,7 +138,8 @@ class NewNoteButton extends React.Component {
       '| Jump to note | ⌘P | Ctrl+P |',
       '| Export | File › Export as | File › Export as |',
       '| Split view | Mode switcher (toolbar) | Mode switcher (toolbar) |',
-      '| Example note | ⌘⇧E | Ctrl+Shift+E |'
+      '| Focus note list | ⌘⇧E | Ctrl+Shift+E |',
+      '| Example note | Preferences › Export | Preferences › Export |'
     ].join('\n')
 
     dataApi

@@ -6,6 +6,7 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 import { store } from 'browser/main/store'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
+import eventEmitter from 'browser/main/lib/eventEmitter'
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer
@@ -55,6 +56,12 @@ class ExportTab extends React.Component {
   componentWillUnmount() {
     ipc.removeListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.removeListener('APP_SETTING_ERROR', this.handleSettingError)
+  }
+
+  handleOpenExampleNote() {
+    // Creates/opens the all-features example note (handled by NewNoteButton).
+    // Moved here from a File-menu hotkey so it is an explicit, procedural action.
+    eventEmitter.emit('top:example-note')
   }
 
   handleSaveButtonClick(e) {
@@ -215,6 +222,19 @@ class ExportTab extends React.Component {
                 '  A[User] --> B[App] --> C[AI]\n' +
                 '```'}
             </pre>
+
+            <p style={{ marginTop: '14px' }}>
+              {i18n.__(
+                'Create a full example note (YAML front matter + Mermaid + code blocks) to see all of the above in action:'
+              )}
+            </p>
+            <button
+              styleName='group-control-rightButton'
+              style={{ marginLeft: 0 }}
+              onClick={() => this.handleOpenExampleNote()}
+            >
+              {i18n.__('Open Example Note')}
+            </button>
           </div>
 
           <div styleName='group-section'>

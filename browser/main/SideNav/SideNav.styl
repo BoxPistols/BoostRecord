@@ -94,9 +94,15 @@
   flex: 1
 
 .root--folded
+  // Must be positioned like .root: its children (.storageList-folded etc.) are
+  // position:absolute and need this element as their containing block. Without
+  // it they escape to the viewport-filling .Main .root and overflow the 44px
+  // column — and overflow:hidden can't clip a static box's absolute descendants.
+  absolute top left bottom
   height 100vh
   width $sideNav--folded-width
   background-color #2E3235
+  overflow hidden
   .switch-buttons
     display none
   .extra-buttons > button:first-of-type // hide search icon

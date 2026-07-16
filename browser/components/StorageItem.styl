@@ -68,9 +68,11 @@
 
 .folderList-item-name--folded
   @extend .folderList-item-name
-  padding-left 7px
+  padding-left 0            // was 7px — drop left bias so the glyph + letter center
+  text-align center         // center the <i> icon + 1-letter abbreviation in the 44px column
   .folderList-item-icon
-    font-size 9px
+    font-size 16px          // was 9px — enlarge the folder/file icon
+    padding-right 0         // was inherited 10px — was shifting the glyph off-center
 
 .folderList-item-icon
   padding-right: 10px

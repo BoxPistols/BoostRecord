@@ -7,6 +7,7 @@ import styles from './StorageItem.styl'
 import CSSModules from 'browser/lib/CSSModules'
 import _ from 'lodash'
 import { SortableHandle } from 'react-sortable-hoc'
+import ee from 'browser/main/lib/eventEmitter'
 
 const DraggableIcon = SortableHandle(({ className }) => (
   <i className={`fa ${className}`} />
@@ -52,7 +53,18 @@ const StorageItem = ({
   return (
     <button
       styleName={isActive ? 'folderList-item--active' : 'folderList-item'}
+      // Stable class (styleName is hashed) so the note list can focus the
+      // active folder on Shift+Tab.
+      className={isActive ? 'SideNav-active-folder' : undefined}
       onClick={handleButtonClick}
+      onKeyDown={e => {
+        // Tab from a folder → select it and focus its note (file) list.
+        if (e.key === 'Tab' && !e.shiftKey) {
+          e.preventDefault()
+          if (handleButtonClick) handleButtonClick(e)
+          ee.emit('list:focus')
+        }
+      }}
       onMouseEnter={handleMouseEnter}
       onContextMenu={handleContextMenu}
       onDrop={handleDrop}

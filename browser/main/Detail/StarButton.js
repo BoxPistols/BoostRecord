@@ -43,6 +43,8 @@ class StarButton extends React.Component {
         styleName={
           this.state.isActive || this.props.isActive ? 'root--active' : 'root'
         }
+        aria-label={i18n.__('Star')}
+        aria-pressed={this.props.isActive}
         onMouseDown={e => this.handleMouseDown(e)}
         onMouseUp={e => this.handleMouseUp(e)}
         onMouseLeave={e => this.handleMouseLeave(e)}

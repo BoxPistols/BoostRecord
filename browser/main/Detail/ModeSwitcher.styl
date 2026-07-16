@@ -1,18 +1,20 @@
+$seg-brand-color = #1EC38B
+
 .switcher
-  height 25px
+  height 32px
   border-radius 50px
   background-color #F4F4F4
   display inline-flex
   align-items center
   position relative
-  top 2px
-  padding 2px
+  top 1px
+  padding 3px
   -webkit-user-drag none
   user-select none
 
 .seg
-  width 26px
-  height 21px
+  width 32px
+  height 26px
   border none
   background transparent
   border-radius 50px
@@ -21,14 +23,20 @@
   justify-content center
   cursor pointer
   color rgba(90, 90, 90, 0.55)
-  font-size 12px
+  font-size 13px
   padding 0
   &:hover
     color rgba(90, 90, 90, 0.9)
+  &:focus-visible
+    // White + dark double ring stays visible on every background: the light
+    // track (#F4F4F4), dark themes, and the green active fill (a single-color
+    // outline vanished on the active segment / failed 3:1 on the light track).
+    outline none
+    box-shadow 0 0 0 2px #ffffff, 0 0 0 4px #333333
 
 .seg--active
   @extend .seg
-  background-color #1EC38B
+  background-color $seg-brand-color
   color #ffffff
   box-shadow 0 0 6px rgba(0, 0, 0, 0.12)
   &:hover
@@ -40,7 +48,7 @@ body[data-theme="dark"]
   .seg
     color rgba(200, 200, 200, 0.55)
   .seg--active
-    background-color #1EC38B
+    background-color $seg-brand-color
     color #ffffff
 
 body[data-theme="solarized-dark"]

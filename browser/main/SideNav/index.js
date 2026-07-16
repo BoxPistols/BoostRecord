@@ -6,7 +6,6 @@ import dataApi from 'browser/main/lib/dataApi'
 import styles from './SideNav.styl'
 import { openModal } from 'browser/main/lib/modal'
 import PreferencesModal from '../modals/PreferencesModal'
-import ImageManagerModal from '../modals/ImageManagerModal'
 import RenameTagModal from 'browser/main/modals/RenameTagModal'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import StorageItem from './StorageItem'
@@ -16,7 +15,6 @@ import StorageList from 'browser/components/StorageList'
 import NavToggleButton from 'browser/components/NavToggleButton'
 import EventEmitter from 'browser/main/lib/eventEmitter'
 import PreferenceButton from './PreferenceButton'
-import ImageManagerButton from './ImageManagerButton'
 import SearchButton from './SearchButton'
 import ListButton from './ListButton'
 import TagButton from './TagButton'
@@ -60,10 +58,22 @@ class SideNav extends React.Component {
 
   componentDidMount() {
     EventEmitter.on('side:preferences', this.handleMenuButtonClick)
+    // View menu "Toggle Side Bar" (Cmd/Ctrl+B) → fold/unfold the sidebar.
+    // Arrow wrapper keeps `this` bound and drops the IPC event arg (unused).
+    this.toggleSideNavHandler = () => this.handleToggleButtonClick()
+    EventEmitter.on('sidenav:togglesidenav', this.toggleSideNavHandler)
+    // View menu Prev/Next Folder (Alt+↑ / Alt+↓) → move folder selection.
+    this.folderPriorHandler = () => this.navigateFolder(-1)
+    this.folderNextHandler = () => this.navigateFolder(1)
+    EventEmitter.on('folder:prior', this.folderPriorHandler)
+    EventEmitter.on('folder:next', this.folderNextHandler)
   }
 
   componentWillUnmount() {
     EventEmitter.off('side:preferences', this.handleMenuButtonClick)
+    EventEmitter.off('sidenav:togglesidenav', this.toggleSideNavHandler)
+    EventEmitter.off('folder:prior', this.folderPriorHandler)
+    EventEmitter.off('folder:next', this.folderNextHandler)
   }
 
   deleteTag(tag) {
@@ -130,13 +140,6 @@ class SideNav extends React.Component {
 
   handleMenuButtonClick(e) {
     openModal(PreferencesModal)
-  }
-
-  handleImageManagerClick(e) {
-    const { data } = this.props
-    openModal(ImageManagerModal, {
-      storageList: Object.values(data.storageMap.toJS())
-    })
   }
 
   handleSearchButtonClick(e) {
@@ -338,6 +341,33 @@ class SideNav extends React.Component {
         showSearch: false
       })
     }
+  }
+
+  // Move folder selection by delta (-1 prev / +1 next) across ALL storages,
+  // wrapping around. Driven by the View-menu Alt+↑/↓ accelerators.
+  navigateFolder(delta) {
+    const { data, dispatch, location } = this.props
+    const flat = []
+    data.storageMap.forEach(storage => {
+      ;(storage.folders || []).forEach(folder => {
+        flat.push({ storageKey: storage.key, folderKey: folder.key })
+      })
+    })
+    if (flat.length === 0) return
+    const m = location.pathname.match(/\/storages\/([^/]+)\/folders\/([^/]+)/)
+    let idx = -1
+    if (m) {
+      idx = flat.findIndex(f => f.storageKey === m[1] && f.folderKey === m[2])
+    }
+    const next =
+      idx === -1
+        ? delta > 0
+          ? flat[0]
+          : flat[flat.length - 1]
+        : flat[(idx + delta + flat.length) % flat.length]
+    dispatch(
+      push('/storages/' + next.storageKey + '/folders/' + next.folderKey)
+    )
   }
 
   handleTrashedButtonClick(e) {
@@ -677,9 +707,6 @@ class SideNav extends React.Component {
             <SearchButton
               onClick={this.handleSearchButtonClick}
               isActive={showSearch}
-            />
-            <ImageManagerButton
-              onClick={this.handleImageManagerClick.bind(this)}
             />
             <PreferenceButton onClick={this.handleMenuButtonClick} />
           </div>

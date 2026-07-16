@@ -60,13 +60,30 @@ function referencing(notes, placeholder) {
   )
 }
 
-// Rewrite oldPl -> newPl in every referencing note, persist, return updated notes.
-function rewriteRefs(storage, affected, oldPl, newPl) {
+function escapeRe(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+// Rewrite oldPl -> newPl in every referencing note, persist, return updated
+// notes. When oldName/newName are given (rename), also refresh the markdown alt
+// text `![oldName](oldPl)` -> `![newName](newPl)` so the editor stops showing
+// the stale auto-generated name; any other occurrence (custom alt / bare link)
+// still gets its path updated.
+function rewriteRefs(storage, affected, oldPl, newPl, oldName, newName) {
+  const altRe =
+    oldName && newName
+      ? new RegExp(
+          '!\\[' + escapeRe(oldName) + '\\]\\(' + escapeRe(oldPl) + '\\)',
+          'g'
+        )
+      : null
   return Promise.all(
     affected.map(note => {
-      const next = Object.assign({}, note, {
-        content: note.content.split(oldPl).join(newPl)
-      })
+      let content = note.content
+      if (altRe)
+        content = content.replace(altRe, '![' + newName + '](' + newPl + ')')
+      content = content.split(oldPl).join(newPl)
+      const next = Object.assign({}, note, { content })
       return updateNote(storage.key, note.key, next)
     })
   )
@@ -86,11 +103,13 @@ function renameAttachment({ storageKey, noteKey, oldName, newName, dryRun }) {
     const dir = path.join(storage.path, 'attachments', noteKey)
     const backupDir = backupNotes(storage.path, affected)
     fs.renameSync(path.join(dir, oldName), path.join(dir, newName))
-    return rewriteRefs(storage, affected, oldPl, newPl).then(updated => ({
-      affected: affected.map(noteMeta),
-      updatedNotes: updated,
-      backupDir
-    }))
+    return rewriteRefs(storage, affected, oldPl, newPl, oldName, newName).then(
+      updated => ({
+        affected: affected.map(noteMeta),
+        updatedNotes: updated,
+        backupDir
+      })
+    )
   })
 }
 

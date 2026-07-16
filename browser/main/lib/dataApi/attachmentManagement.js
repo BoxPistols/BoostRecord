@@ -579,7 +579,11 @@ function getAttachmentsInMarkdownContent(markdownContent) {
       '(' +
       escapeStringRegexp(path.sep) +
       ')' +
-      '([a-zA-Z0-9]|\\.)+(\\.[a-zA-Z0-9]+)?',
+      // Filename chars: letters/digits/dot AND hyphen/underscore. The hyphen
+      // was previously missing, so a renamed file like "Booster-Navi.png" was
+      // truncated to "Booster" here — the real file then looked "unused" and
+      // could be deleted (data loss). Matches fixLocalURLS' [-.\w] class.
+      '([a-zA-Z0-9]|\\.|-|_)+(\\.[a-zA-Z0-9]+)?',
     'g'
   )
   return preparedInput.match(regexp)

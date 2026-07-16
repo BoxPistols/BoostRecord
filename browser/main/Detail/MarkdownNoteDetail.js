@@ -22,6 +22,8 @@ import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
 import ModeSwitcher from './ModeSwitcher'
+import FontSizeControl from './FontSizeControl'
+import ZoomManager from 'browser/main/lib/ZoomManager'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
@@ -112,6 +114,13 @@ class MarkdownNoteDetail extends React.Component {
   getViewMode() {
     if (this.state.previewOnly) return 'PREVIEW'
     return this.state.editorType === 'SPLIT' ? 'SPLIT' : 'EDITOR'
+  }
+
+  handleFontSizeChange(zoom) {
+    // App-wide text size = webFrame zoom factor. ZoomManager persists it and
+    // calls setZoomFactor(); SET_ZOOM keeps the StatusBar indicator in sync.
+    ZoomManager.setZoom(zoom)
+    this.props.dispatch({ type: 'SET_ZOOM', zoom })
   }
 
   focus() {
@@ -619,6 +628,10 @@ class MarkdownNoteDetail extends React.Component {
           />
         </div>
         <div styleName='info-right'>
+          <FontSizeControl
+            zoom={config.zoom}
+            onChange={zoom => this.handleFontSizeChange(zoom)}
+          />
           <ModeSwitcher
             viewMode={this.getViewMode()}
             onChange={this.handleSetViewMode}

@@ -327,6 +327,14 @@ class NoteList extends React.Component {
   handleNoteListKeyDown(e) {
     if (e.metaKey) return true
 
+    // Shift+Tab → move focus back to the note's folder in the sidebar.
+    if (e.keyCode === 9 && e.shiftKey) {
+      e.preventDefault()
+      const folderBtn = document.querySelector('.SideNav-active-folder')
+      if (folderBtn) folderBtn.focus()
+      return
+    }
+
     // A key
     if (e.keyCode === 65 && !e.shiftKey) {
       e.preventDefault()

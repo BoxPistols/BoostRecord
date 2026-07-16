@@ -5,8 +5,16 @@ import styles from './InfoButton.styl'
 import i18n from 'browser/lib/i18n'
 
 const InfoButton = ({ onClick }) => (
-  <button styleName='control-infoButton' onClick={e => onClick(e)}>
-    <img className='infoButton' src='../resources/icon/icon-info.svg' />
+  <button
+    styleName='control-infoButton'
+    aria-label={i18n.__('Info')}
+    onClick={e => onClick(e)}
+  >
+    <img
+      className='infoButton'
+      src='../resources/icon/icon-info.svg'
+      aria-hidden='true'
+    />
     <span styleName='tooltip'>{i18n.__('Info')}</span>
   </button>
 )

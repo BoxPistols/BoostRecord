@@ -590,6 +590,28 @@ it('should test that getAttachmentsInMarkdownContent finds all attachments when 
   expect(actual).toEqual(expect.arrayContaining(expected))
 })
 
+it('should capture the FULL filename when it contains a hyphen or underscore (regression: rename data loss)', function() {
+  const noteKey = '2146aee7-96d9-4c5e-9d89-d7e306a5fb57'
+  const testInput =
+    '![alt](:storage' +
+    path.sep +
+    noteKey +
+    path.sep +
+    'Booster-Navi.png)\n' +
+    '![alt](:storage' +
+    path.sep +
+    noteKey +
+    path.sep +
+    'my_file_02.jpg)'
+  const actual = systemUnderTest.getAttachmentsInMarkdownContent(testInput)
+  expect(actual).toEqual(
+    expect.arrayContaining([
+      ':storage' + path.sep + noteKey + path.sep + 'Booster-Navi.png',
+      ':storage' + path.sep + noteKey + path.sep + 'my_file_02.jpg'
+    ])
+  )
+})
+
 it('should test that getAbsolutePathsOfAttachmentsInContent returns all absolute paths', function() {
   const dummyStoragePath = 'dummyStoragePath'
   const noteKey = '9c9c4ba3-bc1e-441f-9866-c1e9a806e31c'

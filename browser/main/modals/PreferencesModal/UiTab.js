@@ -82,10 +82,16 @@ class UiTab extends React.Component {
       document.head.appendChild(checkHighLight)
     }
 
+    // Apply UI theme immediately on select change (persisted only on Save)
+    const selectedTheme = this.refs.uiTheme.value
+    if (selectedTheme !== this.state.config.ui.defaultTheme) {
+      applyTheme(selectedTheme)
+    }
+
     const newConfig = {
       ui: {
-        theme: this.refs.uiTheme.value,
-        defaultTheme: this.refs.uiTheme.value,
+        theme: selectedTheme,
+        defaultTheme: selectedTheme,
         // The scheduled-theme UI was removed, so there are no refs to read for
         // these fields. Reading them (this.refs.enableScheduleTheme.checked …)
         // threw "Cannot read properties of undefined" and aborted the whole

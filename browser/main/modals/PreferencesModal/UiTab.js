@@ -3,6 +3,7 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
+import ZoomManager from 'browser/main/lib/ZoomManager'
 import { store } from 'browser/main/store'
 import consts from 'browser/lib/consts'
 import ReactCodeMirror from 'react-codemirror'
@@ -25,7 +26,8 @@ class UiTab extends React.Component {
     super(props)
     this.state = {
       config: props.config,
-      codemirrorTheme: props.config.editor.theme
+      codemirrorTheme: props.config.editor.theme,
+      zoom: props.config.zoom != null ? props.config.zoom : 1
     }
   }
 
@@ -207,6 +209,16 @@ class UiTab extends React.Component {
     )
   }
 
+  handleZoomChange(e) {
+    const zoom = parseFloat(e.target.value)
+    // ZoomManager.setZoom() persists config.zoom AND calls
+    // webContents.setZoomFactor() → scales the WHOLE app immediately.
+    ZoomManager.setZoom(zoom)
+    // Keep the StatusBar zoom indicator (reads config.zoom) in sync.
+    store.dispatch({ type: 'SET_ZOOM', zoom })
+    this.setState({ zoom })
+  }
+
   handleSaveUIClick(e) {
     const newConfig = {
       ui: this.state.config.ui,
@@ -302,6 +314,38 @@ class UiTab extends React.Component {
                       )
                     })}
                 </optgroup>
+              </select>
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('App Font Size (Zoom)')}
+            </div>
+            <div styleName='group-section-control'>
+              <select
+                value={this.state.zoom}
+                onChange={e => this.handleZoomChange(e)}
+                ref='uiZoom'
+              >
+                {[
+                  0.8,
+                  0.9,
+                  1,
+                  1.1,
+                  1.2,
+                  1.3,
+                  1.4,
+                  1.5,
+                  1.6,
+                  1.7,
+                  1.8,
+                  1.9,
+                  2.0
+                ].map(z => (
+                  <option value={z} key={z}>
+                    {Math.floor(z * 100)}%
+                  </option>
+                ))}
               </select>
             </div>
           </div>

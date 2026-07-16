@@ -7,11 +7,12 @@ import i18n from 'browser/lib/i18n'
 // Compact editor-header control for the app-wide text size (webFrame zoom).
 // Mirrors the browser "A− / 100% / A+" zoom pattern; the middle % resets to
 // 100%. Purely presentational — the parent wires onChange to ZoomManager.
-const MIN = 0.5
-const MAX = 2.0
-const STEP = 0.1
+const MIN = 0.75
+const MAX = 1.5
+const STEP = 0.05
 
-const clamp = z => Math.round(Math.min(MAX, Math.max(MIN, z)) * 10) / 10
+// Snap to the nearest 5% so steps stay on 75/80/…/150 despite float drift.
+const clamp = z => Math.round(Math.min(MAX, Math.max(MIN, z)) * 20) / 20
 
 const FontSizeControl = ({ zoom, onChange }) => {
   const z = zoom || 1

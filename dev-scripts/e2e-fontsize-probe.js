@@ -105,8 +105,8 @@ function driver() {
       if (resetBtn) { resetBtn.click(); await sleep(300) }
       rep.zoomAfterReset = getZoom()
 
-      const increased = rep.zoomAfterIncrease > rep.zoomBefore + 0.05
-      const decreased = rep.zoomAfterDecrease < rep.zoomAfterIncrease - 0.05
+      const increased = rep.zoomAfterIncrease > rep.zoomBefore + 0.02
+      const decreased = rep.zoomAfterDecrease < rep.zoomAfterIncrease - 0.02
       const reset = Math.abs(rep.zoomAfterReset - 1) < 0.01
       rep.increased = increased; rep.decreased = decreased; rep.reset = reset
       return { ok: increased && decreased && reset, rep }

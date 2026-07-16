@@ -30,6 +30,7 @@
     "e2e:theme": "cross-env TB_E2E_PROBE=dev-scripts/e2e-theme-probe.js electron .",
     "e2e:sidebar": "cross-env TB_E2E_PROBE=dev-scripts/e2e-sidebar-probe.js electron .",
     "e2e:fontsize": "cross-env TB_E2E_PROBE=dev-scripts/e2e-fontsize-probe.js electron .",
+    "e2e:foldernav": "cross-env TB_E2E_PROBE=dev-scripts/e2e-foldernav-probe.js electron .",
     "pre-release": "node scripts/pre-release-check.mjs"
   },
   "config": {

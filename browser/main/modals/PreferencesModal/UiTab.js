@@ -17,6 +17,61 @@ import { chooseTheme, applyTheme } from 'browser/main/lib/ThemeManager'
 
 const OSX = global.process.platform === 'darwin'
 
+// CodeMirror editor themes that are dark. Used to keep the editor's light/dark
+// mode in sync with the interface theme (a dark editor under a light UI, or
+// vice versa, reads as a bug). Themes not listed are treated as light.
+const DARK_EDITOR_THEMES = [
+  '3024-night',
+  'abcdef',
+  'ambiance',
+  'ayu-dark',
+  'ayu-mirage',
+  'base16-dark',
+  'bespin',
+  'blackboard',
+  'cobalt',
+  'colorforth',
+  'darcula',
+  'dracula',
+  'duotone-dark',
+  'erlang-dark',
+  'gruvbox-dark',
+  'hopscotch',
+  'icecoder',
+  'isotope',
+  'lesser-dark',
+  'liquibyte',
+  'lucario',
+  'material',
+  'material-darker',
+  'material-ocean',
+  'material-palenight',
+  'mbo',
+  'midnight',
+  'monokai',
+  'moxer',
+  'night',
+  'nord',
+  'oceanic-next',
+  'panda-syntax',
+  'paraiso-dark',
+  'pastel-on-dark',
+  'railscasts',
+  'rubyblue',
+  'seti',
+  'shadowfox',
+  'solarized dark',
+  'the-matrix',
+  'tomorrow-night-bright',
+  'tomorrow-night-eighties',
+  'twilight',
+  'vibrant-ink',
+  'xq-dark',
+  'zenburn'
+]
+const DEFAULT_LIGHT_EDITOR_THEME = 'base16-light'
+const DEFAULT_DARK_EDITOR_THEME = 'monokai'
+
 const electron = require('electron')
 const ipc = electron.ipcRenderer
 
@@ -88,6 +143,19 @@ class UiTab extends React.Component {
       applyTheme(selectedTheme)
     }
 
+    // Keep the editor (CodeMirror) theme in the same light/dark mode as the
+    // interface. Only switch on a mismatch, so a deliberate same-mode editor
+    // theme (e.g. dracula under a dark UI) is preserved.
+    const uiIsDark = uiThemes.some(t => t.name === selectedTheme && t.isDark)
+    const rawEditorTheme = this.refs.editorTheme.value
+    const editorIsDark = DARK_EDITOR_THEMES.indexOf(rawEditorTheme) !== -1
+    const coupledEditorTheme =
+      uiIsDark && !editorIsDark
+        ? DEFAULT_DARK_EDITOR_THEME
+        : !uiIsDark && editorIsDark
+        ? DEFAULT_LIGHT_EDITOR_THEME
+        : rawEditorTheme
+
     const newConfig = {
       ui: {
         theme: selectedTheme,
@@ -117,7 +185,7 @@ class UiTab extends React.Component {
           this.refs.uiD2w != null ? this.refs.uiD2w.checked : false
       },
       editor: {
-        theme: this.refs.editorTheme.value,
+        theme: coupledEditorTheme,
         fontSize: this.refs.editorFontSize.value,
         fontFamily: this.refs.editorFontFamily.value,
         indentType: this.refs.editorIndentType.value,
@@ -177,7 +245,7 @@ class UiTab extends React.Component {
       }
     }
 
-    const newCodemirrorTheme = this.refs.editorTheme.value
+    const newCodemirrorTheme = coupledEditorTheme
 
     if (newCodemirrorTheme !== codemirrorTheme) {
       const theme = consts.THEMES.find(

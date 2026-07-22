@@ -131,8 +131,9 @@ function setupSource() {
       report.previewButtonFound = !!previewBtn
       if (!previewBtn) return { ok: false, report, error: 'Preview toolbar button not found' }
 
-      // (3) switch to preview-only
-      previewBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+      // (3) switch to preview-only. ModeSwitcher moved onMouseDown → onClick
+      // (keyboard a11y), so activate via click.
+      previewBtn.click()
       await sleep(500)
       report.editorHiddenAfterPreview = editorHidden()
       report.errors = window.__errors
@@ -155,7 +156,7 @@ function toggleBackSource() {
       }
       const editorBtn = Array.from(document.querySelectorAll('button'))
         .find(b => b.querySelector('.fa-pencil'))
-      editorBtn.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }))
+      editorBtn.click()
       await sleep(500)
       return { editorVisibleAfterToggleBack: !editorHidden() }
     } catch (err) {

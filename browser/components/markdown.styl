@@ -542,6 +542,9 @@ body[data-theme="dark"]
     background-color themeDarkPreview
 
   pre.fence
+    // Mermaid renders its own dark theme; drop the white box (see apply-theme).
+    .mermaid
+      background-color transparent
     .gallery
       .carousel-main, .carousel-footer
         background-color $ui-dark-noteDetail-backgroundColor
@@ -560,6 +563,12 @@ apply-theme(theme)
     color get-theme-var(theme, 'text-color')
     border-color themeDarkBorder
     background-color get-theme-var(theme, 'noteDetail-backgroundColor')
+    // Mermaid renders its own dark theme (see MermaidRender.js); the base
+    // `.mermaid { background: white }` otherwise leaves a jarring white box in
+    // dark mode. Transparent lets the preview's dark background show through.
+    // (.chart/.flowchart/.sequence stay light — they render light-only content.)
+    pre.fence .mermaid
+      background-color transparent
     table
       thead
         tr

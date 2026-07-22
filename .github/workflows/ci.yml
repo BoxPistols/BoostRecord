@@ -73,3 +73,17 @@ jobs:
         env:
           ELECTRON_DISABLE_SANDBOX: '1'
         run: xvfb-run --auto-servernum pnpm run e2e
+
+      - name: E2E (paste + preview toggle + Cmd-Alt-F keymap)
+        # Regression gate for the TDZ paste bug, the preview-only toolbar toggle
+        # and the released Cmd-Alt-F keymap. Unit tests cannot exercise these.
+        env:
+          ELECTRON_DISABLE_SANDBOX: '1'
+        run: xvfb-run --auto-servernum pnpm run e2e:preview
+
+      - name: E2E (interface theme switch)
+        # Regression gate for the "changing the interface theme does nothing"
+        # bug (handleUIChange threw on removed schedule-theme refs).
+        env:
+          ELECTRON_DISABLE_SANDBOX: '1'
+        run: xvfb-run --auto-servernum pnpm run e2e:theme

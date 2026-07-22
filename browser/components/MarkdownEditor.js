@@ -21,13 +21,17 @@ class MarkdownEditor extends React.Component {
     this.supportMdSelectionBold = [16, 17, 186]
 
     this.state = {
-      status:
-        props.config.editor.switchPreview === 'RIGHTCLICK'
-          ? props.config.editor.delfaultStatus
-          : 'CODE',
+      // pinnedStatus (from the 3-way view switcher) pins the single pane to
+      // 'CODE' (editor only) or 'PREVIEW' (preview only) and locks it so
+      // blur/click/double-click can't flip it. null = legacy flip behaviour.
+      status: props.pinnedStatus
+        ? props.pinnedStatus
+        : props.config.editor.switchPreview === 'RIGHTCLICK'
+        ? props.config.editor.delfaultStatus
+        : 'CODE',
       renderValue: props.value,
       keyPressed: new Set(),
-      isLocked: props.isLocked
+      isLocked: props.pinnedStatus != null || props.isLocked
     }
 
     this.lockEditorCode = this.handleLockEditor.bind(this)
@@ -49,6 +53,14 @@ class MarkdownEditor extends React.Component {
   UNSAFE_componentWillReceiveProps(props) {
     if (props.value !== this.props.value) {
       this.queueRendering(props.value)
+    }
+    // React to the view switcher (editor-only ↔ preview-only) without remounting
+    // when the parent keeps the same MarkdownEditor instance.
+    if (props.pinnedStatus !== this.props.pinnedStatus) {
+      this.setState({
+        status: props.pinnedStatus || 'CODE',
+        isLocked: props.pinnedStatus != null
+      })
     }
   }
 

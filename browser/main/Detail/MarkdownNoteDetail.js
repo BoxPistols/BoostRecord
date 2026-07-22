@@ -18,11 +18,12 @@ import { findNoteTitle } from 'browser/lib/findNoteTitle'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import TrashButton from './TrashButton'
-import FullscreenButton from './FullscreenButton'
 import RestoreButton from './RestoreButton'
 import PermanentDeleteButton from './PermanentDeleteButton'
 import InfoButton from './InfoButton'
-import ToggleModeButton from './ToggleModeButton'
+import ModeSwitcher from './ModeSwitcher'
+import FontSizeControl from './FontSizeControl'
+import ZoomManager from 'browser/main/lib/ZoomManager'
 import InfoPanel from './InfoPanel'
 import InfoPanelTrashed from './InfoPanelTrashed'
 import { formatDate } from 'browser/lib/date-formatter'
@@ -48,10 +49,15 @@ class MarkdownNoteDetail extends React.Component {
         },
         props.note
       ),
-      isLockButtonShown: props.config.editor.type !== 'SPLIT',
+      // Lock button retired: the 3-way ModeSwitcher (Editor/Split/Preview)
+      // makes the editor/preview lock redundant.
+      isLockButtonShown: false,
       isLocked: false,
       editorType: props.config.editor.type,
       switchPreview: props.config.editor.switchPreview,
+      // Transient preview-only view (editor hidden). Not persisted to config, so
+      // it never changes how new notes open — it's a per-session view toggle.
+      previewOnly: false,
       RTL: false
     }
 
@@ -68,11 +74,53 @@ class MarkdownNoteDetail extends React.Component {
     // toggle handlers fire multiple times).
     this.handleSwitchDirection = this.handleSwitchDirection.bind(this)
     this.handleDeleteNote = this.handleDeleteNote.bind(this)
-    this.handleToggleMode = () => {
-      const reversedType =
-        this.state.editorType === 'SPLIT' ? 'EDITOR_PREVIEW' : 'SPLIT'
-      this.handleSwitchMode(reversedType)
+    // The 3-way view switcher (ModeSwitcher) drives everything below.
+    // viewMode is derived from (editorType, previewOnly) so no new persisted
+    // state is needed: SPLIT/EDITOR persist via editor.type, PREVIEW is the
+    // transient previewOnly override.
+    this.handleSetViewMode = mode => {
+      if (mode === 'PREVIEW') {
+        this.setState({ previewOnly: true })
+      } else if (mode === 'SPLIT') {
+        this.setState({ previewOnly: false }, () =>
+          this.handleSwitchMode('SPLIT')
+        )
+      } else {
+        this.setState({ previewOnly: false }, () => {
+          this.handleSwitchMode('EDITOR_PREVIEW')
+          this.focus()
+        })
+      }
     }
+    // Cmd/Ctrl+Alt+M cycles Editor → Split → Preview → Editor.
+    this.handleToggleMode = () => {
+      const order = ['EDITOR', 'SPLIT', 'PREVIEW']
+      const next = order[(order.indexOf(this.getViewMode()) + 1) % order.length]
+      this.handleSetViewMode(next)
+    }
+    // Cmd/Ctrl+Alt+P toggles Preview on/off.
+    this.handleTogglePreview = () => {
+      if (this.state.previewOnly) {
+        this.handleSetViewMode(
+          this.state.editorType === 'SPLIT' ? 'SPLIT' : 'EDITOR'
+        )
+      } else {
+        this.handleSetViewMode('PREVIEW')
+      }
+    }
+  }
+
+  // Current view as one of the 3 switcher values.
+  getViewMode() {
+    if (this.state.previewOnly) return 'PREVIEW'
+    return this.state.editorType === 'SPLIT' ? 'SPLIT' : 'EDITOR'
+  }
+
+  handleFontSizeChange(zoom) {
+    // App-wide text size = webFrame zoom factor. ZoomManager persists it and
+    // calls setZoomFactor(); SET_ZOOM keeps the StatusBar indicator in sync.
+    ZoomManager.setZoom(zoom)
+    this.props.dispatch({ type: 'SET_ZOOM', zoom })
   }
 
   focus() {
@@ -84,6 +132,7 @@ class MarkdownNoteDetail extends React.Component {
     ee.on('topbar:togglelockbutton', this.toggleLockButton)
     ee.on('topbar:toggledirectionbutton', this.handleSwitchDirection)
     ee.on('topbar:togglemodebutton', this.handleToggleMode)
+    ee.on('topbar:togglepreviewbutton', this.handleTogglePreview)
     ee.on('hotkey:deletenote', this.handleDeleteNote)
     ee.on('code:generate-toc', this.generateToc)
   }
@@ -125,6 +174,7 @@ class MarkdownNoteDetail extends React.Component {
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
     ee.off('topbar:toggledirectionbutton', this.handleSwitchDirection)
     ee.off('topbar:togglemodebutton', this.handleToggleMode)
+    ee.off('topbar:togglepreviewbutton', this.handleTogglePreview)
     ee.off('hotkey:deletenote', this.handleDeleteNote)
     ee.off('code:generate-toc', this.generateToc)
     if (this.saveQueue != null) this.saveNow()
@@ -352,10 +402,6 @@ class MarkdownNoteDetail extends React.Component {
     )
   }
 
-  handleFullScreenButton(e) {
-    ee.emit('editor:fullscreen')
-  }
-
   handleLockButtonMouseDown(e) {
     e.preventDefault()
     ee.emit('editor:lock')
@@ -403,16 +449,12 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleSwitchMode(type) {
-    // If in split mode, hide the lock button
-    this.setState(
-      { editorType: type, isLockButtonShown: type !== 'SPLIT' },
-      () => {
-        this.focus()
-        const newConfig = Object.assign({}, this.props.config)
-        newConfig.editor.type = type
-        ConfigManager.set(newConfig)
-      }
-    )
+    this.setState({ editorType: type, isLockButtonShown: false }, () => {
+      this.focus()
+      const newConfig = Object.assign({}, this.props.config)
+      newConfig.editor.type = type
+      ConfigManager.set(newConfig)
+    })
   }
 
   handleSwitchStackDirection() {
@@ -467,9 +509,11 @@ class MarkdownNoteDetail extends React.Component {
 
   renderEditor() {
     const { config, ignorePreviewPointerEvents } = this.props
-    const { note, isStacking } = this.state
+    const { note, isStacking, previewOnly } = this.state
 
-    if (this.state.editorType === 'EDITOR_PREVIEW') {
+    // previewOnly overrides any mode: render the single-pane editor pinned to
+    // the preview (editor hidden). Otherwise fall back to the persisted mode.
+    if (previewOnly || this.state.editorType === 'EDITOR_PREVIEW') {
       return (
         <MarkdownEditor
           ref='content'
@@ -483,6 +527,7 @@ class MarkdownNoteDetail extends React.Component {
           ignorePreviewPointerEvents={ignorePreviewPointerEvents}
           getNote={this.getNote}
           RTL={config.editor.rtlEnabled && this.state.RTL}
+          pinnedStatus={previewOnly ? 'PREVIEW' : 'CODE'}
         />
       )
     } else {
@@ -506,7 +551,7 @@ class MarkdownNoteDetail extends React.Component {
 
   render() {
     const { data, dispatch, location, config } = this.props
-    const { note, editorType } = this.state
+    const { note } = this.state
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -583,9 +628,13 @@ class MarkdownNoteDetail extends React.Component {
           />
         </div>
         <div styleName='info-right'>
-          <ToggleModeButton
-            onClick={e => this.handleSwitchMode(e)}
-            editorType={editorType}
+          <FontSizeControl
+            zoom={config.zoom}
+            onChange={zoom => this.handleFontSizeChange(zoom)}
+          />
+          <ModeSwitcher
+            viewMode={this.getViewMode()}
+            onChange={this.handleSetViewMode}
           />
           {this.props.config.editor.rtlEnabled && (
             <ToggleDirectionButton
@@ -597,28 +646,6 @@ class MarkdownNoteDetail extends React.Component {
             onClick={e => this.handleStarButtonClick(e)}
             isActive={note.isStarred}
           />
-
-          {(() => {
-            const imgSrc = `${this.getToggleLockButton()}`
-            const lockButtonComponent = (
-              <button
-                styleName='control-lockButton'
-                onFocus={e => this.handleFocus(e)}
-                onMouseDown={e => this.handleLockButtonMouseDown(e)}
-              >
-                <img src={imgSrc} />
-                {this.state.isLocked ? (
-                  <span styleName='tooltip'>Unlock</span>
-                ) : (
-                  <span styleName='tooltip'>Lock</span>
-                )}
-              </button>
-            )
-
-            return this.state.isLockButtonShown ? lockButtonComponent : ''
-          })()}
-
-          <FullscreenButton onClick={e => this.handleFullScreenButton(e)} />
 
           <TrashButton onClick={e => this.handleTrashButtonClick(e)} />
 

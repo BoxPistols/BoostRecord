@@ -1,0 +1,67 @@
+$seg-brand-color = #1EC38B
+
+.switcher
+  height 32px
+  border-radius 50px
+  background-color #F4F4F4
+  display inline-flex
+  align-items center
+  position relative
+  top 1px
+  padding 3px
+  -webkit-user-drag none
+  user-select none
+
+.seg
+  width 32px
+  height 26px
+  border none
+  background transparent
+  border-radius 50px
+  display flex
+  align-items center
+  justify-content center
+  cursor pointer
+  color rgba(90, 90, 90, 0.55)
+  font-size 13px
+  padding 0
+  &:hover
+    color rgba(90, 90, 90, 0.9)
+  &:focus-visible
+    // White + dark double ring stays visible on every background: the light
+    // track (#F4F4F4), dark themes, and the green active fill (a single-color
+    // outline vanished on the active segment / failed 3:1 on the light track).
+    outline none
+    box-shadow 0 0 0 2px #ffffff, 0 0 0 4px #333333
+
+.seg--active
+  @extend .seg
+  background-color $seg-brand-color
+  color #ffffff
+  box-shadow 0 0 6px rgba(0, 0, 0, 0.12)
+  &:hover
+    color #ffffff
+
+body[data-theme="dark"]
+  .switcher
+    background-color #3A404C
+  .seg
+    color rgba(200, 200, 200, 0.55)
+  .seg--active
+    background-color $seg-brand-color
+    color #ffffff
+
+body[data-theme="solarized-dark"]
+  .switcher
+    background-color #002B36
+
+apply-theme(theme)
+  body[data-theme={theme}]
+    .switcher
+      background-color get-theme-var(theme, 'borderColor')
+    .seg--active
+      background-color get-theme-var(theme, 'active-color')
+      color #ffffff
+
+for theme in $themes
+  apply-theme(theme)

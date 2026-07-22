@@ -4,6 +4,9 @@ export default {
   toggleMode: () => {
     ee.emit('topbar:togglemodebutton')
   },
+  togglePreview: () => {
+    ee.emit('topbar:togglepreviewbutton')
+  },
   toggleDirection: () => {
     ee.emit('topbar:toggledirectionbutton')
   },
@@ -12,8 +15,5 @@ export default {
   },
   toggleMenuBar: () => {
     ee.emit('menubar:togglemenubar')
-  },
-  toggleFullscreen: () => {
-    ee.emit('editor:fullscreen')
   }
 }

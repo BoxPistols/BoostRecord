@@ -174,6 +174,11 @@ export default class CodeEditor extends React.Component {
     const expandSnippet = snippetManager.expandSnippet
 
     this.defaultKeyMap = CodeMirror.normalizeKeyMap({
+      // Free Cmd-Alt-F: CodeMirror's Mac default binds it to "replace", which
+      // swallowed the app's Cmd+Opt+F hotkey (opened the Replace dialog instead
+      // of firing the shortcut). `false` = handle-as-nothing (no fall-through to
+      // the default replace binding).
+      'Cmd-Alt-F': false,
       Tab: function(cm) {
         const cursor = cm.getCursor()
         const line = cm.getLine(cursor.line)
@@ -397,6 +402,8 @@ export default class CodeEditor extends React.Component {
     })
 
     this.editorKeyMap = CodeMirror.normalizeKeyMap({
+      // Keep Cmd-Alt-F freed in table-editor mode too (see defaultKeyMap).
+      'Cmd-Alt-F': false,
       Tab: () => {
         this.tableEditor.nextCell(this.tableEditorOptions)
       },
@@ -1052,7 +1059,7 @@ export default class CodeEditor extends React.Component {
         return true
       }
 
-      let line = (line = cursor.line - 1)
+      let line = cursor.line - 1
       while (line >= 0) {
         token = editor.getTokenAt({
           ch: 3,

@@ -190,22 +190,28 @@ modal()
   border-radius $modal-border-radius
 
 topBarButtonRight()
-  width 34px
-  height 34px
-  border-radius 17px
-  font-size 14px
+  width 36px
+  height 36px
+  border-radius 18px
+  font-size 15px
   border none
-  color alpha($ui-button-color, 0.2)
+  color alpha($ui-button-color, 0.45)
   fill $ui-button-color
   background-color transparent
   &:active
     border-color $ui-button--active-backgroundColor
   &:hover
-    // transform scale(1.1)
-    transition 0.4s
+    transition 0.2s
     color $ui-button-color
+    background-color alpha($ui-button-color, 0.08)
     .control-lockButton-tooltip
       opacity 1
+  &:focus-visible
+    // Double ring (dark outer + light inner) clears the 3:1 non-text contrast
+    // threshold on both light and dark detail backgrounds; the single mid-gray
+    // outline failed 3:1 on light themes.
+    outline none
+    box-shadow 0 0 0 2px alpha(#ffffff, 0.9), 0 0 0 4px #333333
 
 // White theme
 $ui-white-noteList-backgroundColor = #F3F3F3

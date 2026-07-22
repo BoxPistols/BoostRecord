@@ -100,6 +100,12 @@ modalBackColor = white
   font-family inherit !important
   line-height 1.4em
   height 100%
+// Active-line + line-highlight feature reuse this class. CodeMirror's base
+// color is opaque light-blue (#e8f2ff), which blows out (halation) on dark
+// editor themes. A low-opacity neutral overlay darkens on light backgrounds
+// and lightens on dark ones — subtle and readable on every theme.
+.CodeMirror .CodeMirror-activeline-background
+  background rgba(128, 128, 128, 0.18) !important
 .CodeMirror > div > textarea
   margin-bottom -1em
 .CodeMirror-focused .CodeMirror-selected

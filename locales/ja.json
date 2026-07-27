@@ -289,5 +289,6 @@
   "Merge with a variable — everything is nested under the variable name below": "Merge with a variable — 下の「Variable Name」で指定した変数名の下にまとめて書き込む",
   "Prefix attachment folder:": "Prefix attachment folder（添付フォルダにノート名を付ける）:",
   "ON — attachments are exported to a per-note folder: \"Note title - attachments\"": "ON — 添付ファイルを「ノート名 - attachments」フォルダに書き出す（ノートごとに分かれる）",
-  "OFF — all notes share one \"attachments\" folder (files may overwrite each other)": "OFF — 全ノート共通の「attachments」フォルダに書き出す（同名ファイルが上書きされる恐れ）"
+  "OFF — all notes share one \"attachments\" folder (files may overwrite each other)": "OFF — 全ノート共通の「attachments」フォルダに書き出す（同名ファイルが上書きされる恐れ）",
+  "Change Folder Color": "フォルダの色を変更"
 }

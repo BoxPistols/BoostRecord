@@ -24,6 +24,10 @@ const path = require('path')
 const electron = require('electron')
 const remote = require('@electron/remote')
 
+// ノート一覧ペインのドラッグ下限。180px では「もう少し狭く」の要望を満たせず、
+// これ以上狭めるとタイトルが読めなくなるため 120px を下限にする
+const MIN_LIST_WIDTH = 120
+
 class Main extends React.Component {
   constructor(props) {
     super(props)
@@ -46,6 +50,15 @@ class Main extends React.Component {
     }
 
     this.toggleFullScreen = () => this.handleFullScreenButton()
+    // IPC は引数を伴うので、それを捨てるラッパーで受ける
+    this.toggleNoteListHandler = () => this.toggleNoteList()
+  }
+
+  toggleNoteList() {
+    const { dispatch, config } = this.props
+    const isFolded = !config.isNoteListFolded
+    ConfigManager.set({ isNoteListFolded: isFolded })
+    dispatch({ type: 'SET_IS_NOTELIST_FOLDED', isFolded })
   }
 
   getChildContext() {
@@ -189,6 +202,8 @@ class Main extends React.Component {
     )
     eventEmitter.on('dispatch:push', this.changeRoutePush.bind(this))
     eventEmitter.on('update', () => ipcRenderer.send('update-check', 'manual'))
+    // View メニュー "Toggle Note List"（Cmd/Ctrl+Shift+B）
+    eventEmitter.on('sidenav:togglenotelist', this.toggleNoteListHandler)
   }
 
   componentWillUnmount() {
@@ -199,6 +214,7 @@ class Main extends React.Component {
       this.toggleMenuBarVisible.bind(this)
     )
     eventEmitter.off('dispatch:push', this.changeRoutePush.bind(this))
+    eventEmitter.off('sidenav:togglenotelist', this.toggleNoteListHandler)
     clearInterval(this.refreshTheme)
   }
 
@@ -274,8 +290,10 @@ class Main extends React.Component {
     if (this.state.isRightSliderFocused) {
       const offset = this.refs.body.getBoundingClientRect().left
       let newListWidth = e.pageX - offset
-      if (newListWidth < 180) {
-        newListWidth = 180
+      // 下限はタイトル数文字とアイコンが残る幅。これより狭くしたい場合は
+      // 幅ではなく折りたたみ（isNoteListFolded）を使う
+      if (newListWidth < MIN_LIST_WIDTH) {
+        newListWidth = MIN_LIST_WIDTH
       } else if (newListWidth > 600) {
         newListWidth = 600
       }
@@ -321,7 +339,11 @@ class Main extends React.Component {
   showLeftLists(noteDetail, noteList, mainBody) {
     noteDetail.style.left = this.state.noteDetailWidth
     mainBody.style.left = this.state.mainBodyWidth
-    noteList.style.display = 'inline'
+    // フルスクリーン解除時に、折りたたみ中のノート一覧を勝手に復帰させない
+    // （この経路は DOM を直接触るため React 側の状態と二重管理になる）
+    noteList.style.display = this.props.config.isNoteListFolded
+      ? 'none'
+      : 'inline'
   }
 
   render() {
@@ -329,6 +351,12 @@ class Main extends React.Component {
 
     // the width of the navigation bar when it is folded/collapsed
     const foldedNavigationWidth = 44
+    // 折りたたみ中はノート一覧の占有幅を 0 にして Detail を左端まで広げる。
+    // コンポーネント自体はマウントしたまま（アンマウントすると検索文字列や
+    // スクロール位置が失われる）
+    const isNoteListFolded = !!config.isNoteListFolded
+    const listWidth = isNoteListFolded ? 0 : this.state.listWidth
+    const foldedPaneStyle = { width: 0, display: 'none' }
 
     return (
       <div
@@ -370,7 +398,12 @@ class Main extends React.Component {
           }}
         >
           <TopBar
-            style={{ width: this.state.listWidth }}
+            style={
+              isNoteListFolded
+                ? foldedPaneStyle
+                : { width: this.state.listWidth }
+            }
+            onToggleNoteList={() => this.toggleNoteList()}
             {..._.pick(this.props, [
               'dispatch',
               'config',
@@ -380,7 +413,11 @@ class Main extends React.Component {
             ])}
           />
           <NoteList
-            style={{ width: this.state.listWidth }}
+            style={
+              isNoteListFolded
+                ? foldedPaneStyle
+                : { width: this.state.listWidth }
+            }
             loading={this.state.isLoading}
             {..._.pick(this.props, [
               'dispatch',
@@ -390,20 +427,34 @@ class Main extends React.Component {
               'location'
             ])}
           />
-          <div
-            styleName={
-              this.state.isRightSliderFocused
-                ? 'slider-right--active'
-                : 'slider-right'
-            }
-            style={{ left: this.state.listWidth - 1 }}
-            onMouseDown={e => this.handleRightSlideMouseDown(e)}
-            draggable='false'
-          >
-            <div styleName='slider-hitbox' />
-          </div>
+          {!isNoteListFolded && (
+            <div
+              styleName={
+                this.state.isRightSliderFocused
+                  ? 'slider-right--active'
+                  : 'slider-right'
+              }
+              style={{ left: this.state.listWidth - 1 }}
+              onMouseDown={e => this.handleRightSlideMouseDown(e)}
+              draggable='false'
+            >
+              <div styleName='slider-hitbox' />
+            </div>
+          )}
+          {/* 折りたたみ中に再展開する導線。ペイン自体が消えるので
+              Detail の左上に小さな展開ボタンを出す */}
+          {isNoteListFolded && (
+            <button
+              styleName='notelist-unfold'
+              title={i18n.__('Toggle Note List')}
+              aria-label={i18n.__('Toggle Note List')}
+              onClick={() => this.toggleNoteList()}
+            >
+              <i className='fa fa-angle-double-right' />
+            </button>
+          )}
           <Detail
-            style={{ left: this.state.listWidth }}
+            style={{ left: listWidth }}
             {..._.pick(this.props, [
               'dispatch',
               'data',

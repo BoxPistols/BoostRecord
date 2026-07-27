@@ -17,26 +17,6 @@ $control-height = 34px
   overflow hidden
   display flex
 
-// ノート一覧ペインの折りたたみボタン。検索欄と同じ高さに揃える
-.control-fold
-  flex 0 0 auto
-  width 26px
-  height 32px
-  margin-right 4px
-  padding 0
-  border none
-  border-radius 4px
-  background-color transparent
-  color $ui-inactive-text-color
-  font-size 14px
-  cursor pointer
-  &:hover
-    color $ui-text-color
-    background-color alpha($ui-button--active-backgroundColor, 40%)
-  &:focus-visible
-    outline none
-    box-shadow 0 0 0 2px alpha(#ffffff, 0.9), 0 0 0 4px #333333
-
 .control-search
   height 32px
   width 1px

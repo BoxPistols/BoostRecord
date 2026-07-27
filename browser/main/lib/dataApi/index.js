@@ -18,6 +18,7 @@ import listAttachments from './listAttachments'
 import deleteAttachmentsVerified from './deleteAttachmentsVerified'
 import attachmentOps from './attachmentOps'
 import attachmentManagement from './attachmentManagement'
+import attachmentTrash from './attachmentTrash'
 
 const dataApi = {
   init: require('./init'),
@@ -43,6 +44,12 @@ const dataApi = {
   replaceAttachment: attachmentOps.replaceAttachment,
   removeBrokenReferences: attachmentOps.removeBrokenReferences,
   removeAttachmentsByPaths: attachmentManagement.removeAttachmentsByPaths,
+  trashAttachments: attachmentTrash.trashAttachments,
+  listTrashedAttachments: attachmentTrash.listTrashedAttachments,
+  restoreTrashedAttachments: attachmentTrash.restoreTrashedAttachments,
+  purgeTrashedAttachments: attachmentTrash.purgeTrashedAttachments,
+  purgeExpiredTrash: attachmentTrash.purgeExpiredTrash,
+  TRASH_RETENTION_DAYS: attachmentTrash.TRASH_RETENTION_DAYS,
   exportNoteAs,
   migrateFromV5Storage: require('./migrateFromV5Storage'),
   createSnippet,

@@ -12,6 +12,21 @@ jest.mock('sander')
 const sander = require('sander')
 
 const systemUnderTest = require('browser/main/lib/dataApi/attachmentManagement')
+const attachmentTrash = require('browser/main/lib/dataApi/attachmentTrash')
+
+const TRASH_FOLDER = attachmentTrash.TRASH_FOLDER
+
+// ゴミ箱への移動が使う fs API 一式を差し替える。statSync は「ファイルが存在する」
+// を意味するので、例外を投げない実装（自動モックの既定）で足りる。
+function mockTrashFs() {
+  fs.statSync = jest.fn(() => ({ isFile: () => true, size: 1 }))
+  fs.mkdirSync = jest.fn()
+  fs.renameSync = jest.fn()
+  fs.writeFileSync = jest.fn()
+  fs.copyFileSync = jest.fn()
+  fs.unlink = jest.fn()
+  fs.unlinkSync = jest.fn()
+}
 
 it('should test that copyAttachment should throw an error if sourcePath or storageKey or noteKey are undefined', function() {
   systemUnderTest.copyAttachment(undefined, 'storageKey').then(
@@ -887,7 +902,7 @@ it('should delete the correct attachment folder if a note is deleted', function(
   expect(sander.rimrafSync).toHaveBeenCalledWith(expectedPathToBeDeleted)
 })
 
-it('should test that deleteAttachmentsNotPresentInNote deletes all unreferenced attachments ', function() {
+it('should test that deleteAttachmentsNotPresentInNote moves all unreferenced attachments to the trash ', function() {
   const dummyStorage = { path: 'dummyStoragePath' }
   const noteKey = 'noteKey'
   const storageKey = 'storageKey'
@@ -898,13 +913,14 @@ it('should test that deleteAttachmentsNotPresentInNote deletes all unreferenced 
     systemUnderTest.DESTINATION_FOLDER,
     noteKey
   )
+  const trashFolderPath = path.join(dummyStorage.path, TRASH_FOLDER)
 
   findStorage.findStorage = jest.fn(() => dummyStorage)
   fs.existsSync = jest.fn(() => true)
   fs.readdir = jest.fn((paht, callback) =>
     callback(undefined, dummyFilesInFolder)
   )
-  fs.unlink = jest.fn()
+  mockTrashFs()
 
   systemUnderTest.deleteAttachmentsNotPresentInNote(
     markdownContent,
@@ -915,20 +931,24 @@ it('should test that deleteAttachmentsNotPresentInNote deletes all unreferenced 
   expect(fs.readdir).toHaveBeenCalledTimes(1)
   expect(fs.readdir.mock.calls[0][0]).toBe(attachmentFolderPath)
 
-  expect(fs.unlink).toHaveBeenCalledTimes(dummyFilesInFolder.length)
-  const fsUnlinkCallArguments = []
-  for (let i = 0; i < dummyFilesInFolder.length; i++) {
-    fsUnlinkCallArguments.push(fs.unlink.mock.calls[i][0])
-  }
+  // 物理削除ではなくゴミ箱への移動になっていること
+  expect(fs.unlink).not.toHaveBeenCalled()
+  expect(fs.unlinkSync).not.toHaveBeenCalled()
+  expect(fs.renameSync).toHaveBeenCalledTimes(dummyFilesInFolder.length)
 
+  const movedFrom = fs.renameSync.mock.calls.map(call => call[0])
+  const movedTo = fs.renameSync.mock.calls.map(call => call[1])
   dummyFilesInFolder.forEach(function(file) {
-    expect(
-      fsUnlinkCallArguments.includes(path.join(attachmentFolderPath, file))
-    ).toBe(true)
+    expect(movedFrom.includes(path.join(attachmentFolderPath, file))).toBe(true)
   })
+  movedTo.forEach(function(dest) {
+    expect(path.dirname(dest)).toBe(trashFolderPath)
+  })
+  // 復元用の sidecar が各ファイル分書かれること
+  expect(fs.writeFileSync).toHaveBeenCalledTimes(dummyFilesInFolder.length)
 })
 
-it('should test that deleteAttachmentsNotPresentInNote does not delete referenced attachments', function() {
+it('should test that deleteAttachmentsNotPresentInNote does not trash referenced attachments', function() {
   const dummyStorage = { path: 'dummyStoragePath' }
   const noteKey = 'noteKey'
   const storageKey = 'storageKey'
@@ -953,7 +973,7 @@ it('should test that deleteAttachmentsNotPresentInNote does not delete reference
   fs.readdir = jest.fn((paht, callback) =>
     callback(undefined, dummyFilesInFolder)
   )
-  fs.unlink = jest.fn()
+  mockTrashFs()
 
   systemUnderTest.deleteAttachmentsNotPresentInNote(
     markdownContent,
@@ -961,15 +981,10 @@ it('should test that deleteAttachmentsNotPresentInNote does not delete reference
     noteKey
   )
 
-  expect(fs.unlink).toHaveBeenCalledTimes(dummyFilesInFolder.length - 1)
-  const fsUnlinkCallArguments = []
-  for (let i = 0; i < dummyFilesInFolder.length - 1; i++) {
-    fsUnlinkCallArguments.push(fs.unlink.mock.calls[i][0])
-  }
+  expect(fs.renameSync).toHaveBeenCalledTimes(dummyFilesInFolder.length - 1)
+  const movedFrom = fs.renameSync.mock.calls.map(call => call[0])
   expect(
-    fsUnlinkCallArguments.includes(
-      path.join(attachmentFolderPath, dummyFilesInFolder[0])
-    )
+    movedFrom.includes(path.join(attachmentFolderPath, dummyFilesInFolder[0]))
   ).toBe(false)
 })
 
@@ -982,6 +997,7 @@ it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, 
   fs.existsSync = jest.fn()
   fs.readdir = jest.fn()
   fs.unlink = jest.fn()
+  mockTrashFs()
 
   systemUnderTest.deleteAttachmentsNotPresentInNote(
     markdownContent,
@@ -991,6 +1007,7 @@ it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, 
   expect(fs.existsSync).not.toHaveBeenCalled()
   expect(fs.readdir).not.toHaveBeenCalled()
   expect(fs.unlink).not.toHaveBeenCalled()
+  expect(fs.renameSync).not.toHaveBeenCalled()
 })
 
 it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, storageKey or noteContent was undefined', function() {
@@ -1002,6 +1019,7 @@ it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, 
   fs.existsSync = jest.fn()
   fs.readdir = jest.fn()
   fs.unlink = jest.fn()
+  mockTrashFs()
 
   systemUnderTest.deleteAttachmentsNotPresentInNote(
     markdownContent,
@@ -1011,6 +1029,23 @@ it('should test that deleteAttachmentsNotPresentInNote does nothing if noteKey, 
   expect(fs.existsSync).not.toHaveBeenCalled()
   expect(fs.readdir).not.toHaveBeenCalled()
   expect(fs.unlink).not.toHaveBeenCalled()
+  expect(fs.renameSync).not.toHaveBeenCalled()
+})
+
+it('should test that removeAttachmentsByPaths moves the files to the trash instead of deleting them', async function() {
+  const attachmentPaths = [
+    path.join('dummyStoragePath', 'attachments', 'noteKey', 'file1.png'),
+    path.join('dummyStoragePath', 'attachments', 'noteKey', 'file2.png')
+  ]
+  mockTrashFs()
+
+  const result = await systemUnderTest.removeAttachmentsByPaths(attachmentPaths)
+
+  expect(result.trashed).toEqual(attachmentPaths)
+  expect(result.failed).toEqual([])
+  expect(fs.unlink).not.toHaveBeenCalled()
+  expect(fs.unlinkSync).not.toHaveBeenCalled()
+  expect(fs.renameSync).toHaveBeenCalledTimes(attachmentPaths.length)
 })
 
 it('should test that getAttachmentsPathAndStatus return null if noteKey, storageKey or noteContent was undefined', function() {

@@ -34,6 +34,9 @@ const SideNavFilter = ({
   handleAllNotesButtonClick,
   isStarredActive,
   handleStarredButtonClick,
+  isBookmarkedActive,
+  handleBookmarkedButtonClick,
+  counterBookmarkedNote,
   isTrashedActive,
   handleTrashedButtonClick,
   counterDelNote,
@@ -91,15 +94,37 @@ const SideNavFilter = ({
     </button>
 
     <button
-      styleName={isTrashedActive ? 'menu-button-trash--active' : 'menu-button'}
-      onClick={handleTrashedButtonClick}
-      onKeyDown={focusNoteListOnTab(handleTrashedButtonClick)}
-      onContextMenu={handleFilterButtonContextMenu}
+      styleName={
+        isBookmarkedActive ? 'menu-button-bookmark--active' : 'menu-button'
+      }
+      onClick={handleBookmarkedButtonClick}
+      onKeyDown={focusNoteListOnTab(handleBookmarkedButtonClick)}
       data-jump-hint={3}
     >
       {showJumpHint && (
         <span styleName='menu-button-jump-hint' aria-hidden='true'>
           3
+        </span>
+      )}
+      <div styleName='iconWrap'>
+        {/* スター等は SVG アセットだが、ブックマーク用のアセットが無いため
+            同梱済みの Font Awesome を使う。色は menu-button 側で効く */}
+        <i styleName='menu-button-icon-font' className='fa fa-bookmark' />
+      </div>
+      <span styleName='menu-button-label'>{i18n.__('Bookmark')}</span>
+      <span styleName='counters'>{counterBookmarkedNote}</span>
+    </button>
+
+    <button
+      styleName={isTrashedActive ? 'menu-button-trash--active' : 'menu-button'}
+      onClick={handleTrashedButtonClick}
+      onKeyDown={focusNoteListOnTab(handleTrashedButtonClick)}
+      onContextMenu={handleFilterButtonContextMenu}
+      data-jump-hint={4}
+    >
+      {showJumpHint && (
+        <span styleName='menu-button-jump-hint' aria-hidden='true'>
+          4
         </span>
       )}
       <div styleName='iconWrap'>
@@ -122,6 +147,9 @@ SideNavFilter.propTypes = {
   isHomeActive: PropTypes.bool.isRequired,
   handleAllNotesButtonClick: PropTypes.func.isRequired,
   isStarredActive: PropTypes.bool.isRequired,
+  isBookmarkedActive: PropTypes.bool,
+  handleBookmarkedButtonClick: PropTypes.func,
+  counterBookmarkedNote: PropTypes.number,
   isTrashedActive: PropTypes.bool.isRequired,
   handleStarredButtonClick: PropTypes.func.isRequired,
   handleTrashedButtonClick: PropTypes.func.isRequired

@@ -210,6 +210,11 @@ class SideNav extends React.Component {
     dispatch(push('/starred'))
   }
 
+  handleBookmarkedButtonClick(e) {
+    const { dispatch } = this.props
+    dispatch(push('/bookmarked'))
+  }
+
   handleTagContextMenu(e, tag) {
     context.popup([
       {
@@ -438,6 +443,7 @@ class SideNav extends React.Component {
 
     const isHomeActive = !!location.pathname.match(/^\/home$/)
     const isStarredActive = !!location.pathname.match(/^\/starred$/)
+    const isBookmarkedActive = !!location.pathname.match(/^\/bookmarked$/)
     const isTrashedActive = !!location.pathname.match(/^\/trashed$/)
 
     let component
@@ -458,9 +464,9 @@ class SideNav extends React.Component {
         })
       }
 
-      // フィルタ 3 件を 1..3 に使うので、フォルダは 4 から。ストレージを
+      // フィルタ 4 件を 1..4 に使うので、フォルダは 5 から。ストレージを
       // またいで通し番号にする（画面上の並び順と一致させるため）
-      let jumpHintCursor = 4
+      let jumpHintCursor = 5
       const storageList = storageMap.map((storage, key) => {
         const SortableStorageItem = SortableContainer(StorageItem)
         // 折りたたまれたストレージはフォルダを描画しないので番号を消費しない。
@@ -493,13 +499,18 @@ class SideNav extends React.Component {
             isHomeActive={isHomeActive}
             handleAllNotesButtonClick={e => this.handleHomeButtonClick(e)}
             isStarredActive={isStarredActive}
+            isBookmarkedActive={isBookmarkedActive}
             isTrashedActive={isTrashedActive}
             handleStarredButtonClick={e => this.handleStarredButtonClick(e)}
+            handleBookmarkedButtonClick={e =>
+              this.handleBookmarkedButtonClick(e)
+            }
             handleTrashedButtonClick={e => this.handleTrashedButtonClick(e)}
             counterTotalNote={
               data.noteMap._map.size - data.trashedSet._set.size
             }
             counterStarredNote={data.starredSet._set.size}
+            counterBookmarkedNote={data.bookmarkedSet._set.size}
             counterDelNote={data.trashedSet._set.size}
             handleFilterButtonContextMenu={this.handleFilterButtonContextMenu.bind(
               this

@@ -103,6 +103,7 @@ class NoteList extends React.Component {
     this.deleteNote = this.deleteNote.bind(this)
     this.focusNote = this.focusNote.bind(this)
     this.pinToTop = this.pinToTop.bind(this)
+    this.toggleBookmark = this.toggleBookmark.bind(this)
     this.getNoteStorage = this.getNoteStorage.bind(this)
     this.getNoteFolder = this.getNoteFolder.bind(this)
     this.getViewType = this.getViewType.bind(this)
@@ -464,6 +465,15 @@ class NoteList extends React.Component {
       return starredNotes
     }
 
+    if (location.pathname.match(/\/bookmarked/)) {
+      const bookmarkedNotes = data.bookmarkedSet
+        .toJS()
+        .map(uniqueKey => data.noteMap.get(uniqueKey))
+        .filter(note => note != null)
+      this.contextNotes = bookmarkedNotes
+      return bookmarkedNotes
+    }
+
     if (location.pathname.match(/\/searched/)) {
       const searchInputText = params.searchword
       const allNotes = data.noteMap.map(note => note)
@@ -756,6 +766,10 @@ class NoteList extends React.Component {
     const cloneNote = i18n.__('Clone Note')
     const restoreNote = i18n.__('Restore Note')
     const copyNoteLink = i18n.__('Copy Note Link')
+    // 既存ノートの .cson に isBookmarked は無い（undefined = 未設定 = false）
+    const bookmarkLabel = note.isBookmarked
+      ? i18n.__('Remove Bookmark')
+      : i18n.__('Add Bookmark')
 
     const templates = []
 
@@ -771,13 +785,17 @@ class NoteList extends React.Component {
         }
       )
     } else {
-      if (!location.pathname.match(/\/starred/)) {
+      if (!location.pathname.match(/\/starred|\/bookmarked/)) {
         templates.push({
           label: pinLabel,
           click: this.pinToTop
         })
       }
       templates.push(
+        {
+          label: bookmarkLabel,
+          click: this.toggleBookmark
+        },
         {
           label: deleteLabel,
           click: this.deleteNote
@@ -907,6 +925,13 @@ class NoteList extends React.Component {
   pinToTop() {
     this.updateSelectedNotes(note => {
       note.isPinned = !note.isPinned
+      return note
+    })
+  }
+
+  toggleBookmark() {
+    this.updateSelectedNotes(note => {
+      note.isBookmarked = !note.isBookmarked
       return note
     })
   }
@@ -1204,7 +1229,9 @@ class NoteList extends React.Component {
         : sortBy === 'ALPHABETICAL'
         ? sortByAlphabetical
         : sortByUpdatedAt
-    const sortedNotes = location.pathname.match(/\/starred|\/trash/)
+    const sortedNotes = location.pathname.match(
+      /\/starred|\/bookmarked|\/trash/
+    )
       ? this.getNotes().sort(sortFunc)
       : this.sortByPin(this.getNotes().sort(sortFunc))
     this.notes = notes = sortedNotes.filter(note => {

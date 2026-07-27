@@ -136,7 +136,10 @@ ReactDOM.render(
       <Fragment>
         <Switch>
           <Redirect path='/' to='/home' exact />
-          <Route path='/(home|alltags|starred|trashed)' component={Main} />
+          <Route
+            path='/(home|alltags|starred|bookmarked|trashed)'
+            component={Main}
+          />
           <Route path='/searched' component={Main} exact />
           <Route path='/searched/:searchword' component={Main} />
           <Redirect path='/tags' to='/alltags' exact />

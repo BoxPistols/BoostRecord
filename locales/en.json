@@ -263,5 +263,8 @@
   "Renamed to avoid overwriting: %n": "Renamed to avoid overwriting: %n",
   "%d days left": "%d days left",
   "Deletion date unknown (kept indefinitely)": "Deletion date unknown (kept indefinitely)",
-  "Restore information is missing, so this file cannot be put back automatically.": "Restore information is missing, so this file cannot be put back automatically."
+  "Restore information is missing, so this file cannot be put back automatically.": "Restore information is missing, so this file cannot be put back automatically.",
+  "Bookmark": "Bookmark",
+  "Add Bookmark": "Add Bookmark",
+  "Remove Bookmark": "Remove Bookmark"
 }

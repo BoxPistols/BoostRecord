@@ -150,7 +150,8 @@ const NoteItem = ({
           ) : (
             ''
           )}
-          {note.isPinned && !pathname.match(/\/starred|\/trash/) ? (
+          {note.isPinned &&
+          !pathname.match(/\/starred|\/bookmarked|\/trash/) ? (
             <i styleName='item-pin' className='fa fa-thumb-tack' />
           ) : (
             ''

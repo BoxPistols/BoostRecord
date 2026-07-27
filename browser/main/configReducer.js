@@ -7,6 +7,9 @@ export function createConfigReducer(defaultConfig) {
       case 'SET_IS_SIDENAV_FOLDED':
         state.isSideNavFolded = action.isFolded
         return Object.assign({}, state)
+      case 'SET_IS_NOTELIST_FOLDED':
+        state.isNoteListFolded = action.isFolded
+        return Object.assign({}, state)
       case 'SET_ZOOM':
         state.zoom = action.zoom
         return Object.assign({}, state)

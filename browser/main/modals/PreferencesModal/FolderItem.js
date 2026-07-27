@@ -63,8 +63,13 @@ class FolderItem extends React.Component {
     this.setState({ folder }, function() {
       // After the color picker has been painted, re-calculate its position
       // by comparing its dimensions to the host dimensions.
+      // 位置合わせは見た目の調整でしかないので、参照が取れない場合は
+      // 既定位置のまま黙って諦める。ここで例外を投げると setState の
+      // コールバック内なので React がツリーごとアンマウントし、
+      // 設定画面が操作不能になる（カラー変更で画面が固まる原因だった）。
       const { hostBoundingBox } = this.props
-      const colorPickerNode = this.colorPicker
+      const colorPickerNode = this.colorPickerNode
+      if (!colorPickerNode || !hostBoundingBox) return
       const colorPickerBox = colorPickerNode.getBoundingClientRect()
       const offsetTop = hostBoundingBox.bottom - colorPickerBox.bottom
       const folder = Object.assign({}, this.state.folder, {
@@ -144,9 +149,15 @@ class FolderItem extends React.Component {
                   style={cover}
                   onClick={() => this.handleColorPickerClose()}
                 />
-                <div style={pickerStyle}>
+                {/* ref は DOM ノードを持つラッパー側に付ける。SketchPicker は
+                    合成コンポーネントなので ref から getBoundingClientRect は取れない */}
+                <div
+                  style={pickerStyle}
+                  ref={node => {
+                    this.colorPickerNode = node
+                  }}
+                >
                   <SketchPicker
-                    ref='colorPicker'
                     color={this.state.folder.color}
                     onChange={color => this.handleColorChange(color)}
                     onChangeComplete={color => this.handleColorChange(color)}

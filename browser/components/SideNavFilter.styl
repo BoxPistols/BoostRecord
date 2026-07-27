@@ -34,12 +34,19 @@
     color #1EC38B
 
 .menu-button-star--active
+.menu-button-bookmark--active
   @extend .menu-button
   SideNavFilter()
   color #1EC38B
   background-color alpha($ui-button-default--active-backgroundColor, 20%)
   .menu-button-label, .counters
     color #1EC38B
+
+// SVG アセットではなくフォントアイコンを使う場合の大きさ合わせ。
+// 他のアイコンは 22px の img なのでそれに揃える
+.menu-button-icon-font
+  font-size 17px
+  line-height 22px
 
 .menu-button-trash--active
   @extend .menu-button
@@ -55,7 +62,7 @@
 
 .menu--folded
   @extend .menu
-  .menu-button, .menu-button--active, .menu-button-star--active, .menu-button-trash--active
+  .menu-button, .menu-button--active, .menu-button-star--active, .menu-button-bookmark--active, .menu-button-trash--active
     text-align center
     justify-content center   // center the .iconWrap flex item in the 44px column
     padding 0 12px
@@ -108,6 +115,7 @@ body[data-theme="white"]
         color $ui-text-color
 
   .menu-button-star--active
+  .menu-button-bookmark--active
     color #F9BF3B
     background-color $ui-button--active-backgroundColor
     .menu-button-label
@@ -160,6 +168,7 @@ body[data-theme="dark"]
         color $ui-dark-text-color
 
   .menu-button-star--active
+  .menu-button-bookmark--active
     color $ui-favorite-star-button-color
     background-color $ui-dark-button--active-backgroundColor
     .menu-button-label
@@ -203,6 +212,7 @@ apply-theme(theme)
           color get-theme-var(theme, 'text-color')
 
     .menu-button-star--active
+    .menu-button-bookmark--active
       color get-theme-var(theme, 'text-color')
       background-color get-theme-var(theme, 'button-backgroundColor')
       .menu-button-label

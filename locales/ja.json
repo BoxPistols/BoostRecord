@@ -308,5 +308,8 @@
   "Renamed to avoid overwriting: %n": "上書きを避けて改名: %n",
   "%d days left": "残り %d 日",
   "Deletion date unknown (kept indefinitely)": "削除日時が不明のため自動削除されません",
-  "Restore information is missing, so this file cannot be put back automatically.": "復元情報が失われているため、自動では戻せません"
+  "Restore information is missing, so this file cannot be put back automatically.": "復元情報が失われているため、自動では戻せません",
+  "Bookmark": "ブックマーク",
+  "Add Bookmark": "ブックマークに追加",
+  "Remove Bookmark": "ブックマークから外す"
 }

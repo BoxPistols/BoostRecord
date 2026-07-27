@@ -503,3 +503,24 @@ get-theme-var(theme, suffix)
   lookup('$ui-' + theme + '-' + suffix)
 
 $themes = 'monokai' 'nord' 'vulcan' 'rockabilly'
+
+// --- pin アイコンの自動コントラスト ---------------------------------------
+// 既定の赤はノート一覧の通常行では十分に読めるが、選択行の背景が赤系・
+// 高彩度のテーマ（rockabilly の #D7263D 等）では地に同化して見えなくなる。
+// テーマごとに手で色を当てると追随漏れが出るので、ビルド時に実際の
+// コントラスト比を計算して足りない時だけ差し替える。
+// 下限は WCAG 2.1 の 1.4.11（非テキストコンテンツ）に合わせて 3:1。
+$ui-pin-color = #E54D42
+$ui-pin-min-contrast = 3
+// 優先順に評価し、最初に下限を満たした色を採る（最大化はしない。
+// 常に白黒へ倒すと pin であることの色の手がかりが失われるため）
+$ui-pin-fallbacks = #FFD54A #FFFFFF #B71C1C #7F0000
+
+pin-color-for(bg)
+  best = $ui-pin-color
+  if contrast(best, bg).ratio < $ui-pin-min-contrast
+    for candidate in $ui-pin-fallbacks
+      if contrast(best, bg).ratio < $ui-pin-min-contrast
+        if contrast(candidate, bg).ratio > contrast(best, bg).ratio
+          best = candidate
+  best

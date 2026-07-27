@@ -75,8 +75,9 @@ class ImageManagerModal extends React.Component {
       loading: true,
       error: null,
       attachments: [],
+      trash: [],
       noteLoadFailed: false,
-      filter: 'all', // all | unused | broken
+      filter: 'all', // all | unused | broken | trash
       selected: {}, // absPath -> true (bulk)
       detail: null, // the focused attachment
       busy: false,
@@ -93,28 +94,49 @@ class ImageManagerModal extends React.Component {
 
   load() {
     this.setState({ loading: true, error: null, selected: {} })
-    dataApi
-      .listAttachments(this.props.storageList)
-      .then(({ attachments, noteLoadFailed }) => {
+    // 保持期間を過ぎたゴミ箱の中身はここで初めて実体を消す。main プロセスの
+    // 起動フックに置くと変更のたびに Electron 再起動が要るため画面側で回す。
+    const trashPromise = dataApi
+      .purgeExpiredTrash(this.props.storageList)
+      .catch(() => null)
+      .then(() => dataApi.listTrashedAttachments(this.props.storageList))
+      .catch(() => [])
+    Promise.all([dataApi.listAttachments(this.props.storageList), trashPromise])
+      .then(([{ attachments, noteLoadFailed }, trashed]) => {
         attachments.sort(
           (a, b) => Number(b.broken) - Number(a.broken) || b.size - a.size
         )
-        this.setState(prev => ({
-          attachments,
-          noteLoadFailed,
-          loading: false,
-          detail:
-            prev.detail &&
-            attachments.find(a => a.absPath === prev.detail.absPath)
-              ? attachments.find(a => a.absPath === prev.detail.absPath)
-              : null
-        }))
+        // ゴミ箱の項目もカード描画を使い回せるよう、一覧と同じ形に寄せる。
+        // attachments 配列には混ぜない（「未使用をすべて削除」の対象に
+        // ゴミ箱の中身が入ってしまうため）。
+        const trash = (trashed || []).map(e =>
+          Object.assign({}, e, {
+            absPath: e.trashPath,
+            referenced: false,
+            broken: false,
+            isTrash: true,
+            referencingNotes: []
+          })
+        )
+        this.setState(prev => {
+          const pool = attachments.concat(trash)
+          const keep =
+            prev.detail && pool.find(a => a.absPath === prev.detail.absPath)
+          return {
+            attachments,
+            trash,
+            noteLoadFailed,
+            loading: false,
+            detail: keep || null
+          }
+        })
       })
       .catch(err => this.setState({ loading: false, error: String(err) }))
   }
 
   visible() {
-    const { attachments, filter } = this.state
+    const { attachments, trash, filter } = this.state
+    if (filter === 'trash') return trash
     if (filter === 'unused') return attachments.filter(a => !a.referenced)
     if (filter === 'broken') return attachments.filter(a => a.broken)
     return attachments
@@ -146,7 +168,7 @@ class ImageManagerModal extends React.Component {
     if (paths.length)
       parts.push(
         i18n
-          .__('Permanently delete %n image file(s).')
+          .__('Move %n image file(s) to the trash.')
           .replace('%n', paths.length)
       )
     if (brokenItems.length)
@@ -155,15 +177,20 @@ class ImageManagerModal extends React.Component {
           .__('Remove %n broken reference(s) from notes (a backup is saved).')
           .replace('%n', brokenItems.length)
       )
-    if (
-      !window.confirm(
-        parts.join('\n') + '\n\n' + i18n.__('This cannot be undone.')
+    // 実体は復元可能になったが、壊れた参照の除去はノート本文の書き換えなので
+    // 元に戻せない（バックアップは取る）。両方ある時は両方伝える
+    if (paths.length)
+      parts.push(
+        i18n
+          .__('You can restore them from the trash for %d days.')
+          .replace('%d', dataApi.TRASH_RETENTION_DAYS)
       )
-    )
-      return
+    if (brokenItems.length)
+      parts.push(i18n.__('Reference removal cannot be undone.'))
+    if (!window.confirm(parts.join('\n'))) return
     this.setState({ busy: true, notice: null })
     const jobs = []
-    if (paths.length) jobs.push(dataApi.deleteAttachmentsVerified(paths))
+    if (paths.length) jobs.push(dataApi.trashAttachments(paths))
     brokenItems.forEach(a =>
       jobs.push(
         dataApi
@@ -183,14 +210,74 @@ class ImageManagerModal extends React.Component {
     )
     Promise.all(jobs)
       .then(results => {
-        const del = (paths.length && results[0] && results[0].deleted) || []
+        const moved = (paths.length && results[0] && results[0].trashed) || []
         const failed = (paths.length && results[0] && results[0].failed) || []
         const notice = [
-          paths.length ? i18n.__('Deleted') + ': ' + del.length : '',
+          paths.length ? i18n.__('Moved to trash') + ': ' + moved.length : '',
           failed.length ? i18n.__('Failed') + ': ' + failed.length : '',
           brokenItems.length
             ? i18n.__('References removed') + ': ' + brokenItems.length
             : ''
+        ]
+          .filter(Boolean)
+          .join(' · ')
+        this.setState({ busy: false, notice })
+        this.load()
+      })
+      .catch(err => this.setState({ busy: false, error: String(err) }))
+  }
+
+  // ---- ゴミ箱の操作 ----
+
+  restoreItems(items) {
+    if (!items.length) {
+      this.setState({ notice: i18n.__('Nothing to restore') })
+      return
+    }
+    this.setState({ busy: true, notice: null })
+    dataApi
+      .restoreTrashedAttachments(items)
+      .then(({ restored, failed }) => {
+        const renamed = restored.filter(r => r.renamed).length
+        const notice = [
+          i18n.__('Restored') + ': ' + restored.length,
+          // 復元先に同名ファイルがあった場合は上書きせず別名にしている。
+          // 黙って名前が変わると参照が繋がらないので必ず知らせる。
+          renamed
+            ? i18n.__('Renamed to avoid overwriting: %n').replace('%n', renamed)
+            : '',
+          failed.length ? i18n.__('Failed') + ': ' + failed.length : ''
+        ]
+          .filter(Boolean)
+          .join(' · ')
+        this.setState({ busy: false, notice })
+        this.load()
+      })
+      .catch(err => this.setState({ busy: false, error: String(err) }))
+  }
+
+  purgeItems(items) {
+    if (!items.length) {
+      this.setState({ notice: i18n.__('Nothing to delete') })
+      return
+    }
+    if (
+      !window.confirm(
+        i18n
+          .__('Permanently delete %n item(s) from the trash.')
+          .replace('%n', items.length) +
+          '\n\n' +
+          i18n.__('This cannot be undone.')
+      )
+    )
+      return
+    this.setState({ busy: true, notice: null })
+    dataApi
+      .purgeTrashedAttachments(items)
+      .then(({ deleted, failed }) => {
+        const notice = [
+          i18n.__('Deleted') + ': ' + deleted.length,
+          failed.length ? i18n.__('Failed') + ': ' + failed.length : ''
         ]
           .filter(Boolean)
           .join(' · ')
@@ -343,11 +430,15 @@ class ImageManagerModal extends React.Component {
       notice
     } = this.state
 
+    const { trash } = this.state
     const unused = attachments.filter(a => !a.referenced && !a.broken)
     const broken = attachments.filter(a => a.broken)
     const totalSize = attachments.reduce((s, a) => s + a.size, 0)
     const list = this.visible()
-    const selectedItems = attachments.filter(a => selected[a.absPath])
+    // 選択はタブ内で完結させる（一覧の選択がゴミ箱の一括操作へ漏れないよう）
+    const selectedItems = (filter === 'trash' ? trash : attachments).filter(
+      a => selected[a.absPath]
+    )
 
     return (
       <div styleName='root'>
@@ -387,40 +478,70 @@ class ImageManagerModal extends React.Component {
 
         <div styleName='toolbar'>
           <div styleName='filters'>
-            {['all', 'unused', 'broken'].map(f => (
+            {['all', 'unused', 'broken', 'trash'].map(f => (
               <button
                 key={f}
                 styleName={filter === f ? 'tab--active' : 'tab'}
-                onClick={() => this.setState({ filter: f })}
+                onClick={() => this.setState({ filter: f, selected: {} })}
               >
                 {f === 'all'
                   ? i18n.__('All')
                   : f === 'unused'
                   ? `${i18n.__('Unused')} (${unused.length})`
-                  : `${i18n.__('Broken')} (${broken.length})`}
+                  : f === 'broken'
+                  ? `${i18n.__('Broken')} (${broken.length})`
+                  : `${i18n.__('Trash')} (${trash.length})`}
               </button>
             ))}
           </div>
           <div styleName='actions'>
-            <button
-              styleName='action'
-              disabled={busy || selectedItems.length === 0}
-              onClick={() => this.deletePaths(selectedItems)}
-            >
-              {i18n.__('Delete selected')} ({selectedItems.length})
-            </button>
-            <button
-              styleName='action--danger'
-              disabled={busy || noteLoadFailed || unused.length === 0}
-              title={
-                noteLoadFailed
-                  ? i18n.__('Disabled: some notes could not be read')
-                  : ''
-              }
-              onClick={() => this.deletePaths(unused)}
-            >
-              {i18n.__('Delete all unused')}
-            </button>
+            {filter === 'trash' ? (
+              <React.Fragment>
+                <button
+                  styleName='action'
+                  disabled={busy || selectedItems.length === 0}
+                  onClick={() => this.restoreItems(selectedItems)}
+                >
+                  {i18n.__('Restore selected')} ({selectedItems.length})
+                </button>
+                <button
+                  styleName='action'
+                  disabled={busy || selectedItems.length === 0}
+                  onClick={() => this.purgeItems(selectedItems)}
+                >
+                  {i18n.__('Delete permanently')}
+                </button>
+                <button
+                  styleName='action--danger'
+                  disabled={busy || trash.length === 0}
+                  onClick={() => this.purgeItems(trash)}
+                >
+                  {i18n.__('Empty trash')}
+                </button>
+              </React.Fragment>
+            ) : (
+              <React.Fragment>
+                <button
+                  styleName='action'
+                  disabled={busy || selectedItems.length === 0}
+                  onClick={() => this.deletePaths(selectedItems)}
+                >
+                  {i18n.__('Delete selected')} ({selectedItems.length})
+                </button>
+                <button
+                  styleName='action--danger'
+                  disabled={busy || noteLoadFailed || unused.length === 0}
+                  title={
+                    noteLoadFailed
+                      ? i18n.__('Disabled: some notes could not be read')
+                      : ''
+                  }
+                  onClick={() => this.deletePaths(unused)}
+                >
+                  {i18n.__('Delete all unused')}
+                </button>
+              </React.Fragment>
+            )}
           </div>
         </div>
 
@@ -429,7 +550,11 @@ class ImageManagerModal extends React.Component {
             {loading && <div styleName='empty'>{i18n.__('Scanning…')}</div>}
             {error && <div styleName='empty'>{error}</div>}
             {!loading && !error && list.length === 0 && (
-              <div styleName='empty'>{i18n.__('No images')}</div>
+              <div styleName='empty'>
+                {filter === 'trash'
+                  ? i18n.__('The trash is empty')
+                  : i18n.__('No images')}
+              </div>
             )}
             {!loading &&
               list.map(a => (
@@ -458,7 +583,14 @@ class ImageManagerModal extends React.Component {
                     {a.broken && (
                       <span styleName='badge-broken'>{i18n.__('Broken')}</span>
                     )}
-                    {!a.referenced && !a.broken && (
+                    {a.isTrash && (
+                      <span styleName='badge-unused'>
+                        {a.daysLeft === null
+                          ? i18n.__('Kept')
+                          : i18n.__('%d days left').replace('%d', a.daysLeft)}
+                      </span>
+                    )}
+                    {!a.referenced && !a.broken && !a.isTrash && (
                       <span styleName='badge-unused'>{i18n.__('Unused')}</span>
                     )}
                   </div>
@@ -535,24 +667,65 @@ class ImageManagerModal extends React.Component {
                     ? i18n.__('Missing file (referenced but not on disk)')
                     : `${humanSize(detail.size)} · ${detail.storageName}`}
                 </div>
-                <div styleName='detail-refs-title'>
-                  {i18n.__('Referenced by')} ({detail.referencingNotes.length})
-                </div>
-                <div styleName='detail-refs'>
-                  {detail.referencingNotes.length === 0 ? (
-                    <div styleName='detail-orphan'>
-                      {i18n.__('Not referenced by any note (unused)')}
-                    </div>
-                  ) : (
-                    detail.referencingNotes.map((n, i) => (
-                      <div key={i} styleName='detail-ref'>
-                        {n.title || n.noteKey}
+                {detail.isTrash && (
+                  <div styleName='detail-row'>
+                    {detail.deletedAt
+                      ? `${i18n.__('Deleted at')} ${new Date(
+                          detail.deletedAt
+                        ).toLocaleString()}`
+                      : i18n.__('Deletion date unknown (kept indefinitely)')}
+                  </div>
+                )}
+                {detail.isTrash && !detail.restorable && (
+                  <div styleName='detail-row'>
+                    {i18n.__(
+                      'Restore information is missing, so this file cannot be put back automatically.'
+                    )}
+                  </div>
+                )}
+                {/* ゴミ箱の項目は参照が無いから捨てられたもの。参照数を出すと
+                    「参照されていない＝異常」と読めてしまうので出さない */}
+                {!detail.isTrash && (
+                  <div styleName='detail-refs-title'>
+                    {i18n.__('Referenced by')} ({detail.referencingNotes.length}
+                    )
+                  </div>
+                )}
+                {!detail.isTrash && (
+                  <div styleName='detail-refs'>
+                    {detail.referencingNotes.length === 0 ? (
+                      <div styleName='detail-orphan'>
+                        {i18n.__('Not referenced by any note (unused)')}
                       </div>
-                    ))
-                  )}
-                </div>
+                    ) : (
+                      detail.referencingNotes.map((n, i) => (
+                        <div key={i} styleName='detail-ref'>
+                          {n.title || n.noteKey}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                )}
                 <div styleName='detail-actions'>
-                  {!detail.broken && (
+                  {detail.isTrash && (
+                    <button
+                      styleName='detail-btn'
+                      disabled={busy || !detail.restorable}
+                      onClick={() => this.restoreItems([detail])}
+                    >
+                      {i18n.__('Restore')}
+                    </button>
+                  )}
+                  {detail.isTrash && (
+                    <button
+                      styleName='detail-btn--danger'
+                      disabled={busy}
+                      onClick={() => this.purgeItems([detail])}
+                    >
+                      {i18n.__('Delete permanently')}
+                    </button>
+                  )}
+                  {!detail.broken && !detail.isTrash && (
                     <button
                       styleName='detail-btn'
                       disabled={busy || this.state.renaming}
@@ -561,7 +734,7 @@ class ImageManagerModal extends React.Component {
                       {i18n.__('Rename')}
                     </button>
                   )}
-                  {!detail.broken && (
+                  {!detail.broken && !detail.isTrash && (
                     <button
                       styleName='detail-btn'
                       disabled={busy}
@@ -570,7 +743,7 @@ class ImageManagerModal extends React.Component {
                       {i18n.__('Replace')}
                     </button>
                   )}
-                  {!detail.broken && (
+                  {!detail.broken && !detail.isTrash && (
                     <button
                       styleName='detail-btn--danger'
                       disabled={busy}

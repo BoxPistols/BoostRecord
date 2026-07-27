@@ -79,7 +79,12 @@ class NoteList extends React.Component {
       this.selectPriorNote()
     }
     this.focusHandler = () => {
-      this.refs.list.focus()
+      const list = this.refs.list
+      // ペインを折りたたんでいる時は不可視の要素にフォーカスが入り、
+      // どこを操作しているのか分からなくなるので何もしない
+      // (offsetParent は display:none の祖先を持つと null になる)
+      if (!list || list.offsetParent === null) return
+      list.focus()
     }
     this.alertIfSnippetHandler = (event, msg) => {
       this.alertIfSnippet(msg)

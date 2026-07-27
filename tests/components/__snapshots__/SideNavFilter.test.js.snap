@@ -7,6 +7,7 @@ exports[`SideNavFilter renders the All / Starred / Trash buttons 1`] = `
   <button
     className="menu-button--active"
     onClick={[MockFunction]}
+    onKeyDown={[Function]}
   >
     <div
       className="iconWrap"
@@ -29,6 +30,7 @@ exports[`SideNavFilter renders the All / Starred / Trash buttons 1`] = `
   <button
     className="menu-button"
     onClick={[MockFunction]}
+    onKeyDown={[Function]}
   >
     <div
       className="iconWrap"
@@ -52,6 +54,7 @@ exports[`SideNavFilter renders the All / Starred / Trash buttons 1`] = `
     className="menu-button"
     onClick={[MockFunction]}
     onContextMenu={[MockFunction]}
+    onKeyDown={[Function]}
   >
     <div
       className="iconWrap"

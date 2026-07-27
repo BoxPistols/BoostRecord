@@ -6,6 +6,17 @@ import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './SideNavFilter.styl'
 import i18n from 'browser/lib/i18n'
+import ee from 'browser/main/lib/eventEmitter'
+
+// Tab でフィルタを選択してノート一覧へフォーカスを移す。フォルダボタン
+// (components/StorageItem) と同じ挙動をサイドバー上部にも揃える。
+// 逆方向 (Shift+Tab) は NoteList 側が受け持つ。
+const focusNoteListOnTab = handleClick => e => {
+  if (e.key !== 'Tab' || e.shiftKey) return
+  e.preventDefault()
+  if (handleClick) handleClick(e)
+  ee.emit('list:focus')
+}
 
 /**
  * @param {boolean} isFolded
@@ -32,6 +43,7 @@ const SideNavFilter = ({
     <button
       styleName={isHomeActive ? 'menu-button--active' : 'menu-button'}
       onClick={handleAllNotesButtonClick}
+      onKeyDown={focusNoteListOnTab(handleAllNotesButtonClick)}
     >
       <div styleName='iconWrap'>
         <img
@@ -49,6 +61,7 @@ const SideNavFilter = ({
     <button
       styleName={isStarredActive ? 'menu-button-star--active' : 'menu-button'}
       onClick={handleStarredButtonClick}
+      onKeyDown={focusNoteListOnTab(handleStarredButtonClick)}
     >
       <div styleName='iconWrap'>
         <img
@@ -66,6 +79,7 @@ const SideNavFilter = ({
     <button
       styleName={isTrashedActive ? 'menu-button-trash--active' : 'menu-button'}
       onClick={handleTrashedButtonClick}
+      onKeyDown={focusNoteListOnTab(handleTrashedButtonClick)}
       onContextMenu={handleFilterButtonContextMenu}
     >
       <div styleName='iconWrap'>

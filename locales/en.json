@@ -245,6 +245,7 @@
   "Fix (remove reference)": "Fix (remove reference)",
   "Remove all references to this missing file from %n note(s)? A backup will be saved.": "Remove all references to this missing file from %n note(s)? A backup will be saved.",
   "Fixed": "Fixed",
+  "Toggle Note List": "Toggle Note List",
   "Restore selected": "Restore selected",
   "Restored": "Restored",
   "Delete permanently": "Delete permanently",

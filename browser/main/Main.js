@@ -24,6 +24,15 @@ const path = require('path')
 const electron = require('electron')
 const remote = require('@electron/remote')
 
+// ノート一覧ペインのドラッグ下限。180px では「もう少し狭く」の要望を満たせず、
+// これ以上狭めるとタイトルが読めなくなるため 120px を下限にする
+const MIN_LIST_WIDTH = 120
+
+// ショートカット表記の OS 出し分け（キー名はハードコードしない）
+const isMac = /Mac|iPhone|iPad|iPod/.test(
+  typeof navigator !== 'undefined' ? navigator.userAgent : ''
+)
+
 class Main extends React.Component {
   constructor(props) {
     super(props)
@@ -46,6 +55,19 @@ class Main extends React.Component {
     }
 
     this.toggleFullScreen = () => this.handleFullScreenButton()
+    // IPC は引数を伴うので、それを捨てるラッパーで受ける
+    this.toggleNoteListHandler = () => this.toggleNoteList()
+  }
+
+  toggleNoteList() {
+    // フルスクリーン中は hideLeftLists が DOM を直接触って一覧を隠しており、
+    // ここで再描画すると React が display を戻して一覧が復活してしまう。
+    // フルスクリーンでは一覧はそもそも見えないので、操作自体を無視する
+    if (this.state.fullScreen) return
+    const { dispatch, config } = this.props
+    const isFolded = !config.isNoteListFolded
+    ConfigManager.set({ isNoteListFolded: isFolded })
+    dispatch({ type: 'SET_IS_NOTELIST_FOLDED', isFolded })
   }
 
   getChildContext() {
@@ -189,6 +211,8 @@ class Main extends React.Component {
     )
     eventEmitter.on('dispatch:push', this.changeRoutePush.bind(this))
     eventEmitter.on('update', () => ipcRenderer.send('update-check', 'manual'))
+    // View メニュー "Toggle Note List"（Cmd/Ctrl+Shift+B）
+    eventEmitter.on('sidenav:togglenotelist', this.toggleNoteListHandler)
   }
 
   componentWillUnmount() {
@@ -199,6 +223,7 @@ class Main extends React.Component {
       this.toggleMenuBarVisible.bind(this)
     )
     eventEmitter.off('dispatch:push', this.changeRoutePush.bind(this))
+    eventEmitter.off('sidenav:togglenotelist', this.toggleNoteListHandler)
     clearInterval(this.refreshTheme)
   }
 
@@ -274,8 +299,10 @@ class Main extends React.Component {
     if (this.state.isRightSliderFocused) {
       const offset = this.refs.body.getBoundingClientRect().left
       let newListWidth = e.pageX - offset
-      if (newListWidth < 180) {
-        newListWidth = 180
+      // 下限はタイトル数文字とアイコンが残る幅。これより狭くしたい場合は
+      // 幅ではなく折りたたみ（isNoteListFolded）を使う
+      if (newListWidth < MIN_LIST_WIDTH) {
+        newListWidth = MIN_LIST_WIDTH
       } else if (newListWidth > 600) {
         newListWidth = 600
       }
@@ -321,7 +348,11 @@ class Main extends React.Component {
   showLeftLists(noteDetail, noteList, mainBody) {
     noteDetail.style.left = this.state.noteDetailWidth
     mainBody.style.left = this.state.mainBodyWidth
-    noteList.style.display = 'inline'
+    // フルスクリーン解除時に、折りたたみ中のノート一覧を勝手に復帰させない
+    // （この経路は DOM を直接触るため React 側の状態と二重管理になる）
+    noteList.style.display = this.props.config.isNoteListFolded
+      ? 'none'
+      : 'inline'
   }
 
   render() {
@@ -329,6 +360,12 @@ class Main extends React.Component {
 
     // the width of the navigation bar when it is folded/collapsed
     const foldedNavigationWidth = 44
+    // 折りたたみ中はノート一覧の占有幅を 0 にして Detail を左端まで広げる。
+    // コンポーネント自体はマウントしたまま（アンマウントすると検索文字列や
+    // スクロール位置が失われる）
+    const isNoteListFolded = !!config.isNoteListFolded
+    const listWidth = isNoteListFolded ? 0 : this.state.listWidth
+    const foldedPaneStyle = { width: 0, display: 'none' }
 
     return (
       <div
@@ -370,7 +407,11 @@ class Main extends React.Component {
           }}
         >
           <TopBar
-            style={{ width: this.state.listWidth }}
+            style={
+              isNoteListFolded
+                ? foldedPaneStyle
+                : { width: this.state.listWidth }
+            }
             {..._.pick(this.props, [
               'dispatch',
               'config',
@@ -380,7 +421,11 @@ class Main extends React.Component {
             ])}
           />
           <NoteList
-            style={{ width: this.state.listWidth }}
+            style={
+              isNoteListFolded
+                ? foldedPaneStyle
+                : { width: this.state.listWidth }
+            }
             loading={this.state.isLoading}
             {..._.pick(this.props, [
               'dispatch',
@@ -390,20 +435,45 @@ class Main extends React.Component {
               'location'
             ])}
           />
-          <div
-            styleName={
-              this.state.isRightSliderFocused
-                ? 'slider-right--active'
-                : 'slider-right'
-            }
-            style={{ left: this.state.listWidth - 1 }}
-            onMouseDown={e => this.handleRightSlideMouseDown(e)}
-            draggable='false'
-          >
-            <div styleName='slider-hitbox' />
-          </div>
+          {!isNoteListFolded && (
+            <div
+              styleName={
+                this.state.isRightSliderFocused
+                  ? 'slider-right--active'
+                  : 'slider-right'
+              }
+              style={{ left: this.state.listWidth - 1 }}
+              onMouseDown={e => this.handleRightSlideMouseDown(e)}
+              draggable='false'
+            >
+              <div styleName='slider-hitbox' />
+            </div>
+          )}
+          {/* 開閉ボタンはペイン左下に置く。サイドバーの « と同じ位置・記号で
+              揃えるほか、TopBar に置くと最小幅 120px で検索欄と新規ノート
+              ボタンに挟まれて成立しないため */}
+          {!this.state.fullScreen && (
+            <button
+              styleName='notelist-fold'
+              style={{ left: listWidth ? 4 : 0 }}
+              title={`${i18n.__('Toggle Note List')} (${
+                isMac ? '⌘⇧B' : 'Ctrl+Shift+B'
+              })`}
+              aria-label={i18n.__('Toggle Note List')}
+              aria-expanded={!isNoteListFolded}
+              onClick={() => this.toggleNoteList()}
+            >
+              <i
+                className={
+                  isNoteListFolded
+                    ? 'fa fa-angle-double-right'
+                    : 'fa fa-angle-double-left'
+                }
+              />
+            </button>
+          )}
           <Detail
-            style={{ left: this.state.listWidth }}
+            style={{ left: listWidth }}
             {..._.pick(this.props, [
               'dispatch',
               'data',

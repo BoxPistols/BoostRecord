@@ -26,6 +26,22 @@ describe('config reducer', () => {
     expect(result.isSideNavFolded).toBe(true)
   })
 
+  it('SET_IS_NOTELIST_FOLDED updates the note list fold flag', () => {
+    const result = config(
+      { isNoteListFolded: false },
+      { type: 'SET_IS_NOTELIST_FOLDED', isFolded: true }
+    )
+    expect(result.isNoteListFolded).toBe(true)
+  })
+
+  it('SET_IS_NOTELIST_FOLDED does not touch the sidebar fold flag', () => {
+    const result = config(
+      { isSideNavFolded: true, isNoteListFolded: false },
+      { type: 'SET_IS_NOTELIST_FOLDED', isFolded: true }
+    )
+    expect(result.isSideNavFolded).toBe(true)
+  })
+
   it('SET_CONFIG merges the provided config', () => {
     expect(config({ a: 1 }, { type: 'SET_CONFIG', config: { b: 2 } })).toEqual({
       a: 1,

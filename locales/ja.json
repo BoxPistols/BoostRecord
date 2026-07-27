@@ -311,5 +311,9 @@
   "Restore information is missing, so this file cannot be put back automatically.": "復元情報が失われているため、自動では戻せません",
   "Bookmark": "ブックマーク",
   "Add Bookmark": "ブックマークに追加",
-  "Remove Bookmark": "ブックマークから外す"
+  "Remove Bookmark": "ブックマークから外す",
+  "Test connection": "接続テスト",
+  "Testing…": "テスト中…",
+  "Connection succeeded": "接続できました",
+  "Connection failed": "接続できませんでした"
 }

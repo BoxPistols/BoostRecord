@@ -245,5 +245,22 @@
   "Fix (remove reference)": "Fix (remove reference)",
   "Remove all references to this missing file from %n note(s)? A backup will be saved.": "Remove all references to this missing file from %n note(s)? A backup will be saved.",
   "Fixed": "Fixed",
-  "Toggle Note List": "Toggle Note List"
+  "Toggle Note List": "Toggle Note List",
+  "Restore selected": "Restore selected",
+  "Restored": "Restored",
+  "Delete permanently": "Delete permanently",
+  "Empty trash": "Empty trash",
+  "The trash is empty": "The trash is empty",
+  "Nothing to restore": "Nothing to restore",
+  "Moved to trash": "Moved to trash",
+  "Kept": "Kept",
+  "Deleted at": "Deleted at",
+  "Move %n image file(s) to the trash.": "Move %n image file(s) to the trash.",
+  "You can restore them from the trash for %d days.": "You can restore them from the trash for %d days.",
+  "Reference removal cannot be undone.": "Reference removal cannot be undone.",
+  "Permanently delete %n item(s) from the trash.": "Permanently delete %n item(s) from the trash.",
+  "Renamed to avoid overwriting: %n": "Renamed to avoid overwriting: %n",
+  "%d days left": "%d days left",
+  "Deletion date unknown (kept indefinitely)": "Deletion date unknown (kept indefinitely)",
+  "Restore information is missing, so this file cannot be put back automatically.": "Restore information is missing, so this file cannot be put back automatically."
 }

@@ -9,6 +9,7 @@ const sander = require('sander')
 const url = require('url')
 import i18n from 'browser/lib/i18n'
 import { isString } from 'lodash'
+import attachmentTrash from './attachmentTrash'
 
 const STORAGE_FOLDER_PLACEHOLDER = ':storage'
 const DESTINATION_FOLDER = 'attachments'
@@ -761,8 +762,11 @@ function deleteAttachmentFolder(storageKey, noteKey) {
 }
 
 /**
- * @description Deletes all attachments stored in the attachment folder of the give not that are not referenced in the markdownContent
- * @param markdownContent Content of the note. All unreferenced notes will be deleted
+ * @description Moves all attachments stored in the attachment folder of the given note
+ * that are not referenced in the markdownContent to the storage's 30-day trash.
+ * 参照判定の取りこぼしで正常なファイルが巻き込まれても復元できるよう、
+ * この自動削除は物理削除ではなくゴミ箱への移動にする。
+ * @param markdownContent Content of the note. All unreferenced notes will be trashed
  * @param storageKey StorageKey of the current note. Is used to determine the belonging attachment folder.
  * @param noteKey NoteKey of the current note. Is used to determine the belonging attachment folder.
  */
@@ -807,28 +811,26 @@ function deleteAttachmentsNotPresentInNote(
         console.error(err)
         return
       }
-      files.forEach(file => {
-        if (!attachmentsInNoteOnlyFileNames.includes(file)) {
-          const absolutePathOfFile = path.join(
-            targetStorage.path,
-            DESTINATION_FOLDER,
-            noteKey,
-            file
-          )
-          fs.unlink(absolutePathOfFile, err => {
-            if (err) {
-              console.error('Could not delete "%s"', absolutePathOfFile)
-              console.error(err)
-              return
-            }
+      const unreferenced = files
+        .filter(file => !attachmentsInNoteOnlyFileNames.includes(file))
+        .map(file =>
+          path.join(targetStorage.path, DESTINATION_FOLDER, noteKey, file)
+        )
+      if (unreferenced.length === 0) return
+      attachmentTrash
+        .trashAttachments(unreferenced)
+        .then(({ trashed, failed }) => {
+          if (trashed.length) {
             console.info(
-              'File "' +
-                absolutePathOfFile +
-                '" deleted because it was not included in the content of the note'
+              trashed.length +
+                ' file(s) moved to the attachment trash because they were not included in the content of the note'
             )
-          })
-        }
-      })
+          }
+          failed.forEach(f =>
+            console.error('Could not trash "%s": %s', f.path, f.reason)
+          )
+        })
+        .catch(err => console.error(err))
     })
   }
 }
@@ -911,26 +913,12 @@ function getAttachmentsPathAndStatus(markdownContent, storageKey, noteKey) {
 }
 
 /**
- * @description Remove all specified attachment paths
+ * @description Move all specified attachment paths to the storage's 30-day trash
+ * 誤検出による消失を避けるため物理削除はしない。完全削除はゴミ箱側で行う。
  * @param attachments attachment paths
- * @return {Promise} Promise after all attachments are removed */
+ * @return {Promise} Promise after all attachments are moved to the trash */
 function removeAttachmentsByPaths(attachments) {
-  const promises = []
-  for (const attachment of attachments) {
-    const promise = new Promise((resolve, reject) => {
-      fs.unlink(attachment, err => {
-        if (err) {
-          console.error('Could not delete "%s"', attachment)
-          console.error(err)
-          reject(err)
-          return
-        }
-        resolve()
-      })
-    })
-    promises.push(promise)
-  }
-  return Promise.all(promises)
+  return attachmentTrash.trashAttachments(attachments)
 }
 
 /**

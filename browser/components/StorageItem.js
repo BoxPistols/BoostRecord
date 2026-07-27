@@ -37,6 +37,9 @@ const FolderIcon = ({ className, color, isActive }) => {
  */
 const StorageItem = ({
   styles,
+  // 修飾キー長押し中に出す 1..9 の連番。data 属性は常に出す（キー入力時に
+  // まだ再描画が済んでいなくても引けるようにするため）
+  jumpHint,
   isActive,
   tooltipRef,
   handleButtonClick,
@@ -48,7 +51,8 @@ const StorageItem = ({
   noteCount,
   handleDrop,
   handleDragEnter,
-  handleDragLeave
+  handleDragLeave,
+  showJumpHint
 }) => {
   return (
     <button
@@ -56,6 +60,7 @@ const StorageItem = ({
       // Stable class (styleName is hashed) so the note list can focus the
       // active folder on Shift+Tab.
       className={isActive ? 'SideNav-active-folder' : undefined}
+      data-jump-hint={jumpHint || undefined}
       onClick={handleButtonClick}
       onKeyDown={e => {
         // Tab from a folder → select it and focus its note (file) list.
@@ -72,6 +77,11 @@ const StorageItem = ({
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
     >
+      {showJumpHint && jumpHint && (
+        <span styleName='folderList-item-jump-hint' aria-hidden='true'>
+          {jumpHint}
+        </span>
+      )}
       {!isFolded && (
         <DraggableIcon className={styles['folderList-item-reorder']} />
       )}

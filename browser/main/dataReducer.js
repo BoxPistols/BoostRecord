@@ -6,6 +6,7 @@ export function defaultDataMap() {
     storageMap: new Map(),
     noteMap: new Map(),
     starredSet: new Set(),
+    bookmarkedSet: new Set(),
     storageNoteMap: new Map(),
     folderNoteMap: new Map(),
     tagNoteMap: new Map(),
@@ -30,6 +31,10 @@ export function data(state = defaultDataMap(), action) {
 
         if (note.isStarred) {
           state.starredSet.add(uniqueKey)
+        }
+
+        if (note.isBookmarked) {
+          state.bookmarkedSet.add(uniqueKey)
         }
 
         if (note.isTrashed) {
@@ -60,12 +65,14 @@ export function data(state = defaultDataMap(), action) {
       state.noteMap.set(uniqueKey, note)
 
       updateStarredChange(oldNote, note, state, uniqueKey)
+      updateBookmarkedChange(oldNote, note, state, uniqueKey)
 
       if (oldNote == null || oldNote.isTrashed !== note.isTrashed) {
         state.trashedSet = new Set(state.trashedSet)
         if (note.isTrashed) {
           state.trashedSet.add(uniqueKey)
           state.starredSet.delete(uniqueKey)
+          state.bookmarkedSet.delete(uniqueKey)
           removeFromTags(note.tags, state, uniqueKey)
         } else {
           state.trashedSet.delete(uniqueKey)
@@ -74,6 +81,10 @@ export function data(state = defaultDataMap(), action) {
 
           if (note.isStarred) {
             state.starredSet.add(uniqueKey)
+          }
+
+          if (note.isBookmarked) {
+            state.bookmarkedSet.add(uniqueKey)
           }
         }
       }
@@ -121,6 +132,11 @@ export function data(state = defaultDataMap(), action) {
           state.starredSet.delete(originKey)
         }
 
+        if (originNote.isBookmarked) {
+          state.bookmarkedSet = new Set(state.bookmarkedSet)
+          state.bookmarkedSet.delete(originKey)
+        }
+
         if (originNote.isTrashed) {
           state.trashedSet = new Set(state.trashedSet)
           state.trashedSet.delete(originKey)
@@ -145,6 +161,7 @@ export function data(state = defaultDataMap(), action) {
       }
 
       updateStarredChange(oldNote, note, state, uniqueKey)
+      updateBookmarkedChange(oldNote, note, state, uniqueKey)
 
       if (oldNote == null || oldNote.isTrashed !== note.isTrashed) {
         state.trashedSet = new Set(state.trashedSet)
@@ -196,6 +213,11 @@ export function data(state = defaultDataMap(), action) {
         if (targetNote.isStarred) {
           state.starredSet = new Set(state.starredSet)
           state.starredSet.delete(uniqueKey)
+        }
+
+        if (targetNote.isBookmarked) {
+          state.bookmarkedSet = new Set(state.bookmarkedSet)
+          state.bookmarkedSet.delete(uniqueKey)
         }
 
         if (targetNote.isTrashed) {
@@ -261,6 +283,11 @@ export function data(state = defaultDataMap(), action) {
                 state.starredSet.delete(noteKey)
               }
 
+              if (note.isBookmarked) {
+                state.bookmarkedSet = new Set(state.bookmarkedSet)
+                state.bookmarkedSet.delete(noteKey)
+              }
+
               if (note.isTrashed) {
                 state.trashedSet = new Set(state.trashedSet)
                 state.trashedSet.delete(noteKey)
@@ -294,6 +321,10 @@ export function data(state = defaultDataMap(), action) {
 
         if (note.isStarred) {
           state.starredSet.add(uniqueKey)
+        }
+
+        if (note.isBookmarked) {
+          state.bookmarkedSet.add(uniqueKey)
         }
 
         const storageNoteList = getOrInitItem(
@@ -344,10 +375,12 @@ export function data(state = defaultDataMap(), action) {
         state.noteMap = new Map(state.noteMap)
         state.tagNoteMap = new Map(state.tagNoteMap)
         state.starredSet = new Set(state.starredSet)
+        state.bookmarkedSet = new Set(state.bookmarkedSet)
         notes.forEach(note => {
           const noteKey = note.key
           state.noteMap.delete(noteKey)
           state.starredSet.delete(noteKey)
+          state.bookmarkedSet.delete(noteKey)
           note.tags.forEach(tag => {
             let tagNoteSet = state.tagNoteMap.get(tag)
             tagNoteSet = new Set(tagNoteSet)
@@ -369,15 +402,34 @@ export function data(state = defaultDataMap(), action) {
   return state
 }
 
-function updateStarredChange(oldNote, note, state, uniqueKey) {
-  if (oldNote == null || oldNote.isStarred !== note.isStarred) {
-    state.starredSet = new Set(state.starredSet)
-    if (note.isStarred) {
-      state.starredSet.add(uniqueKey)
+// 真偽フラグと索引 Set の対応を1か所にまとめる。isStarred / isBookmarked は
+// 同じ形の索引なので、片方だけ更新し忘れる事故を避けるため共通化する。
+// 既存ノートの .cson には isBookmarked が無く undefined になるため、
+// 比較は真偽値に正規化してから行う（undefined と false を同じ扱いにする）
+function updateFlagSet(oldNote, note, state, uniqueKey, flag, setName) {
+  if (oldNote == null || !oldNote[flag] !== !note[flag]) {
+    state[setName] = new Set(state[setName])
+    if (note[flag]) {
+      state[setName].add(uniqueKey)
     } else {
-      state.starredSet.delete(uniqueKey)
+      state[setName].delete(uniqueKey)
     }
   }
+}
+
+function updateStarredChange(oldNote, note, state, uniqueKey) {
+  updateFlagSet(oldNote, note, state, uniqueKey, 'isStarred', 'starredSet')
+}
+
+function updateBookmarkedChange(oldNote, note, state, uniqueKey) {
+  updateFlagSet(
+    oldNote,
+    note,
+    state,
+    uniqueKey,
+    'isBookmarked',
+    'bookmarkedSet'
+  )
 }
 
 function updateFolderChange(oldNote, note, state, folderKey, uniqueKey) {

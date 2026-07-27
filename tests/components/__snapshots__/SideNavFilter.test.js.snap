@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`SideNavFilter renders the All / Starred / Trash buttons 1`] = `
+exports[`SideNavFilter renders the All / Starred / Bookmark / Trash buttons 1`] = `
 <div
   className="menu"
 >
@@ -55,6 +55,30 @@ exports[`SideNavFilter renders the All / Starred / Trash buttons 1`] = `
   <button
     className="menu-button"
     data-jump-hint={3}
+    onClick={[MockFunction]}
+    onKeyDown={[Function]}
+  >
+    <div
+      className="iconWrap"
+    >
+      <i
+        className="fa fa-bookmark menu-button-icon-font"
+      />
+    </div>
+    <span
+      className="menu-button-label"
+    >
+      Bookmark
+    </span>
+    <span
+      className="counters"
+    >
+      4
+    </span>
+  </button>
+  <button
+    className="menu-button"
+    data-jump-hint={4}
     onClick={[MockFunction]}
     onContextMenu={[MockFunction]}
     onKeyDown={[Function]}

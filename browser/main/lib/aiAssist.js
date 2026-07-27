@@ -75,6 +75,49 @@ export const AI_ACTIONS = {
   }
 }
 
+// 接続テストの最小リクエスト。課金を最小にするため、ごく短い応答だけ求める
+const TEST_SYSTEM = 'Reply with exactly: OK'
+const TEST_PROMPT = 'ping'
+
+// Electron は ipcMain.handle の reject を
+// 「Error invoking remote method 'ai:run': Error: <本文>」で包む。
+// 設定画面にそのまま出すと読めないので本文だけ取り出す
+function unwrapIpcError(err) {
+  // message が空文字の Error だと String(err) は "Error" になり、
+  // 利用者には何も伝わらない。message があればそれだけを見る
+  const raw = err && typeof err.message === 'string' ? err.message : String(err)
+  const m = raw.match(
+    /Error invoking remote method '[^']*':\s*(?:Error:\s*)?([\s\S]*)/
+  )
+  return (m ? m[1] : raw).trim() || 'Unknown error'
+}
+
+/**
+ * 指定した設定で実際に API を1回叩き、疎通の成否を返す。
+ * 保存済み設定ではなく「入力中の値」で試せるよう、引数で受け取る。
+ * apiKey が空でも呼ぶ（main 側が環境変数へフォールバックするため、
+ * 実際に使える状態かどうかをそのまま確かめられる）。
+ *
+ * @param {{provider: string, model: string, apiKey: string}} options
+ * @returns {Promise<{ok: boolean, message: string}>} 例外は投げない
+ */
+export function testAiConnection({ provider, model, apiKey }) {
+  const runId = `ai-test-${++runCounter}-${Date.now()}`
+  return ipcRenderer
+    .invoke('ai:run', {
+      runId,
+      provider,
+      model: model || DEFAULT_MODELS[provider],
+      apiKey: apiKey || '',
+      system: TEST_SYSTEM,
+      prompt: TEST_PROMPT
+    })
+    .then(
+      () => ({ ok: true, message: '' }),
+      err => ({ ok: false, message: unwrapIpcError(err) })
+    )
+}
+
 export function runAiAction(actionKey, text, onDelta) {
   const action = AI_ACTIONS[actionKey]
   if (!action)

@@ -5,7 +5,11 @@ import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
-import { MODEL_OPTIONS, DEFAULT_MODELS } from 'browser/main/lib/aiAssist'
+import {
+  MODEL_OPTIONS,
+  DEFAULT_MODELS,
+  testAiConnection
+} from 'browser/main/lib/aiAssist'
 import uiThemes from 'browser/lib/ui-themes'
 
 const KEY_PATTERNS = {
@@ -42,7 +46,11 @@ class AITab extends React.Component {
       geminiModel: (ai.gemini && ai.gemini.model) || DEFAULT_MODELS.gemini,
       ttsPort: tts.port || DEFAULT_TTS_PORT,
       ttsSpeakerId: tts.speakerId != null ? tts.speakerId : DEFAULT_TTS_SPEAKER,
-      saved: false
+      saved: false,
+      // provider -> true（テスト実行中）
+      testing: {},
+      // provider -> { ok: boolean, message: string }
+      testResult: {}
     }
   }
 
@@ -54,6 +62,103 @@ class AITab extends React.Component {
       e.preventDefault()
       this.handleSave()
     }
+  }
+
+  /**
+   * 入力中のキー・モデルで実際に API を1回叩く。保存前でも試せることが
+   * この機能の主旨なので、config ではなく state の値を渡す。
+   */
+  handleTestConnection(provider) {
+    const key =
+      provider === 'openai' ? this.state.openaiKey : this.state.geminiKey
+    const model =
+      provider === 'openai' ? this.state.openaiModel : this.state.geminiModel
+
+    this.setState(prev => ({
+      testing: Object.assign({}, prev.testing, { [provider]: true }),
+      testResult: Object.assign({}, prev.testResult, { [provider]: null })
+    }))
+
+    testAiConnection({
+      provider,
+      model: model.trim(),
+      apiKey: key.trim()
+    }).then(result => {
+      // 設定画面を閉じた後に解決した場合に setState しない
+      if (!this.mounted) return
+      this.setState(prev => ({
+        testing: Object.assign({}, prev.testing, { [provider]: false }),
+        testResult: Object.assign({}, prev.testResult, { [provider]: result })
+      }))
+    })
+  }
+
+  /**
+   * 接続テストのボタンと結果表示。結果は保存とは独立なので、
+   * カード内の最後に1行だけ添える。
+   */
+  renderConnectionTest(provider, c) {
+    const busy = !!this.state.testing[provider]
+    const result = this.state.testResult[provider]
+
+    const rowStyle = {
+      display: 'flex',
+      alignItems: 'flex-start',
+      gap: 10,
+      marginTop: 12,
+      paddingTop: 12,
+      borderTop: `1px solid ${c.divider}`
+    }
+    const buttonStyle = {
+      flex: '0 0 auto',
+      padding: '6px 12px',
+      background: 'transparent',
+      border: `1px solid ${c.inputBorder}`,
+      borderRadius: 6,
+      color: c.text,
+      fontSize: 12,
+      fontFamily: 'inherit',
+      cursor: busy ? 'default' : 'pointer',
+      opacity: busy ? 0.6 : 1
+    }
+    // 失敗時のメッセージは API のエラー文がそのまま入るので折り返す
+    const messageStyle = {
+      flex: '1 1 auto',
+      minWidth: 0,
+      fontSize: 12,
+      lineHeight: '1.5',
+      overflowWrap: 'break-word',
+      color: result ? (result.ok ? c.success : c.danger) : c.muted
+    }
+
+    let message = ''
+    if (busy) message = i18n.__('Testing…')
+    else if (result && result.ok) message = i18n.__('Connection succeeded')
+    else if (result)
+      message = `${i18n.__('Connection failed')}: ${result.message}`
+
+    return (
+      <div style={rowStyle}>
+        <button
+          style={buttonStyle}
+          disabled={busy}
+          onClick={() => this.handleTestConnection(provider)}
+        >
+          {i18n.__('Test connection')}
+        </button>
+        <span style={messageStyle} role='status' aria-live='polite'>
+          {message}
+        </span>
+      </div>
+    )
+  }
+
+  componentDidMount() {
+    this.mounted = true
+  }
+
+  componentWillUnmount() {
+    this.mounted = false
   }
 
   handleSave() {
@@ -288,6 +393,7 @@ class AITab extends React.Component {
                 ))}
               </select>
             </div>
+            {this.renderConnectionTest('openai', c)}
           </div>
 
           {/* Gemini */}
@@ -319,6 +425,7 @@ class AITab extends React.Component {
                 ))}
               </select>
             </div>
+            {this.renderConnectionTest('gemini', c)}
           </div>
 
           {/* VOICEVOX TTS */}

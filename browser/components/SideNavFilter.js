@@ -27,6 +27,8 @@ const focusNoteListOnTab = handleClick => e => {
  * @return {React.Component}
  */
 const SideNavFilter = ({
+  // 修飾キー長押し中に 1..3 の連番バッジを出すか
+  showJumpHint,
   isFolded,
   isHomeActive,
   handleAllNotesButtonClick,
@@ -44,7 +46,13 @@ const SideNavFilter = ({
       styleName={isHomeActive ? 'menu-button--active' : 'menu-button'}
       onClick={handleAllNotesButtonClick}
       onKeyDown={focusNoteListOnTab(handleAllNotesButtonClick)}
+      data-jump-hint={1}
     >
+      {showJumpHint && (
+        <span styleName='menu-button-jump-hint' aria-hidden='true'>
+          1
+        </span>
+      )}
       <div styleName='iconWrap'>
         <img
           src={
@@ -62,7 +70,13 @@ const SideNavFilter = ({
       styleName={isStarredActive ? 'menu-button-star--active' : 'menu-button'}
       onClick={handleStarredButtonClick}
       onKeyDown={focusNoteListOnTab(handleStarredButtonClick)}
+      data-jump-hint={2}
     >
+      {showJumpHint && (
+        <span styleName='menu-button-jump-hint' aria-hidden='true'>
+          2
+        </span>
+      )}
       <div styleName='iconWrap'>
         <img
           src={
@@ -81,7 +95,13 @@ const SideNavFilter = ({
       onClick={handleTrashedButtonClick}
       onKeyDown={focusNoteListOnTab(handleTrashedButtonClick)}
       onContextMenu={handleFilterButtonContextMenu}
+      data-jump-hint={3}
     >
+      {showJumpHint && (
+        <span styleName='menu-button-jump-hint' aria-hidden='true'>
+          3
+        </span>
+      )}
       <div styleName='iconWrap'>
         <img
           src={

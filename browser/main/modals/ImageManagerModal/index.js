@@ -178,14 +178,15 @@ class ImageManagerModal extends React.Component {
           .replace('%n', brokenItems.length)
       )
     // 実体は復元可能になったが、壊れた参照の除去はノート本文の書き換えなので
-    // 元に戻せない（バックアップは取る）。文言はその差を正しく出す。
-    parts.push(
-      paths.length && !brokenItems.length
-        ? i18n
-            .__('You can restore them from the trash for %d days.')
-            .replace('%d', dataApi.TRASH_RETENTION_DAYS)
-        : i18n.__('Reference removal cannot be undone.')
-    )
+    // 元に戻せない（バックアップは取る）。両方ある時は両方伝える
+    if (paths.length)
+      parts.push(
+        i18n
+          .__('You can restore them from the trash for %d days.')
+          .replace('%d', dataApi.TRASH_RETENTION_DAYS)
+      )
+    if (brokenItems.length)
+      parts.push(i18n.__('Reference removal cannot be undone.'))
     if (!window.confirm(parts.join('\n'))) return
     this.setState({ busy: true, notice: null })
     const jobs = []

@@ -28,6 +28,11 @@ const remote = require('@electron/remote')
 // これ以上狭めるとタイトルが読めなくなるため 120px を下限にする
 const MIN_LIST_WIDTH = 120
 
+// ショートカット表記の OS 出し分け（キー名はハードコードしない）
+const isMac = /Mac|iPhone|iPad|iPod/.test(
+  typeof navigator !== 'undefined' ? navigator.userAgent : ''
+)
+
 class Main extends React.Component {
   constructor(props) {
     super(props)
@@ -55,6 +60,10 @@ class Main extends React.Component {
   }
 
   toggleNoteList() {
+    // フルスクリーン中は hideLeftLists が DOM を直接触って一覧を隠しており、
+    // ここで再描画すると React が display を戻して一覧が復活してしまう。
+    // フルスクリーンでは一覧はそもそも見えないので、操作自体を無視する
+    if (this.state.fullScreen) return
     const { dispatch, config } = this.props
     const isFolded = !config.isNoteListFolded
     ConfigManager.set({ isNoteListFolded: isFolded })
@@ -403,7 +412,6 @@ class Main extends React.Component {
                 ? foldedPaneStyle
                 : { width: this.state.listWidth }
             }
-            onToggleNoteList={() => this.toggleNoteList()}
             {..._.pick(this.props, [
               'dispatch',
               'config',
@@ -441,16 +449,27 @@ class Main extends React.Component {
               <div styleName='slider-hitbox' />
             </div>
           )}
-          {/* 折りたたみ中に再展開する導線。ペイン自体が消えるので
-              Detail の左上に小さな展開ボタンを出す */}
-          {isNoteListFolded && (
+          {/* 開閉ボタンはペイン左下に置く。サイドバーの « と同じ位置・記号で
+              揃えるほか、TopBar に置くと最小幅 120px で検索欄と新規ノート
+              ボタンに挟まれて成立しないため */}
+          {!this.state.fullScreen && (
             <button
-              styleName='notelist-unfold'
-              title={i18n.__('Toggle Note List')}
+              styleName='notelist-fold'
+              style={{ left: listWidth ? 4 : 0 }}
+              title={`${i18n.__('Toggle Note List')} (${
+                isMac ? '⌘⇧B' : 'Ctrl+Shift+B'
+              })`}
               aria-label={i18n.__('Toggle Note List')}
+              aria-expanded={!isNoteListFolded}
               onClick={() => this.toggleNoteList()}
             >
-              <i className='fa fa-angle-double-right' />
+              <i
+                className={
+                  isNoteListFolded
+                    ? 'fa fa-angle-double-right'
+                    : 'fa fa-angle-double-left'
+                }
+              />
             </button>
           )}
           <Detail

@@ -10,11 +10,6 @@ import debounce from 'lodash/debounce'
 import CInput from 'react-composition-input'
 import { push } from 'connected-react-router'
 
-// ショートカット表記の OS 出し分け（キー名はハードコードしない）
-const isMac = /Mac|iPhone|iPad|iPod/.test(
-  typeof navigator !== 'undefined' ? navigator.userAgent : ''
-)
-
 class TopBar extends React.Component {
   constructor(props) {
     super(props)
@@ -153,7 +148,7 @@ class TopBar extends React.Component {
   }
 
   render() {
-    const { config, style, location, onToggleNoteList } = this.props
+    const { config, style, location } = this.props
     return (
       <div
         className='TopBar'
@@ -161,19 +156,6 @@ class TopBar extends React.Component {
         style={style}
       >
         <div styleName='control'>
-          {/* ノート一覧ペインの折りたたみ。サイドバー左下の « と対になる位置 */}
-          {onToggleNoteList && (
-            <button
-              styleName='control-fold'
-              title={`${i18n.__('Toggle Note List')} (${
-                isMac ? '⌘⇧B' : 'Ctrl+Shift+B'
-              })`}
-              aria-label={i18n.__('Toggle Note List')}
-              onClick={onToggleNoteList}
-            >
-              <i className='fa fa-angle-double-left' />
-            </button>
-          )}
           <div styleName='control-search'>
             <div
               styleName='control-search-input'
@@ -233,9 +215,7 @@ TopBar.propTypes = {
   dispatch: PropTypes.func,
   config: PropTypes.shape({
     isSideNavFolded: PropTypes.bool
-  }),
-  // 省略時は折りたたみボタンを出さない（TopBar は Main 以外からも描画される）
-  onToggleNoteList: PropTypes.func
+  })
 }
 
 export default CSSModules(TopBar, styles)

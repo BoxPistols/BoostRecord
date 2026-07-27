@@ -40,6 +40,14 @@ function stillExists(p) {
   }
 }
 
+function isFile(p) {
+  try {
+    return fs.statSync(p).isFile()
+  } catch (e) {
+    return false
+  }
+}
+
 /**
  * 添付の絶対パス `<root>/attachments/<noteKey>/<file>` を分解する。
  * 形が違うパスは（想定外の場所を消しに行かないよう）null を返す。
@@ -109,6 +117,13 @@ function trashAttachments(absPaths) {
     // 既に無いものは「消えている」で成功扱い（deleteAttachmentsVerified と同じ方針）
     if (!stillExists(absPath)) {
       trashed.push(absPath)
+      return
+    }
+    // ディレクトリは対象外。移動できてしまうが listTrashedAttachments は
+    // ファイルしか列挙しないので、ゴミ箱の中で不可視のまま残ってしまう。
+    // 変更前も unlink が失敗して残っていたので、触らないのが等価な挙動
+    if (!isFile(absPath)) {
+      failed.push({ path: absPath, reason: 'not a file' })
       return
     }
     const dir = trashDirOf(loc.storagePath)

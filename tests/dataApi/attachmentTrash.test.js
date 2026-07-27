@@ -100,6 +100,18 @@ it('添付フォルダ配下でないパスは移動せず failed になる', as
   expect(fs.existsSync(strayPath)).toBe(true)
 })
 
+it('ディレクトリは移動せず failed になる（ゴミ箱で不可視になるのを防ぐ）', async () => {
+  const storage = makeStorage()
+  const subDir = path.join(storage.path, 'attachments', 'noteA', 'nested')
+  fs.mkdirSync(subDir, { recursive: true })
+
+  const result = await attachmentTrash.trashAttachments([subDir])
+
+  expect(result.trashed).toEqual([])
+  expect(result.failed).toHaveLength(1)
+  expect(fs.existsSync(subDir)).toBe(true)
+})
+
 it('同名ファイルを複数ノートから捨てても衝突しない', async () => {
   const storage = makeStorage()
   const a = writeAttachment(storage, 'noteA', 'image.png', 'A')

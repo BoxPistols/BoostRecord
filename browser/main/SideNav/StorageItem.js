@@ -365,7 +365,15 @@ class StorageItem extends React.Component {
   }
 
   render() {
-    const { storage, location, isFolded, data, dispatch } = this.props
+    const {
+      storage,
+      location,
+      isFolded,
+      data,
+      dispatch,
+      jumpHintOffset,
+      showJumpHint
+    } = this.props
     const { folderNoteMap, trashedSet } = data
     const SortableStorageItemChild = SortableElement(StorageItemChild)
     const folderList = storage.folders.map((folder, index) => {
@@ -403,6 +411,12 @@ class StorageItem extends React.Component {
         <SortableStorageItemChild
           key={folder.key}
           index={index}
+          jumpHint={
+            jumpHintOffset && jumpHintOffset + index <= 9
+              ? jumpHintOffset + index
+              : null
+          }
+          showJumpHint={showJumpHint}
           isActive={isActive || folder.key === this.state.draggedOver}
           tooltipRef={tooltipRef}
           handleButtonClick={e => this.handleFolderButtonClick(folder.key)(e)}

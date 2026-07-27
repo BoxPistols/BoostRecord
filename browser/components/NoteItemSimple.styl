@@ -74,10 +74,14 @@ $control-height = 30px
   position absolute
   right 0px
   top 12px
-  color #E54D42
+  color $ui-pin-color
   font-size 14px
   padding 0
   border-radius 17px
+
+// 選択行は背景がテーマ固有の塗りに変わるので、地とのコントラストを計算し直す
+.item-simple--active .item-pin
+  color pin-color-for($ui-button--active-backgroundColor)
 
 body[data-theme="white"]
   .item-simple
@@ -92,6 +96,8 @@ body[data-theme="white"]
     background-color $ui-button--active-backgroundColor
     &:hover
       background-color alpha($ui-button--active-backgroundColor, 60%)
+    .item-pin
+      color pin-color-for($ui-button--active-backgroundColor)
 
 body[data-theme="dark"]
   .root
@@ -133,6 +139,8 @@ body[data-theme="dark"]
   .item-simple--active
     border-color $ui-dark-borderColor
     background-color $ui-dark-button--active-backgroundColor
+    .item-pin
+      color pin-color-for($ui-dark-button--active-backgroundColor)
     .item-simple-wrapper
       border-color transparent
     .item-simple-title
@@ -200,6 +208,8 @@ body[data-theme="solarized-dark"]
   .item-simple--active
     border-color $ui-solarized-dark-borderColor
     background-color $ui-solarized-dark-tag-backgroundColor
+    .item-pin
+      color pin-color-for($ui-solarized-dark-tag-backgroundColor)
     .item-simple-wrapper
       border-color transparent
     .item-simple-title
@@ -266,6 +276,8 @@ apply-theme(theme)
     .item-simple--active
       border-color get-theme-var(theme, 'borderColor')
       background-color get-theme-var(theme, 'button--active-backgroundColor')
+      .item-pin
+        color pin-color-for(get-theme-var(theme, 'button--active-backgroundColor'))
       .item-simple-wrapper
         border-color transparent
       .item-simple-title

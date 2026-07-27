@@ -266,5 +266,9 @@
   "Restore information is missing, so this file cannot be put back automatically.": "Restore information is missing, so this file cannot be put back automatically.",
   "Bookmark": "Bookmark",
   "Add Bookmark": "Add Bookmark",
-  "Remove Bookmark": "Remove Bookmark"
+  "Remove Bookmark": "Remove Bookmark",
+  "Test connection": "Test connection",
+  "Testing…": "Testing…",
+  "Connection succeeded": "Connection succeeded",
+  "Connection failed": "Connection failed"
 }

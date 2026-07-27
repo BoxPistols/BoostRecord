@@ -91,3 +91,112 @@ it('does not mutate the previous state object on UPDATE_NOTE', () => {
   expect(next).not.toBe(prev)
   expect(prev.noteMap.has('n1')).toBe(false)
 })
+
+// --- Bookmark（#102）: isStarred と同じ形の索引を別軸で持つ ---
+
+it('defaultDataMap は bookmarkedSet を持つ', () => {
+  expect(defaultDataMap().bookmarkedSet.size).toBe(0)
+})
+
+it('INIT_ALL で isBookmarked のノートが bookmarkedSet に入る', () => {
+  const state = data(undefined, {
+    type: 'INIT_ALL',
+    storages: [{ key: 's1' }],
+    notes: [
+      makeNote({ key: 'n1', isBookmarked: true }),
+      makeNote({ key: 'n2' })
+    ]
+  })
+  expect(state.bookmarkedSet.toJS()).toEqual(['n1'])
+})
+
+it('isBookmarked を持たない既存ノートは未設定＝false として扱う', () => {
+  const note = makeNote({ key: 'n1' })
+  delete note.isBookmarked
+  const state = data(undefined, {
+    type: 'INIT_ALL',
+    storages: [{ key: 's1' }],
+    notes: [note]
+  })
+  expect(state.bookmarkedSet.size).toBe(0)
+
+  // undefined → false への更新で誤って delete/add が走らないこと
+  const next = data(state, {
+    type: 'UPDATE_NOTE',
+    note: makeNote({ key: 'n1', isBookmarked: false })
+  })
+  expect(next.bookmarkedSet.size).toBe(0)
+})
+
+it('UPDATE_NOTE で bookmarkedSet が追従する', () => {
+  let state = data(undefined, {
+    type: 'INIT_ALL',
+    storages: [{ key: 's1' }],
+    notes: [makeNote({ key: 'n1' })]
+  })
+  state = data(state, {
+    type: 'UPDATE_NOTE',
+    note: makeNote({ key: 'n1', isBookmarked: true })
+  })
+  expect(state.bookmarkedSet.toJS()).toEqual(['n1'])
+
+  state = data(state, {
+    type: 'UPDATE_NOTE',
+    note: makeNote({ key: 'n1', isBookmarked: false })
+  })
+  expect(state.bookmarkedSet.size).toBe(0)
+})
+
+it('ゴミ箱へ移すと bookmarkedSet から外れ、戻すと復帰する', () => {
+  let state = data(undefined, {
+    type: 'INIT_ALL',
+    storages: [{ key: 's1' }],
+    notes: [makeNote({ key: 'n1', isBookmarked: true })]
+  })
+  state = data(state, {
+    type: 'UPDATE_NOTE',
+    note: makeNote({ key: 'n1', isBookmarked: true, isTrashed: true })
+  })
+  expect(state.bookmarkedSet.size).toBe(0)
+
+  state = data(state, {
+    type: 'UPDATE_NOTE',
+    note: makeNote({ key: 'n1', isBookmarked: true, isTrashed: false })
+  })
+  expect(state.bookmarkedSet.toJS()).toEqual(['n1'])
+})
+
+it('ブックマークとスターは互いに影響しない', () => {
+  let state = data(undefined, {
+    type: 'INIT_ALL',
+    storages: [{ key: 's1' }],
+    notes: [makeNote({ key: 'n1', isStarred: true })]
+  })
+  state = data(state, {
+    type: 'UPDATE_NOTE',
+    note: makeNote({ key: 'n1', isStarred: true, isBookmarked: true })
+  })
+  expect(state.starredSet.toJS()).toEqual(['n1'])
+  expect(state.bookmarkedSet.toJS()).toEqual(['n1'])
+
+  state = data(state, {
+    type: 'UPDATE_NOTE',
+    note: makeNote({ key: 'n1', isStarred: false, isBookmarked: true })
+  })
+  expect(state.starredSet.size).toBe(0)
+  expect(state.bookmarkedSet.toJS()).toEqual(['n1'])
+})
+
+it('DELETE_NOTE で bookmarkedSet からも除かれる', () => {
+  let state = data(undefined, {
+    type: 'INIT_ALL',
+    storages: [{ key: 's1' }],
+    notes: [makeNote({ key: 'n1', isBookmarked: true })]
+  })
+  state = data(state, {
+    type: 'DELETE_NOTE',
+    storageKey: 's1',
+    noteKey: 'n1'
+  })
+  expect(state.bookmarkedSet.size).toBe(0)
+})

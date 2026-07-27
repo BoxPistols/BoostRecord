@@ -35,6 +35,10 @@ const DEFAULT_CSS_CONFIG = `
 export const DEFAULT_CONFIG = {
   zoom: 1,
   isSideNavFolded: false,
+  // ノート一覧ペインの折りたたみ。既存の設定ファイルにはこのキーが無いので
+  // validate() では必須にしない（必須にすると既存ユーザーの設定が全て無効に
+  // 判定され、初期値へ巻き戻る）
+  isNoteListFolded: false,
   listWidth: 280,
   navWidth: 200,
   sortBy: {

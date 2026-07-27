@@ -16,6 +16,8 @@ import i18n from 'browser/lib/i18n'
  * @param {Function} handleDragStart
  */
 const NoteItemSimple = ({
+  // 修飾キー長押し中に出す 1..9 の連番。出さない時は null
+  jumpHint,
   isActive,
   isAllNotesView,
   note,
@@ -34,6 +36,11 @@ const NoteItemSimple = ({
     draggable='true'
   >
     <div styleName='item-simple-title' title={note.title}>
+      {jumpHint !== null && jumpHint !== undefined && (
+        <span styleName='item-jump-hint' aria-hidden='true'>
+          {jumpHint}
+        </span>
+      )}
       {note.type === 'SNIPPET_NOTE' ? (
         <i styleName='item-simple-title-icon' className='fa fa-fw fa-code' />
       ) : (
@@ -62,6 +69,7 @@ const NoteItemSimple = ({
 )
 
 NoteItemSimple.propTypes = {
+  jumpHint: PropTypes.number,
   isActive: PropTypes.bool.isRequired,
   note: PropTypes.shape({
     storage: PropTypes.string.isRequired,

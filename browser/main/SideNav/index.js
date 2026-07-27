@@ -24,6 +24,10 @@ import context from 'browser/lib/context'
 const remote = require('@electron/remote')
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import ColorPicker from 'browser/components/ColorPicker'
+import {
+  subscribe as subscribeMetaKey,
+  getJumpNumber
+} from 'browser/lib/metaKeyHold'
 import { every, sortBy } from 'lodash'
 
 const { dialog } = remote
@@ -45,7 +49,9 @@ class SideNav extends React.Component {
         targetRect: null,
         showSearch: false,
         searchText: ''
-      }
+      },
+      // 修飾キー長押し中に 1..9 の連番バッジを出す（サイドバーにフォーカスがある時だけ）
+      showJumpHints: false
     }
 
     this.dismissColorPicker = this.dismissColorPicker.bind(this)
@@ -67,6 +73,37 @@ class SideNav extends React.Component {
     this.folderNextHandler = () => this.navigateFolder(1)
     EventEmitter.on('folder:prior', this.folderPriorHandler)
     EventEmitter.on('folder:next', this.folderNextHandler)
+    // サイドバーにフォーカスがある時だけ連番バッジを出す。出しっぱなしだと
+    // 押した数字がどちらのペインに効くのか分からなくなる
+    this.unsubscribeMetaKey = subscribeMetaKey(held => {
+      const next = held && this.hasSideNavFocus()
+      if (next !== this.state.showJumpHints) {
+        this.setState({ showJumpHints: next })
+      }
+    })
+  }
+
+  hasSideNavFocus() {
+    const root = this.sideNavRoot
+    if (!root || root.offsetParent === null) return false
+    return (
+      root === document.activeElement || root.contains(document.activeElement)
+    )
+  }
+
+  // 修飾キー + 1..9 で N 番目の項目へ移動する。data-jump-hint は常に描画して
+  // あるので、バッジの再描画が間に合っていなくても引ける
+  handleSideNavKeyDown(e) {
+    const jumpTo = getJumpNumber(e)
+    if (jumpTo === null) return
+    const root = this.sideNavRoot
+    if (!root) return
+    const target = root.querySelector('[data-jump-hint="' + jumpTo + '"]')
+    if (!target) return
+    e.preventDefault()
+    this.setState({ showJumpHints: false })
+    target.click()
+    target.focus()
   }
 
   componentWillUnmount() {
@@ -74,6 +111,7 @@ class SideNav extends React.Component {
     EventEmitter.off('sidenav:togglesidenav', this.toggleSideNavHandler)
     EventEmitter.off('folder:prior', this.folderPriorHandler)
     EventEmitter.off('folder:next', this.folderNextHandler)
+    if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
   }
 
   deleteTag(tag) {
@@ -420,11 +458,21 @@ class SideNav extends React.Component {
         })
       }
 
+      // フィルタ 3 件を 1..3 に使うので、フォルダは 4 から。ストレージを
+      // またいで通し番号にする（画面上の並び順と一致させるため）
+      let jumpHintCursor = 4
       const storageList = storageMap.map((storage, key) => {
         const SortableStorageItem = SortableContainer(StorageItem)
+        // 折りたたまれたストレージはフォルダを描画しないので番号を消費しない。
+        // 消費すると次のストレージの番号が画面上の並びとずれる
+        const isStorageOpen = !!storage.isOpen
+        const jumpHintOffset = isStorageOpen ? jumpHintCursor : null
+        if (isStorageOpen) jumpHintCursor += storage.folders.length
         return (
           <SortableStorageItem
             key={storage.key}
+            jumpHintOffset={jumpHintOffset}
+            showJumpHint={this.state.showJumpHints}
             storage={storage}
             data={data}
             location={location}
@@ -440,6 +488,7 @@ class SideNav extends React.Component {
       component = (
         <div>
           <SideNavFilter
+            showJumpHint={this.state.showJumpHints}
             isFolded={isFolded}
             isHomeActive={isHomeActive}
             handleAllNotesButtonClick={e => this.handleHomeButtonClick(e)}
@@ -691,6 +740,10 @@ class SideNav extends React.Component {
         styleName={isFolded ? 'root--folded' : 'root'}
         tabIndex='1'
         style={style}
+        ref={node => {
+          this.sideNavRoot = node
+        }}
+        onKeyDown={e => this.handleSideNavKeyDown(e)}
       >
         <div styleName='top'>
           <div styleName='switch-buttons'>

@@ -10,6 +10,11 @@ import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import NoteItem from 'browser/components/NoteItem'
 import NoteItemSimple from 'browser/components/NoteItemSimple'
+import {
+  subscribe as subscribeMetaKey,
+  getJumpNumber,
+  MAX_JUMP_TARGETS
+} from 'browser/lib/metaKeyHold'
 import { moveNotesToFolder } from 'browser/main/lib/moveNotes'
 import searchFromNotes from 'browser/lib/search'
 import fs from 'fs'
@@ -111,7 +116,9 @@ class NoteList extends React.Component {
       shiftKeyDown: false,
       prevShiftNoteIndex: -1,
       selectedNoteKeys: [],
-      movingFolder: false
+      movingFolder: false,
+      // 修飾キー長押し中に 1..9 の連番バッジを出す（一覧にフォーカスがある時だけ）
+      showJumpHints: false
     }
 
     this.contextNotes = []
@@ -127,6 +134,21 @@ class NoteList extends React.Component {
     ee.on('import:file', this.importFromFileHandler)
     ee.on('list:jump', this.jumpNoteByHash)
     ee.on('list:navigate', this.navigate)
+    // 一覧にフォーカスが無い時に出すと、押した数字がどこに効くのか分からない
+    this.unsubscribeMetaKey = subscribeMetaKey(held => {
+      const next = held && this.hasListFocus()
+      if (next !== this.state.showJumpHints) {
+        this.setState({ showJumpHints: next })
+      }
+    })
+  }
+
+  hasListFocus() {
+    const list = this.refs.list
+    if (!list || list.offsetParent === null) return false
+    return (
+      list === document.activeElement || list.contains(document.activeElement)
+    )
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -148,6 +170,7 @@ class NoteList extends React.Component {
     ee.off('list:focus', this.focusHandler)
     ee.off('list:isMarkdownNote', this.alertIfSnippetHandler)
     ee.off('import:file', this.importFromFileHandler)
+    if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
     ee.off('list:jump', this.jumpNoteByHash)
     ee.off('list:navigate', this.navigate)
   }
@@ -330,6 +353,15 @@ class NoteList extends React.Component {
   }
 
   handleNoteListKeyDown(e) {
+    // 修飾キー + 1..9 で上から N 番目のノートへ移動する。
+    // 下の metaKey ガードより前に置く必要がある（あそこで即 return するため）
+    const jumpTo = getJumpNumber(e)
+    if (jumpTo !== null) {
+      e.preventDefault()
+      this.jumpToVisibleNote(jumpTo - 1)
+      return
+    }
+
     if (e.metaKey) return true
 
     // Shift+Tab → move focus back to the note's folder in the sidebar.
@@ -375,6 +407,21 @@ class NoteList extends React.Component {
     } else if (e.ctrlKey) {
       this.setState({ ctrlKeyDown: true })
     }
+  }
+
+  /**
+   * 表示順で index 番目のノートを選択してフォーカスする。
+   * 範囲外（表示件数が足りない）の時は何もしない。
+   */
+  jumpToVisibleNote(index) {
+    const notes = this.notes || []
+    if (index < 0 || index >= notes.length || index >= MAX_JUMP_TARGETS) return
+    const noteKey = this.getNoteKeyFromTargetIndex(index)
+    if (!noteKey) return
+    // 選択は単一に置き換える（Shift 複数選択中でも「N 番へ飛ぶ」が直感）
+    this.setState({ showJumpHints: false })
+    this.focusNote([noteKey], noteKey, this.props.location.pathname)
+    ee.emit('list:moved')
   }
 
   handleNoteListKeyUp(e) {
@@ -1219,9 +1266,15 @@ class NoteList extends React.Component {
 
       const storage = this.getNoteStorage(note)
 
+      // 上から 9 件までに連番バッジを出す。押す数字と見えている順番が
+      // ずれないよう、描画順の index をそのまま使う
+      const jumpHint =
+        this.state.showJumpHints && index < MAX_JUMP_TARGETS ? index + 1 : null
+
       if (isDefault) {
         return (
           <NoteItem
+            jumpHint={jumpHint}
             isActive={isActive}
             note={note}
             dateDisplay={dateDisplay}
@@ -1241,6 +1294,7 @@ class NoteList extends React.Component {
 
       return (
         <NoteItemSimple
+          jumpHint={jumpHint}
           isActive={isActive}
           note={note}
           key={uniqueKey}

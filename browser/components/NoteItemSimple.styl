@@ -307,3 +307,18 @@ for theme in 'dracula'
 
 for theme in $themes
   apply-theme(theme)
+// 修飾キー長押し中に出す 1..9 の連番バッジ。押す数字と見えている順番の
+// 対応が一目で分かればよいので、タイトルの左に小さく重ねる
+.item-jump-hint
+  display inline-block
+  min-width 16px
+  height 16px
+  margin-right 6px
+  padding 0 3px
+  border-radius 3px
+  background-color alpha(#000, 55%)
+  color #fff
+  font-size 11px
+  line-height 16px
+  text-align center
+  vertical-align middle

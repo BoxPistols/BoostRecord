@@ -69,6 +69,8 @@ const TagElementList = (tags, showTagsAlphabetically, coloredTags) => {
  * @param {string} dateDisplay
  */
 const NoteItem = ({
+  // 修飾キー長押し中に出す 1..9 の連番。出さない時は null
+  jumpHint,
   isActive,
   note,
   dateDisplay,
@@ -97,6 +99,11 @@ const NoteItem = ({
         <i styleName='item-title-icon' className='fa fa-fw fa-file-text-o' />
       )}
       <div styleName='item-title' title={note.title}>
+        {jumpHint !== null && jumpHint !== undefined && (
+          <span styleName='item-jump-hint' aria-hidden='true'>
+            {jumpHint}
+          </span>
+        )}
         {note.title.trim().length > 0 ? (
           <Emoji text={note.title} />
         ) : (
@@ -160,6 +167,7 @@ const NoteItem = ({
 )
 
 NoteItem.propTypes = {
+  jumpHint: PropTypes.number,
   isActive: PropTypes.bool.isRequired,
   dateDisplay: PropTypes.string.isRequired,
   coloredTags: PropTypes.object,

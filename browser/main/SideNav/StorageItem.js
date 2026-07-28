@@ -5,7 +5,7 @@ import styles from './StorageItem.styl'
 import modal from 'browser/main/lib/modal'
 import CreateFolderModal from 'browser/main/modals/CreateFolderModal'
 import RenameFolderModal from 'browser/main/modals/RenameFolderModal'
-import FolderColorModal from 'browser/main/modals/FolderColorModal'
+import FolderColorPopover from 'browser/components/FolderColorPopover'
 import dataApi from 'browser/main/lib/dataApi'
 import { moveNotesToFolder } from 'browser/main/lib/moveNotes'
 import StorageItemChild from 'browser/components/StorageItem'
@@ -28,7 +28,9 @@ class StorageItem extends React.Component {
 
     this.state = {
       isOpen: !!storage.isOpen,
-      draggedOver: null
+      draggedOver: null,
+      // 右クリック位置に出す色ポップオーバー { folder, x, y } | null
+      colorPopover: null
     }
   }
 
@@ -183,6 +185,9 @@ class StorageItem extends React.Component {
   }
 
   handleFolderButtonContextMenu(e, folder) {
+    // 右クリック位置をポップオーバーの基準にする（メニューは非同期に閉じるので
+    // 先に控えておく。event は popup 後に使えなくなる）
+    const anchor = { x: e.clientX, y: e.clientY }
     context.popup([
       {
         label: i18n.__('Rename Folder'),
@@ -193,7 +198,7 @@ class StorageItem extends React.Component {
         // 実描画できるモーダルを開く（ネイティブメニューは PNG しか
         // アイコンにできず、色見本を動的に作れない）
         label: i18n.__('Change Folder Color'),
-        click: () => this.handleFolderColorClick(folder)
+        click: () => this.handleFolderColorClick(folder, anchor)
       },
       {
         type: 'separator'
@@ -229,9 +234,26 @@ class StorageItem extends React.Component {
     ])
   }
 
-  handleFolderColorClick(folder) {
-    const { storage } = this.props
-    modal.open(FolderColorModal, { storage, folder })
+  handleFolderColorClick(folder, anchor) {
+    this.setState({
+      colorPopover: { folder, x: anchor.x, y: anchor.y }
+    })
+  }
+
+  handleFolderColorSelect(color) {
+    const { storage, dispatch } = this.props
+    const { colorPopover } = this.state
+    if (!colorPopover) return
+    const folder = colorPopover.folder
+    dataApi
+      // updateFolder は name が文字列でないと reject するので現在名を渡す
+      .updateFolder(storage.key, folder.key, { name: folder.name, color })
+      .then(data => {
+        dispatch({ type: 'UPDATE_FOLDER', storage: data.storage })
+      })
+      .catch(err => {
+        console.error('Could not change the folder color', err)
+      })
   }
 
   handleRenameFolderClick(e, folder) {
@@ -480,6 +502,16 @@ class StorageItem extends React.Component {
           </button>
         </div>
         {this.state.isOpen && <div>{folderList}</div>}
+        {this.state.colorPopover && (
+          <FolderColorPopover
+            x={this.state.colorPopover.x}
+            y={this.state.colorPopover.y}
+            value={this.state.colorPopover.folder.color}
+            label={i18n.__('Change Folder Color')}
+            onSelect={color => this.handleFolderColorSelect(color)}
+            onClose={() => this.setState({ colorPopover: null })}
+          />
+        )}
       </div>
     )
   }

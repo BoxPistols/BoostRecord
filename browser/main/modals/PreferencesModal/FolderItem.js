@@ -5,7 +5,6 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './FolderItem.styl'
 import dataApi from 'browser/main/lib/dataApi'
 import { store } from 'browser/main/store'
-import FolderColorSwatches from 'browser/components/FolderColorSwatches'
 import { SortableElement, SortableHandle } from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
 
@@ -16,8 +15,8 @@ class FolderItem extends React.Component {
     this.state = {
       status: 'IDLE',
       folder: {
-        showColumnPicker: false,
-        colorPickerPos: { left: 0, top: 0 },
+        // 色は扱わない（サイドバーの右クリックから変更する）。ただし
+        // updateFolder は color も必須なので現在値は保持する
         color: props.color,
         name: props.name
       }
@@ -55,30 +54,6 @@ class FolderItem extends React.Component {
       })
   }
 
-  handleColorButtonClick(e) {
-    // 開閉のみ。位置補正は不要になった（インライン表示にしたため）
-    const folder = Object.assign({}, this.state.folder, {
-      showColumnPicker: !this.state.folder.showColumnPicker
-    })
-    this.setState({ folder })
-  }
-
-  handleColorChange(color) {
-    const folder = Object.assign({}, this.state.folder, {
-      color,
-      // 選んだら閉じる。開いたままだと編集行の高さが変わり続けて扱いにくい
-      showColumnPicker: false
-    })
-    this.setState({ folder })
-  }
-
-  handleColorPickerClose(event) {
-    const folder = Object.assign({}, this.state.folder, {
-      showColumnPicker: false
-    })
-    this.setState({ folder })
-  }
-
   handleCancelButtonClick(e) {
     this.setState({
       status: 'IDLE'
@@ -105,28 +80,6 @@ class FolderItem extends React.Component {
         ref='root'
       >
         <div styleName='folderItem-left'>
-          {/* 色見本は button の入れ子にしない。従来は SketchPicker と
-              全画面を覆う cover div を <button> の内側に描いており、
-              ピッカー操作のクリックがボタンへ伝播して cover が閉じず、
-              画面全体がクリック不能になっていた（例外が出ないので
-              「フリーズした」ようにしか見えなかった） */}
-          <span
-            styleName='folderItem-left-colorButton'
-            style={{ color: this.state.folder.color }}
-            role='button'
-            tabIndex='0'
-            title={i18n.__('Change Folder Color')}
-            aria-expanded={!!this.state.folder.showColumnPicker}
-            onClick={e => this.handleColorButtonClick(e)}
-            onKeyDown={e => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault()
-                this.handleColorButtonClick(e)
-              }
-            }}
-          >
-            <i className='fa fa-square' />
-          </span>
           <input
             styleName='folderItem-left-nameInput'
             value={this.state.folder.name}
@@ -134,14 +87,7 @@ class FolderItem extends React.Component {
             onChange={e => this.handleEditChange(e)}
           />
         </div>
-        {this.state.folder.showColumnPicker && (
-          <div style={{ flexBasis: '100%', padding: '10px 0 4px' }}>
-            <FolderColorSwatches
-              value={this.state.folder.color}
-              onSelect={color => this.handleColorChange(color)}
-            />
-          </div>
-        )}
+
         <div styleName='folderItem-right'>
           <button
             styleName='folderItem-right-confirmButton'

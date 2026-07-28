@@ -28,6 +28,10 @@ const remote = require('@electron/remote')
 // これ以上狭めるとタイトルが読めなくなるため 120px を下限にする
 const MIN_LIST_WIDTH = 120
 
+// 折りたたみ時に残す幅。完全に 0 にすると何のペインだったか分からなくなるので、
+// サイドバー（44px でアイコンだけ残る）と同じ考え方でタイトルの先頭数文字を残す
+const FOLDED_LIST_WIDTH = 56
+
 // ショートカット表記の OS 出し分け（キー名はハードコードしない）
 const isMac = /Mac|iPhone|iPad|iPod/.test(
   typeof navigator !== 'undefined' ? navigator.userAgent : ''
@@ -419,8 +423,12 @@ class Main extends React.Component {
     // コンポーネント自体はマウントしたまま（アンマウントすると検索文字列や
     // スクロール位置が失われる）
     const isNoteListFolded = !!config.isNoteListFolded
-    const listWidth = isNoteListFolded ? 0 : this.state.listWidth
-    const foldedPaneStyle = { width: 0, display: 'none' }
+    const listWidth = isNoteListFolded
+      ? FOLDED_LIST_WIDTH
+      : this.state.listWidth
+    // 隠さず細くする。display:none にすると一覧そのものが消えてしまい、
+    // 何のペインだったのか手がかりが残らない
+    const foldedPaneStyle = { width: FOLDED_LIST_WIDTH }
 
     return (
       <div

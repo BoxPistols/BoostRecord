@@ -13,6 +13,8 @@ function validateInput(input) {
   )
   if (!_.isString(input.title)) input.title = ''
   input.isStarred = !!input.isStarred
+  // 複製時に元ノートのブックマークを引き継ぐ（isStarred と揃える）
+  input.isBookmarked = !!input.isBookmarked
   input.isTrashed = !!input.isTrashed
 
   switch (input.type) {

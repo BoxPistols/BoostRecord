@@ -887,21 +887,66 @@ it('should make sure that "replaceStorageReferences" works with markdown content
   expect(actual).toEqual(expectedOutput)
 })
 
-it('should delete the correct attachment folder if a note is deleted', function() {
+it('ノート削除時、添付は物理削除ではなくゴミ箱へ移される', async function() {
   const dummyStorage = { path: 'dummyStoragePath' }
   const storageKey = 'storageKey'
   const noteKey = 'noteKey'
-  findStorage.findStorage = jest.fn(() => dummyStorage)
-  sander.rimrafSync = jest.fn()
-
-  const expectedPathToBeDeleted = path.join(
+  const filesInFolder = ['a.png', 'b.png']
+  const attachmentFolderPath = path.join(
     dummyStorage.path,
     systemUnderTest.DESTINATION_FOLDER,
     noteKey
   )
-  systemUnderTest.deleteAttachmentFolder(storageKey, noteKey)
+
+  findStorage.findStorage = jest.fn(() => dummyStorage)
+  sander.rimrafSync = jest.fn()
+  mockTrashFs()
+  // 1回目は中身の列挙、2回目は移動後の空チェック
+  fs.readdirSync = jest
+    .fn()
+    .mockReturnValueOnce(filesInFolder)
+    .mockReturnValueOnce([])
+
+  await systemUnderTest.deleteAttachmentFolder(storageKey, noteKey)
+
   expect(findStorage.findStorage).toHaveBeenCalledWith(storageKey)
-  expect(sander.rimrafSync).toHaveBeenCalledWith(expectedPathToBeDeleted)
+  expect(fs.renameSync).toHaveBeenCalledTimes(filesInFolder.length)
+  const movedFrom = fs.renameSync.mock.calls.map(call => call[0])
+  filesInFolder.forEach(function(file) {
+    expect(movedFrom.includes(path.join(attachmentFolderPath, file))).toBe(true)
+  })
+  // 空になったフォルダだけ片付ける
+  expect(sander.rimrafSync).toHaveBeenCalledWith(attachmentFolderPath)
+})
+
+it('ゴミ箱へ移せなかったファイルが残る場合はフォルダを消さない', async function() {
+  const dummyStorage = { path: 'dummyStoragePath' }
+  findStorage.findStorage = jest.fn(() => dummyStorage)
+  sander.rimrafSync = jest.fn()
+  mockTrashFs()
+  fs.readdirSync = jest
+    .fn()
+    .mockReturnValueOnce(['a.png'])
+    .mockReturnValueOnce(['a.png'])
+
+  await systemUnderTest.deleteAttachmentFolder('storageKey', 'noteKey')
+
+  expect(sander.rimrafSync).not.toHaveBeenCalled()
+})
+
+it('添付を持たないノートの削除では何も起きない', async function() {
+  findStorage.findStorage = jest.fn(() => ({ path: 'dummyStoragePath' }))
+  sander.rimrafSync = jest.fn()
+  mockTrashFs()
+  fs.readdirSync = jest.fn(() => {
+    throw new Error('ENOENT')
+  })
+
+  const result = await systemUnderTest.deleteAttachmentFolder('s', 'n')
+
+  expect(result).toEqual({ trashed: [], failed: [] })
+  expect(fs.renameSync).not.toHaveBeenCalled()
+  expect(sander.rimrafSync).not.toHaveBeenCalled()
 })
 
 it('should test that deleteAttachmentsNotPresentInNote moves all unreferenced attachments to the trash ', function() {

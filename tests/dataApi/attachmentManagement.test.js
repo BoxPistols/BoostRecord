@@ -155,7 +155,9 @@ it("should test that copyAttachment creates a new folder if the attachment folde
     .then(function() {
       expect(fs.existsSync).toHaveBeenCalledWith(attachmentFolderPath)
       expect(fs.mkdirSync).toHaveBeenCalledWith(attachmentFolderPath)
-      expect(fs.existsSync).toHaveBeenLastCalledWith(attachmentFolderNoteKyPath)
+      // existsSync は自動命名の重複判定でも呼ばれるため「最後の呼び出し」では
+      // 判定しない（フォルダ作成の後に名前を決めるので順序が入れ替わる）
+      expect(fs.existsSync).toHaveBeenCalledWith(attachmentFolderNoteKyPath)
       expect(fs.mkdirSync).toHaveBeenLastCalledWith(attachmentFolderNoteKyPath)
     })
 })
@@ -221,7 +223,7 @@ it('should test that copyAttachment with url (with extension, without query)', f
   return systemUnderTest
     .copyAttachment(sourcePath, 'storageKey', 'noteKey')
     .then(function(newFileName) {
-      expect(newFileName).toBe('dummyPath.jpg')
+      expect(newFileName).toMatch(/^img-\d{8}-\d+\.jpg$/)
     })
 })
 
@@ -261,7 +263,7 @@ it('should test that copyAttachment with url (with extension, with query)', func
   return systemUnderTest
     .copyAttachment(sourcePath, 'storageKey', 'noteKey')
     .then(function(newFileName) {
-      expect(newFileName).toBe('dummyPath.jpg')
+      expect(newFileName).toMatch(/^img-\d{8}-\d+\.jpg$/)
     })
 })
 
@@ -301,7 +303,7 @@ it('should test that copyAttachment with url (without extension, without query)'
   return systemUnderTest
     .copyAttachment(sourcePath, 'storageKey', 'noteKey')
     .then(function(newFileName) {
-      expect(newFileName).toBe('dummyPath.png')
+      expect(newFileName).toMatch(/^img-\d{8}-\d+\.png$/)
     })
 })
 
@@ -341,7 +343,7 @@ it('should test that copyAttachment with url (without extension, with query)', f
   return systemUnderTest
     .copyAttachment(sourcePath, 'storageKey', 'noteKey')
     .then(function(newFileName) {
-      expect(newFileName).toBe('dummyPath.png')
+      expect(newFileName).toMatch(/^img-\d{8}-\d+\.png$/)
     })
 })
 

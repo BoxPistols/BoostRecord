@@ -5,7 +5,7 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './FolderItem.styl'
 import dataApi from 'browser/main/lib/dataApi'
 import { store } from 'browser/main/store'
-import { SketchPicker } from 'react-color'
+import FolderColorSwatches from 'browser/components/FolderColorSwatches'
 import { SortableElement, SortableHandle } from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
 
@@ -56,34 +56,19 @@ class FolderItem extends React.Component {
   }
 
   handleColorButtonClick(e) {
+    // 開閉のみ。位置補正は不要になった（インライン表示にしたため）
     const folder = Object.assign({}, this.state.folder, {
-      showColumnPicker: true,
-      colorPickerPos: { left: 0, top: 0 }
+      showColumnPicker: !this.state.folder.showColumnPicker
     })
-    this.setState({ folder }, function() {
-      // After the color picker has been painted, re-calculate its position
-      // by comparing its dimensions to the host dimensions.
-      // 位置合わせは見た目の調整でしかないので、参照が取れない場合は
-      // 既定位置のまま黙って諦める。ここで例外を投げると setState の
-      // コールバック内なので React がツリーごとアンマウントし、
-      // 設定画面が操作不能になる（カラー変更で画面が固まる原因だった）。
-      const { hostBoundingBox } = this.props
-      const colorPickerNode = this.colorPickerNode
-      if (!colorPickerNode || !hostBoundingBox) return
-      const colorPickerBox = colorPickerNode.getBoundingClientRect()
-      const offsetTop = hostBoundingBox.bottom - colorPickerBox.bottom
-      const folder = Object.assign({}, this.state.folder, {
-        colorPickerPos: {
-          left: 25,
-          top: offsetTop < 0 ? offsetTop - 5 : 0 // subtract 5px for aestetics
-        }
-      })
-      this.setState({ folder })
-    })
+    this.setState({ folder })
   }
 
   handleColorChange(color) {
-    const folder = Object.assign({}, this.state.folder, { color: color.hex })
+    const folder = Object.assign({}, this.state.folder, {
+      color,
+      // 選んだら閉じる。開いたままだと編集行の高さが変わり続けて扱いにくい
+      showColumnPicker: false
+    })
     this.setState({ folder })
   }
 
@@ -112,21 +97,6 @@ class FolderItem extends React.Component {
   }
 
   renderEdit(e) {
-    const popover = { position: 'absolute', zIndex: 2 }
-    const cover = {
-      position: 'fixed',
-      top: 0,
-      right: 0,
-      bottom: 0,
-      left: 0
-    }
-    const pickerStyle = Object.assign(
-      {},
-      {
-        position: 'absolute'
-      },
-      this.state.folder.colorPickerPos
-    )
     return (
       <div
         styleName='folderItem'
@@ -135,38 +105,28 @@ class FolderItem extends React.Component {
         ref='root'
       >
         <div styleName='folderItem-left'>
-          <button
+          {/* 色見本は button の入れ子にしない。従来は SketchPicker と
+              全画面を覆う cover div を <button> の内側に描いており、
+              ピッカー操作のクリックがボタンへ伝播して cover が閉じず、
+              画面全体がクリック不能になっていた（例外が出ないので
+              「フリーズした」ようにしか見えなかった） */}
+          <span
             styleName='folderItem-left-colorButton'
             style={{ color: this.state.folder.color }}
-            onClick={e =>
-              !this.state.folder.showColumnPicker &&
-              this.handleColorButtonClick(e)
-            }
+            role='button'
+            tabIndex='0'
+            title={i18n.__('Change Folder Color')}
+            aria-expanded={!!this.state.folder.showColumnPicker}
+            onClick={e => this.handleColorButtonClick(e)}
+            onKeyDown={e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                this.handleColorButtonClick(e)
+              }
+            }}
           >
-            {this.state.folder.showColumnPicker ? (
-              <div style={popover}>
-                <div
-                  style={cover}
-                  onClick={() => this.handleColorPickerClose()}
-                />
-                {/* ref は DOM ノードを持つラッパー側に付ける。SketchPicker は
-                    合成コンポーネントなので ref から getBoundingClientRect は取れない */}
-                <div
-                  style={pickerStyle}
-                  ref={node => {
-                    this.colorPickerNode = node
-                  }}
-                >
-                  <SketchPicker
-                    color={this.state.folder.color}
-                    onChange={color => this.handleColorChange(color)}
-                    onChangeComplete={color => this.handleColorChange(color)}
-                  />
-                </div>
-              </div>
-            ) : null}
             <i className='fa fa-square' />
-          </button>
+          </span>
           <input
             styleName='folderItem-left-nameInput'
             value={this.state.folder.name}
@@ -174,6 +134,14 @@ class FolderItem extends React.Component {
             onChange={e => this.handleEditChange(e)}
           />
         </div>
+        {this.state.folder.showColumnPicker && (
+          <div style={{ flexBasis: '100%', padding: '10px 0 4px' }}>
+            <FolderColorSwatches
+              value={this.state.folder.color}
+              onSelect={color => this.handleColorChange(color)}
+            />
+          </div>
+        )}
         <div styleName='folderItem-right'>
           <button
             styleName='folderItem-right-confirmButton'

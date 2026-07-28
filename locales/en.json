@@ -270,5 +270,8 @@
   "Test connection": "Test connection",
   "Testing…": "Testing…",
   "Connection succeeded": "Connection succeeded",
-  "Connection failed": "Connection failed"
+  "Connection failed": "Connection failed",
+  "Sort notes by": "Sort notes by",
+  "Ascending Order": "Ascending Order",
+  "Descending Order": "Descending Order"
 }

@@ -34,6 +34,12 @@ function validateInput(input) {
     validatedInput.isPinned = !!input.isPinned
   }
 
+  // validateInput はホワイトリスト方式で、ここに無いフィールドは .cson へ
+  // 書き込む前に捨てられる。新しいフラグを足す時はここへの追加が必須
+  if (input.isBookmarked !== undefined) {
+    validatedInput.isBookmarked = !!input.isBookmarked
+  }
+
   if (!_.isNil(input.blog)) {
     validatedInput.blog = input.blog
   }

@@ -195,14 +195,6 @@ function copyAttachment(
         /^\w+:\/\//.test(sourcePath) ? sourcePath : 'file:///' + sourcePath
       )
 
-      let destinationName
-      if (useRandomName) {
-        destinationName = `${uniqueSlug()}${path.extname(sourceURL.pathname) ||
-          '.png'}`
-      } else {
-        destinationName = path.basename(sourceURL.pathname)
-      }
-
       const targetStorage = findStorage.findStorage(storageKey)
       const destinationDir = path.join(
         targetStorage.path,
@@ -210,6 +202,18 @@ function copyAttachment(
         noteKey
       )
       createAttachmentDestinationFolder(targetStorage.path, noteKey)
+
+      // 名前の重複判定に保存先を見るので、フォルダを用意してから決める
+      let destinationName
+      if (useRandomName) {
+        destinationName = buildPastedAttachmentName(
+          destinationDir,
+          path.extname(sourceURL.pathname) || '.png'
+        )
+      } else {
+        destinationName = path.basename(sourceURL.pathname)
+      }
+
       const outputFile = fs.createWriteStream(
         path.join(destinationDir, destinationName)
       )
@@ -234,6 +238,42 @@ function copyAttachment(
       return reject(e)
     }
   })
+}
+
+// 貼り付け画像の自動名。従来は uniqueSlug() の 8 桁 16 進（例 9bc31cf2.png）で、
+// 短くはあるが何のファイルか分からず、探すことも並べ替えることもできなかった。
+// 「日付 + その日の連番」にすると、意味を持たせつつ長さも抑えられる
+//   旧: 9bc31cf2.png (12 文字)
+//   新: img-20260728-1.png (18 文字)
+// 秒まで入れる案（img-20260728-090240.png, 22 文字）は「短く」の要求に反する。
+//
+// 文字種は参照パーサが解釈できる [\w.-] に限定する（ここを外れると
+// リネーム時と同じく本文の参照が解決できなくなる）。
+function buildPastedAttachmentName(destinationDir, extension) {
+  const d = new Date()
+  const p2 = v => String(v).padStart(2, '0')
+  const day = '' + d.getFullYear() + p2(d.getMonth() + 1) + p2(d.getDate())
+  const base = 'img-' + day + '-'
+
+  // 同じ日の既存ファイルから次の連番を決める。読めない時は 1 から始めて
+  // 下の重複チェックに任せる
+  let next = 1
+  try {
+    const pattern = new RegExp('^' + base + '(\\d+)\\.')
+    fs.readdirSync(destinationDir).forEach(name => {
+      const m = pattern.exec(name)
+      if (m) next = Math.max(next, parseInt(m[1], 10) + 1)
+    })
+  } catch (e) {
+    /* フォルダが無い等。next = 1 のまま進める */
+  }
+
+  for (let i = next; i < next + 1000; i++) {
+    const candidate = base + i + extension
+    if (!fs.existsSync(path.join(destinationDir, candidate))) return candidate
+  }
+  // ここに来るのは想定外。従来のランダム名へ落として保存自体は続行する
+  return uniqueSlug() + extension
 }
 
 function createAttachmentDestinationFolder(destinationStoragePath, noteKey) {
@@ -1104,6 +1144,7 @@ export default {
   handleAttachmentLinkPaste,
   generateFileNotFoundMarkdown,
   migrateAttachments,
+  buildPastedAttachmentName,
   STORAGE_FOLDER_PLACEHOLDER,
   DESTINATION_FOLDER
 }

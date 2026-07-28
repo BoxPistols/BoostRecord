@@ -40,6 +40,8 @@ class MarkdownNoteDetail extends React.Component {
     super(props)
 
     this.state = {
+      // 情報パネルの表示。DOM 直書きだと再描画で閉じてしまう
+      isInfoPanelOpen: false,
       isMovingNote: false,
       note: Object.assign(
         {
@@ -149,10 +151,7 @@ class MarkdownNoteDetail extends React.Component {
   focusNoteLink() {
     // 効かない時の切り分け用（DevTools から window.__tbNoteLink を見る）
     window.__tbNoteLink = { called: true, at: Date.now() }
-    const panel = document.querySelector('.infoPanel')
-    if (panel && panel.style && panel.style.display === 'none') {
-      panel.style.display = 'inline'
-    }
+    this.setState({ isInfoPanelOpen: true })
     // パネルの表示反映を待ってから選択する（非表示のままでは select できない）
     setTimeout(() => {
       const input = document.querySelector('[data-note-link]')
@@ -476,10 +475,9 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleInfoButtonClick(e) {
-    const infoPanel = document.querySelector('.infoPanel')
-    if (infoPanel.style)
-      infoPanel.style.display =
-        infoPanel.style.display === 'none' ? 'inline' : 'none'
+    // DOM の style を直接書き換えると、次の再描画で JSX の style が
+    // 再適用されて勝手に閉じる（「一瞬出てすぐ消える」の原因）
+    this.setState(prev => ({ isInfoPanelOpen: !prev.isInfoPanelOpen }))
   }
 
   print(e) {
@@ -692,6 +690,7 @@ class MarkdownNoteDetail extends React.Component {
           <InfoButton onClick={e => this.handleInfoButtonClick(e)} />
 
           <InfoPanel
+            isOpen={this.state.isInfoPanelOpen}
             ref={c => {
               this.infoPanelRef = c
             }}

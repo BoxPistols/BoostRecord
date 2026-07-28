@@ -42,6 +42,8 @@ class SnippetNoteDetail extends React.Component {
     super(props)
 
     this.state = {
+      // 情報パネルの表示。DOM 直書きだと再描画で閉じてしまう
+      isInfoPanelOpen: false,
       isMovingNote: false,
       snippetIndex: 0,
       showArrows: false,
@@ -131,10 +133,7 @@ class SnippetNoteDetail extends React.Component {
   /** 情報パネルを開いてノートリンクを選択・コピーする（Markdown 側と同じ） */
   focusNoteLink() {
     window.__tbNoteLink = { called: true, at: Date.now() }
-    const panel = document.querySelector('.infoPanel')
-    if (panel && panel.style && panel.style.display === 'none') {
-      panel.style.display = 'inline'
-    }
+    this.setState({ isInfoPanelOpen: true })
     setTimeout(() => {
       const input = document.querySelector('[data-note-link]')
       if (!input) return
@@ -803,10 +802,9 @@ class SnippetNoteDetail extends React.Component {
   }
 
   handleInfoButtonClick(e) {
-    const infoPanel = document.querySelector('.infoPanel')
-    if (infoPanel.style)
-      infoPanel.style.display =
-        infoPanel.style.display === 'none' ? 'inline' : 'none'
+    // DOM の style を直接書き換えると、次の再描画で JSX の style が
+    // 再適用されて勝手に閉じる（「一瞬出てすぐ消える」の原因）
+    this.setState(prev => ({ isInfoPanelOpen: !prev.isInfoPanelOpen }))
   }
 
   showWarning(e, msg) {
@@ -1009,6 +1007,7 @@ class SnippetNoteDetail extends React.Component {
           <InfoButton onClick={e => this.handleInfoButtonClick(e)} />
 
           <InfoPanel
+            isOpen={this.state.isInfoPanelOpen}
             ref={c => {
               this.infoPanelRef = c
             }}

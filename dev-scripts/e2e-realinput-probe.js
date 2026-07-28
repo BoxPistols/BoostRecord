@@ -276,7 +276,32 @@ app.on('web-contents-created', (_e, wc) => {
             true
           )
         const beforeInfo = await panelVisible()
-        await pressKey(wc, 'I', [PRIMARY, 'shift'])
+        // 「一瞬出てすぐ消える」の切り分け: 押した直後から時系列で見る
+        wc.sendInputEvent({
+          type: 'keyDown',
+          keyCode: 'I',
+          modifiers: [PRIMARY, 'shift']
+        })
+        wc.sendInputEvent({
+          type: 'keyUp',
+          keyCode: 'I',
+          modifiers: [PRIMARY, 'shift']
+        })
+        const samples = []
+        for (const wait of [60, 150, 400, 800]) {
+          await sleep(wait === 60 ? 60 : wait - samples.length * 0)
+          samples.push({ at: wait, visible: await panelVisible() })
+        }
+        // 再描画を起こしても閉じないこと。DOM 直書きだった頃は、次の再描画で
+        // JSX の style が再適用されて勝手に閉じていた（「一瞬出てすぐ消える」）
+        await wc.executeJavaScript(
+          "(() => { const ta = document.querySelector('.CodeMirror textarea');" +
+            " if (ta) { ta.focus() } window.dispatchEvent(new Event('resize')); return true })()",
+          true
+        )
+        await sleep(500)
+        samples.push({ at: 'after-rerender', visible: await panelVisible() })
+        rep.infoTimeline = samples
         const afterInfo = await panelVisible()
         rep.infoHotkey = {
           before: beforeInfo,
@@ -352,6 +377,9 @@ app.on('web-contents-created', (_e, wc) => {
           'Cmd+digit jumps to a note': rep.cmdDigitJump.moved,
           'slider drag resizes the pane': rep.sliderDrag.widened,
           'info hotkey toggles the panel': rep.infoHotkey.toggled,
+          'info panel stays open across re-renders': rep.infoTimeline.every(
+            x => x.visible
+          ),
           // 利用者にとっての成果は「リンクが選択されてコピーされる」こと。
           // activeElement が入力欄に残るかは環境差があり（Linux では
           // copy-to-clipboard の後始末で戻らない）、判定基準にしない

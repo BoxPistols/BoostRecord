@@ -45,7 +45,20 @@ it('ui / editor など他の入れ子も同じ扱いになる', () => {
   expect(config.ui.language).toBe(DEFAULT_CONFIG.ui.language)
 })
 
-it('空文字のホットキーは「未割り当て」として保持する（既定値で埋めない）', () => {
-  const config = getWith({ hotkey: { toggleMenuBar: '' } })
-  expect(config.hotkey.toggleMenuBar).toBe('')
+// 一時期の既定値が空文字だったため、保存済み設定に「未割り当て」が残っている。
+// 既定値が入っている項目は埋め直す（利用者が意図して外したのか判別できないが、
+// 「設定画面に空欄が残り続ける」方が実害が大きい）。
+it('空文字のホットキーは既定値で埋め直す', () => {
+  const config = getWith({ hotkey: { toggleMenuBar: '', toggleDirection: '' } })
+  expect(config.hotkey.toggleMenuBar).toBe(DEFAULT_CONFIG.hotkey.toggleMenuBar)
+  expect(config.hotkey.toggleDirection).toBe(
+    DEFAULT_CONFIG.hotkey.toggleDirection
+  )
+})
+
+it('既定値どうしでホットキーが重複しない', () => {
+  const values = Object.keys(DEFAULT_CONFIG.hotkey)
+    .map(k => DEFAULT_CONFIG.hotkey[k])
+    .filter(Boolean)
+  expect(new Set(values).size).toBe(values.length)
 })

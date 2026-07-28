@@ -77,8 +77,10 @@ export const DEFAULT_CONFIG = {
     toggleInfo: OSX ? 'Command + Shift + I' : 'Ctrl + Shift + I',
     // ノートリンクへ直接フォーカスしてクリップボードへコピーする
     // Command + Ctrl の組み合わせは Mousetrap で成立しないことを実測で確認した
-    // （バインドはされるが keydown と一致せず発火しない）。L = Link
-    focusNoteLink: OSX ? 'Command + Shift + L' : 'Ctrl + Shift + L'
+    // （バインドはされるが keydown と一致せず発火しない）。
+    // Shift + L は「表示／非表示」と重なるので C = Copy を使う
+    // （HTMLで貼り付け = Shift + V と対になる）
+    focusNoteLink: OSX ? 'Command + Shift + C' : 'Ctrl + Shift + C'
   },
   ui: {
     language: 'ja',
@@ -200,11 +202,25 @@ function mergeWithDefaults(defaults, stored) {
   return merged
 }
 
+// 一時期の既定値が空文字だったため、保存済み設定に「未割り当て」が
+// 残っている。空文字は利用者が意図して外したのか判別できないが、
+// 既定値が入っている項目については埋め直す方が実害が小さい
+function fillEmptyHotkeys(config) {
+  if (!config || !config.hotkey) return config
+  const filled = Object.assign({}, config.hotkey)
+  Object.keys(DEFAULT_CONFIG.hotkey).forEach(key => {
+    const isEmpty = filled[key] === '' || filled[key] == null
+    if (isEmpty && DEFAULT_CONFIG.hotkey[key]) {
+      filled[key] = DEFAULT_CONFIG.hotkey[key]
+    }
+  })
+  return Object.assign({}, config, { hotkey: filled })
+}
+
 function get() {
   const rawStoredConfig = window.localStorage.getItem('config')
-  const storedConfig = mergeWithDefaults(
-    DEFAULT_CONFIG,
-    JSON.parse(rawStoredConfig)
+  const storedConfig = fillEmptyHotkeys(
+    mergeWithDefaults(DEFAULT_CONFIG, JSON.parse(rawStoredConfig))
   )
   let config = storedConfig
 

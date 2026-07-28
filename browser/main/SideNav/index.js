@@ -94,16 +94,6 @@ class SideNav extends React.Component {
   // 修飾キー + 1..9 で N 番目の項目へ移動する。data-jump-hint は常に描画して
   // あるので、バッジの再描画が間に合っていなくても引ける
   handleSideNavKeyDown(e) {
-    // Tab でノート一覧へ移す。個々のボタンにも同じ処理を置いてあるが、
-    // macOS はボタンをクリックしてもフォーカスが入らない（システム設定の
-    // 「フルキーボードアクセス」が既定オフ）ため、ボタン側のハンドラだけでは
-    // 発火しない。サイドバーのルート（tabIndex を持つ）で受け止める
-    if (e.key === 'Tab' && !e.shiftKey) {
-      e.preventDefault()
-      EventEmitter.emit('list:focus')
-      return
-    }
-
     const jumpTo = getJumpNumber(e)
     if (jumpTo === null) return
     const root = this.sideNavRoot
@@ -765,12 +755,6 @@ class SideNav extends React.Component {
           this.sideNavRoot = node
         }}
         onKeyDown={e => this.handleSideNavKeyDown(e)}
-        // macOS はクリックでボタンにフォーカスが入らないので、押された
-        // 要素へ明示的に移す。Tab の起点と現在位置がこれで一致する
-        onMouseDown={e => {
-          const btn = e.target.closest && e.target.closest('button')
-          if (btn) setTimeout(() => btn.focus(), 0)
-        }}
       >
         <div styleName='top'>
           <div styleName='switch-buttons'>

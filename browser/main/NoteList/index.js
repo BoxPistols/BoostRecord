@@ -1350,11 +1350,11 @@ class NoteList extends React.Component {
           </div>
         )}
         <div styleName='control'>
-          <div styleName='control-sortBy'>
+          <div styleName='control-sortBy' title={i18n.__('Sort notes by')}>
             <i className='fa fa-angle-down' />
             <select
               styleName='control-sortBy-select'
-              title={i18n.__('Select filter mode')}
+              title={i18n.__('Sort notes by')}
               value={sortBy}
               onChange={e => this.handleSortByChange(e)}
             >

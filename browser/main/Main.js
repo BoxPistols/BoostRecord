@@ -326,10 +326,12 @@ class Main extends React.Component {
   toggleMenuBarVisible() {
     const { config } = this.props
     const { ui } = config
-
-    const newUI = Object.assign(ui, { showMenuBar: !ui.showMenuBar })
-    const newConfig = Object.assign(config, newUI)
-    ConfigManager.set(newConfig)
+    // 元の実装は Object.assign(config, ui) で ui のキー（theme / language 等）を
+    // config の直下へばら撒いており、保存のたびに設定が壊れていた。
+    // 更新したい部分だけを渡す（ConfigManager.set は差分マージする）
+    ConfigManager.set({
+      ui: Object.assign({}, ui, { showMenuBar: !ui.showMenuBar })
+    })
   }
 
   handleLeftSlideMouseDown(e) {

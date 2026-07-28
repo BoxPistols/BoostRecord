@@ -293,7 +293,11 @@ class Main extends React.Component {
     eventEmitter.on('update', () => ipcRenderer.send('update-check', 'manual'))
     // View メニュー "Toggle Note List"（Cmd/Ctrl+Shift+B）
     eventEmitter.on('sidenav:togglenotelist', this.toggleNoteListHandler)
-    window.addEventListener('keydown', this.paneTabHandler)
+    // capture で受ける。bubble だと途中の React ハンドラが
+    // stopPropagation() を呼ぶと window まで届かず、ハンドラが一度も
+    // 走らない（実機で window.__tbPaneTab が undefined のままだった）。
+    // capture は target へ降りる前に必ず通るので誰にも止められない
+    window.addEventListener('keydown', this.paneTabHandler, true)
   }
 
   componentWillUnmount() {
@@ -305,7 +309,7 @@ class Main extends React.Component {
     )
     eventEmitter.off('dispatch:push', this.changeRoutePush.bind(this))
     eventEmitter.off('sidenav:togglenotelist', this.toggleNoteListHandler)
-    window.removeEventListener('keydown', this.paneTabHandler)
+    window.removeEventListener('keydown', this.paneTabHandler, true)
     clearInterval(this.refreshTheme)
   }
 

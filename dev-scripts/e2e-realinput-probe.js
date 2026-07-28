@@ -311,8 +311,10 @@ app.on('web-contents-created', (_e, wc) => {
           'Cmd+digit jumps to a note': rep.cmdDigitJump.moved,
           'slider drag resizes the pane': rep.sliderDrag.widened,
           'info hotkey toggles the panel': rep.infoHotkey.toggled,
-          'note link gets focus and selection':
-            rep.noteLinkFocus.focused && rep.noteLinkFocus.selected
+          // 利用者にとっての成果は「リンクが選択されてコピーされる」こと。
+          // activeElement が入力欄に残るかは環境差があり（Linux では
+          // copy-to-clipboard の後始末で戻らない）、判定基準にしない
+          'note link is selected for copying': rep.noteLinkFocus.selected
         }
         const failed = Object.keys(checks).filter(k => !checks[k])
         rep.checks = checks

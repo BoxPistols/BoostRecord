@@ -6,7 +6,7 @@ import dataApi from 'browser/main/lib/dataApi'
 import { store } from 'browser/main/store'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import i18n from 'browser/lib/i18n'
-import consts from 'browser/lib/consts'
+import FolderColorSwatches from 'browser/components/FolderColorSwatches'
 
 class RenameFolderModal extends React.Component {
   constructor(props) {
@@ -91,34 +91,14 @@ class RenameFolderModal extends React.Component {
             onChange={e => this.handleChange(e)}
             onKeyDown={e => this.handleInputKeyDown(e)}
           />
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              gap: '8px',
-              margin: '0 auto 15px'
-            }}
-          >
-            {consts.FOLDER_COLORS.map(c => (
-              <button
-                key={c}
-                title={c}
-                onClick={() => this.setState({ color: c })}
-                style={{
-                  width: 22,
-                  height: 22,
-                  borderRadius: '50%',
-                  background: c,
-                  border:
-                    this.state.color === c
-                      ? '3px solid #fff'
-                      : '2px solid transparent',
-                  outline: this.state.color === c ? `2px solid ${c}` : 'none',
-                  cursor: 'pointer',
-                  padding: 0
-                }}
-              />
-            ))}
+          {/* 独自の1行並びは 12 色にすると 340px の最大幅を超えてモーダルを
+              押し広げていた。共通部品（6列×2段）に寄せる */}
+          <div style={{ margin: '0 auto 15px' }}>
+            <FolderColorSwatches
+              value={this.state.color}
+              onSelect={color => this.setState({ color })}
+              size={22}
+            />
           </div>
           <button
             styleName='control-confirmButton'

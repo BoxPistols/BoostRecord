@@ -34,6 +34,11 @@ const MIN_LIST_WIDTH = 120
 const MIN_FOLDED_LIST_WIDTH = 64
 const MAX_FOLDED_LIST_WIDTH = 200
 
+// 最大幅。600px まで広げられたが、どちらもタイトルの長さ以上には情報が
+// 増えないため無駄に場所を取っていた。実用上の上限に寄せる
+const MAX_LIST_WIDTH = 360
+const MAX_NAV_WIDTH = 200
+
 // ショートカット表記の OS 出し分け（キー名はハードコードしない）
 const isMac = /Mac|iPhone|iPad|iPod/.test(
   typeof navigator !== 'undefined' ? navigator.userAgent : ''
@@ -394,7 +399,7 @@ class Main extends React.Component {
       const offset = this.refs.body.getBoundingClientRect().left
       const folded = !!this.props.config.isNoteListFolded
       const min = folded ? MIN_FOLDED_LIST_WIDTH : MIN_LIST_WIDTH
-      const max = folded ? MAX_FOLDED_LIST_WIDTH : 600
+      const max = folded ? MAX_FOLDED_LIST_WIDTH : MAX_LIST_WIDTH
       let width = e.pageX - offset
       if (width < min) width = min
       else if (width > max) width = max
@@ -406,8 +411,8 @@ class Main extends React.Component {
       let navWidth = e.pageX
       if (navWidth < 80) {
         navWidth = 80
-      } else if (navWidth > 600) {
-        navWidth = 600
+      } else if (navWidth > MAX_NAV_WIDTH) {
+        navWidth = MAX_NAV_WIDTH
       }
       this.setState({
         navWidth: navWidth

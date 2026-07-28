@@ -57,6 +57,59 @@ class Main extends React.Component {
     this.toggleFullScreen = () => this.handleFullScreenButton()
     // IPC は引数を伴うので、それを捨てるラッパーで受ける
     this.toggleNoteListHandler = () => this.toggleNoteList()
+    this.paneTabHandler = e => this.handlePaneTab(e)
+  }
+
+  /**
+   * Tab でサイドバー → ノート一覧、Shift+Tab で逆へ移す。
+   *
+   * 当初は各ボタンの onKeyDown に置いていたが、macOS はボタンをクリックしても
+   * フォーカスが入らない（システム設定「フルキーボードアクセス」が既定オフ）。
+   * クリック時に focus() を差し込む方法も試したが、再描画と競合して入る時と
+   * 入らない時があった。現在フォーカスがどこにあるかに依存せず、window で
+   * 受けて行き先を決める方式にしている。
+   */
+  handlePaneTab(e) {
+    if (e.key !== 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return
+
+    // 文字入力中の Tab は本来の意味（インデント・次項目）を保つ
+    const el = document.activeElement
+    if (el) {
+      const tag = el.tagName
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        el.isContentEditable ||
+        el.closest('.CodeMirror')
+      ) {
+        return
+      }
+    }
+    // モーダル表示中は中のフォーカス移動を邪魔しない
+    if (document.body.getAttribute('data-modal') === 'open') return
+
+    const noteList = document.querySelector('[data-note-list]')
+    const sideNav = document.querySelector('.SideNav')
+
+    // 非表示の要素に focus() しても何も起きず、Tab を握り潰しただけになる。
+    // 畳まれたペインや隠れたフォルダを行き先にしないよう可視判定を挟む
+    const isVisible = el => !!el && el.offsetParent !== null
+
+    if (e.shiftKey) {
+      // ノート一覧 → サイドバー。選択中フォルダが見えていればそこへ、
+      // 無ければサイドバー自体へ（tabIndex を持つのでフォーカスできる）
+      const activeFolder = document.querySelector('.SideNav-active-folder')
+      const target = isVisible(activeFolder) ? activeFolder : sideNav
+      if (!isVisible(target)) return
+      e.preventDefault()
+      target.focus()
+      return
+    }
+
+    if (!isVisible(noteList)) return
+    e.preventDefault()
+    noteList.focus()
   }
 
   toggleNoteList() {
@@ -213,6 +266,7 @@ class Main extends React.Component {
     eventEmitter.on('update', () => ipcRenderer.send('update-check', 'manual'))
     // View メニュー "Toggle Note List"（Cmd/Ctrl+Shift+B）
     eventEmitter.on('sidenav:togglenotelist', this.toggleNoteListHandler)
+    window.addEventListener('keydown', this.paneTabHandler)
   }
 
   componentWillUnmount() {
@@ -224,6 +278,7 @@ class Main extends React.Component {
     )
     eventEmitter.off('dispatch:push', this.changeRoutePush.bind(this))
     eventEmitter.off('sidenav:togglenotelist', this.toggleNoteListHandler)
+    window.removeEventListener('keydown', this.paneTabHandler)
     clearInterval(this.refreshTheme)
   }
 

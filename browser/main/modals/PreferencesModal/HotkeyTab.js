@@ -6,6 +6,7 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 import { store } from 'browser/main/store'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
+import VimKeyReference from 'browser/components/VimKeyReference'
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer
@@ -141,6 +142,9 @@ class HotkeyTab extends React.Component {
     )
     const showMenuBarHotkey = !isMac
     const showDirectionHotkey = !!config.editor.rtlEnabled
+    // vim キーマップを選ぶとエディタはノーマルモードで始まる。どのキーが
+    // 使えるかを示す場所が無く、「文字が打てない」と誤解されやすい
+    const isVimKeymap = config.editor.keyMap === 'vim'
 
     return (
       <div styleName='root'>
@@ -349,6 +353,8 @@ class HotkeyTab extends React.Component {
           </div>
           {this.state.isHotkeyHintOpen && (
             <div styleName='group-hint'>
+              {isVimKeymap && <VimKeyReference />}
+              {isVimKeymap && <hr />}
               <p>
                 {isMac ? (
                   <span>

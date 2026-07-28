@@ -76,10 +76,13 @@ class FolderColorPopover extends React.Component {
           width: WIDTH,
           padding: PADDING,
           boxSizing: 'border-box',
-          borderRadius: 8,
-          background: '#2b2b2e',
-          border: '1px solid rgba(255,255,255,0.16)',
-          boxShadow: '0 8px 28px rgba(0,0,0,0.45)',
+          borderRadius: 10,
+          // ガラスモーフィズム: 半透明 + 背景ブラー（情報パネルと同じ質感）
+          background: 'rgba(43,43,46,0.88)',
+          backdropFilter: 'blur(20px) saturate(140%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(140%)',
+          border: '1px solid rgba(255,255,255,0.10)',
+          boxShadow: '0 12px 32px rgba(0,0,0,0.34), 0 2px 8px rgba(0,0,0,0.22)',
           zIndex: 1100
         }}
       >

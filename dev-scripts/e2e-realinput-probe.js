@@ -297,6 +297,47 @@ app.on('web-contents-created', (_e, wc) => {
           true
         )
 
+        // --- 10. 「効かなかった」ホットキー2つが実際に発火するか ---
+        const readConfig = key =>
+          wc.executeJavaScript(
+            "(() => { try { const c = JSON.parse(localStorage.getItem('config'));" +
+              ' return c ? c' +
+              key +
+              ' : null } catch (e) { return null } })()',
+            true
+          )
+        const menuBefore = await readConfig('.ui.showMenuBar')
+        await pressKey(wc, 'M', [PRIMARY, 'shift'])
+        const menuAfter = await readConfig('.ui.showMenuBar')
+        rep.menuBarHotkey = {
+          before: menuBefore,
+          after: menuAfter,
+          toggled: menuBefore !== menuAfter
+        }
+
+        // 設定が壊れていないこと（旧実装は ui のキーを config 直下へばら撒いた）
+        rep.configNotCorrupted = await wc.executeJavaScript(
+          "(() => { try { const c = JSON.parse(localStorage.getItem('config'));" +
+            ' return !c || (c.theme === undefined && c.language === undefined) }' +
+            ' catch (e) { return true } })()',
+          true
+        )
+
+        const dirBefore = await wc.executeJavaScript(
+          '(() => window.__tbDirection || null)()',
+          true
+        )
+        await pressKey(wc, 'D', [PRIMARY, 'shift'])
+        const dirAfter = await wc.executeJavaScript(
+          '(() => window.__tbDirection || null)()',
+          true
+        )
+        rep.directionHotkey = {
+          before: dirBefore,
+          after: dirAfter,
+          fired: !!dirAfter && dirBefore !== dirAfter
+        }
+
         // 期待どおりでない項目があれば非ゼロで終える（CI が落ちる）
         const checks = {
           'click moves focus into sidebar': rep.afterSideNavClick.inSideNav,
@@ -314,7 +355,11 @@ app.on('web-contents-created', (_e, wc) => {
           // 利用者にとっての成果は「リンクが選択されてコピーされる」こと。
           // activeElement が入力欄に残るかは環境差があり（Linux では
           // copy-to-clipboard の後始末で戻らない）、判定基準にしない
-          'note link is selected for copying': rep.noteLinkFocus.selected
+          'note link is selected for copying': rep.noteLinkFocus.selected,
+          'menu bar hotkey fires': rep.menuBarHotkey.toggled,
+          'config is not corrupted by the menu bar toggle':
+            rep.configNotCorrupted,
+          'direction hotkey fires': rep.directionHotkey.fired
         }
         const failed = Object.keys(checks).filter(k => !checks[k])
         rep.checks = checks

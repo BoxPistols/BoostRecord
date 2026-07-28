@@ -58,23 +58,35 @@ const snippetFile =
     : '' // return nothing as we specified different path to snippets.json in test
 
 const consts = {
+  // 12 色。既存の 7 色は値も並び順もそのまま残し、隙間の色相を足している
+  // （既にフォルダへ設定済みの色が選択肢から消えないようにするため）
   FOLDER_COLORS: [
     '#E10051',
+    '#FF6B35',
     '#FF8E00',
     '#E8D252',
+    '#A8C93A',
     '#3FD941',
     '#30D5C8',
     '#2BA5F7',
-    '#B013A4'
+    '#4C6EF5',
+    '#7C4DFF',
+    '#B013A4',
+    '#8D8D93'
   ],
   FOLDER_COLOR_NAMES: [
     'Razzmatazz (Red)',
+    'Flamingo (Coral)',
     'Pizazz (Orange)',
     'Confetti (Yellow)',
+    'Olive (Lime)',
     'Emerald (Green)',
     'Turquoise',
     'Dodger Blue',
-    'Violet Eggplant'
+    'Indigo',
+    'Amethyst (Purple)',
+    'Violet Eggplant',
+    'Slate (Gray)'
   ],
   THEMES: themes,
   SNIPPET_FILE: snippetFile,

@@ -1,3 +1,12 @@
+// ⚠️ このファイルは dispatchEvent（合成イベント）で観測する。
+// キーボード・マウス操作の検証には **使ってはいけない**:
+//   - 既定動作が走らない（macOS は mousedown でフォーカスを body へ戻す）
+//   - 指定した要素から伝播が始まる（実際のフォーカス位置を経由しない）
+//   - 途中の stopPropagation() を通らない
+// 実際に壊れているものが緑になり続けた（Tab 移動で4回連続の誤報告）。
+// 入力の検証は dev-scripts/e2e-realinput-probe.js（sendInputEvent）を使う。
+// ここは DOM の状態やモジュール配線の観測にのみ使う。
+//
 // Real-renderer probe for two reports:
 //   1. 「Tab移動出来ない」— サイドバー → ノート一覧の Tab 移動
 //   2. 「フォルダの色変更ができなくなってる」— 右クリック→色変更モーダル

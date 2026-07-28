@@ -208,6 +208,46 @@ test.serial(
   }
 )
 
+// validateInput はホワイトリスト方式なので、ここに無いフィールドは .cson へ
+// 書き込む前に黙って捨てられる。ブックマークが保存されなかった原因がこれ。
+test.serial('isBookmarked is persisted', function(t) {
+  const storageKey = t.context.storage.cache.key
+  const folderKey = t.context.storage.json.folders[0].key
+
+  return createNote(storageKey, {
+    type: 'MARKDOWN_NOTE',
+    content: 'bookmark test',
+    title: 'bookmark test',
+    tags: [],
+    folder: folderKey
+  })
+    .then(function turnOn(note) {
+      return updateNote(note.storage, note.key, {
+        type: 'MARKDOWN_NOTE',
+        content: note.content,
+        isBookmarked: true
+      })
+    })
+    .then(function assertOn(updated) {
+      t.is(updated.isBookmarked, true)
+      // 戻り値だけでなく実ファイルに残っていることまで確認する
+      const notePath = path.join(
+        t.context.storage.cache.path,
+        'notes',
+        updated.key + '.cson'
+      )
+      t.is(CSON.readFileSync(notePath).isBookmarked, true)
+      return updateNote(updated.storage, updated.key, {
+        type: 'MARKDOWN_NOTE',
+        content: updated.content,
+        isBookmarked: false
+      })
+    })
+    .then(function assertOff(updated) {
+      t.is(updated.isBookmarked, false)
+    })
+})
+
 test.after(function after() {
   localStorage.clear()
   sander.rimrafSync(storagePath)

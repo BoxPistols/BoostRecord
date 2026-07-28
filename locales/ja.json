@@ -315,5 +315,8 @@
   "Test connection": "接続テスト",
   "Testing…": "テスト中…",
   "Connection succeeded": "接続できました",
-  "Connection failed": "接続できませんでした"
+  "Connection failed": "接続できませんでした",
+  "Sort notes by": "並び替えの基準",
+  "Ascending Order": "昇順に並べる",
+  "Descending Order": "降順に並べる"
 }

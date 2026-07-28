@@ -27,13 +27,16 @@ class InfoPanel extends React.Component {
       wordCount,
       letterCount,
       type,
-      print
+      print,
+      isOpen
     } = this.props
     return (
+      // 表示は React の状態で決める。DOM を直接書き換えると、次の再描画で
+      // ここの style が再適用されて勝手に閉じる（「一瞬出てすぐ消える」の原因）
       <div
         className='infoPanel'
         styleName='control-infoButton-panel'
-        style={{ display: 'none' }}
+        style={{ display: isOpen ? 'inline' : 'none' }}
       >
         <div>
           <p styleName='modification-date'>{updatedAt}</p>
@@ -171,7 +174,8 @@ InfoPanel.propTypes = {
   wordCount: PropTypes.number,
   letterCount: PropTypes.number,
   type: PropTypes.string.isRequired,
-  print: PropTypes.func.isRequired
+  print: PropTypes.func.isRequired,
+  isOpen: PropTypes.bool
 }
 
 export default CSSModules(InfoPanel, styles)

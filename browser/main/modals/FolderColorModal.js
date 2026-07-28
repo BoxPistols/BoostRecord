@@ -14,8 +14,9 @@ import dataApi from 'browser/main/lib/dataApi'
 import { store } from 'browser/main/store'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import i18n from 'browser/lib/i18n'
-import consts from 'browser/lib/consts'
 import { SketchPicker } from 'react-color'
+import FolderColorSwatches from 'browser/components/FolderColorSwatches'
+import consts from 'browser/lib/consts'
 
 class FolderColorModal extends React.Component {
   constructor(props) {
@@ -57,27 +58,6 @@ class FolderColorModal extends React.Component {
     const { folder } = this.props
     const { color, showPicker } = this.state
 
-    const gridStyle = {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(6, 1fr)',
-      gap: 10,
-      margin: '0 auto 16px',
-      maxWidth: 260
-    }
-    const swatchStyle = c => ({
-      width: 30,
-      height: 30,
-      borderRadius: '50%',
-      background: c,
-      border: '2px solid transparent',
-      // 選択中は輪郭を二重にする。色そのものと同系色の枠だと
-      // 明暗のテーマ両方で見分けがつかなくなるため白 + 同色の二重にする
-      boxShadow:
-        color === c ? `0 0 0 2px #fff, 0 0 0 4px ${c}` : '0 0 0 1px #8888',
-      cursor: 'pointer',
-      padding: 0
-    })
-
     return (
       <div
         styleName='root'
@@ -92,16 +72,12 @@ class FolderColorModal extends React.Component {
         <ModalEscButton handleEscButtonClick={() => this.props.close()} />
 
         <div styleName='control'>
-          <div style={gridStyle}>
-            {consts.FOLDER_COLORS.map((c, i) => (
-              <button
-                key={c}
-                title={consts.FOLDER_COLOR_NAMES[i] || c}
-                aria-label={consts.FOLDER_COLOR_NAMES[i] || c}
-                style={swatchStyle(c)}
-                onClick={() => this.selectPreset(c)}
-              />
-            ))}
+          <div style={{ margin: '0 auto 16px' }}>
+            <FolderColorSwatches
+              value={color}
+              onSelect={c => this.selectPreset(c)}
+              size={30}
+            />
           </div>
 
           {showPicker ? (

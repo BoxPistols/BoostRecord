@@ -7,7 +7,8 @@ $control-height = 30px
 
 .item
   position relative
-  padding 0 20px
+  // 左右 20px は狭い幅でタイトルを圧迫する（120px まで縮められるようになった）
+  padding 0 12px
   user-select none
   cursor pointer
   background-color $ui-noteList-backgroundColor
@@ -37,7 +38,8 @@ $control-height = 30px
       color $ui-text-color
 
 .item-wrapper
-  padding 15px 0
+  // 1件あたりの高さが大きすぎたため上下を詰める
+  padding 9px 0
   border-bottom $ui-border
   position relative
 
@@ -79,10 +81,10 @@ $control-height = 30px
   font-size 15px
   font-weight 700
   position relative
-  top -12px
+  top -8px
   left 20px
   padding 0px 15px 0px 0px
-  margin-bottom 4px
+  margin-bottom 0
   white-space nowrap
   overflow hidden
   text-overflow ellipsis
@@ -115,7 +117,7 @@ $control-height = 30px
 .item-bottom
   position relative
   bottom 0px
-  margin-top 10px
+  margin-top 4px
   font-size 12px
   line-height 20px
   overflow ellipsis
@@ -124,7 +126,7 @@ $control-height = 30px
 .item-bottom-tagList
   flex 1
   overflow ellipsis
-  line-height 25px
+  line-height 20px
   padding-left 2px
   margin-right 40px
 

@@ -54,6 +54,43 @@ function waitReady() {
   })()`
 }
 
+// 実アプリの流れを再現する: エディタにフォーカスがある状態で
+// サイドバーのフォルダをクリック → Tab。これが本来の使い方であり、
+// 「フォーカスを外してから」の計測では拾えなかった経路。
+function realFlowClickThenTab() {
+  return `(async () => {
+    const sleep = ms => new Promise(r => setTimeout(r, ms))
+    const cm = document.querySelector('.CodeMirror textarea') ||
+               document.querySelector('.CodeMirror')
+    if (cm && cm.focus) cm.focus()
+    await sleep(200)
+    const startedInEditor = !!(document.activeElement &&
+      document.activeElement.closest && document.activeElement.closest('.CodeMirror'))
+
+    const nav = document.querySelector('.SideNav')
+    const btn = nav && nav.querySelector('button')
+    if (btn) {
+      btn.dispatchEvent(new MouseEvent('mousedown', {bubbles:true}))
+      btn.dispatchEvent(new MouseEvent('mouseup', {bubbles:true}))
+      btn.click()
+    }
+    await sleep(300)
+    const focusInNavAfterClick = !!(document.activeElement && nav &&
+      nav.contains(document.activeElement))
+
+    window.dispatchEvent(new KeyboardEvent('keydown', {key:'Tab', bubbles:true}))
+    await sleep(300)
+    const list = document.querySelector('[data-note-list]')
+    const active = document.activeElement
+    return {
+      startedInEditor,
+      focusInNavAfterClick,
+      focusOnNoteList: !!(list && (active === list || list.contains(active))),
+      activeAfter: active ? active.tagName : null
+    }
+  })()`
+}
+
 // フォーカスがどこにも無い状態（body）から Tab を投げ、ノート一覧へ移るか。
 // 「クリックしてフォーカスを入れてから」を前提にしない設計になっているかを測る
 function tabFromBody() {
@@ -197,6 +234,7 @@ app.on('web-contents-created', (_e, wc) => {
         if (!ready)
           return finish(1, { ok: false, rep, error: 'SideNav never mounted' })
 
+        rep.realFlow = await wc.executeJavaScript(realFlowClickThenTab(), true)
         rep.tabFromBody = await wc.executeJavaScript(tabFromBody(), true)
         rep.shiftTabBack = await wc.executeJavaScript(shiftTabBack(), true)
         rep.tabInsideInput = await wc.executeJavaScript(tabInsideInput(), true)

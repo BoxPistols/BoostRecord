@@ -309,7 +309,7 @@ app.on('web-contents-created', (_e, wc) => {
           toggled: beforeInfo !== afterInfo
         }
 
-        await pressKey(wc, 'L', [PRIMARY, 'shift'])
+        await pressKey(wc, 'C', [PRIMARY, 'shift'])
         rep.noteLinkCalled = await wc.executeJavaScript(
           '(() => window.__tbNoteLink || null)()',
           true

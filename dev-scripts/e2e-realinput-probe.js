@@ -37,6 +37,17 @@ let ran = false
 function finish(code, result) {
   if (finished) return
   finished = true
+  // CI では結果ファイルを読めないので、判定を必ずログへ出す
+  try {
+    const rep = (result && result.rep) || {}
+    if (rep.checks) {
+      Object.keys(rep.checks).forEach(k => {
+        console.log((rep.checks[k] ? 'PASS ' : 'FAIL ') + k)
+      })
+    }
+    if (result && result.error) console.log('ERROR: ' + result.error)
+    console.log('REPORT ' + JSON.stringify(rep))
+  } catch (e) {}
   try {
     fs.writeFileSync(
       RESULT_FILE,
@@ -48,6 +59,11 @@ function finish(code, result) {
 setTimeout(() => finish(3, { error: 'watchdog' }), 120000)
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+// アプリ側は Mac で metaKey、それ以外で ctrlKey を見る（browser/lib/metaKeyHold）。
+// 実入力でも同じ使い分けをしないと、CI(Linux) で押しても反応しない
+const isMac = process.platform === 'darwin'
+const PRIMARY = isMac ? 'cmd' : 'control'
 
 function seed() {
   return `(() => { let l=[]; try{l=JSON.parse(localStorage.getItem('storages'))||[]}catch(e){}
@@ -174,9 +190,9 @@ app.on('web-contents-created', (_e, wc) => {
             true
           )
         const w0 = await listWidth()
-        await pressKey(wc, 'B', ['cmd', 'shift'])
+        await pressKey(wc, 'B', [PRIMARY, 'shift'])
         const w1 = await listWidth()
-        await pressKey(wc, 'B', ['cmd', 'shift'])
+        await pressKey(wc, 'B', [PRIMARY, 'shift'])
         const w2 = await listWidth()
         rep.hotkeyToggle = {
           before: w0,
@@ -193,7 +209,7 @@ app.on('web-contents-created', (_e, wc) => {
         )
         if (listPos) await clickAt(wc, listPos.x, listPos.y)
         const selBefore = await wc.executeJavaScript('location.hash', true)
-        await pressKey(wc, '2', ['cmd'])
+        await pressKey(wc, '2', [PRIMARY])
         const selAfter = await wc.executeJavaScript('location.hash', true)
         rep.cmdDigitJump = {
           before: selBefore,

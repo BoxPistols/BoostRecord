@@ -37,6 +37,9 @@
 .folderList-item-name
   display block
   flex 1
+  // flex 子は既定で min-width auto のため、内容が縮まず溢れる
+  min-width 0
+  white-space nowrap
   padding-right: 10px
   border-width 0 0 0 2px
   border-style solid

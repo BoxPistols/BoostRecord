@@ -61,6 +61,12 @@
 .menu-button-label
   margin-left 10px
   flex 1
+  // 幅が狭いと日本語ラベルが折り返してアイコンや件数と重なる。
+  // 1 行に収めて溢れたぶんは省略する
+  min-width 0
+  white-space nowrap
+  overflow hidden
+  text-overflow ellipsis
 
 .menu--folded
   @extend .menu

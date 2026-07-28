@@ -84,6 +84,9 @@ class HotkeyTab extends React.Component {
 
   handleHotkeyChange(e) {
     const { config } = this.state
+    // 環境によって描画しない行があるので、ref がある項目だけ読む
+    const read = name =>
+      this.refs[name] ? { [name]: this.refs[name].value } : {}
     config.hotkey = Object.assign({}, config.hotkey, {
       toggleMain: this.refs.toggleMain.value,
       toggleNoteList: this.refs.toggleNoteList.value,
@@ -91,13 +94,13 @@ class HotkeyTab extends React.Component {
       focusNoteLink: this.refs.focusNoteLink.value,
       toggleMode: this.refs.toggleMode.value,
       togglePreview: this.refs.togglePreview.value,
-      toggleDirection: this.refs.toggleDirection.value,
       deleteNote: this.refs.deleteNote.value,
       pasteSmartly: this.refs.pasteSmartly.value,
       prettifyMarkdown: this.refs.prettifyMarkdown.value,
-      toggleMenuBar: this.refs.toggleMenuBar.value,
       insertDate: this.refs.insertDate.value,
-      insertDateTime: this.refs.insertDateTime.value
+      insertDateTime: this.refs.insertDateTime.value,
+      ...read('toggleDirection'),
+      ...read('toggleMenuBar')
     })
     this.setState({
       config
@@ -122,6 +125,11 @@ class HotkeyTab extends React.Component {
   }
 
   render() {
+    // この2つは「キーが効かない」のではなく、環境や設定によって機能自体が
+    // 働かない。設定画面に出したままだと、キーの割り当てを疑い続けることになる。
+    //  - メニューバーの表示切替: macOS はメニューバーが OS 管理で
+    //    setMenuBarVisibility が no-op（Windows / Linux 専用の機能）
+    //  - 表示方向の切替: config.editor.rtlEnabled が有効な時だけ働く
     const keymapAlert = this.state.keymapAlert
     const keymapAlertElement =
       keymapAlert != null ? (
@@ -131,6 +139,8 @@ class HotkeyTab extends React.Component {
     const isMac = /Mac|iPhone|iPad|iPod/.test(
       typeof navigator !== 'undefined' ? navigator.userAgent : ''
     )
+    const showMenuBarHotkey = !isMac
+    const showDirectionHotkey = !!config.editor.rtlEnabled
 
     return (
       <div styleName='root'>
@@ -150,20 +160,23 @@ class HotkeyTab extends React.Component {
               />
             </div>
           </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Show/Hide Menu Bar')}
+          {showMenuBarHotkey && (
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Show/Hide Menu Bar')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  onChange={e => this.handleHotkeyChange(e)}
+                  ref='toggleMenuBar'
+                  value={config.hotkey.toggleMenuBar}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                onChange={e => this.handleHotkeyChange(e)}
-                ref='toggleMenuBar'
-                value={config.hotkey.toggleMenuBar}
-                type='text'
-              />
-            </div>
-          </div>
+          )}
+
           <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('Toggle Note List')}
@@ -234,20 +247,23 @@ class HotkeyTab extends React.Component {
               />
             </div>
           </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Toggle Direction')}
+          {showDirectionHotkey && (
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Toggle Direction')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  onChange={e => this.handleHotkeyChange(e)}
+                  ref='toggleDirection'
+                  value={config.hotkey.toggleDirection}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                onChange={e => this.handleHotkeyChange(e)}
-                ref='toggleDirection'
-                value={config.hotkey.toggleDirection}
-                type='text'
-              />
-            </div>
-          </div>
+          )}
+
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Delete Note')}</div>
             <div styleName='group-section-control'>

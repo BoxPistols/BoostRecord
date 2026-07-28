@@ -779,6 +779,42 @@ body p {
   pre, blockquote {
     page-break-inside: avoid;
   }
+
+  /* 印刷/PDF は常に白背景だが、テーブル・インラインコード・kbd は
+     テーマ側の配色（暗色テーマなら暗いセル背景）をそのまま拾ってしまい、
+     白紙の上に暗セル＋暗文字で読めなくなる。ライト配色へ戻す。
+     セレクタは markdown.styl 側と同じ形にしてある（body[data-theme="dark"]
+     と詳細度が並ぶので、後に置いたこちらが勝つ）。!important は使わない
+     ―― この後に続くユーザーのカスタム CSS が上書きできなくなるため。 */
+  body[data-theme] table thead tr {
+    background-color: #fff;
+  }
+  body[data-theme] table tbody tr:nth-child(2n + 1) {
+    background-color: #f9f9f9;
+  }
+  body[data-theme] table tbody tr:nth-child(2n) {
+    background-color: #fff;
+  }
+  body[data-theme] table thead th,
+  body[data-theme] table tbody td {
+    border-color: #d9d9d9;
+    color: #000;
+  }
+  body[data-theme] table thead th:last-child,
+  body[data-theme] table tbody td:last-child {
+    border-right: solid 1px #d9d9d9;
+  }
+  body[data-theme] p code.inline,
+  body[data-theme] li code.inline,
+  body[data-theme] td code.inline {
+    background-color: #f4f4f4;
+    border-color: #d9d9d9;
+    color: #000;
+  }
+  body[data-theme] kbd {
+    background-color: #f4f4f4;
+    color: #000;
+  }
 }
 
 ${allowCustomCSS ? customCSS : ''}

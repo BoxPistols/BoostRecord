@@ -142,8 +142,14 @@ class SnippetNoteDetail extends React.Component {
       if (this.infoPanelRef && this.infoPanelRef.copyNoteLink) {
         this.infoPanelRef.copyNoteLink()
       }
-      input.focus()
       input.select()
+      // copy-to-clipboard が作る一時要素の後始末とフォーカス移動が
+      // 環境によって遅れる（Linux で activeElement が戻らなかった）。
+      // もう一度キューに載せて確実に自分へ戻す
+      setTimeout(() => {
+        input.focus()
+        input.select()
+      }, 0)
     }, 0)
   }
 

@@ -39,6 +39,9 @@ export const DEFAULT_CONFIG = {
   // validate() では必須にしない（必須にすると既存ユーザーの設定が全て無効に
   // 判定され、初期値へ巻き戻る）
   isNoteListFolded: false,
+  // 折りたたみ時の幅。0 にせず残すのは何のペインか分かるようにするため。
+  // 畳んだ状態でもドラッグで微調整できるので、その結果をここに保存する
+  foldedListWidth: 100,
   listWidth: 280,
   navWidth: 200,
   sortBy: {

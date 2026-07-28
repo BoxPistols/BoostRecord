@@ -34,11 +34,18 @@ function deleteNote(storageKey, noteKey) {
       }
     })
     .then(function deleteAttachments(storageInfo) {
-      attachmentManagement.deleteAttachmentFolder(
-        storageInfo.storageKey,
-        storageInfo.noteKey
+      // 添付はゴミ箱へ移すだけ（非同期）。ここで失敗してもノート自体の削除は
+      // 済んでいるので、握りつぶして呼び出し元へ結果を返す
+      return Promise.resolve(
+        attachmentManagement.deleteAttachmentFolder(
+          storageInfo.storageKey,
+          storageInfo.noteKey
+        )
       )
-      return storageInfo
+        .catch(err => {
+          console.error('Could not move attachments to the trash', err)
+        })
+        .then(() => storageInfo)
     })
 }
 

@@ -120,13 +120,9 @@ const SideNavFilter = ({
       onClick={handleTrashedButtonClick}
       onKeyDown={focusNoteListOnTab(handleTrashedButtonClick)}
       onContextMenu={handleFilterButtonContextMenu}
-      data-jump-hint={4}
     >
-      {showJumpHint && (
-        <span styleName='menu-button-jump-hint' aria-hidden='true'>
-          4
-        </span>
-      )}
+      {/* ゴミ箱には連番を振らない。誤って Cmd+数字 を押した時に
+          削除済みノートの一覧へ飛ぶ意味が薄いため */}
       <div styleName='iconWrap'>
         <img
           src={

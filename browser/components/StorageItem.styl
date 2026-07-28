@@ -4,6 +4,8 @@
 
 .folderList-item
   display flex
+  // 連番バッジを絶対配置で重ねるための基準
+  position relative
   width 100%
   height 34px
   background-color transparent
@@ -150,16 +152,19 @@ for theme in $themes
   apply-theme(theme)
 // 修飾キー長押し中に出す 1..9 の連番バッジ
 .folderList-item-jump-hint
-  display inline-block
+  // 行の中に流し込むとラベルを押し出して折り返しを起こすので、重ねて出す
+  position absolute
+  left 2px
+  top 50%
+  transform translateY(-50%)
+  z-index 2
   min-width 16px
   height 16px
-  margin-right 4px
   padding 0 3px
   border-radius 3px
-  background-color alpha(#000, 55%)
+  background-color alpha(#000, 70%)
   color #fff
   font-size 11px
   line-height 16px
   text-align center
-  vertical-align middle
-  flex 0 0 auto
+  pointer-events none

@@ -273,5 +273,7 @@
   "Connection failed": "Connection failed",
   "Sort notes by": "Sort notes by",
   "Ascending Order": "Ascending Order",
-  "Descending Order": "Descending Order"
+  "Descending Order": "Descending Order",
+  "Provider in use": "Provider in use",
+  "AI actions use this provider. Both providers can be configured below.": "AI actions use this provider. Both providers can be configured below."
 }

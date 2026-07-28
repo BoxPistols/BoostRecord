@@ -798,7 +798,31 @@ function deleteAttachmentFolder(storageKey, noteKey) {
     DESTINATION_FOLDER,
     noteKey
   )
-  sander.rimrafSync(noteAttachmentPath)
+
+  // ノートの完全削除でも添付は 30 日ゴミ箱へ通す。ここで rimraf すると
+  // 「削除後は 30 日は戻せる」という約束が添付だけ守られない
+  let files = []
+  try {
+    files = fs
+      .readdirSync(noteAttachmentPath)
+      .map(name => path.join(noteAttachmentPath, name))
+  } catch (e) {
+    // フォルダが無ければ何もしない（添付を持たないノート）
+    return Promise.resolve({ trashed: [], failed: [] })
+  }
+
+  return attachmentTrash.trashAttachments(files).then(result => {
+    // ゴミ箱へ移した後に残る空フォルダを片付ける。移せなかったファイルが
+    // あれば中身が残るので rimraf はせず、そのまま残す
+    try {
+      if (fs.readdirSync(noteAttachmentPath).length === 0) {
+        sander.rimrafSync(noteAttachmentPath)
+      }
+    } catch (e) {
+      /* best-effort */
+    }
+    return result
+  })
 }
 
 /**

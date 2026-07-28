@@ -179,6 +179,50 @@ function toggleNoteListByHotkey() {
   })()`
 }
 
+// 途中の要素が stopPropagation() しても Tab が届くか。bubble で受けていた頃は
+// ここで止まり、ハンドラが一度も走らなかった（実機で __tbPaneTab が undefined）
+function tabSurvivesStopPropagation() {
+  return `(async () => {
+    const sleep = ms => new Promise(r => setTimeout(r, ms))
+    const nav = document.querySelector('.SideNav')
+    if (nav) nav.focus()
+    await sleep(150)
+    window.__tbPaneTab = undefined
+
+    // document で伝播を止める意地悪な購読者を挟む
+    const blocker = ev => ev.stopPropagation()
+    document.addEventListener('keydown', blocker, false)
+    nav.dispatchEvent(new KeyboardEvent('keydown', {key:'Tab', bubbles:true}))
+    await sleep(250)
+    document.removeEventListener('keydown', blocker, false)
+
+    const t = window.__tbPaneTab
+    const list = document.querySelector('[data-note-list]')
+    const active = document.activeElement
+    return {
+      handlerRan: !!t,
+      decision: t ? t.decision : null,
+      focusOnNoteList: !!(list && (active === list || list.contains(active)))
+    }
+  })()`
+}
+
+// サイドバーの上下キーでフォルダ選択が動くか
+function sidebarArrowKeys() {
+  return `(async () => {
+    const sleep = ms => new Promise(r => setTimeout(r, ms))
+    const nav = document.querySelector('.SideNav')
+    if (!nav) return { error: 'no SideNav' }
+    nav.focus()
+    await sleep(150)
+    const before = location.hash + location.pathname
+    nav.dispatchEvent(new KeyboardEvent('keydown', {key:'ArrowDown', bubbles:true}))
+    await sleep(300)
+    const after = location.hash + location.pathname
+    return { before, after, moved: before !== after }
+  })()`
+}
+
 // フォルダ色モーダルが実際に開くか。context menu は native なので、
 // ハンドラを直接叩けない代わりに modal 経由の DOM 出現を測る。
 function openFolderColorModalAndReport() {
@@ -206,7 +250,7 @@ function openFolderColorModalAndReport() {
 
     const folder = (inst.props.storage.folders || [])[0]
     if (!folder) return { error: 'storage has no folder' }
-    inst.handleFolderColorClick(folder)
+    inst.handleFolderColorClick(folder, { x: 100, y: 200 })
     await sleep(600)
 
     const modalOpen = document.body.getAttribute('data-modal') === 'open'
@@ -238,6 +282,11 @@ app.on('web-contents-created', (_e, wc) => {
         rep.tabFromBody = await wc.executeJavaScript(tabFromBody(), true)
         rep.shiftTabBack = await wc.executeJavaScript(shiftTabBack(), true)
         rep.tabInsideInput = await wc.executeJavaScript(tabInsideInput(), true)
+        rep.stopPropagation = await wc.executeJavaScript(
+          tabSurvivesStopPropagation(),
+          true
+        )
+        rep.sidebarArrows = await wc.executeJavaScript(sidebarArrowKeys(), true)
         rep.hotkeyToggle = await wc.executeJavaScript(
           toggleNoteListByHotkey(),
           true

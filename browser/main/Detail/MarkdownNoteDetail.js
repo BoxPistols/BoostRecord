@@ -508,6 +508,8 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   handleSwitchDirection() {
+    // ホットキーが届いたかの切り分け用
+    window.__tbDirection = Date.now()
     if (!this.props.config.editor.rtlEnabled) {
       return
     }

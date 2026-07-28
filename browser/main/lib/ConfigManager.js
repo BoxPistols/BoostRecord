@@ -53,11 +53,13 @@ export const DEFAULT_CONFIG = {
   autoUpdateEnabled: true,
   hotkey: {
     // 既定値は実際に使われている組み合わせに合わせた。
-    // 空文字は「どの値を入れても効かなかった」もの（別途調査が要る）。
+    // Alt/Option を含む組み合わせは Mac で取りこぼすため使わない。
     toggleMain: OSX ? 'Command + Alt + L' : 'Ctrl + Alt + L',
     toggleMode: OSX ? 'Command + Shift + E' : 'Ctrl + Shift + E',
     togglePreview: OSX ? 'Command + E' : 'Ctrl + E',
-    toggleDirection: '',
+    // 旧既定の Command + Alt + Right は効かなかった。Mac の Option は
+    // 文字変換に使われ、Alt を含む組み合わせは取りこぼす
+    toggleDirection: OSX ? 'Command + Shift + D' : 'Ctrl + Shift + D',
     deleteNote: OSX
       ? 'Command + Shift + Backspace'
       : 'Ctrl + Shift + Backspace',
@@ -66,7 +68,9 @@ export const DEFAULT_CONFIG = {
     sortLines: OSX ? 'Command + Shift + S' : 'Ctrl + Shift + S',
     insertDate: OSX ? 'Command + /' : 'Ctrl + /',
     insertDateTime: OSX ? 'Command + Alt + /' : 'Ctrl + Shift + /',
-    toggleMenuBar: '',
+    // 旧既定の 'Alt' は単独の修飾キーで、Mousetrap は組み合わせとして
+    // 束ねられない（実キーが要る）。M = Menu
+    toggleMenuBar: OSX ? 'Command + Shift + M' : 'Ctrl + Shift + M',
     // ノート一覧ペインの開閉。Command + B（サイドバー）の対
     toggleNoteList: OSX ? 'Command + Shift + B' : 'Ctrl + Shift + B',
     // 情報パネル。Command + Alt + I は DevTools と衝突するので使わない

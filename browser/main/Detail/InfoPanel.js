@@ -61,14 +61,15 @@ class InfoPanel extends React.Component {
 
         {type === 'SNIPPET_NOTE' ? '' : <hr />}
 
-        <div>
-          <p styleName='infoPanel-default'>{storageName}</p>
-          <p styleName='infoPanel-sub'>{i18n.__('STORAGE')}</p>
-        </div>
-
-        <div>
-          <p styleName='infoPanel-default'>{folderName}</p>
-          <p styleName='infoPanel-sub'>{i18n.__('FOLDER')}</p>
+        <div styleName='count-wrap'>
+          <div styleName='count-number'>
+            <p styleName='infoPanel-default'>{storageName}</p>
+            <p styleName='infoPanel-sub'>{i18n.__('STORAGE')}</p>
+          </div>
+          <div styleName='count-number'>
+            <p styleName='infoPanel-default'>{folderName}</p>
+            <p styleName='infoPanel-sub'>{i18n.__('FOLDER')}</p>
+          </div>
         </div>
 
         <div>
@@ -77,24 +78,28 @@ class InfoPanel extends React.Component {
         </div>
 
         <div>
-          <input
-            styleName='infoPanel-noteLink'
-            data-note-link
-            ref='noteLink'
-            // defaultValue only applies at mount, so the link stayed stuck on
-            // the first-opened note after navigation — keep it controlled.
-            value={noteLink}
-            readOnly
-            onClick={e => {
-              e.target.select()
-            }}
-          />
-          <button
-            onClick={() => this.copyNoteLink()}
-            styleName='infoPanel-copyButton'
-          >
-            <i className='fa fa-clipboard' />
-          </button>
+          <div styleName='infoPanel-noteLink-row'>
+            <input
+              styleName='infoPanel-noteLink'
+              data-note-link
+              ref='noteLink'
+              // defaultValue only applies at mount, so the link stayed stuck on
+              // the first-opened note after navigation — keep it controlled.
+              value={noteLink}
+              readOnly
+              onClick={e => {
+                e.target.select()
+              }}
+            />
+            <button
+              onClick={() => this.copyNoteLink()}
+              styleName='infoPanel-copyButton'
+              title={i18n.__('Copy Note Link')}
+              aria-label={i18n.__('Copy Note Link')}
+            >
+              <i className='fa fa-clipboard' />
+            </button>
+          </div>
           <p styleName='infoPanel-sub'>{i18n.__('NOTE LINK')}</p>
         </div>
 
@@ -138,7 +143,8 @@ class InfoPanel extends React.Component {
             onClick={e => previewAsPdf(e, 'preview-pdf')}
           >
             <i className='fa fa-eye' />
-            <p>{i18n.__('Preview')}</p>
+            {/* 「プレビュー」は等幅の列に収まらず縦に割れていた */}
+            <p>{i18n.__('View')}</p>
           </button>
 
           <button styleName='export--enable' onClick={e => print(e, 'print')}>

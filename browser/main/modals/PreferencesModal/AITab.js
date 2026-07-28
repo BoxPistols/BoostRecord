@@ -273,7 +273,7 @@ class AITab extends React.Component {
 
     const cardTitleStyle = {
       display: 'block',
-      fontSize: 11,
+      fontSize: 12,
       fontWeight: 700,
       letterSpacing: '0.08em',
       textTransform: 'uppercase',
@@ -312,7 +312,7 @@ class AITab extends React.Component {
     const errStyle = {
       display: 'block',
       color: c.danger,
-      fontSize: 11,
+      fontSize: 12,
       marginTop: 5
     }
 
@@ -495,7 +495,7 @@ class AITab extends React.Component {
             >
               {i18n.__('Save')}
             </button>
-            <span style={{ color: c.muted, fontSize: 11 }}>{saveShortcut}</span>
+            <span style={{ color: c.muted, fontSize: 12 }}>{saveShortcut}</span>
             {saved && (
               <span style={{ color: c.success, fontSize: 13 }}>
                 {i18n.__('Successfully applied!')}

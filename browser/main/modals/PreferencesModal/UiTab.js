@@ -10,6 +10,7 @@ import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
+import VimKeyReference from 'browser/components/VimKeyReference'
 import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 import uiThemes from 'browser/lib/ui-themes'
@@ -693,6 +694,13 @@ class UiTab extends React.Component {
                   '⚠️ Please restart The Boosters after you change the keymap'
                 )}
               </p>
+              {/* vim はノーマルモードで始まるため、知らないと「文字が
+                  打てない」と受け取られる。選んだその場で要点を示す */}
+              {config.editor.keyMap === 'vim' && (
+                <div styleName='note-for-keymap'>
+                  <VimKeyReference compact />
+                </div>
+              )}
             </div>
           </div>
 

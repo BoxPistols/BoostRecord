@@ -15,5 +15,8 @@ export default {
   },
   toggleMenuBar: () => {
     ee.emit('menubar:togglemenubar')
+  },
+  toggleNoteList: () => {
+    ee.emit('sidenav:togglenotelist')
   }
 }

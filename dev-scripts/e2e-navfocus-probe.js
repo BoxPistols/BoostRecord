@@ -117,6 +117,31 @@ function tabInsideInput() {
   })()`
 }
 
+// ホットキー設定（config.hotkey.toggleNoteList）で束ねた Cmd+Shift+B が
+// 実際にペインを開閉するか。メニューの accelerator を外したので、
+// mousetrap 側だけで成立していることを確かめる
+function toggleNoteListByHotkey() {
+  return `(async () => {
+    const sleep = ms => new Promise(r => setTimeout(r, ms))
+    const width = () => {
+      const el = document.querySelector('[data-note-list]')
+      return el ? Math.round(el.getBoundingClientRect().width) : -1
+    }
+    const before = width()
+    const send = () => {
+      const ev = {key:'B', code:'KeyB', keyCode:66, which:66,
+        metaKey:true, shiftKey:true, bubbles:true}
+      document.dispatchEvent(new KeyboardEvent('keydown', ev))
+      document.dispatchEvent(new KeyboardEvent('keyup', ev))
+    }
+    send(); await sleep(500)
+    const after = width()
+    send(); await sleep(500)
+    const restored = width()
+    return { before, after, restored, toggled: before !== after, restoredOk: restored === before }
+  })()`
+}
+
 // フォルダ色モーダルが実際に開くか。context menu は native なので、
 // ハンドラを直接叩けない代わりに modal 経由の DOM 出現を測る。
 function openFolderColorModalAndReport() {
@@ -175,6 +200,10 @@ app.on('web-contents-created', (_e, wc) => {
         rep.tabFromBody = await wc.executeJavaScript(tabFromBody(), true)
         rep.shiftTabBack = await wc.executeJavaScript(shiftTabBack(), true)
         rep.tabInsideInput = await wc.executeJavaScript(tabInsideInput(), true)
+        rep.hotkeyToggle = await wc.executeJavaScript(
+          toggleNoteListByHotkey(),
+          true
+        )
         rep.folderColorModal = await wc.executeJavaScript(
           openFolderColorModalAndReport(),
           true

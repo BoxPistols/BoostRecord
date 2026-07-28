@@ -65,6 +65,13 @@ class SnippetNoteDetail extends React.Component {
   }
 
   componentDidMount() {
+    // ホットキーの受け口は Markdown 側だけにあり、スニペットノートを開いて
+    // いる間は情報パネル・リンクのショートカットが効かなかった
+    this.toggleInfoHandler = () => this.handleInfoButtonClick()
+    this.focusNoteLinkHandler = () => this.focusNoteLink()
+    ee.on('detail:toggleinfo', this.toggleInfoHandler)
+    ee.on('detail:focusnotelink', this.focusNoteLinkHandler)
+
     const visibleTabs = this.visibleTabs
     const allTabs = this.allTabs
 
@@ -117,6 +124,27 @@ class SnippetNoteDetail extends React.Component {
   componentWillUnmount() {
     if (this.saveQueue != null) this.saveNow()
     ee.off('code:generate-toc', this.generateToc)
+    ee.off('detail:toggleinfo', this.toggleInfoHandler)
+    ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
+  }
+
+  /** 情報パネルを開いてノートリンクを選択・コピーする（Markdown 側と同じ） */
+  focusNoteLink() {
+    window.__tbNoteLink = { called: true, at: Date.now() }
+    const panel = document.querySelector('.infoPanel')
+    if (panel && panel.style && panel.style.display === 'none') {
+      panel.style.display = 'inline'
+    }
+    setTimeout(() => {
+      const input = document.querySelector('[data-note-link]')
+      if (!input) return
+      // コピーが先。copy-to-clipboard は一時要素にフォーカスを奪う
+      if (this.infoPanelRef && this.infoPanelRef.copyNoteLink) {
+        this.infoPanelRef.copyNoteLink()
+      }
+      input.focus()
+      input.select()
+    }, 0)
   }
 
   handleGenerateToc() {
@@ -975,6 +1003,9 @@ class SnippetNoteDetail extends React.Component {
           <InfoButton onClick={e => this.handleInfoButtonClick(e)} />
 
           <InfoPanel
+            ref={c => {
+              this.infoPanelRef = c
+            }}
             storageName={storageName}
             folderName={folderName}
             noteLink={`[${note.title}](:note:${

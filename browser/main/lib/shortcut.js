@@ -18,5 +18,11 @@ export default {
   },
   toggleNoteList: () => {
     ee.emit('sidenav:togglenotelist')
+  },
+  toggleInfo: () => {
+    ee.emit('detail:toggleinfo')
+  },
+  focusNoteLink: () => {
+    ee.emit('detail:focusnotelink')
   }
 }

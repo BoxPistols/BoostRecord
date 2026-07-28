@@ -276,5 +276,7 @@
   "Descending Order": "Descending Order",
   "Provider in use": "Provider in use",
   "AI actions use this provider. Both providers can be configured below.": "AI actions use this provider. Both providers can be configured below.",
-  "Custom color…": "Custom color…"
+  "Custom color…": "Custom color…",
+  "Toggle Info Panel": "Toggle Info Panel",
+  "Copy Note Link": "Copy Note Link"
 }

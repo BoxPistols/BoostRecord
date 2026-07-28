@@ -135,6 +135,36 @@ class MarkdownNoteDetail extends React.Component {
     ee.on('topbar:togglepreviewbutton', this.handleTogglePreview)
     ee.on('hotkey:deletenote', this.handleDeleteNote)
     ee.on('code:generate-toc', this.generateToc)
+    // ホットキー設定から呼ばれる（config.hotkey.toggleInfo / focusNoteLink）
+    this.toggleInfoHandler = () => this.handleInfoButtonClick()
+    this.focusNoteLinkHandler = () => this.focusNoteLink()
+    ee.on('detail:toggleinfo', this.toggleInfoHandler)
+    ee.on('detail:focusnotelink', this.focusNoteLinkHandler)
+  }
+
+  /**
+   * 情報パネルを開いてノートリンクへフォーカスし、そのままコピーする。
+   * リンクは頻繁に使うので、パネルを開く→探す→選ぶ の手数を省く。
+   */
+  focusNoteLink() {
+    // 効かない時の切り分け用（DevTools から window.__tbNoteLink を見る）
+    window.__tbNoteLink = { called: true, at: Date.now() }
+    const panel = document.querySelector('.infoPanel')
+    if (panel && panel.style && panel.style.display === 'none') {
+      panel.style.display = 'inline'
+    }
+    // パネルの表示反映を待ってから選択する（非表示のままでは select できない）
+    setTimeout(() => {
+      const input = document.querySelector('[data-note-link]')
+      if (!input) return
+      // コピーを先に済ませる。copy-to-clipboard は一時要素を作って
+      // フォーカスを奪うため、後に呼ぶと選択が外れる
+      if (this.infoPanelRef && this.infoPanelRef.copyNoteLink) {
+        this.infoPanelRef.copyNoteLink()
+      }
+      input.focus()
+      input.select()
+    }, 0)
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -177,6 +207,8 @@ class MarkdownNoteDetail extends React.Component {
     ee.off('topbar:togglepreviewbutton', this.handleTogglePreview)
     ee.off('hotkey:deletenote', this.handleDeleteNote)
     ee.off('code:generate-toc', this.generateToc)
+    ee.off('detail:toggleinfo', this.toggleInfoHandler)
+    ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
     if (this.saveQueue != null) this.saveNow()
   }
 
@@ -652,6 +684,9 @@ class MarkdownNoteDetail extends React.Component {
           <InfoButton onClick={e => this.handleInfoButtonClick(e)} />
 
           <InfoPanel
+            ref={c => {
+              this.infoPanelRef = c
+            }}
             storageName={storageName}
             folderName={folderName}
             noteLink={`[${note.title}](:note:${

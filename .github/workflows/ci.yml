@@ -87,3 +87,14 @@ jobs:
         env:
           ELECTRON_DISABLE_SANDBOX: '1'
         run: xvfb-run --auto-servernum pnpm run e2e:theme
+
+      - name: E2E (real keyboard/mouse input)
+        # Regression gate for keyboard and pointer behaviour that synthetic
+        # dispatchEvent cannot reproduce: default actions (macOS moves focus to
+        # body on mousedown) and the real propagation path from the focused
+        # element (a React stopPropagation() swallowed Tab before it reached
+        # window). Both shipped broken while dispatchEvent-based probes stayed
+        # green. This one injects input via webContents.sendInputEvent().
+        env:
+          ELECTRON_DISABLE_SANDBOX: '1'
+        run: xvfb-run --auto-servernum pnpm run e2e:realinput

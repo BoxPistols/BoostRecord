@@ -85,7 +85,9 @@ function waitReady() {
 async function pressKey(wc, keyCode, modifiers = []) {
   wc.sendInputEvent({ type: 'keyDown', keyCode, modifiers })
   wc.sendInputEvent({ type: 'keyUp', keyCode, modifiers })
-  await sleep(300)
+  // ルート変更やパネル開閉を伴う操作は 300ms では足りず、run ごとに
+  // 結果が割れた。判定を安定させるため余裕を持たせる
+  await sleep(600)
 }
 
 async function clickAt(wc, x, y) {
@@ -266,6 +268,35 @@ app.on('web-contents-created', (_e, wc) => {
           widened: wAfter > wBefore
         }
 
+        // --- 9. 情報パネルのホットキーとリンクのフォーカス/コピー ---
+        const panelVisible = () =>
+          wc.executeJavaScript(
+            "(() => { const p = document.querySelector('.infoPanel');" +
+              " return !!(p && p.style && p.style.display !== 'none') })()",
+            true
+          )
+        const beforeInfo = await panelVisible()
+        await pressKey(wc, 'I', [PRIMARY, 'shift'])
+        const afterInfo = await panelVisible()
+        rep.infoHotkey = {
+          before: beforeInfo,
+          after: afterInfo,
+          toggled: beforeInfo !== afterInfo
+        }
+
+        await pressKey(wc, 'L', [PRIMARY, 'shift'])
+        rep.noteLinkCalled = await wc.executeJavaScript(
+          '(() => window.__tbNoteLink || null)()',
+          true
+        )
+        rep.noteLinkFocus = await wc.executeJavaScript(
+          "(() => { const el = document.querySelector('[data-note-link]');" +
+            ' const a = document.activeElement;' +
+            ' return { exists: !!el, focused: !!(el && a === el),' +
+            ' selected: !!(el && el.selectionEnd > el.selectionStart) } })()',
+          true
+        )
+
         // 期待どおりでない項目があれば非ゼロで終える（CI が落ちる）
         const checks = {
           'click moves focus into sidebar': rep.afterSideNavClick.inSideNav,
@@ -278,7 +309,12 @@ app.on('web-contents-created', (_e, wc) => {
           'hotkey toggles the note list': rep.hotkeyToggle.toggled,
           'hotkey restores the width': rep.hotkeyToggle.restoredOk,
           'Cmd+digit jumps to a note': rep.cmdDigitJump.moved,
-          'slider drag resizes the pane': rep.sliderDrag.widened
+          'slider drag resizes the pane': rep.sliderDrag.widened,
+          'info hotkey toggles the panel': rep.infoHotkey.toggled,
+          // 利用者にとっての成果は「リンクが選択されてコピーされる」こと。
+          // activeElement が入力欄に残るかは環境差があり（Linux では
+          // copy-to-clipboard の後始末で戻らない）、判定基準にしない
+          'note link is selected for copying': rep.noteLinkFocus.selected
         }
         const failed = Object.keys(checks).filter(k => !checks[k])
         rep.checks = checks

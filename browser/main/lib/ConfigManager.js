@@ -52,10 +52,12 @@ export const DEFAULT_CONFIG = {
   listDirection: 'ASCENDING', // 'ASCENDING', 'DESCENDING'
   autoUpdateEnabled: true,
   hotkey: {
-    toggleMain: OSX ? 'Command + Alt + L' : 'Super + Alt + E',
-    toggleMode: OSX ? 'Command + Alt + M' : 'Ctrl + M',
-    togglePreview: OSX ? 'Command + Alt + P' : 'Ctrl + Alt + P',
-    toggleDirection: OSX ? 'Command + Alt + Right' : 'Ctrl + Alt + Right',
+    // 既定値は実際に使われている組み合わせに合わせた。
+    // 空文字は「どの値を入れても効かなかった」もの（別途調査が要る）。
+    toggleMain: OSX ? 'Command + Alt + L' : 'Ctrl + Alt + L',
+    toggleMode: OSX ? 'Command + Shift + E' : 'Ctrl + Shift + E',
+    togglePreview: OSX ? 'Command + E' : 'Ctrl + E',
+    toggleDirection: '',
     deleteNote: OSX
       ? 'Command + Shift + Backspace'
       : 'Ctrl + Shift + Backspace',
@@ -64,9 +66,15 @@ export const DEFAULT_CONFIG = {
     sortLines: OSX ? 'Command + Shift + S' : 'Ctrl + Shift + S',
     insertDate: OSX ? 'Command + /' : 'Ctrl + /',
     insertDateTime: OSX ? 'Command + Alt + /' : 'Ctrl + Shift + /',
-    toggleMenuBar: 'Alt',
+    toggleMenuBar: '',
     // ノート一覧ペインの開閉。Command + B（サイドバー）の対
-    toggleNoteList: OSX ? 'Command + Shift + B' : 'Ctrl + Shift + B'
+    toggleNoteList: OSX ? 'Command + Shift + B' : 'Ctrl + Shift + B',
+    // 情報パネル。Command + Alt + I は DevTools と衝突するので使わない
+    toggleInfo: OSX ? 'Command + Shift + I' : 'Ctrl + Shift + I',
+    // ノートリンクへ直接フォーカスしてクリップボードへコピーする
+    // Command + Ctrl の組み合わせは Mousetrap で成立しないことを実測で確認した
+    // （バインドはされるが keydown と一致せず発火しない）。L = Link
+    focusNoteLink: OSX ? 'Command + Shift + L' : 'Ctrl + Shift + L'
   },
   ui: {
     language: 'ja',
@@ -171,10 +179,26 @@ function _save(config) {
   window.localStorage.setItem('config', JSON.stringify(config))
 }
 
+// Object.assign は浅いので、保存済みの hotkey / ui / editor などが既定値の
+// オブジェクトを丸ごと置き換えてしまい、**新しく足したキーが既存ユーザーへ
+// 一切届かない**（設定画面に項目が出ず、ショートカットも登録されない）。
+// 入れ子のプレーンオブジェクトは1段だけ既定値とマージする。
+function mergeWithDefaults(defaults, stored) {
+  const merged = Object.assign({}, defaults, stored)
+  Object.keys(defaults).forEach(key => {
+    const d = defaults[key]
+    const v = stored && stored[key]
+    const isPlain = o => o && typeof o === 'object' && !Array.isArray(o)
+    if (isPlain(d) && isPlain(v)) {
+      merged[key] = Object.assign({}, d, v)
+    }
+  })
+  return merged
+}
+
 function get() {
   const rawStoredConfig = window.localStorage.getItem('config')
-  const storedConfig = Object.assign(
-    {},
+  const storedConfig = mergeWithDefaults(
     DEFAULT_CONFIG,
     JSON.parse(rawStoredConfig)
   )
@@ -228,10 +252,8 @@ function set(updates) {
     arrangedUpdates.preview.customCSS = DEFAULT_CONFIG.preview.customCSS
   }
 
-  const newConfig = Object.assign(
-    {},
-    DEFAULT_CONFIG,
-    currentConfig,
+  const newConfig = mergeWithDefaults(
+    mergeWithDefaults(DEFAULT_CONFIG, currentConfig),
     arrangedUpdates
   )
   if (!validate(newConfig)) throw new Error('INVALID CONFIG')

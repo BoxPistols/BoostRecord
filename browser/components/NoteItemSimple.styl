@@ -7,7 +7,8 @@ $control-height = 30px
 
 .item-simple
   position relative
-  padding 0 20px
+  // 左右 20px は狭い幅でタイトルを圧迫する（120px まで縮められるようになった）
+  padding 0 12px
   user-select none
   cursor pointer
   background-color $ui-noteList-backgroundColor
@@ -50,7 +51,8 @@ $control-height = 30px
 .item-simple-title
   font-size 13px
   height 40px
-  padding-right 20px
+  // pin アイコンの分だけ空ける
+  padding-right 16px
   box-sizing border-box
   line-height 24px
   padding-top 8px

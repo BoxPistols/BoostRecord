@@ -94,6 +94,22 @@ class SideNav extends React.Component {
   // 修飾キー + 1..9 で N 番目の項目へ移動する。data-jump-hint は常に描画して
   // あるので、バッジの再描画が間に合っていなくても引ける
   handleSideNavKeyDown(e) {
+    // サイドバーにフォーカスがある間は上下キーでフォルダを移動する。
+    // ノート一覧は ↑↓ で移動できるのにサイドバーは何も効かなかった
+    // （Alt+↑↓ はメニュー側にあるが、修飾キー無しの方が自然）
+    if (!e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        this.navigateFolder(1)
+        return
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        this.navigateFolder(-1)
+        return
+      }
+    }
+
     const jumpTo = getJumpNumber(e)
     if (jumpTo === null) return
     const root = this.sideNavRoot

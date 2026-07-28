@@ -87,6 +87,8 @@ class HotkeyTab extends React.Component {
     config.hotkey = Object.assign({}, config.hotkey, {
       toggleMain: this.refs.toggleMain.value,
       toggleNoteList: this.refs.toggleNoteList.value,
+      toggleInfo: this.refs.toggleInfo.value,
+      focusNoteLink: this.refs.focusNoteLink.value,
       toggleMode: this.refs.toggleMode.value,
       togglePreview: this.refs.togglePreview.value,
       toggleDirection: this.refs.toggleDirection.value,
@@ -172,6 +174,34 @@ class HotkeyTab extends React.Component {
                 onChange={e => this.handleHotkeyChange(e)}
                 ref='toggleNoteList'
                 value={config.hotkey.toggleNoteList || ''}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Toggle Info Panel')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                onChange={e => this.handleHotkeyChange(e)}
+                ref='toggleInfo'
+                value={config.hotkey.toggleInfo || ''}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Copy Note Link')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                onChange={e => this.handleHotkeyChange(e)}
+                ref='focusNoteLink'
+                value={config.hotkey.focusNoteLink || ''}
                 type='text'
               />
             </div>

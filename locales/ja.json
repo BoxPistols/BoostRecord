@@ -321,5 +321,6 @@
   "Descending Order": "降順に並べる",
   "Provider in use": "使用するプロバイダ",
   "AI actions use this provider. Both providers can be configured below.": "AI 機能はこちらのプロバイダを使います。下の両方の設定は同時に保存できます。",
-  "Custom color…": "その他の色…"
+  "Custom color…": "その他の色…",
+  "Toggle Info Panel": "情報パネルの表示切替"
 }

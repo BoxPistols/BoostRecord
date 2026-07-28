@@ -14,21 +14,26 @@
   top: 50px
   right 25px
   position absolute
-  padding 20px 25px 0 25px
-  // width 300px
+  padding 14px 16px 4px
+  // 幅を決めないと内容次第で広がる。リンクを全幅にするための基準でもある
+  width 280px
+  box-sizing border-box
   overflow auto
   background-color $ui-noteList-backgroundColor
   box-shadow 2px 12px 15px 2px rgba(0, 0, 0, 0.1), 2px 1px 50px 2px rgba(0, 0, 0, 0.1)
   border-radius 2px
 
+// 値とラベルの階層。従来はラベルも値と同じ 18px で主従が無かった
 .modification-date
-  font-size 18px
-  line-height 30px
+  font-size 14px
+  line-height 20px
   color $ui-text-color
 
 .modification-date-desc
-  font-size 18px
+  font-size 11px
+  line-height 16px
   color $ui-inactive-text-color
+  padding-bottom 10px
 
 .control-infoButton-panel-trash
   z-index 200
@@ -55,32 +60,39 @@
 	margin 0
 	padding 0
 
+// 文字数・ワード数はこのパネルの主役なので、ここだけ少し大きく残す
 .infoPanel-defaul-count
-  font-size 16px
-  line-height 30px
+  font-size 18px
+  line-height 24px
   color $ui-text-color
 
 .infoPanel-sub-count
-  font-size 16px
+  font-size 11px
+  line-height 16px
   color $ui-inactive-text-color
-  padding-bottom 8px
+  padding-bottom 10px
 
 .infoPanel-default
   font-size 14px
-  line-height 30px
+  line-height 20px
   color $ui-text-color
 
 .infoPanel-sub
-  font-size 12px
+  font-size 11px
+  line-height 16px
   font-weight 600
   color $ui-inactive-text-color
-  padding-bottom 8px
+  padding-bottom 10px
 
+// リンクは頻繁に使うので全幅・少し大きく。右はコピーボタンの分だけ空ける
 .infoPanel-noteLink
-  padding-right 5px
-  width 210px
-  height 25px
-  margin 6px 0
+  width calc(100% - 34px)
+  height 28px
+  padding 0 8px
+  font-size 13px
+  box-sizing border-box
+  border-radius 3px
+  margin 4px 0
 
 .infoPanel-copyButton
   outline none
@@ -109,13 +121,16 @@
   padding 2px 5px
 
 [id=export-wrap]
-  height 90px
+  // アイコン 48px はパネルの主役ではないのに一番目立っていた
   display flex
   justify-content center
-  margin 20px 0 10px 0
+  align-items flex-start
+  margin 14px 0 6px
   button
     outline none
-    font-size 48px
+    font-size 22px
+    line-height 28px
+    padding 4px 2px
     color #A0A0A0
     background-color transparent
     border none
@@ -126,7 +141,8 @@
       background-color alpha($ui-button--hover-backgroundColor, 30%)
       color $ui-inactive-text-color
   p
-    font-size 13px
+    font-size 11px
+    margin 2px 0 0
     color #A0A0A0
     font-weight light
     &:hover
@@ -137,7 +153,7 @@
 
 .export--preview
   cursor pointer
-  font-size 36px
+  font-size 22px
 
 .export--unable
   cursor not-allowed

@@ -5,6 +5,7 @@ import styles from './StorageItem.styl'
 import modal from 'browser/main/lib/modal'
 import CreateFolderModal from 'browser/main/modals/CreateFolderModal'
 import RenameFolderModal from 'browser/main/modals/RenameFolderModal'
+import FolderColorModal from 'browser/main/modals/FolderColorModal'
 import dataApi from 'browser/main/lib/dataApi'
 import { moveNotesToFolder } from 'browser/main/lib/moveNotes'
 import StorageItemChild from 'browser/components/StorageItem'
@@ -12,7 +13,6 @@ import _ from 'lodash'
 import { SortableElement } from 'react-sortable-hoc'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
-import consts from 'browser/lib/consts'
 import { push } from 'connected-react-router'
 
 const remote = require('@electron/remote')
@@ -189,16 +189,11 @@ class StorageItem extends React.Component {
         click: e => this.handleRenameFolderClick(e, folder)
       },
       {
-        // 色変更は「フォルダの名称変更」の中にしか無く見つけられなかったため、
-        // 右クリックから直接届くようにする。ネイティブメニューには色見本を
-        // 出せないので、consts の色名をそのままラベルにする
+        // 色名のテキストだけでは実際の色が想起できないため、色見本を
+        // 実描画できるモーダルを開く（ネイティブメニューは PNG しか
+        // アイコンにできず、色見本を動的に作れない）
         label: i18n.__('Change Folder Color'),
-        submenu: consts.FOLDER_COLORS.map((color, i) => ({
-          label: consts.FOLDER_COLOR_NAMES[i] || color,
-          type: 'radio',
-          checked: (folder.color || '').toUpperCase() === color.toUpperCase(),
-          click: () => this.handleFolderColorClick(folder, color)
-        }))
+        click: () => this.handleFolderColorClick(folder)
       },
       {
         type: 'separator'
@@ -234,20 +229,9 @@ class StorageItem extends React.Component {
     ])
   }
 
-  handleFolderColorClick(folder, color) {
-    const { storage, dispatch } = this.props
-    // updateFolder は name も必須（省略すると reject する）ので現在名を渡す
-    dataApi
-      .updateFolder(storage.key, folder.key, { name: folder.name, color })
-      .then(data => {
-        dispatch({
-          type: 'UPDATE_FOLDER',
-          storage: data.storage
-        })
-      })
-      .catch(err => {
-        console.error('Could not change the folder color', err)
-      })
+  handleFolderColorClick(folder) {
+    const { storage } = this.props
+    modal.open(FolderColorModal, { storage, folder })
   }
 
   handleRenameFolderClick(e, folder) {

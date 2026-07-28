@@ -78,7 +78,6 @@ exports[`SideNavFilter renders the All / Starred / Bookmark / Trash buttons 1`] 
   </button>
   <button
     className="menu-button"
-    data-jump-hint={4}
     onClick={[MockFunction]}
     onContextMenu={[MockFunction]}
     onKeyDown={[Function]}

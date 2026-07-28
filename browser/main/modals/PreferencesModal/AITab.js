@@ -347,14 +347,17 @@ class AITab extends React.Component {
         <div style={innerStyle}>
           <div style={pageTitleStyle}>AI Settings</div>
 
-          {/* Provider */}
+          {/* Provider: どちらを使うかの設定。下の OpenAI / Gemini カードは
+              常に両方出ているので、タブと誤読されないよう説明を添える */}
           <div style={cardStyle}>
-            <span style={cardTitleStyle}>Provider</span>
+            <span style={cardTitleStyle}>{i18n.__('Provider in use')}</span>
             <div style={segWrapStyle}>
               {['openai', 'gemini'].map(p => (
                 <button
                   key={p}
                   type='button'
+                  role='radio'
+                  aria-checked={provider === p}
                   style={segBtnStyle(provider === p)}
                   onClick={() => this.setState({ provider: p })}
                 >
@@ -362,6 +365,11 @@ class AITab extends React.Component {
                 </button>
               ))}
             </div>
+            <span style={Object.assign({}, errStyle, { color: c.muted })}>
+              {i18n.__(
+                'AI actions use this provider. Both providers can be configured below.'
+              )}
+            </span>
           </div>
 
           {/* OpenAI */}

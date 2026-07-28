@@ -336,6 +336,8 @@ class Main extends React.Component {
 
   handleRightSlideMouseDown(e) {
     e.preventDefault()
+    // 幅のドラッグが効かない時の切り分け用（DevTools から参照する）
+    window.__tbSliderDragging = true
     this.setState({
       isRightSliderFocused: true
     })

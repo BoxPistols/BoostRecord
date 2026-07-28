@@ -318,5 +318,7 @@
   "Connection failed": "接続できませんでした",
   "Sort notes by": "並び替えの基準",
   "Ascending Order": "昇順に並べる",
-  "Descending Order": "降順に並べる"
+  "Descending Order": "降順に並べる",
+  "Provider in use": "使用するプロバイダ",
+  "AI actions use this provider. Both providers can be configured below.": "AI 機能はこちらのプロバイダを使います。下の両方の設定は同時に保存できます。"
 }

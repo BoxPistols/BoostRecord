@@ -51,11 +51,11 @@ it('SideNavFilter calls the matching handler for each button', () => {
 })
 
 // 連番バッジ（Cmd 長押し）の番号は画面上の並び順と一致していなければならない。
-// ブックマークを挟んだことでゴミ箱が 3 → 4 にずれるため、ここで固定する。
-it('各ボタンの data-jump-hint が並び順どおり 1..4 になる', () => {
+// ゴミ箱は対象外（削除済み一覧へ飛ぶショートカットは要らない）。
+it('data-jump-hint は 1..3 でゴミ箱には振られない', () => {
   const component = renderer.create(<SideNavFilter {...baseProps} />)
   const hints = component.root
     .findAllByType('button')
     .map(b => b.props['data-jump-hint'])
-  expect(hints).toEqual([1, 2, 3, 4])
+  expect(hints).toEqual([1, 2, 3, undefined])
 })

@@ -94,6 +94,16 @@ class SideNav extends React.Component {
   // 修飾キー + 1..9 で N 番目の項目へ移動する。data-jump-hint は常に描画して
   // あるので、バッジの再描画が間に合っていなくても引ける
   handleSideNavKeyDown(e) {
+    // Tab でノート一覧へ移す。個々のボタンにも同じ処理を置いてあるが、
+    // macOS はボタンをクリックしてもフォーカスが入らない（システム設定の
+    // 「フルキーボードアクセス」が既定オフ）ため、ボタン側のハンドラだけでは
+    // 発火しない。サイドバーのルート（tabIndex を持つ）で受け止める
+    if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault()
+      EventEmitter.emit('list:focus')
+      return
+    }
+
     const jumpTo = getJumpNumber(e)
     if (jumpTo === null) return
     const root = this.sideNavRoot
@@ -464,9 +474,9 @@ class SideNav extends React.Component {
         })
       }
 
-      // フィルタ 4 件を 1..4 に使うので、フォルダは 5 から。ストレージを
-      // またいで通し番号にする（画面上の並び順と一致させるため）
-      let jumpHintCursor = 5
+      // フィルタは「すべて/スター付き/ブックマーク」の 3 件だけ連番を使う
+      // （ゴミ箱は対象外）。フォルダは 4 から、ストレージをまたいで通し番号
+      let jumpHintCursor = 4
       const storageList = storageMap.map((storage, key) => {
         const SortableStorageItem = SortableContainer(StorageItem)
         // 折りたたまれたストレージはフォルダを描画しないので番号を消費しない。
@@ -755,6 +765,12 @@ class SideNav extends React.Component {
           this.sideNavRoot = node
         }}
         onKeyDown={e => this.handleSideNavKeyDown(e)}
+        // macOS はクリックでボタンにフォーカスが入らないので、押された
+        // 要素へ明示的に移す。Tab の起点と現在位置がこれで一致する
+        onMouseDown={e => {
+          const btn = e.target.closest && e.target.closest('button')
+          if (btn) setTimeout(() => btn.focus(), 0)
+        }}
       >
         <div styleName='top'>
           <div styleName='switch-buttons'>

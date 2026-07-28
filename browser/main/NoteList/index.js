@@ -1461,7 +1461,10 @@ class NoteList extends React.Component {
           // クリックした側のペインへフォーカスを移す。これが無いとエディタに
           // フォーカスが残り、Shift+Tab の起点が定まらない
           onMouseDown={() => {
-            if (this.refs.list) this.refs.list.focus()
+            // 既定動作の後に上書きする（SideNav 側と同じ事情）
+            setTimeout(() => {
+              if (this.refs.list) this.refs.list.focus()
+            }, 0)
           }}
           onKeyDown={e => this.handleNoteListKeyDown(e)}
           onKeyUp={this.handleNoteListKeyUp}

@@ -760,7 +760,12 @@ class SideNav extends React.Component {
         // TEXTAREA のまま）。個々のボタンに focus() を当てる方法は再描画と競合して
         // 不安定だったので、再描画で入れ替わらないルート要素へ移す
         onMouseDown={() => {
-          if (this.sideNavRoot) this.sideNavRoot.focus()
+          // macOS は mousedown の既定動作でフォーカスを body へ戻す。React の
+          // ハンドラは既定動作より前に走るため、ここで focus() しても打ち消される。
+          // 次のタスクへ回して既定動作の後に上書きする
+          setTimeout(() => {
+            if (this.sideNavRoot) this.sideNavRoot.focus()
+          }, 0)
         }}
       >
         <div styleName='top'>

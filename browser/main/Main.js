@@ -28,9 +28,11 @@ const remote = require('@electron/remote')
 // これ以上狭めるとタイトルが読めなくなるため 120px を下限にする
 const MIN_LIST_WIDTH = 120
 
-// 折りたたみ時に残す幅。完全に 0 にすると何のペインだったか分からなくなるので、
-// サイドバー（44px でアイコンだけ残る）と同じ考え方でタイトルの先頭数文字を残す
-const FOLDED_LIST_WIDTH = 56
+// 折りたたみ時の幅の範囲。完全に 0 にすると何のペインだったか分からないので
+// 残すが、56px ではアイコンと省略記号しか入らなかった。畳んだ状態でも
+// ドラッグで微調整できるようにし、その結果を config に保存する
+const MIN_FOLDED_LIST_WIDTH = 64
+const MAX_FOLDED_LIST_WIDTH = 200
 
 // ショートカット表記の OS 出し分け（キー名はハードコードしない）
 const isMac = /Mac|iPhone|iPad|iPod/.test(
@@ -50,6 +52,7 @@ class Main extends React.Component {
     this.state = {
       isRightSliderFocused: false,
       listWidth: config.listWidth,
+      foldedListWidth: config.foldedListWidth || 100,
       navWidth: config.navWidth,
       isLeftSliderFocused: false,
       fullScreen: false,
@@ -74,10 +77,27 @@ class Main extends React.Component {
    * 受けて行き先を決める方式にしている。
    */
   handlePaneTab(e) {
-    if (e.key !== 'Tab' || e.metaKey || e.ctrlKey || e.altKey) return
+    // 直前の判断を残す。効かない時に DevTools で
+    // `window.__tbPaneTab` を見れば、どこで抜けたのかが分かる
+    const el = document.activeElement
+    const trace = {
+      key: e.key,
+      shiftKey: e.shiftKey,
+      activeTag: el ? el.tagName : null,
+      activeClass: el ? String(el.className || '').slice(0, 80) : null,
+      decision: null
+    }
+    const done = reason => {
+      trace.decision = reason
+      window.__tbPaneTab = trace
+      return undefined
+    }
+
+    if (e.key !== 'Tab' || e.metaKey || e.ctrlKey || e.altKey) {
+      return done('skip: not a bare Tab')
+    }
 
     // 文字入力中の Tab は本来の意味（インデント・次項目）を保つ
-    const el = document.activeElement
     if (el) {
       const tag = el.tagName
       if (
@@ -87,33 +107,36 @@ class Main extends React.Component {
         el.isContentEditable ||
         el.closest('.CodeMirror')
       ) {
-        return
+        return done('skip: focus is in an editable element')
       }
     }
     // モーダル表示中は中のフォーカス移動を邪魔しない
-    if (document.body.getAttribute('data-modal') === 'open') return
+    if (document.body.getAttribute('data-modal') === 'open') {
+      return done('skip: modal is open')
+    }
 
     const noteList = document.querySelector('[data-note-list]')
     const sideNav = document.querySelector('.SideNav')
 
     // 非表示の要素に focus() しても何も起きず、Tab を握り潰しただけになる。
     // 畳まれたペインや隠れたフォルダを行き先にしないよう可視判定を挟む
-    const isVisible = el => !!el && el.offsetParent !== null
+    const isVisible = node => !!node && node.offsetParent !== null
 
     if (e.shiftKey) {
       // ノート一覧 → サイドバー。選択中フォルダが見えていればそこへ、
       // 無ければサイドバー自体へ（tabIndex を持つのでフォーカスできる）
       const activeFolder = document.querySelector('.SideNav-active-folder')
       const target = isVisible(activeFolder) ? activeFolder : sideNav
-      if (!isVisible(target)) return
+      if (!isVisible(target)) return done('skip: sidebar not visible')
       e.preventDefault()
       target.focus()
-      return
+      return done('moved to sidebar')
     }
 
-    if (!isVisible(noteList)) return
+    if (!isVisible(noteList)) return done('skip: note list not visible')
     e.preventDefault()
     noteList.focus()
+    return done('moved to note list')
   }
 
   toggleNoteList() {
@@ -322,7 +345,13 @@ class Main extends React.Component {
           isRightSliderFocused: false
         },
         () => {
-          const { dispatch } = this.props
+          const { dispatch, config } = this.props
+          if (config.isNoteListFolded) {
+            // 畳んだ幅は config にだけ持つ（reducer の listWidth は
+            // 展開時の幅を保つ）
+            ConfigManager.set({ foldedListWidth: this.state.foldedListWidth })
+            return
+          }
           const newListWidth = this.state.listWidth
           // TODO: ConfigManager should dispatch itself.
           ConfigManager.set({ listWidth: newListWidth })
@@ -357,17 +386,15 @@ class Main extends React.Component {
   handleMouseMove(e) {
     if (this.state.isRightSliderFocused) {
       const offset = this.refs.body.getBoundingClientRect().left
-      let newListWidth = e.pageX - offset
-      // 下限はタイトル数文字とアイコンが残る幅。これより狭くしたい場合は
-      // 幅ではなく折りたたみ（isNoteListFolded）を使う
-      if (newListWidth < MIN_LIST_WIDTH) {
-        newListWidth = MIN_LIST_WIDTH
-      } else if (newListWidth > 600) {
-        newListWidth = 600
-      }
-      this.setState({
-        listWidth: newListWidth
-      })
+      const folded = !!this.props.config.isNoteListFolded
+      const min = folded ? MIN_FOLDED_LIST_WIDTH : MIN_LIST_WIDTH
+      const max = folded ? MAX_FOLDED_LIST_WIDTH : 600
+      let width = e.pageX - offset
+      if (width < min) width = min
+      else if (width > max) width = max
+      // 畳んでいる時は畳んだ幅の方を動かす。通常幅は畳む前の値のまま残し、
+      // 展開したら元の広さに戻るようにする
+      this.setState(folded ? { foldedListWidth: width } : { listWidth: width })
     }
     if (this.state.isLeftSliderFocused) {
       let navWidth = e.pageX
@@ -423,12 +450,12 @@ class Main extends React.Component {
     // コンポーネント自体はマウントしたまま（アンマウントすると検索文字列や
     // スクロール位置が失われる）
     const isNoteListFolded = !!config.isNoteListFolded
-    const listWidth = isNoteListFolded
-      ? FOLDED_LIST_WIDTH
-      : this.state.listWidth
     // 隠さず細くする。display:none にすると一覧そのものが消えてしまい、
     // 何のペインだったのか手がかりが残らない
-    const foldedPaneStyle = { width: FOLDED_LIST_WIDTH }
+    const listWidth = isNoteListFolded
+      ? this.state.foldedListWidth
+      : this.state.listWidth
+    const paneStyle = { width: listWidth }
 
     return (
       <div
@@ -470,11 +497,7 @@ class Main extends React.Component {
           }}
         >
           <TopBar
-            style={
-              isNoteListFolded
-                ? foldedPaneStyle
-                : { width: this.state.listWidth }
-            }
+            style={paneStyle}
             {..._.pick(this.props, [
               'dispatch',
               'config',
@@ -484,11 +507,7 @@ class Main extends React.Component {
             ])}
           />
           <NoteList
-            style={
-              isNoteListFolded
-                ? foldedPaneStyle
-                : { width: this.state.listWidth }
-            }
+            style={paneStyle}
             loading={this.state.isLoading}
             {..._.pick(this.props, [
               'dispatch',
@@ -498,27 +517,27 @@ class Main extends React.Component {
               'location'
             ])}
           />
-          {!isNoteListFolded && (
-            <div
-              styleName={
-                this.state.isRightSliderFocused
-                  ? 'slider-right--active'
-                  : 'slider-right'
-              }
-              style={{ left: this.state.listWidth - 1 }}
-              onMouseDown={e => this.handleRightSlideMouseDown(e)}
-              draggable='false'
-            >
-              <div styleName='slider-hitbox' />
-            </div>
-          )}
+          {/* 畳んでいてもドラッグできるようにする（畳んだ幅そのものを
+              微調整したいという要望。従来は畳むとスライダーごと消えていた） */}
+          <div
+            styleName={
+              this.state.isRightSliderFocused
+                ? 'slider-right--active'
+                : 'slider-right'
+            }
+            style={{ left: listWidth - 1 }}
+            onMouseDown={e => this.handleRightSlideMouseDown(e)}
+            draggable='false'
+          >
+            <div styleName='slider-hitbox' />
+          </div>
           {/* 開閉ボタンはペイン左下に置く。サイドバーの « と同じ位置・記号で
               揃えるほか、TopBar に置くと最小幅 120px で検索欄と新規ノート
               ボタンに挟まれて成立しないため */}
           {!this.state.fullScreen && (
             <button
               styleName='notelist-fold'
-              style={{ left: listWidth ? 4 : 0 }}
+              style={{ left: 4 }}
               title={`${i18n.__('Toggle Note List')} (${
                 isMac ? '⌘⇧B' : 'Ctrl+Shift+B'
               })`}

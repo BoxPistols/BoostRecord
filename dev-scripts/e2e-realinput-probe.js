@@ -47,7 +47,7 @@ function finish(code, result) {
 }
 setTimeout(() => finish(3, { error: 'watchdog' }), 120000)
 
-const sleep = ms => new Promise(r => setTimeout(r, ms))
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
 function seed() {
   return `(() => { let l=[]; try{l=JSON.parse(localStorage.getItem('storages'))||[]}catch(e){}

@@ -32,18 +32,46 @@ jobs:
         run: |
           $setup = Get-ChildItem "The-Boosters-Setup-*.exe" | Select-Object -First 1
           Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
-          Start-Sleep -Seconds 5
+
+          # 固定待ちだと足りない。インストーラは 100MB 超で、assisted NSIS は
+          # 子プロセスへ処理を渡すため Start-Process -Wait が先に返る。
+          # 展開先が現れるまで待つ
+          $candidates = @(
+            (Join-Path $env:LOCALAPPDATA "Programs\the-boosters"),
+            (Join-Path $env:LOCALAPPDATA "Programs\The Boosters"),
+            (Join-Path ${env:ProgramFiles} "The Boosters"),
+            (Join-Path ${env:ProgramFiles(x86)} "The Boosters")
+          )
+          $deadline = (Get-Date).AddMinutes(4)
+          while ((Get-Date) -lt $deadline) {
+            $found = $candidates | Where-Object { Test-Path (Join-Path $_ "resources\app\index.js") }
+            if ($found) { break }
+            Start-Sleep -Seconds 5
+          }
 
       - name: Locate install dir and inject DOM probe
         shell: pwsh
         run: |
+          # 展開先はインストーラの設定（perMachine / oneClick）で変わるので
+          # 候補を広く見る。resources\app\index.js の有無で「展開済み」を判定する
           $candidates = @(
             (Join-Path $env:LOCALAPPDATA "Programs\the-boosters"),
-            (Join-Path $env:LOCALAPPDATA "Programs\The Boosters")
+            (Join-Path $env:LOCALAPPDATA "Programs\The Boosters"),
+            (Join-Path ${env:ProgramFiles} "The Boosters"),
+            (Join-Path ${env:ProgramFiles(x86)} "The Boosters")
           )
-          $appDir = $candidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          $appDir = $candidates |
+            Where-Object { Test-Path (Join-Path $_ "resources\app\index.js") } |
+            Select-Object -First 1
           if (-not $appDir) {
-            Get-ChildItem (Join-Path $env:LOCALAPPDATA "Programs")
+            # どこに何ができたのかをログへ残す（見つからない時の切り分け用）
+            Write-Host "--- LOCALAPPDATA\Programs ---"
+            Get-ChildItem (Join-Path $env:LOCALAPPDATA "Programs") -ErrorAction SilentlyContinue |
+              ForEach-Object { Write-Host $_.FullName }
+            Write-Host "--- Program Files ---"
+            Get-ChildItem ${env:ProgramFiles} -ErrorAction SilentlyContinue |
+              Where-Object { $_.Name -like "*Boost*" } |
+              ForEach-Object { Write-Host $_.FullName }
             throw "install dir not found"
           }
           Write-Host "APPDIR=$appDir"

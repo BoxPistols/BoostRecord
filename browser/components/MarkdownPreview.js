@@ -40,6 +40,8 @@ import { push } from 'connected-react-router'
 import ConfigManager from '../main/lib/ConfigManager'
 import uiThemes from 'browser/lib/ui-themes'
 import { buildMarkdownPreviewContextMenu } from 'browser/lib/contextMenuBuilder'
+import { fetchUrlPreview } from 'browser/lib/urlPreviewFetcher'
+import { attachUrlPreviewTooltip } from 'browser/lib/urlPreviewTooltip'
 
 const dialog = remote.dialog
 
@@ -374,6 +376,18 @@ document.addEventListener('DOMContentLoaded', function () {
       this.scrollHandler
     )
     this.refs.root.contentWindow.addEventListener('resize', this.resizeHandler)
+    // Hover tooltip that previews the target page of external links.
+    // Listeners are delegated on the iframe document, so a single attach
+    // survives every rewriteIframe() body replacement.
+    this.detachUrlPreviewTooltip = attachUrlPreviewTooltip(
+      this.refs.root.contentWindow.document,
+      {
+        fetchPreview: fetchUrlPreview,
+        isEnabled: () => ConfigManager.get().preview.urlPreview !== false,
+        isDark: () =>
+          uiThemes.some(item => item.name === this.props.theme && item.isDark)
+      }
+    )
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
     eventEmitter.on('export:save-html', this.saveAsHtmlHandler)
@@ -417,6 +431,10 @@ document.addEventListener('DOMContentLoaded', function () {
       'resize',
       this.resizeHandler
     )
+    if (this.detachUrlPreviewTooltip != null) {
+      this.detachUrlPreviewTooltip()
+      this.detachUrlPreviewTooltip = null
+    }
     eventEmitter.off('export:save-text', this.saveAsTextHandler)
     eventEmitter.off('export:save-md', this.saveAsMdHandler)
     eventEmitter.off('export:save-html', this.saveAsHtmlHandler)

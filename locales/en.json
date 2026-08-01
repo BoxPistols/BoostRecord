@@ -67,6 +67,7 @@
   "Show line numbers in the editor": "Show line numbers in the editor",
   "Allow editor to scroll past the last line": "Allow editor to scroll past the last line",
   "Enable smart quotes": "Enable smart quotes",
+  "Show page preview popup when hovering links": "Show page preview popup when hovering links",
   "Bring in web page title when pasting URL on editor": "Bring in web page title when pasting URL on editor",
   "Preview": "Preview",
   "Preview Font Size": "Preview Font Size",

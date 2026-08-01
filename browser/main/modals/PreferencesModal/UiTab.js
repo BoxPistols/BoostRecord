@@ -236,6 +236,7 @@ class UiTab extends React.Component {
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
         scrollSync: this.refs.previewScrollSync.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
+        urlPreview: this.refs.previewUrlPreview.checked,
         breaks: this.refs.previewBreaks.checked,
         smartArrows: this.refs.previewSmartArrows.checked,
         sanitize: this.refs.previewSanitize.value,
@@ -1157,6 +1158,18 @@ class UiTab extends React.Component {
               />
               &nbsp;
               {i18n.__('Enable smart quotes')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input
+                onChange={e => this.handleUIChange(e)}
+                checked={this.state.config.preview.urlPreview}
+                ref='previewUrlPreview'
+                type='checkbox'
+              />
+              &nbsp;
+              {i18n.__('Show page preview popup when hovering links')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>

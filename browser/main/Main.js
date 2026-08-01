@@ -77,8 +77,32 @@ class Main extends React.Component {
     // 動くと入力欄からフォーカスを奪ってしまう。1 tick 待つのは、IPC が
     // keydown より先に届く環境でも DOM 側の印を拾えるようにするため
     this.paneTabIpcHandler = (event, payload) => {
+      // 編集状態は IPC 受信時点(= native の Tab がフォーカスを動かす前)で
+      // 取る。1 tick 後の activeElement は移動後の要素になり得るので、
+      // そこで判定すると入力欄発の Tab を「非編集」と誤認して
+      // フォーカスを奪ってしまう
+      const el = document.activeElement
+      const wasEditing = !!(
+        el &&
+        (el.tagName === 'INPUT' ||
+          el.tagName === 'TEXTAREA' ||
+          el.tagName === 'SELECT' ||
+          el.isContentEditable ||
+          el.closest('.CodeMirror'))
+      )
       setTimeout(() => {
         if (Date.now() - (this.lastDomTabAt || 0) < 100) return
+        if (wasEditing) {
+          // handlePaneTab を通らない skip なので、trace はここで残す
+          window.__tbPaneTab = {
+            source: 'ipc',
+            key: 'Tab',
+            shiftKey: !!(payload && payload.shift),
+            activeTag: el ? el.tagName : null,
+            decision: 'skip: editable at ipc receipt'
+          }
+          return
+        }
         this.handlePaneTab(
           {
             key: 'Tab',

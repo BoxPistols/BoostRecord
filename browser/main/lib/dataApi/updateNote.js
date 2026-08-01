@@ -62,10 +62,11 @@ function validateInput(input) {
       }
       if (input.snippets != null) {
         if (!_.isArray(input.snippets)) {
+          // mode: null = Auto Detect。空配列 fallback(下)と同じ既定に揃える
           validatedInput.snippets = [
             {
               name: '',
-              mode: 'text',
+              mode: null,
               content: '',
               linesHighlighted: []
             }
@@ -130,7 +131,7 @@ function updateNote(storageKey, noteKey, input) {
               snippets: [
                 {
                   name: '',
-                  mode: 'text',
+                  mode: null,
                   content: '',
                   linesHighlighted: []
                 }

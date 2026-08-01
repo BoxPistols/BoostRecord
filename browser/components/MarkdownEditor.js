@@ -237,11 +237,17 @@ class MarkdownEditor extends React.Component {
       })
     } else {
       const cursorPosition = this.refs.code.editor.getCursor()
-      this.setState({ status: 'PREVIEW' }, () => {
-        this.previewRef.current.focus()
-        this.previewRef.current.scrollToLine(cursorPosition.line)
-        eventEmitter.emit('topbar:togglelockbutton', this.state.status)
-      })
+      // renderValue は 500ms の遅延 queue でしか追従しない。入力直後の
+      // 切替で古い Markdown を見せないよう、現在のエディタ値で即描画する
+      this.cancelQueue()
+      this.setState(
+        { status: 'PREVIEW', renderValue: this.refs.code.value },
+        () => {
+          this.previewRef.current.focus()
+          this.previewRef.current.scrollToLine(cursorPosition.line)
+          eventEmitter.emit('topbar:togglelockbutton', this.state.status)
+        }
+      )
     }
   }
 

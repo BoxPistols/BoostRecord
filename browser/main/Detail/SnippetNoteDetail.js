@@ -221,13 +221,18 @@ class SnippetNoteDetail extends React.Component {
     clearTimeout(this.saveQueue)
     this.saveQueue = null
 
-    dataApi.updateNote(note.storage, note.key, this.state.note).then(note => {
-      dispatch({
-        type: 'UPDATE_NOTE',
-        note: note
+    // handleFolderChange がディスクへの書き込み完了を待てるよう、
+    // 進行中の保存を Promise として持つ
+    this.savePromise = dataApi
+      .updateNote(note.storage, note.key, this.state.note)
+      .then(note => {
+        dispatch({
+          type: 'UPDATE_NOTE',
+          note: note
+        })
+        AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
       })
-      AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
-    })
+    return this.savePromise
   }
 
   handleFolderChange(e) {
@@ -237,12 +242,21 @@ class SnippetNoteDetail extends React.Component {
     const newStorageKey = splitted.shift()
     const newFolderKey = splitted.shift()
 
-    // moveNote はディスクのファイルを読み直すので、保留中の編集を先に
-    // 書き込まないと移動後のノートが古い内容へ巻き戻る
-    if (this.saveQueue != null) this.saveNow()
+    // moveNote はディスクのファイルを読み直すので、保留中の編集の
+    // 「書き込み完了」を待ってから移動する。saveNow() を開始しただけでは
+    // moveNote が旧内容を読む競合が残り、移動後のノートが巻き戻る
+    const pendingSave =
+      this.saveQueue != null
+        ? this.saveNow()
+        : this.savePromise || Promise.resolve()
 
-    dataApi
-      .moveNote(note.storage, note.key, newStorageKey, newFolderKey)
+    pendingSave
+      // 保存失敗時も移動自体は従来どおり通す。reject を残すと
+      // 以後のフォルダ移動が全部ここで詰まる
+      .catch(() => {})
+      .then(() =>
+        dataApi.moveNote(note.storage, note.key, newStorageKey, newFolderKey)
+      )
       .then(newNote => {
         // ディスク直読みの newNote は正規化を通っていない。タブ数が
         // 減っている場合に備えて snippetIndex も収める

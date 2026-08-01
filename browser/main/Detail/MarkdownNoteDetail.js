@@ -100,12 +100,13 @@ class MarkdownNoteDetail extends React.Component {
       const next = order[(order.indexOf(this.getViewMode()) + 1) % order.length]
       this.handleSetViewMode(next)
     }
-    // Cmd/Ctrl+Alt+P toggles Preview on/off.
+    // hotkey.togglePreview(既定 Cmd/Ctrl+E): Editor+Preview(SPLIT) ↔
+    // 全面 Preview のトグル。全面 Editor は使用頻度が低いので、Preview
+    // 解除時は元のモードに関係なく常に SPLIT へ戻す(全面 Editor へは
+    // Cmd+Shift+E のサイクルか ModeSwitcher で行ける)
     this.handleTogglePreview = () => {
       if (this.state.previewOnly) {
-        this.handleSetViewMode(
-          this.state.editorType === 'SPLIT' ? 'SPLIT' : 'EDITOR'
-        )
+        this.handleSetViewMode('SPLIT')
       } else {
         this.handleSetViewMode('PREVIEW')
       }

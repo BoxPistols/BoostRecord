@@ -62,10 +62,11 @@ function validateInput(input) {
       }
       if (input.snippets != null) {
         if (!_.isArray(input.snippets)) {
+          // mode: null = Auto Detect。空配列 fallback(下)と同じ既定に揃える
           validatedInput.snippets = [
             {
               name: '',
-              mode: 'text',
+              mode: null,
               content: '',
               linesHighlighted: []
             }
@@ -77,10 +78,24 @@ function validateInput(input) {
         // through and get written to disk.
         validatedInput.snippets = validatedInput.snippets.filter(snippet => {
           if (!_.isString(snippet.name)) return false
-          if (!_.isString(snippet.mode)) return false
+          // mode は null/undefined が正規状態(「Auto Detect」= 構文未選択)。
+          // ここで捨てると初回自動保存でスニペットが全滅する
+          if (!_.isString(snippet.mode) && !_.isNil(snippet.mode)) return false
           if (!_.isString(snippet.content)) return false
           return true
         })
+        // snippets: [] は描画側の前提(最低1個)を壊し、次にそのノートを
+        // 開いた瞬間クラッシュするので、ディスクには決して書かせない
+        if (validatedInput.snippets.length === 0) {
+          validatedInput.snippets = [
+            {
+              name: '',
+              mode: null,
+              content: '',
+              linesHighlighted: []
+            }
+          ]
+        }
       }
       return validatedInput
     default:
@@ -116,7 +131,7 @@ function updateNote(storageKey, noteKey, input) {
               snippets: [
                 {
                   name: '',
-                  mode: 'text',
+                  mode: null,
                   content: '',
                   linesHighlighted: []
                 }

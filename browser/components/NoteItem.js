@@ -176,7 +176,7 @@ NoteItem.propTypes = {
     storage: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
-    title: PropTypes.string.isrequired,
+    title: PropTypes.string.isRequired,
     tags: PropTypes.array,
     isStarred: PropTypes.bool.isRequired,
     isTrashed: PropTypes.bool.isRequired,

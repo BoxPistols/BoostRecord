@@ -73,6 +73,9 @@ class SnippetNoteDetail extends React.Component {
 
     this.scrollToNextTabThreshold = 0.7
     this.generateToc = () => this.handleGenerateToc()
+    // hotkey.togglePreview(既定 Cmd/Ctrl+E)。アクティブなタブが
+    // Markdown のときだけ editor ↔ preview を切り替える
+    this.togglePreviewHandler = () => this.handleTogglePreviewShortcut()
   }
 
   componentDidMount() {
@@ -82,6 +85,7 @@ class SnippetNoteDetail extends React.Component {
     this.focusNoteLinkHandler = () => this.focusNoteLink()
     ee.on('detail:toggleinfo', this.toggleInfoHandler)
     ee.on('detail:focusnotelink', this.focusNoteLinkHandler)
+    ee.on('topbar:togglepreviewbutton', this.togglePreviewHandler)
 
     const visibleTabs = this.visibleTabs
     const allTabs = this.allTabs
@@ -135,6 +139,7 @@ class SnippetNoteDetail extends React.Component {
     ee.off('code:generate-toc', this.generateToc)
     ee.off('detail:toggleinfo', this.toggleInfoHandler)
     ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
+    ee.off('topbar:togglepreviewbutton', this.togglePreviewHandler)
   }
 
   /** 情報パネルを開いてノートリンクを選択・コピーする（Markdown 側と同じ） */
@@ -157,6 +162,23 @@ class SnippetNoteDetail extends React.Component {
         input.select()
       }, 0)
     }, 0)
+  }
+
+  /**
+   * アクティブなタブが Markdown 系のときだけ editor ↔ preview を切り替える。
+   * それ以外のタブでは何もしない(コードに「プレビュー」は無い)
+   */
+  handleTogglePreviewShortcut() {
+    const { note, snippetIndex } = this.state
+    const snippet = note.snippets[snippetIndex]
+    if (!snippet) return
+    if (
+      snippet.mode === 'Markdown' ||
+      snippet.mode === 'GitHub Flavored Markdown'
+    ) {
+      const editor = this.refs['code-' + snippetIndex]
+      if (editor && editor.togglePreview) editor.togglePreview()
+    }
   }
 
   handleGenerateToc() {

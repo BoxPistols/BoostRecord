@@ -223,6 +223,28 @@ class MarkdownEditor extends React.Component {
     }
   }
 
+  // hotkey.togglePreview(既定 Cmd/Ctrl+E)からの明示的な切替。
+  // スニペットノートの Markdown タブには 3-way ModeSwitcher が無く、
+  // blur・右クリック以外にプレビューへ入る手段が無かった
+  togglePreview() {
+    // 3-way switcher 配下(Markdown ノート)では pin が真実の状態。
+    // ここで直接 flip すると親の viewMode と食い違う
+    if (this.props.pinnedStatus != null) return
+    if (this.state.status === 'PREVIEW') {
+      this.setState({ status: 'CODE' }, () => {
+        this.refs.code.focus()
+        eventEmitter.emit('topbar:togglelockbutton', this.state.status)
+      })
+    } else {
+      const cursorPosition = this.refs.code.editor.getCursor()
+      this.setState({ status: 'PREVIEW' }, () => {
+        this.previewRef.current.focus()
+        this.previewRef.current.scrollToLine(cursorPosition.line)
+        eventEmitter.emit('topbar:togglelockbutton', this.state.status)
+      })
+    }
+  }
+
   focus() {
     if (this.state.status === 'PREVIEW') {
       this.setState(

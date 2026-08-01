@@ -23,6 +23,18 @@ function resolveStorageNotes(storage) {
     .map(function parseCSONFile(notePath) {
       try {
         const data = CSON.readFileSync(path.join(notesDirPath, notePath))
+        // SNIPPET_NOTE は snippets が最低1個ある前提で描画される。過去の
+        // updateNote のフィルタ退行(v0.16.10〜v0.18.0)が snippets: [] を
+        // 書き込んだファイルが実在するため、全ノートが通るここで修復する。
+        // 次回保存時にディスク側も直る
+        if (
+          data.type === 'SNIPPET_NOTE' &&
+          (!Array.isArray(data.snippets) || data.snippets.length === 0)
+        ) {
+          data.snippets = [
+            { name: '', mode: null, content: '', linesHighlighted: [] }
+          ]
+        }
         data.key = path.basename(notePath, '.cson')
         data.storage = storage.key
         return data

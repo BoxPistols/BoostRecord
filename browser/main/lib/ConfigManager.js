@@ -117,6 +117,9 @@ export const DEFAULT_CONFIG = {
     codeBlockMatchingTriples: '',
     codeBlockExplodingPairs: '[]{}``',
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
+    // 未設定だと新規スニペットの mode が undefined になり、null(Auto Detect)
+    // と挙動がずれる。既定を明示して揃える
+    snippetDefaultLanguage: 'Auto Detect',
     delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,
     type: 'SPLIT', // 'SPLIT', 'EDITOR_PREVIEW'

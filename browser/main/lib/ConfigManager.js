@@ -121,6 +121,7 @@ export const DEFAULT_CONFIG = {
     scrollPastEnd: false,
     type: 'SPLIT', // 'SPLIT', 'EDITOR_PREVIEW'
     fetchUrlTitle: true,
+    pasteUrlAction: 'LINK', // 'LINK', 'BOOKMARK', 'ASK'
     enableTableEditor: false,
     enableFrontMatterTitle: true,
     frontMatterTitleField: 'title',

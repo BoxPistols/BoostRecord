@@ -42,6 +42,9 @@ import uiThemes from 'browser/lib/ui-themes'
 import { buildMarkdownPreviewContextMenu } from 'browser/lib/contextMenuBuilder'
 import { fetchUrlPreview } from 'browser/lib/urlPreviewFetcher'
 import { attachUrlPreviewTooltip } from 'browser/lib/urlPreviewTooltip'
+import { hydrateBookmarkFences } from 'browser/lib/bookmarkCards'
+import { markImageRows } from 'browser/lib/imageRows'
+import { captureUrlScreenshot } from 'browser/main/lib/urlScreenshot'
 
 const dialog = remote.dialog
 
@@ -743,6 +746,16 @@ document.addEventListener('DOMContentLoaded', function () {
       a.removeEventListener('click', this.linkClickHandler)
       a.addEventListener('click', this.linkClickHandler)
     }
+
+    // ```bookmark fences → OGP/screenshot link cards (Notion-style).
+    hydrateBookmarkFences(this.refs.root.contentWindow.document, {
+      fetchPreview: fetchUrlPreview,
+      captureScreenshot: captureUrlScreenshot,
+      onLinkCreated: a => a.addEventListener('click', this.linkClickHandler)
+    })
+
+    // Paragraphs of consecutive images → responsive side-by-side rows.
+    markImageRows(this.refs.root.contentWindow.document)
   }
 
   setImgOnClickEventHelper(img, rect) {

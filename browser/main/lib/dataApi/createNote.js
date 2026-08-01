@@ -24,11 +24,15 @@ function validateInput(input) {
       break
     case 'SNIPPET_NOTE':
       if (!_.isString(input.description)) input.description = ''
-      if (!_.isArray(input.snippets)) {
+      // 空配列も既定スニペットへ置き換える。cloneNote は元ノートの snippets を
+      // そのまま渡すため、壊れたノートの複製で空配列が新規ファイルへ伝播する
+      if (!_.isArray(input.snippets) || input.snippets.length === 0) {
         input.snippets = [
           {
             name: '',
-            mode: 'text',
+            // null = Auto Detect。他の修復経路(updateNote /
+            // resolveStorageNotes / normalizeSnippets)と形を揃える
+            mode: null,
             content: '',
             linesHighlighted: []
           }

@@ -37,6 +37,17 @@ const electron = require('electron')
 const remote = require('@electron/remote')
 const { dialog } = remote
 
+// SNIPPET_NOTE は「タブが最低1個ある」前提で描画される。過去の保存不具合で
+// snippets: [] のファイルが実在するため、state に入れる前に必ずここを通す
+function normalizeSnippets(snippets) {
+  const normalized = (Array.isArray(snippets) ? snippets : []).map(snippet =>
+    Object.assign({ linesHighlighted: [] }, snippet)
+  )
+  return normalized.length > 0
+    ? normalized
+    : [{ name: '', mode: null, content: '', linesHighlighted: [] }]
+}
+
 class SnippetNoteDetail extends React.Component {
   constructor(props) {
     super(props)
@@ -55,9 +66,7 @@ class SnippetNoteDetail extends React.Component {
         },
         props.note,
         {
-          snippets: props.note.snippets.map(snippet =>
-            Object.assign({ linesHighlighted: [] }, snippet)
-          )
+          snippets: normalizeSnippets(props.note.snippets)
         }
       )
     }
@@ -100,9 +109,7 @@ class SnippetNoteDetail extends React.Component {
         },
         nextProps.note,
         {
-          snippets: nextProps.note.snippets.map(snippet =>
-            Object.assign({ linesHighlighted: [] }, snippet)
-          )
+          snippets: normalizeSnippets(nextProps.note.snippets)
         }
       )
 
@@ -154,8 +161,9 @@ class SnippetNoteDetail extends React.Component {
 
   handleGenerateToc() {
     const { note, snippetIndex } = this.state
-    const currentMode = note.snippets[snippetIndex].mode
-    if (currentMode.includes('Markdown')) {
+    const snippet = note.snippets[snippetIndex]
+    // mode は null(Auto Detect)があり得る
+    if (snippet && snippet.mode && snippet.mode.includes('Markdown')) {
       const currentEditor = this.refs[`code-${snippetIndex}`].refs.code.editor
       markdownToc.generateInEditor(currentEditor)
     }
@@ -207,20 +215,34 @@ class SnippetNoteDetail extends React.Component {
     const newStorageKey = splitted.shift()
     const newFolderKey = splitted.shift()
 
+    // moveNote はディスクのファイルを読み直すので、保留中の編集を先に
+    // 書き込まないと移動後のノートが古い内容へ巻き戻る
+    if (this.saveQueue != null) this.saveNow()
+
     dataApi
       .moveNote(note.storage, note.key, newStorageKey, newFolderKey)
       .then(newNote => {
+        // ディスク直読みの newNote は正規化を通っていない。タブ数が
+        // 減っている場合に備えて snippetIndex も収める
+        const snippets = normalizeSnippets(newNote.snippets)
         this.setState(
           {
             isMovingNote: true,
-            note: Object.assign({}, newNote)
+            note: Object.assign({}, newNote, { snippets }),
+            snippetIndex: Math.min(this.state.snippetIndex, snippets.length - 1)
           },
           () => {
             const { dispatch, location } = this.props
             dispatch({
               type: 'MOVE_NOTE',
               originNote: note,
-              note: newNote
+              // redux 側にも修復済みの形で入れる(moveNote はディスクを
+              // 生で読むので、壊れた snippets がそのまま store へ戻り得る)。
+              // state.note とは snippets を共有しない(このコンポーネントは
+              // 要素を直接書き換えるため、別の正規化コピーを渡す)
+              note: Object.assign({}, newNote, {
+                snippets: normalizeSnippets(newNote.snippets)
+              })
             })
             dispatch(
               replace({
@@ -386,6 +408,16 @@ class SnippetNoteDetail extends React.Component {
 
   handleTabDrop(e, index) {
     const oldIndex = parseInt(e.dataTransfer.getData('text'))
+
+    // タブ以外からのドロップ(OS のファイルやノート一覧の行)は getData が
+    // 空で NaN になり、undefined をタブ配列へ書き込んでしまう
+    if (
+      !Number.isInteger(oldIndex) ||
+      oldIndex < 0 ||
+      oldIndex >= this.state.note.snippets.length
+    ) {
+      return
+    }
 
     const snippets = this.state.note.snippets.slice()
     const draggedSnippet = snippets[oldIndex]
@@ -814,6 +846,7 @@ class SnippetNoteDetail extends React.Component {
         'export-md': 'Markdown export',
         'export-html': 'HTML export',
         'export-pdf': 'PDF export',
+        'preview-pdf': 'PDF preview',
         print: 'Print'
       }[msg])
 
@@ -830,6 +863,13 @@ class SnippetNoteDetail extends React.Component {
   render() {
     const { data, dispatch, config, location } = this.props
     const { note } = this.state
+
+    // タブ削除やフォルダ移動の競合で index が範囲外になっても落とさない
+    // (normalizeSnippets が最低1個を保証するので length - 1 >= 0)
+    const activeSnippetIndex = Math.min(
+      this.state.snippetIndex,
+      note.snippets.length - 1
+    )
 
     const storageKey = note.storage
     const folderKey = note.folder
@@ -1022,6 +1062,7 @@ class SnippetNoteDetail extends React.Component {
             exportAsTxt={this.showWarning}
             exportAsHtml={this.showWarning}
             exportAsPdf={this.showWarning}
+            previewAsPdf={this.showWarning}
             type={note.type}
             print={this.showWarning}
           />
@@ -1098,13 +1139,11 @@ class SnippetNoteDetail extends React.Component {
 
         <div styleName='override'>
           <button
-            onClick={e =>
-              this.handleModeButtonClick(e, this.state.snippetIndex)
-            }
+            onClick={e => this.handleModeButtonClick(e, activeSnippetIndex)}
           >
-            {this.state.note.snippets[this.state.snippetIndex].mode == null
+            {note.snippets[activeSnippetIndex].mode == null
               ? i18n.__('Select Syntax...')
-              : this.state.note.snippets[this.state.snippetIndex].mode}
+              : note.snippets[activeSnippetIndex].mode}
             &nbsp;
             <i className='fa fa-caret-down' />
           </button>

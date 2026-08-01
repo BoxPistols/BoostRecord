@@ -200,6 +200,7 @@ class UiTab extends React.Component {
         snippetDefaultLanguage: this.refs.editorSnippetDefaultLanguage.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked,
         fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
+        pasteUrlAction: this.refs.editorPasteUrlAction.value,
         enableTableEditor: this.refs.enableTableEditor.checked,
         enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
         frontMatterTitleField: this.refs.frontMatterTitleField.value,
@@ -927,6 +928,23 @@ class UiTab extends React.Component {
               &nbsp;
               {i18n.__('Bring in web page title when pasting URL on editor')}
             </label>
+          </div>
+
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('When pasting URL')}
+            </div>
+            <div styleName='group-section-control'>
+              <select
+                value={this.state.config.editor.pasteUrlAction}
+                ref='editorPasteUrlAction'
+                onChange={e => this.handleUIChange(e)}
+              >
+                <option value='LINK'>{i18n.__('Link with title')}</option>
+                <option value='BOOKMARK'>{i18n.__('Bookmark card')}</option>
+                <option value='ASK'>{i18n.__('Ask every time')}</option>
+              </select>
+            </div>
           </div>
 
           <div styleName='group-checkBoxSection'>

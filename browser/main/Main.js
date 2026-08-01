@@ -70,6 +70,28 @@ class Main extends React.Component {
     // IPC は引数を伴うので、それを捨てるラッパーで受ける
     this.toggleNoteListHandler = () => this.toggleNoteList()
     this.paneTabHandler = e => this.handlePaneTab(e)
+    // main プロセスの before-input-event からの転送 (#122)。DOM に Tab が
+    // 届かない実機環境向けの「予備」経路。同じ押下を DOM も観測した場合は
+    // DOM の判断(実行/スキップ)が正: 入力欄では native の Tab 移動が既に
+    // 済んでおり、この時点の activeElement は移動後の要素なので、ここで
+    // 動くと入力欄からフォーカスを奪ってしまう。1 tick 待つのは、IPC が
+    // keydown より先に届く環境でも DOM 側の印を拾えるようにするため
+    this.paneTabIpcHandler = (event, payload) => {
+      setTimeout(() => {
+        if (Date.now() - (this.lastDomTabAt || 0) < 100) return
+        this.handlePaneTab(
+          {
+            key: 'Tab',
+            shiftKey: !!(payload && payload.shift),
+            metaKey: false,
+            ctrlKey: false,
+            altKey: false,
+            preventDefault: () => {}
+          },
+          'ipc'
+        )
+      }, 0)
+    }
   }
 
   /**
@@ -81,11 +103,15 @@ class Main extends React.Component {
    * 入らない時があった。現在フォーカスがどこにあるかに依存せず、window で
    * 受けて行き先を決める方式にしている。
    */
-  handlePaneTab(e) {
+  handlePaneTab(e, source = 'dom') {
+    // IPC 経路の待ち合わせ用。スキップ判断になる場合でも「DOM がこの
+    // Tab を観測した」事実だけは必ず残す
+    if (source === 'dom' && e.key === 'Tab') this.lastDomTabAt = Date.now()
     // 直前の判断を残す。効かない時に DevTools で
     // `window.__tbPaneTab` を見れば、どこで抜けたのかが分かる
     const el = document.activeElement
     const trace = {
+      source,
       key: e.key,
       shiftKey: e.shiftKey,
       activeTag: el ? el.tagName : null,
@@ -303,6 +329,9 @@ class Main extends React.Component {
     // 走らない（実機で window.__tbPaneTab が undefined のままだった）。
     // capture は target へ降りる前に必ず通るので誰にも止められない
     window.addEventListener('keydown', this.paneTabHandler, true)
+    // それでも実機では Tab が DOM に届かない環境が残った (#122)。
+    // main プロセスの before-input-event 転送を第二経路として受ける
+    ipcRenderer.on('pane:tab', this.paneTabIpcHandler)
   }
 
   componentWillUnmount() {
@@ -315,6 +344,7 @@ class Main extends React.Component {
     eventEmitter.off('dispatch:push', this.changeRoutePush.bind(this))
     eventEmitter.off('sidenav:togglenotelist', this.toggleNoteListHandler)
     window.removeEventListener('keydown', this.paneTabHandler, true)
+    ipcRenderer.removeListener('pane:tab', this.paneTabIpcHandler)
     clearInterval(this.refreshTheme)
   }
 

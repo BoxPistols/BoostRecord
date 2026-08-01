@@ -157,7 +157,8 @@ export const DEFAULT_CONFIG = {
     customCSS: DEFAULT_CSS_CONFIG,
     sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
     mermaidHTMLLabel: false,
-    lineThroughCheckbox: true
+    lineThroughCheckbox: true,
+    urlPreview: true
   },
   export: {
     metadata: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'

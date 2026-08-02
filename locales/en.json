@@ -304,5 +304,7 @@
   "Repeat the last change": "Repeat the last change",
   "Search forward": "Search forward",
   "Next / previous match": "Next / previous match",
-  "Replace all": "Replace all"
+  "Replace all": "Replace all",
+  "Expand description": "Expand description",
+  "Collapse description": "Collapse description"
 }

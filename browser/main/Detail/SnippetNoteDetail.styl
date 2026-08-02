@@ -14,9 +14,15 @@
   bottom $statusBar-height
   background-color $ui-noteDetail-backgroundColor
 
+// 高さと、それに追従するタブ・エディタの位置は SnippetNoteDetail 側で
+// CSS 変数に入れて渡す（description の開閉で変わる）。既定値は展開時の値
+$tabList-height = 30px
+$description-height = var(--tb-description-height, 50px)
+$tabs-top = var(--tb-tabs-top, 70px)
+
 .body .description
   absolute top left right
-  height 50px
+  height $description-height
 
 .body .description textarea
   outline none
@@ -26,13 +32,28 @@
   resize none
   border 1px solid $ui-borderColor
   padding 2px 5px
+  padding-right 28px
   line-height 1.6
   background-color $ui-noteDetail-backgroundColor
 
+.body .description-toggle
+  position absolute
+  top 1px
+  right 1px
+  width 26px
+  height 26px
+  padding 0
+  border none
+  background-color transparent
+  color $ui-inactive-text-color
+  cursor pointer
+  &:hover
+    color $ui-text-color
+
 .tabList
   absolute left right
-  top 70px
-  height 30px
+  top $tabs-top
+  height $tabList-height
   display flex
   background-color $ui-noteDetail-backgroundColor
   overflow hidden
@@ -63,7 +84,7 @@
 
 .tabView
   absolute left right bottom
-  top 100px
+  top s('calc(%s + %s)', $tabs-top, $tabList-height)
 
 .tabView-content
   absolute top left right bottom
@@ -137,6 +158,10 @@ body[data-theme="dark"]
     color $ui-dark-text-color
     border 1px solid $ui-dark-borderColor
 
+  .body .description-toggle
+    &:hover
+      color $ui-dark-text-color
+
   .tabList
     background-color $ui-dark-noteDetail-backgroundColor
 
@@ -169,6 +194,10 @@ apply-theme(theme)
       background-color get-theme-var(theme, 'noteDetail-backgroundColor')
       color get-theme-var(theme, 'text-color')
       border 1px solid get-theme-var(theme, 'borderColor')
+
+    .body .description-toggle
+      &:hover
+        color get-theme-var(theme, 'text-color')
 
     .tabList .tabButton
       border-color get-theme-var(theme, 'borderColor')

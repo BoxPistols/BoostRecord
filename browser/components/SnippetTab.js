@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types'
 import React from 'react'
 import CSSModules from 'browser/lib/CSSModules'
 import styles from './SnippetTab.styl'
@@ -102,7 +103,7 @@ class SnippetTab extends React.Component {
   }
 
   render() {
-    const { isActive, snippet, isDeletable } = this.props
+    const { isActive, snippet, isDeletable, jumpHint } = this.props
     return (
       <div styleName={isActive ? 'root--active' : 'root'}>
         {!this.state.isRenaming ? (
@@ -115,6 +116,11 @@ class SnippetTab extends React.Component {
             onDrop={e => this.handleDrop(e)}
             draggable='true'
           >
+            {jumpHint !== null && jumpHint !== undefined && (
+              <span styleName='jump-hint' aria-hidden='true'>
+                {jumpHint}
+              </span>
+            )}
             {snippet.name.trim().length > 0 ? (
               snippet.name
             ) : (
@@ -144,6 +150,9 @@ class SnippetTab extends React.Component {
   }
 }
 
-SnippetTab.propTypes = {}
+SnippetTab.propTypes = {
+  // 修飾キー長押し中に出す 1..9 の連番。出さない時は null
+  jumpHint: PropTypes.number
+}
 
 export default CSSModules(SnippetTab, styles)

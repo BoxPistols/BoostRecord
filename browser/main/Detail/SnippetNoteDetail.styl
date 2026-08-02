@@ -33,7 +33,8 @@ $tabs-top = var(--tb-tabs-top, 70px)
   border 1px solid $ui-borderColor
   padding 2px 5px
   padding-right 28px
-  line-height 1.6
+  // line-height は SnippetNoteDetail.js の DESCRIPTION_LINE_HEIGHT から
+  // インラインで当てる（畳んだ高さの計算と同じ値を使うため）
   background-color $ui-noteDetail-backgroundColor
 
 .body .description-toggle

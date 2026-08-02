@@ -13,8 +13,13 @@ const baseProps = {
   onDrop: jest.fn()
 }
 
+// CSS Modules のクラス名（identity-obj-proxy で素通しされる）ではなく、
+// バッジが約束している DOM 側の条件で引く。styleName を変えても壊れない
 const findJumpHint = tree =>
-  renderer.create(tree).root.findAllByProps({ className: 'jump-hint' })
+  renderer
+    .create(tree)
+    .root.findAllByType('span')
+    .filter(node => node.props['aria-hidden'] === 'true')
 
 it('SnippetTab renders no jump hint by default', () => {
   expect(findJumpHint(<SnippetTab {...baseProps} />)).toHaveLength(0)

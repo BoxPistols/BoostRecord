@@ -45,11 +45,26 @@ const { dialog } = remote
 // description は既定で1行に畳む。展開時の高さは従来どおり 50px。
 // タブ・エディタの top は .styl 側で CSS 変数から引くので、ここだけ見れば足りる
 const DESCRIPTION_EXPANDED_HEIGHT = 50
+// 畳んだ高さの計算に使うので、textarea の line-height もここから当てる
+// (.styl 側に書くと数字が2箇所に散り、片方だけ変えると1行目が欠ける)
 const DESCRIPTION_LINE_HEIGHT = 1.6
 // textarea の padding(2px * 2) + border(1px * 2) + 折り返し防止の余白
 const DESCRIPTION_CHROME_HEIGHT = 8
 const DESCRIPTION_GAP = 20
 const DESCRIPTION_GAP_COLLAPSED = 12
+
+/**
+ * 修飾キー + Shift + [ / ] を「左へ(-1) / 右へ(+1) / 該当なし(0)」に落とす。
+ * @param {KeyboardEvent} e
+ * @returns {number}
+ */
+function getBracketDirection(e) {
+  const isSuper = global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey
+  if (!isSuper || !e.shiftKey || e.altKey) return 0
+  if (e.code === 'BracketLeft' || e.keyCode === 219) return -1
+  if (e.code === 'BracketRight' || e.keyCode === 221) return 1
+  return 0
+}
 
 // SNIPPET_NOTE は「タブが最低1個ある」前提で描画される。過去の保存不具合で
 // snippets: [] のファイルが実在するため、state に入れる前に必ずここを通す
@@ -653,29 +668,18 @@ class SnippetNoteDetail extends React.Component {
       return
     }
 
+    // 修飾キー + Shift + [ / ] で左右のタブへ。
+    // Shift を押している間 e.key は '{' '}' 等になるので判定に使えない。
+    // 物理キー位置を指す e.code で見て、古い環境向けに keyCode も残す
+    const bracket = getBracketDirection(e)
+    if (bracket !== 0) {
+      e.preventDefault()
+      if (bracket < 0) this.jumpPrevTab()
+      else this.jumpNextTab()
+      return
+    }
+
     switch (e.keyCode) {
-      // [ key
-      case 219:
-        {
-          const isSuper =
-            global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey
-          if (isSuper && e.shiftKey) {
-            e.preventDefault()
-            this.jumpPrevTab()
-          }
-        }
-        break
-      // ] key
-      case 221:
-        {
-          const isSuper =
-            global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey
-          if (isSuper && e.shiftKey) {
-            e.preventDefault()
-            this.jumpNextTab()
-          }
-        }
-        break
       // tab key
       case 9:
         if (e.ctrlKey && !e.shiftKey) {
@@ -1281,6 +1285,7 @@ class SnippetNoteDetail extends React.Component {
               style={{
                 fontFamily: config.preview.fontFamily,
                 fontSize: parseInt(config.preview.fontSize, 10),
+                lineHeight: DESCRIPTION_LINE_HEIGHT,
                 // 畳んでいる間は 1 行だけ見せる。auto のままだと
                 // 2 行目以降を持つノートでスクロールバーが出る
                 overflowY: isDescriptionExpanded ? 'auto' : 'hidden'
@@ -1294,7 +1299,6 @@ class SnippetNoteDetail extends React.Component {
             />
             <button
               styleName='description-toggle'
-              tabIndex='-1'
               title={i18n.__(
                 isDescriptionExpanded
                   ? 'Collapse description'

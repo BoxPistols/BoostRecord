@@ -92,6 +92,62 @@ describe('SnippetNoteDetail tab navigation', () => {
   })
 })
 
+// platform ごとの分岐(darwin は metaKey / それ以外は ctrlKey)をまたいで
+// 同じ結果になるよう、両方立てて投げる
+const keyEvent = over =>
+  Object.assign(
+    {
+      preventDefault: jest.fn(),
+      metaKey: true,
+      ctrlKey: true,
+      shiftKey: false,
+      altKey: false,
+      keyCode: 0,
+      code: ''
+    },
+    over
+  )
+
+describe('SnippetNoteDetail bracket shortcuts', () => {
+  it('moves to the next / previous tab with shift + brackets', () => {
+    const instance = makeInstance(3, 0)
+    instance.handleKeyDown(
+      keyEvent({ shiftKey: true, code: 'BracketRight', keyCode: 221 })
+    )
+    expect(instance.state.snippetIndex).toBe(1)
+
+    instance.handleKeyDown(
+      keyEvent({ shiftKey: true, code: 'BracketLeft', keyCode: 219 })
+    )
+    expect(instance.state.snippetIndex).toBe(0)
+  })
+
+  // Shift を押している間 e.key は '{' '}' になるので e.code を見ている。
+  // keyCode が 0 の環境でも e.code だけで引けること
+  it('relies on e.code when keyCode is unavailable', () => {
+    const instance = makeInstance(3, 0)
+    instance.handleKeyDown(keyEvent({ shiftKey: true, code: 'BracketRight' }))
+    expect(instance.state.snippetIndex).toBe(1)
+  })
+
+  it('ignores brackets without shift or without the modifier', () => {
+    const instance = makeInstance(3, 0)
+    instance.handleKeyDown(keyEvent({ code: 'BracketRight', keyCode: 221 }))
+    expect(instance.state.snippetIndex).toBe(0)
+
+    instance.handleKeyDown(
+      keyEvent({
+        metaKey: false,
+        ctrlKey: false,
+        shiftKey: true,
+        code: 'BracketRight',
+        keyCode: 221
+      })
+    )
+    expect(instance.state.snippetIndex).toBe(0)
+  })
+})
+
 describe('SnippetNoteDetail description', () => {
   it('is collapsed by default', () => {
     expect(makeInstance(1).isDescriptionExpanded()).toBe(false)

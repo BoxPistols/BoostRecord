@@ -24,11 +24,20 @@ const electronStub = {
   app: { getPath: noop, getAppPath: noop }
 }
 
+// ZoomManager は読み込み時に getCurrentWebContents().setZoomFactor() を呼ぶ。
+// undefined を返すと、それを import しただけの suite が全部落ちる
+const webContentsStub = {
+  setZoomFactor: noop,
+  getZoomFactor: jest.fn(() => 1),
+  on: noop,
+  send: noop
+}
+
 module.exports = {
   require: jest.fn(() => electronStub),
   getGlobal: noop,
   getCurrentWindow: noop,
-  getCurrentWebContents: noop,
+  getCurrentWebContents: jest.fn(() => webContentsStub),
   app: {
     getPath: noop,
     getAppPath: noop,

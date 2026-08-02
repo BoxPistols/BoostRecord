@@ -32,10 +32,24 @@ import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import markdownToc from 'browser/lib/markdown-toc-generator'
 import queryString from 'query-string'
 import { replace } from 'connected-react-router'
+import {
+  subscribe as subscribeMetaKey,
+  getJumpNumber,
+  MAX_JUMP_TARGETS
+} from 'browser/lib/metaKeyHold'
 
 const electron = require('electron')
 const remote = require('@electron/remote')
 const { dialog } = remote
+
+// description は既定で1行に畳む。展開時の高さは従来どおり 50px。
+// タブ・エディタの top は .styl 側で CSS 変数から引くので、ここだけ見れば足りる
+const DESCRIPTION_EXPANDED_HEIGHT = 50
+const DESCRIPTION_LINE_HEIGHT = 1.6
+// textarea の padding(2px * 2) + border(1px * 2) + 折り返し防止の余白
+const DESCRIPTION_CHROME_HEIGHT = 8
+const DESCRIPTION_GAP = 20
+const DESCRIPTION_GAP_COLLAPSED = 12
 
 // SNIPPET_NOTE は「タブが最低1個ある」前提で描画される。過去の保存不具合で
 // snippets: [] のファイルが実在するため、state に入れる前に必ずここを通す
@@ -60,6 +74,11 @@ class SnippetNoteDetail extends React.Component {
       showArrows: false,
       enableLeftArrow: false,
       enableRightArrow: false,
+      // 修飾キー長押し中にタブへ 1..9 の連番バッジを出す（詳細ペインにフォーカスがある時だけ）
+      showJumpHints: false,
+      // description は既定で畳む。トグルで固定展開、フォーカス中は一時展開
+      isDescriptionPinned: false,
+      isDescriptionFocused: false,
       note: Object.assign(
         {
           description: ''
@@ -99,6 +118,38 @@ class SnippetNoteDetail extends React.Component {
       })
     }
     ee.on('code:generate-toc', this.generateToc)
+
+    // 詳細ペインにフォーカスが無い時に出すと、押した数字が一覧・サイドバーの
+    // どれに効くのか分からなくなる。タブが1枚だけの時も出さない
+    this.unsubscribeMetaKey = subscribeMetaKey(held => {
+      const focused = this.hasDetailFocus()
+      const tabs = this.state.note.snippets.length
+      const next = held && focused && tabs > 1
+      // 「バッジが出ない」時に、通知が来ていないのか条件で降りたのかを
+      // 実機で切り分けられるようにする（undefined なら通知自体が来ていない）
+      window.__tbSnippetJumpHints = { held, focused, tabs, next }
+      if (next !== this.state.showJumpHints) {
+        this.setState({ showJumpHints: next })
+      }
+    })
+  }
+
+  hasDetailFocus() {
+    const root = this.detailRoot
+    if (!root || root.offsetParent === null) return false
+    return (
+      root === document.activeElement || root.contains(document.activeElement)
+    )
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    // description の開閉でエディタの高さが変わる。CodeMirror はコンテナの
+    // サイズ変化を自前で検知しないので、resize を投げて再計測させる
+    if (
+      this.isDescriptionExpanded(prevState) !== this.isDescriptionExpanded()
+    ) {
+      window.dispatchEvent(new window.Event('resize'))
+    }
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
@@ -120,6 +171,9 @@ class SnippetNoteDetail extends React.Component {
       this.setState(
         {
           snippetIndex: 0,
+          // ノートを切り替えたら description は既定（畳んだ状態）に戻す
+          isDescriptionPinned: false,
+          isDescriptionFocused: false,
           note: nextNote
         },
         () => {
@@ -140,6 +194,7 @@ class SnippetNoteDetail extends React.Component {
     ee.off('detail:toggleinfo', this.toggleInfoHandler)
     ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
     ee.off('topbar:togglepreviewbutton', this.togglePreviewHandler)
+    if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
   }
 
   /** 情報パネルを開いてノートリンクを選択・コピーする（Markdown 側と同じ） */
@@ -589,7 +644,38 @@ class SnippetNoteDetail extends React.Component {
   }
 
   handleKeyDown(e) {
+    // 修飾キー + 1..9 で左から N 番目のタブへ移動する。
+    // 下の switch より前に置く（Cmd+1 は switch のどのケースにも当たらない）
+    const jumpTo = getJumpNumber(e)
+    if (jumpTo !== null) {
+      e.preventDefault()
+      this.jumpToTab(jumpTo - 1)
+      return
+    }
+
     switch (e.keyCode) {
+      // [ key
+      case 219:
+        {
+          const isSuper =
+            global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey
+          if (isSuper && e.shiftKey) {
+            e.preventDefault()
+            this.jumpPrevTab()
+          }
+        }
+        break
+      // ] key
+      case 221:
+        {
+          const isSuper =
+            global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey
+          if (isSuper && e.shiftKey) {
+            e.preventDefault()
+            this.jumpNextTab()
+          }
+        }
+        break
       // tab key
       case 9:
         if (e.ctrlKey && !e.shiftKey) {
@@ -753,6 +839,36 @@ class SnippetNoteDetail extends React.Component {
     this.refs.description.focus()
   }
 
+  /**
+   * description を展開中か。トグルで固定した時とフォーカス中だけ広げ、
+   * それ以外は 1 行に畳んで本文（タブとエディタ）を上に詰める
+   */
+  isDescriptionExpanded(state) {
+    const target = state || this.state
+    return target.isDescriptionPinned || target.isDescriptionFocused
+  }
+
+  handleDescriptionToggleClick() {
+    const next = !this.isDescriptionExpanded()
+    // 畳む時はフォーカスも外す。残すと isDescriptionFocused で
+    // すぐ開き直り、ボタンが効かないように見える
+    if (!next && document.activeElement === this.refs.description) {
+      this.refs.description.blur()
+    }
+    this.setState({
+      isDescriptionPinned: next,
+      isDescriptionFocused: next ? this.state.isDescriptionFocused : false
+    })
+  }
+
+  handleDescriptionFocus() {
+    this.setState({ isDescriptionFocused: true })
+  }
+
+  handleDescriptionBlur() {
+    this.setState({ isDescriptionFocused: false })
+  }
+
   moveToTab(tab) {
     const easeOutCubic = t => --t * t * t + 1
     const startScrollPosition = this.visibleTabs.scrollLeft
@@ -841,32 +957,51 @@ class SnippetNoteDetail extends React.Component {
     )
   }
 
-  jumpNextTab() {
-    this.setState(
-      state => ({
-        snippetIndex: (state.snippetIndex + 1) % state.note.snippets.length
-      }),
-      () => {
-        this.focusEditor()
-      }
+  /**
+   * タブ削除やフォルダ移動の競合で snippetIndex が範囲外になっても
+   * 落とさないよう、実際に描画されている index に丸めて返す
+   */
+  getActiveSnippetIndex() {
+    return Math.min(
+      this.state.snippetIndex,
+      this.state.note.snippets.length - 1
     )
+  }
+
+  /** 表示順で index 番目のタブを選び、画面外なら見える位置までスクロールする */
+  selectTab(index) {
+    if (index < 0 || index >= this.state.note.snippets.length) return
+    this.setState({ snippetIndex: index, showJumpHints: false }, () => {
+      this.scrollTabIntoView(index)
+      this.focusEditor()
+    })
+  }
+
+  scrollTabIntoView(index) {
+    if (!this.state.showArrows || !this.allTabs) return
+    const tabs = this.allTabs.querySelectorAll('div')
+    if (tabs[index]) this.moveToTab(tabs[index])
+  }
+
+  /** 修飾キー + 1..9 の移動先。バッジを出していない 10 枚目以降へは飛ばさない */
+  jumpToTab(index) {
+    if (index >= MAX_JUMP_TARGETS) return
+    this.selectTab(index)
+  }
+
+  jumpNextTab() {
+    const { length } = this.state.note.snippets
+    this.selectTab((this.getActiveSnippetIndex() + 1) % length)
   }
 
   jumpPrevTab() {
-    this.setState(
-      state => ({
-        snippetIndex:
-          (state.snippetIndex - 1 + state.note.snippets.length) %
-          state.note.snippets.length
-      }),
-      () => {
-        this.focusEditor()
-      }
-    )
+    const { length } = this.state.note.snippets
+    this.selectTab((this.getActiveSnippetIndex() - 1 + length) % length)
   }
 
   focusEditor() {
-    this.refs['code-' + this.state.snippetIndex].focus()
+    const editor = this.refs['code-' + this.getActiveSnippetIndex()]
+    if (editor) editor.focus()
   }
 
   handleInfoButtonClick(e) {
@@ -902,10 +1037,21 @@ class SnippetNoteDetail extends React.Component {
 
     // タブ削除やフォルダ移動の競合で index が範囲外になっても落とさない
     // (normalizeSnippets が最低1個を保証するので length - 1 >= 0)
-    const activeSnippetIndex = Math.min(
-      this.state.snippetIndex,
-      note.snippets.length - 1
-    )
+    const activeSnippetIndex = this.getActiveSnippetIndex()
+
+    const isDescriptionExpanded = this.isDescriptionExpanded()
+    // 畳んだ時の高さは description の実フォントサイズから出す。
+    // 固定値だとプレビューのフォントを大きくした環境で 1 行目が欠ける
+    const descriptionFontSize = parseInt(config.preview.fontSize, 10) || 14
+    const collapsedDescriptionHeight =
+      Math.ceil(descriptionFontSize * DESCRIPTION_LINE_HEIGHT) +
+      DESCRIPTION_CHROME_HEIGHT
+    const descriptionHeight = isDescriptionExpanded
+      ? Math.max(DESCRIPTION_EXPANDED_HEIGHT, collapsedDescriptionHeight)
+      : collapsedDescriptionHeight
+    const tabsTop =
+      descriptionHeight +
+      (isDescriptionExpanded ? DESCRIPTION_GAP : DESCRIPTION_GAP_COLLAPSED)
 
     const storageKey = note.storage
     const folderKey = note.folder
@@ -932,6 +1078,11 @@ class SnippetNoteDetail extends React.Component {
           isDeletable={note.snippets.length > 1}
           onDragStart={e => this.handleTabDragStart(e, index)}
           onDrop={e => this.handleTabDrop(e, index)}
+          jumpHint={
+            this.state.showJumpHints && index < MAX_JUMP_TARGETS
+              ? index + 1
+              : null
+          }
         />
       )
     })
@@ -1112,21 +1263,53 @@ class SnippetNoteDetail extends React.Component {
         style={this.props.style}
         styleName='root'
         onKeyDown={e => this.handleKeyDown(e)}
+        ref={c => {
+          this.detailRoot = c
+        }}
       >
         {location.pathname === '/trashed' ? trashTopBar : detailTopBar}
 
-        <div styleName='body'>
+        <div
+          styleName='body'
+          style={{
+            '--tb-description-height': descriptionHeight + 'px',
+            '--tb-tabs-top': tabsTop + 'px'
+          }}
+        >
           <div styleName='description'>
             <textarea
               style={{
                 fontFamily: config.preview.fontFamily,
-                fontSize: parseInt(config.preview.fontSize, 10)
+                fontSize: parseInt(config.preview.fontSize, 10),
+                // 畳んでいる間は 1 行だけ見せる。auto のままだと
+                // 2 行目以降を持つノートでスクロールバーが出る
+                overflowY: isDescriptionExpanded ? 'auto' : 'hidden'
               }}
               ref='description'
               placeholder={i18n.__('Description...')}
               value={this.state.note.description}
               onChange={e => this.handleChange(e)}
+              onFocus={e => this.handleDescriptionFocus(e)}
+              onBlur={e => this.handleDescriptionBlur(e)}
             />
+            <button
+              styleName='description-toggle'
+              tabIndex='-1'
+              title={i18n.__(
+                isDescriptionExpanded
+                  ? 'Collapse description'
+                  : 'Expand description'
+              )}
+              onClick={e => this.handleDescriptionToggleClick(e)}
+            >
+              <i
+                className={
+                  isDescriptionExpanded
+                    ? 'fa fa-chevron-up'
+                    : 'fa fa-chevron-down'
+                }
+              />
+            </button>
           </div>
           <div styleName='tabList'>
             <button

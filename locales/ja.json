@@ -348,5 +348,7 @@
   "Repeat the last change": "直前の変更を繰り返す",
   "Search forward": "前方検索",
   "Next / previous match": "次 / 前の一致",
-  "Replace all": "全置換"
+  "Replace all": "全置換",
+  "Expand description": "説明欄を広げる",
+  "Collapse description": "説明欄を折りたたむ"
 }

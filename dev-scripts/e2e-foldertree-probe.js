@@ -32,6 +32,31 @@ fs.writeFileSync(
   JSON.stringify({ folders: FOLDERS, version: '1.0' })
 )
 
+// ノートも置く。フォルダ key は boostnote.json と揃えているので、
+// フォルダを自前生成されて一致しなくなる問題は起きない
+const NOTES = [
+  ['nte0000000000001', 'fld0000000000002', 'SPEC-A', '2026-08-05'],
+  ['nte0000000000002', 'fld0000000000003', 'ONB-A', '2026-08-04'],
+  ['nte0000000000003', 'fld0000000000004', 'PR-A', '2026-08-03'],
+  ['nte0000000000004', 'fld0000000000004', 'PR-B', '2026-08-02']
+]
+NOTES.forEach(([key, folder, title, day]) => {
+  fs.writeFileSync(
+    path.join(storageDir, 'notes', `${key}.cson`),
+    JSON.stringify({
+      createdAt: `${day}T00:00:00.000Z`,
+      updatedAt: `${day}T00:00:00.000Z`,
+      type: 'MARKDOWN_NOTE',
+      folder,
+      title,
+      content: `# ${title}`,
+      tags: [],
+      isStarred: false,
+      isTrashed: false
+    })
+  )
+})
+
 app.setPath('userData', path.join(tmpRoot, 'userData'))
 app.setPath('home', tmpRoot)
 
@@ -239,6 +264,62 @@ app.on('web-contents-created', (_e, wc) => {
           after.rows.find(r => r.title === 'KSD') !== undefined,
           after.rows.find(r => r.title === 'KSD')
         )
+
+        // --- ノート一覧のサブフォルダ別グループ表示 ---
+        // KSD を開き直してから、KSD/onboarding（子を持つ）を選ぶ
+        await wc.executeJavaScript(clickExpander('KSD/onboarding'), true)
+        const picked = await wc.executeJavaScript(
+          `(async () => {
+             const sleep = ms => new Promise(r => setTimeout(r, ms))
+             const nav = document.querySelector('.SideNav')
+             const rows = Array.from(nav.querySelectorAll('button')).filter(b =>
+               /folderList-item/.test(b.className))
+             const row = rows.find(b => (b.getAttribute('title')||'') === 'KSD/onboarding')
+             if (!row) return { ok: false }
+             row.click(); await sleep(900); return { ok: true }
+           })()`,
+          true
+        )
+        check('親フォルダを選べる', picked.ok, picked)
+
+        const listView = await wc.executeJavaScript(
+          `(() => {
+             const list = document.querySelector('[data-note-list]')
+             if (!list) return { error: 'no note list' }
+             const headers = Array.from(list.querySelectorAll('[data-group-header]'))
+               .map(h => ({ path: h.getAttribute('data-group-header'), label: (h.textContent||'').trim() }))
+             const items = Array.from(list.querySelectorAll('[class*="item-title"], [class*="item-simple-title"]'))
+               .map(n => (n.textContent||'').trim())
+             return { headers, items }
+           })()`,
+          true
+        )
+        note('note list', listView)
+        check(
+          '子孫のノートが一覧に出る（親を選ぶと配下がまとまって見える）',
+          ['ONB-A', 'PR-A', 'PR-B'].every(t =>
+            (listView.items || []).some(i => i.indexOf(t) !== -1)
+          ) && !(listView.items || []).some(i => i.indexOf('SPEC-A') !== -1),
+          listView.items
+        )
+        check(
+          'サブフォルダ見出しが出る',
+          (listView.headers || []).length === 2 &&
+            listView.headers.some(h => h.path === 'KSD/onboarding') &&
+            listView.headers.some(h => h.path === 'KSD/onboarding/PR-1281'),
+          listView.headers
+        )
+        check(
+          '同じサブフォルダのノートが隣接する（見出しが繰り返されない）',
+          (listView.headers || []).length ===
+            new Set((listView.headers || []).map(h => h.path)).size,
+          listView.headers
+        )
+
+        const img3 = await win.webContents.capturePage()
+        const f3 = path.join(SHOT_DIR, 'folder-tree-grouped-list.png')
+        fs.writeFileSync(f3, img3.toPNG())
+        shots.push(f3)
 
         const img2 = await win.webContents.capturePage()
         const f2 = path.join(SHOT_DIR, 'folder-tree-collapsed.png')

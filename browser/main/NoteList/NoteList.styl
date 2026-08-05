@@ -211,3 +211,21 @@ for theme in 'white' 'dark' 'solarized-dark' 'dracula'
 
 for theme in $themes
   apply-theme(theme)
+
+// サブフォルダ見出し。親フォルダを選んで子孫のノートをまとめて出す時に、
+// グループの切れ目へ挟む。**this.notes には入れない**ので、上下キーや
+// Cmd+数字ジャンプの「ノートの並び」とは独立している
+.group-header
+  position sticky
+  top 0
+  z-index 2
+  padding 4px 14px
+  font-size 11px
+  font-weight 700
+  letter-spacing 0.04em
+  color $ui-inactive-text-color
+  background-color $ui-noteList-backgroundColor
+  border-bottom 1px solid alpha($ui-borderColor, 60%)
+  white-space nowrap
+  overflow hidden
+  text-overflow ellipsis

@@ -803,8 +803,11 @@ class MarkdownNoteDetail extends React.Component {
             isActive={note.isStarred}
           />
 
-          {/* 目次の表示切替。ModeSwitcher のピル内に置くと並びが崩れるので、
-              右端の単独アイコン群に合流させる。閉じるとペインごと導線が
+          <TrashButton onClick={e => this.handleTrashButtonClick(e)} />
+
+          <InfoButton onClick={e => this.handleInfoButtonClick(e)} />
+
+          {/* 目次の表示切替はアイコン列の一番右。閉じるとペインごと導線が
               消えるため、戻す手段としてもここが要る */}
           <button
             styleName={showToc ? 'toc-toggle--active' : 'toc-toggle'}
@@ -815,10 +818,6 @@ class MarkdownNoteDetail extends React.Component {
           >
             <i className='fa fa-list-ul' aria-hidden='true' />
           </button>
-
-          <TrashButton onClick={e => this.handleTrashButtonClick(e)} />
-
-          <InfoButton onClick={e => this.handleInfoButtonClick(e)} />
 
           <InfoPanel
             isOpen={this.state.isInfoPanelOpen}

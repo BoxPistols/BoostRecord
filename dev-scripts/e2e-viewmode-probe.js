@@ -329,11 +329,15 @@ app.on('web-contents-created', (_e, wc) => {
           { overlap: tocView.overlap }
         )
         check(
-          '目次の切替ボタンが右端のアイコン群にある（ModeSwitcher の外）',
+          '目次の切替ボタンがアイコン列の一番右にある',
           (() => {
             const t = tocView.toolbar || []
-            const i = t.indexOf('fa-list-ul')
-            return i > t.indexOf('fa-eye')
+            const icons = t.filter(x => x !== 'other')
+            // ModeSwitcher(fa-eye) より後ろ、かつ右端アイコン群の最後
+            return (
+              t.indexOf('fa-list-ul') > t.indexOf('fa-eye') &&
+              icons.indexOf('fa-list-ul') === icons.lastIndexOf('fa-list-ul')
+            )
           })(),
           tocView.toolbar
         )

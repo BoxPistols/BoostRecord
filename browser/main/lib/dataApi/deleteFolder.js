@@ -70,6 +70,13 @@ function deleteFolder(storageKey, folderKey) {
       return Promise.all(deleteAllNotes).then(() => storage)
     })
     .then(function(storage) {
+      // boostnote.json が読めなかったストレージへは書き戻さない。
+      // 空の folders を永続化すると全フォルダレコードが失われる
+      if (storage.foldersUnreadable) {
+        throw new Error(
+          'boostnote.json could not be read; refusing to overwrite it'
+        )
+      }
       CSON.writeFileSync(
         path.join(storage.path, 'boostnote.json'),
         _.pick(storage, ['folders', 'version'])

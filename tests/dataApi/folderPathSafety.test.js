@@ -59,6 +59,45 @@ describe('deleteFolder のガード', () => {
   })
 })
 
+describe('boostnote.json が壊れている時', () => {
+  const corrupt = () =>
+    sander.writeFileSync(
+      path.join(storagePath, 'boostnote.json'),
+      '{ this is not valid json'
+    )
+
+  it('空の folders を書き戻さない（全フォルダレコードを失う経路）', async () => {
+    corrupt()
+    const before = sander.readFileSync(
+      path.join(storagePath, 'boostnote.json'),
+      { encoding: 'utf-8' }
+    )
+    const err = await rejects(
+      createFolder(storageKey, { name: 'NewOne', color: '#fff' })
+    )
+    expect(err.message).toMatch(/refusing to overwrite/)
+    // 壊れたままでよい。上書きされていないことが重要
+    // （直せば復元できる。空配列で潰すと二度と戻らない）
+    const after = sander.readFileSync(
+      path.join(storagePath, 'boostnote.json'),
+      { encoding: 'utf-8' }
+    )
+    expect(after).toBe(before)
+  })
+
+  it('更新も削除も同じく拒否する', async () => {
+    corrupt()
+    const e1 = await rejects(
+      updateFolder(storageKey, 'anykey', { name: 'X', color: '#fff' })
+    )
+    // 壊れていると folders は空なので「存在しない」で先に落ちるのが正しい。
+    // どちらの理由であれ**書き戻さない**ことが要件
+    expect(e1).toBeInstanceOf(Error)
+    const e2 = await rejects(deleteFolder(storageKey, 'anykey'))
+    expect(e2).toBeInstanceOf(Error)
+  })
+})
+
 describe('createFolder の名前正規化', () => {
   it('正規化して空になる名前を拒否する', async () => {
     for (const bad of ['/', '///', '   ', ' / ']) {

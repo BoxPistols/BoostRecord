@@ -262,13 +262,17 @@ function openFolderColorModalAndReport() {
     inst.handleFolderColorClick(folder, { x: 100, y: 200 })
     await sleep(600)
 
-    const modalOpen = document.body.getAttribute('data-modal') === 'open'
-    const swatches = document.querySelectorAll('[data-modal-swatch]')
+    // フォルダ色は**モーダルではなくポップオーバー**（FolderColorPopover が
+    // createPortal で body 直下に role="dialog" を出す）。以前は
+    // data-modal / [data-modal-swatch] / .sketch-picker を見ており、
+    // 実装と噛み合わないまま常に false を返していた。しかもこの結果は
+    // ok 判定に入っていなかったので、ずっと緑のまま気づけなかった
+    const dialog = document.querySelector('[role="dialog"]')
+    const swatches = dialog ? dialog.querySelectorAll('button') : []
     return {
-      modalAttr: modalOpen,
+      opened: !!dialog,
       swatchCount: swatches.length,
-      bodyHasPicker: !!document.querySelector('.sketch-picker') ||
-        /その他の色|Custom color/.test(document.body.textContent)
+      label: dialog ? dialog.getAttribute('aria-label') : null
     }
   })()`
 }
@@ -305,10 +309,13 @@ app.on('web-contents-created', (_e, wc) => {
           true
         )
 
+        // 測っているのに判定へ入れないと、壊れても緑のまま通る
         const ok =
           rep.tabFromBody.focusOnNoteList &&
           rep.shiftTabBack.focusOnSideNav &&
-          rep.tabInsideInput.tabNotStolenFromInput
+          rep.tabInsideInput.tabNotStolenFromInput &&
+          !!rep.folderColorModal.opened &&
+          rep.folderColorModal.swatchCount > 0
         finish(ok ? 0 : 1, { ok, rep })
       } catch (err) {
         finish(2, {

@@ -172,7 +172,12 @@ export const DEFAULT_CONFIG = {
     customCSS: DEFAULT_CSS_CONFIG,
     sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
     mermaidHTMLLabel: false,
-    lineThroughCheckbox: true
+    lineThroughCheckbox: true,
+    // 目次（ページ内リンク）ペイン。validate() には足さない
+    // （既存の設定ファイルに無いキーを必須にすると初期値へ巻き戻る）
+    showToc: true,
+    tocMinLevel: 1,
+    tocMaxLevel: 3
   },
   export: {
     metadata: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'

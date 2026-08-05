@@ -10,6 +10,9 @@ describe('pickProvider', () => {
     expect(pickProvider('o1')).toBe('openai')
     expect(pickProvider('o3-mini')).toBe('openai')
     expect(pickProvider('chatgpt-4o-latest')).toBe('openai')
+    // dotted 2026 ids (gpt-5.6-*) must still route to openai
+    expect(pickProvider('gpt-5.6-luna')).toBe('openai')
+    expect(pickProvider('gpt-5.6-sol')).toBe('openai')
   })
 
   it('routes Gemini/Gemma model ids to gemini', () => {
@@ -29,6 +32,9 @@ describe('isOpenAiReasoning', () => {
     expect(isOpenAiReasoning('gpt-5-mini')).toBe(true)
     expect(isOpenAiReasoning('o1')).toBe(true)
     expect(isOpenAiReasoning('o3-mini')).toBe(true)
+    // the dotted gpt-5.x ids share the reasoning param shape
+    expect(isOpenAiReasoning('gpt-5.6-luna')).toBe(true)
+    expect(isOpenAiReasoning('gpt-5.6-sol')).toBe(true)
   })
 
   it('is false for classic chat models (max_tokens + temperature)', () => {

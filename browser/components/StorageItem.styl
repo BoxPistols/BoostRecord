@@ -171,3 +171,25 @@ for theme in $themes
   line-height 16px
   text-align center
   pointer-events none
+
+// --- 多階層ツリー ---
+// インデントは幅だけ持つ空要素。深さの表現をここに集約する
+.folderList-item-indent
+  flex-shrink 0
+  display inline-block
+
+// 開閉トグル。button の入れ子は不正なので span + role='button' で作る
+.folderList-item-expander
+  flex-shrink 0
+  width 14px
+  text-align center
+  color $ui-inactive-text-color
+  cursor pointer
+  &:hover
+    color $ui-text-color
+
+// 子を持たない行と桁を揃える（揃えないと同階層がガタつく）
+.folderList-item-expander-spacer
+  flex-shrink 0
+  display inline-block
+  width 14px

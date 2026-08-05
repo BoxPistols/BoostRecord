@@ -11,6 +11,12 @@ import { moveNotesToFolder } from 'browser/main/lib/moveNotes'
 import StorageItemChild from 'browser/components/StorageItem'
 import _ from 'lodash'
 import { SortableElement } from 'react-sortable-hoc'
+import {
+  buildFolderTree,
+  ancestorPaths,
+  collectFolderKeys,
+  leafName
+} from 'browser/lib/folderTree'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
 import { push } from 'connected-react-router'
@@ -19,6 +25,32 @@ const remote = require('@electron/remote')
 const { dialog } = remote
 const escapeStringRegexp = require('escape-string-regexp')
 const path = require('path')
+
+// 折りたたんだフォルダのパスは localStorage に置く。config に混ぜると、
+// 壊れた値が設定全体の検証を巻き込む（v0.18.1 の教訓）。
+// 「閉じた方」を覚えるので、新しく作った子フォルダが勝手に隠れることはない
+const COLLAPSED_KEY = storageKey => `folderTree.collapsed.${storageKey}`
+
+function readCollapsedPaths(storageKey) {
+  try {
+    const raw = window.localStorage.getItem(COLLAPSED_KEY(storageKey))
+    const parsed = JSON.parse(raw)
+    return new Set(Array.isArray(parsed) ? parsed.filter(_.isString) : [])
+  } catch (e) {
+    return new Set()
+  }
+}
+
+function writeCollapsedPaths(storageKey, paths) {
+  try {
+    window.localStorage.setItem(
+      COLLAPSED_KEY(storageKey),
+      JSON.stringify(Array.from(paths))
+    )
+  } catch (e) {
+    // 保存に失敗しても開閉自体は動かす（永続化は付加価値）
+  }
+}
 
 class StorageItem extends React.Component {
   constructor(props) {
@@ -30,8 +62,21 @@ class StorageItem extends React.Component {
       isOpen: !!storage.isOpen,
       draggedOver: null,
       // 右クリック位置に出す色ポップオーバー { folder, x, y } | null
-      colorPopover: null
+      colorPopover: null,
+      // 折りたたんだフォルダのパス集合。既定は「全部開いている」。
+      // 閉じた方を覚える形にすると、新しく作った子が勝手に隠れない
+      collapsedPaths: readCollapsedPaths(storage.key)
     }
+  }
+
+  toggleFolderExpand(path) {
+    this.setState(prev => {
+      const next = new Set(prev.collapsedPaths)
+      if (next.has(path)) next.delete(path)
+      else next.add(path)
+      writeCollapsedPaths(this.props.storage.key, next)
+      return { collapsedPaths: next }
+    })
   }
 
   handleHeaderContextMenu(e) {
@@ -382,70 +427,149 @@ class StorageItem extends React.Component {
     } = this.props
     const { folderNoteMap, trashedSet } = data
     const SortableStorageItemChild = SortableElement(StorageItemChild)
-    const folderList = storage.folders.map((folder, index) => {
-      const folderRegex = new RegExp(
-        escapeStringRegexp(path.sep) +
-          'storages' +
-          escapeStringRegexp(path.sep) +
-          storage.key +
-          escapeStringRegexp(path.sep) +
-          'folders' +
-          escapeStringRegexp(path.sep) +
-          folder.key
-      )
-      const isActive = !!location.pathname.match(folderRegex)
-      const tooltipRef = React.createRef(null)
-      const noteSet = folderNoteMap.get(storage.key + '-' + folder.key)
 
-      let noteCount = 0
-      if (noteSet) {
+    // フォルダ名のパス表記からツリーを導出する。boostnote.json は平坦なまま
+    const tree = buildFolderTree(storage.folders)
+    const hasNesting = tree.some(node => node.children.length > 0)
+    // 並び替え D&D は storage.folders の配列添字を前提にしている。ツリーでは
+    // 画面上の並びと配列の並びが一致しないので、掴めると**画面上とは別の
+    // フォルダを動かして boostnote.json に書き込む**。
+    // 嘘のジェスチャを見せるより機能が無い方がましなので、ネストがある時だけ
+    // ハンドルを隠す（平坦なストレージは今までどおり並び替えできる）
+    const showReorderHandle = !hasNesting
+
+    // 選択中フォルダの祖先は開いておく（現在地を見失わない）
+    const activeFolder = storage.folders.find(folder =>
+      location.pathname.match(
+        new RegExp(
+          escapeStringRegexp(path.sep) +
+            'storages' +
+            escapeStringRegexp(path.sep) +
+            storage.key +
+            escapeStringRegexp(path.sep) +
+            'folders' +
+            escapeStringRegexp(path.sep) +
+            folder.key
+        )
+      )
+    )
+    const forcedOpen = new Set(
+      activeFolder ? ancestorPaths(activeFolder.name) : []
+    )
+
+    const countNotes = node => {
+      // 子孫の合計。中間ノードは実体を持たないことがあるので key を集めて足す
+      let total = 0
+      collectFolderKeys(node).forEach(folderKey => {
+        const noteSet = folderNoteMap.get(storage.key + '-' + folderKey)
+        if (!noteSet) return
+        const noteKeys = noteSet.map(noteKey => noteKey)
         let trashedNoteCount = 0
-        const noteKeys = noteSet.map(noteKey => {
-          return noteKey
-        })
         trashedSet.toJS().forEach(trashedKey => {
-          if (
-            noteKeys.some(noteKey => {
-              return noteKey === trashedKey
-            })
-          )
+          if (noteKeys.some(noteKey => noteKey === trashedKey)) {
             trashedNoteCount++
-        })
-        noteCount = noteSet.size - trashedNoteCount
-      }
-      return (
-        <SortableStorageItemChild
-          key={folder.key}
-          index={index}
-          jumpHint={
-            jumpHintOffset && jumpHintOffset + index <= 9
-              ? jumpHintOffset + index
-              : null
           }
+        })
+        total += noteSet.size - trashedNoteCount
+      })
+      return total
+    }
+
+    // react-sortable-hoc の index は storage.folders の添字と一致させる。
+    // 画面順で採番すると、並び替えが別のフォルダを動かす
+    const arrayIndexOf = folder => storage.folders.indexOf(folder)
+
+    let renderedCount = 0
+    const renderNode = node => {
+      const folder = node.folder
+      const isNodeActive = !!(
+        folder &&
+        location.pathname.match(
+          new RegExp(
+            escapeStringRegexp(path.sep) +
+              'storages' +
+              escapeStringRegexp(path.sep) +
+              storage.key +
+              escapeStringRegexp(path.sep) +
+              'folders' +
+              escapeStringRegexp(path.sep) +
+              folder.key
+          )
+        )
+      )
+      const tooltipRef = React.createRef(null)
+      const hasChildren = node.children.length > 0
+      const isExpanded =
+        !this.state.collapsedPaths.has(node.path) || forcedOpen.has(node.path)
+      // 番号ジャンプは**画面に出ている行**の順に振る。配列添字で振ると、
+      // 折りたたみで隠れた行が番号を食って画面の並びとずれる
+      const visibleIndex = renderedCount++
+      const jumpHint =
+        jumpHintOffset && jumpHintOffset + visibleIndex <= 9
+          ? jumpHintOffset + visibleIndex
+          : null
+
+      const row = (
+        <SortableStorageItemChild
+          key={node.path}
+          index={folder ? arrayIndexOf(folder) : -1}
+          disabled={!showReorderHandle || !folder}
+          jumpHint={jumpHint}
           showJumpHint={showJumpHint}
-          isActive={isActive || folder.key === this.state.draggedOver}
+          isActive={
+            isNodeActive || (folder && folder.key === this.state.draggedOver)
+          }
           tooltipRef={tooltipRef}
-          handleButtonClick={e => this.handleFolderButtonClick(folder.key)(e)}
+          depth={node.depth}
+          fullPath={node.path}
+          hasChildren={hasChildren}
+          isExpanded={isExpanded}
+          onToggleExpand={() => this.toggleFolderExpand(node.path)}
+          showReorderHandle={showReorderHandle}
+          handleButtonClick={e => {
+            // 実体のない中間ノードは選べない（選ばせるとルーティングが
+            // 未知の folderKey になり、NoteList がストレージ全件へ
+            // 黙ってフォールバックする）。代わりに開閉する
+            if (!folder) {
+              this.toggleFolderExpand(node.path)
+              return
+            }
+            this.handleFolderButtonClick(folder.key)(e)
+          }}
           handleMouseEnter={e =>
             this.handleFolderMouseEnter(e, tooltipRef, isFolded)
           }
-          handleContextMenu={e => this.handleFolderButtonContextMenu(e, folder)}
-          folderName={folder.name}
-          folderColor={folder.color}
+          handleContextMenu={e => {
+            // 中間ノードには削除・リネームのメニューを出さない。
+            // folder が無い状態で削除へ進むと folderKey が undefined になり、
+            // `folder` フィールドを持たない .cson が軒並み一致して消える
+            if (!folder) return
+            this.handleFolderButtonContextMenu(e, folder)
+          }}
+          folderName={leafName(node.path) || node.name || ''}
+          folderColor={folder ? folder.color : undefined}
           isFolded={isFolded}
-          noteCount={noteCount}
+          noteCount={countNotes(node)}
           handleDrop={e => {
+            if (!folder) return
             this.handleDrop(e, storage, folder, dispatch, location)
           }}
           handleDragEnter={e => {
+            if (!folder) return
             this.handleDragEnter(e, folder.key)
           }}
           handleDragLeave={e => {
+            if (!folder) return
             this.handleDragLeave(e, folder)
           }}
         />
       )
-    })
+
+      if (!hasChildren || !isExpanded || isFolded) return [row]
+      return [row].concat(...node.children.map(renderNode))
+    }
+
+    const folderList = [].concat(...tree.map(renderNode))
 
     const isActive = location.pathname.match(
       new RegExp(

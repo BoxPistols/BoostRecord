@@ -35,6 +35,10 @@ const FolderIcon = ({ className, color, isActive }) => {
  * @param {Function} handleDragOut
  * @return {React.Component}
  */
+// 階層のインデント。深くなっても横幅が破綻しないよう頭打ちにする
+const INDENT_STEP = 12
+const MAX_INDENT_DEPTH = 5
+
 const StorageItem = ({
   styles,
   // 修飾キー長押し中に出す 1..9 の連番。data 属性は常に出す（キー入力時に
@@ -52,7 +56,17 @@ const StorageItem = ({
   handleDrop,
   handleDragEnter,
   handleDragLeave,
-  showJumpHint
+  showJumpHint,
+  // --- 多階層ツリー用 ---
+  // 表示は葉の名前だけにする。フルパスを出すと ellipsis が**末尾**を落とすため、
+  // 消えるのが唯一の識別情報（葉の名前）になる。階層はインデントで表す
+  depth = 0,
+  fullPath,
+  hasChildren = false,
+  isExpanded = false,
+  onToggleExpand,
+  // 並び替えドラッグはツリー表示時に嘘になるので、その時だけ隠す
+  showReorderHandle = true
 }) => {
   return (
     <button
@@ -76,15 +90,52 @@ const StorageItem = ({
       onDragOver={e => e.preventDefault()}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
+      // 幅が足りずに省略された時の逃げ道。折りたたみ状態に関係なく常に出す
+      title={fullPath || folderName}
     >
       {showJumpHint && jumpHint && (
         <span styleName='folderList-item-jump-hint' aria-hidden='true'>
           {jumpHint}
         </span>
       )}
-      {!isFolded && (
+      {!isFolded && showReorderHandle && (
         <DraggableIcon className={styles['folderList-item-reorder']} />
       )}
+      {!isFolded && depth > 0 && (
+        <span
+          styleName='folderList-item-indent'
+          style={{ width: Math.min(depth, MAX_INDENT_DEPTH) * INDENT_STEP }}
+          aria-hidden='true'
+        />
+      )}
+      {!isFolded &&
+        (hasChildren ? (
+          // button の入れ子は不正なので span + role で作る
+          <span
+            styleName='folderList-item-expander'
+            role='button'
+            tabIndex={-1}
+            aria-label={isExpanded ? 'Collapse' : 'Expand'}
+            aria-expanded={isExpanded}
+            onClick={e => {
+              // 親行のクリック（フォルダ選択）まで巻き込まない
+              e.stopPropagation()
+              e.preventDefault()
+              if (onToggleExpand) onToggleExpand()
+            }}
+          >
+            <i
+              className={`fa fa-caret-${isExpanded ? 'down' : 'right'}`}
+              aria-hidden='true'
+            />
+          </span>
+        ) : (
+          // 子の無い行と桁を揃える（揃えないと同階層がガタつく）
+          <span
+            styleName='folderList-item-expander-spacer'
+            aria-hidden='true'
+          />
+        ))}
       <span
         styleName={
           isFolded ? 'folderList-item-name--folded' : 'folderList-item-name'
@@ -104,7 +155,7 @@ const StorageItem = ({
       )}
       {isFolded && (
         <span styleName='folderList-item-tooltip' ref={tooltipRef}>
-          {folderName}
+          {fullPath || folderName}
         </span>
       )}
     </button>
@@ -122,7 +173,13 @@ StorageItem.propTypes = {
   isFolded: PropTypes.bool.isRequired,
   handleDragEnter: PropTypes.func.isRequired,
   handleDragLeave: PropTypes.func.isRequired,
-  noteCount: PropTypes.number
+  noteCount: PropTypes.number,
+  depth: PropTypes.number,
+  fullPath: PropTypes.string,
+  hasChildren: PropTypes.bool,
+  isExpanded: PropTypes.bool,
+  onToggleExpand: PropTypes.func,
+  showReorderHandle: PropTypes.bool
 }
 
 export default CSSModules(StorageItem, styles)

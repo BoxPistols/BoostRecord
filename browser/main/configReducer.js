@@ -7,6 +7,12 @@ export function createConfigReducer(defaultConfig) {
       case 'SET_IS_SIDENAV_FOLDED':
         state.isSideNavFolded = action.isFolded
         return Object.assign({}, state)
+      // サイドバーは EXPANDED / FOLDED / HIDDEN の3値。旧 boolean を見ている
+      // 参照が残っているので、必ず両方を同時に更新する
+      case 'SET_SIDE_NAV_MODE':
+        state.sideNavMode = action.mode
+        state.isSideNavFolded = action.mode !== 'EXPANDED'
+        return Object.assign({}, state)
       case 'SET_IS_NOTELIST_FOLDED':
         state.isNoteListFolded = action.isFolded
         return Object.assign({}, state)

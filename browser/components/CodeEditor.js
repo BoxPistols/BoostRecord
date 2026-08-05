@@ -2,6 +2,12 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
+import {
+  UL,
+  OL,
+  TASK,
+  toggleListInEditor
+} from 'browser/lib/markdownListToggle'
 import hljs from 'highlight.js'
 import 'codemirror-mode-elixir'
 import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
@@ -45,6 +51,19 @@ function translateHotkey(hotkey) {
     .replace(/\s*\+\s*/g, '-')
     .replace(/Command/g, 'Cmd')
     .replace(/Control/g, 'Ctrl')
+}
+
+// 選択した複数行を一括でリスト化するキーバインド。
+// 数字キーは配列に依らず同じ keyCode なので、[ ] のような US/JIS の
+// 取り違えが起きない。Cmd+1..9 のタブ移動は Shift 無し限定なので衝突しない。
+// defaultKeyMap と editorKeyMap は別メソッドにあるのでモジュールスコープに置く
+const LIST_BINDINGS = {
+  'Shift-Cmd-8': cm => toggleListInEditor(cm, UL),
+  'Shift-Ctrl-8': cm => toggleListInEditor(cm, UL),
+  'Shift-Cmd-7': cm => toggleListInEditor(cm, OL),
+  'Shift-Ctrl-7': cm => toggleListInEditor(cm, OL),
+  'Shift-Cmd-9': cm => toggleListInEditor(cm, TASK),
+  'Shift-Ctrl-9': cm => toggleListInEditor(cm, TASK)
 }
 
 export default class CodeEditor extends React.Component {
@@ -174,6 +193,7 @@ export default class CodeEditor extends React.Component {
     const expandSnippet = snippetManager.expandSnippet
 
     this.defaultKeyMap = CodeMirror.normalizeKeyMap({
+      ...LIST_BINDINGS,
       // Free Cmd-Alt-F: CodeMirror's Mac default binds it to "replace", which
       // swallowed the app's Cmd+Opt+F hotkey (opened the Replace dialog instead
       // of firing the shortcut). `false` = handle-as-nothing (no fall-through to
@@ -402,6 +422,8 @@ export default class CodeEditor extends React.Component {
     })
 
     this.editorKeyMap = CodeMirror.normalizeKeyMap({
+      // テーブル編集モードでもリスト化は使えるようにする
+      ...LIST_BINDINGS,
       // Keep Cmd-Alt-F freed in table-editor mode too (see defaultKeyMap).
       'Cmd-Alt-F': false,
       Tab: () => {

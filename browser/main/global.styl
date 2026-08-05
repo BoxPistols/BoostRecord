@@ -181,3 +181,19 @@ body[data-theme="default"]
     background-color rgba(255, 255, 255, 0.3)
 
 @import '../styles/Detail/TagSelect.styl'
+
+// Tab / Shift+Tab のペイン移動を見えるようにする。
+// 実測で、Tab はフォーカスを正しく動かしていたのに outline:none のままで、
+// 画面が一切変わらないため「Tab が効かない」と受け取られていた。
+// NoteList.styl の `.list:focus` と対になる、戻り先（サイドバー）側。
+// `.SideNav` / `.SideNav-active-folder` は CSS Modules ではない安定クラス。
+// ペイン全周を囲むと重いので、隣のペインとの境界だけを示す。
+// サイドバーは右エッジ（NoteList は左エッジ）でバーが向かい合う
+.SideNav:focus
+  outline none
+  box-shadow inset -2px 0 0 $ui-active-color
+
+// 選択中フォルダにフォーカスが入った時は行だけを示す（枠で括らない）
+.SideNav-active-folder:focus
+  outline none
+  box-shadow inset 2px 0 0 $ui-active-color

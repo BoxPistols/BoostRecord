@@ -35,10 +35,12 @@ import { replace } from 'connected-react-router'
 import {
   subscribe as subscribeMetaKey,
   getJumpNumber,
+  getBracketDirection,
   MAX_JUMP_TARGETS
 } from 'browser/lib/metaKeyHold'
 
 const electron = require('electron')
+const { ipcRenderer } = electron
 const remote = require('@electron/remote')
 const { dialog } = remote
 
@@ -52,19 +54,6 @@ const DESCRIPTION_LINE_HEIGHT = 1.6
 const DESCRIPTION_CHROME_HEIGHT = 8
 const DESCRIPTION_GAP = 20
 const DESCRIPTION_GAP_COLLAPSED = 12
-
-/**
- * 修飾キー + Shift + [ / ] を「左へ(-1) / 右へ(+1) / 該当なし(0)」に落とす。
- * @param {KeyboardEvent} e
- * @returns {number}
- */
-function getBracketDirection(e) {
-  const isSuper = global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey
-  if (!isSuper || !e.shiftKey || e.altKey) return 0
-  if (e.code === 'BracketLeft' || e.keyCode === 219) return -1
-  if (e.code === 'BracketRight' || e.keyCode === 221) return 1
-  return 0
-}
 
 // SNIPPET_NOTE は「タブが最低1個ある」前提で描画される。過去の保存不具合で
 // snippets: [] のファイルが実在するため、state に入れる前に必ずここを通す
@@ -120,6 +109,29 @@ class SnippetNoteDetail extends React.Component {
     ee.on('detail:toggleinfo', this.toggleInfoHandler)
     ee.on('detail:focusnotelink', this.focusNoteLinkHandler)
     ee.on('topbar:togglepreviewbutton', this.togglePreviewHandler)
+
+    // ネイティブメニュー（Cmd/Ctrl+Shift+[ / ]）からのタブ移動。
+    // メニューの accelerator は webContents.send で来るので ipcRenderer で
+    // 受ける（eventEmitter だけでは届かない）。
+    // DOM の keydown 経路が先に動いていたら降りる。両方が同じ押下を拾うと
+    // 2つ先のタブへ飛ぶ（Windows/Linux では DOM にも届きうる）
+    this.ipcTabHandler = direction => () => {
+      if (Date.now() - (this.lastDomTabJumpAt || 0) < 300) {
+        window.__tbSnippetBracket = Object.assign(
+          {},
+          window.__tbSnippetBracket,
+          { ipcSkipped: true }
+        )
+        return
+      }
+      window.__tbSnippetBracket = { source: 'ipc', direction }
+      if (direction < 0) this.jumpPrevTab()
+      else this.jumpNextTab()
+    }
+    this.ipcPrevTab = this.ipcTabHandler(-1)
+    this.ipcNextTab = this.ipcTabHandler(1)
+    ipcRenderer.on('snippet:prev-tab', this.ipcPrevTab)
+    ipcRenderer.on('snippet:next-tab', this.ipcNextTab)
 
     const visibleTabs = this.visibleTabs
     const allTabs = this.allTabs
@@ -210,6 +222,8 @@ class SnippetNoteDetail extends React.Component {
     ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
     ee.off('topbar:togglepreviewbutton', this.togglePreviewHandler)
     if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
+    ipcRenderer.removeListener('snippet:prev-tab', this.ipcPrevTab)
+    ipcRenderer.removeListener('snippet:next-tab', this.ipcNextTab)
   }
 
   /** 情報パネルを開いてノートリンクを選択・コピーする（Markdown 側と同じ） */
@@ -672,8 +686,31 @@ class SnippetNoteDetail extends React.Component {
     // Shift を押している間 e.key は '{' '}' 等になるので判定に使えない。
     // 物理キー位置を指す e.code で見て、古い環境向けに keyCode も残す
     const bracket = getBracketDirection(e)
+    // 実機で「[ が効かない」が続いているので、判断の材料をそのまま残す。
+    // DevTools で window.__tbSnippetBracket を見れば、ハンドラまで来ているか /
+    // どの値で判定したか / 実際に何番のタブへ動いたかが一撃で分かる
+    // （undefined ならこのハンドラ自体が呼ばれていない）
+    if (
+      (global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey) &&
+      e.shiftKey
+    ) {
+      window.__tbSnippetBracket = {
+        key: e.key,
+        code: e.code,
+        keyCode: e.keyCode,
+        meta: e.metaKey,
+        ctrl: e.ctrlKey,
+        shift: e.shiftKey,
+        alt: e.altKey,
+        direction: bracket,
+        fromIndex: this.getActiveSnippetIndex(),
+        tabs: this.state.note.snippets.length
+      }
+    }
     if (bracket !== 0) {
       e.preventDefault()
+      // IPC 経路との二重発火を防ぐ（先に動いた方が勝つ）
+      this.lastDomTabJumpAt = Date.now()
       if (bracket < 0) this.jumpPrevTab()
       else this.jumpNextTab()
       return

@@ -228,6 +228,9 @@ class UiTab extends React.Component {
         fontFamily: this.refs.previewFontFamily.value,
         codeBlockTheme: this.refs.previewCodeBlockTheme.value,
         lineNumber: this.refs.previewLineNumber.checked,
+        showToc: this.refs.previewShowToc.checked,
+        tocMinLevel: parseInt(this.refs.previewTocMinLevel.value, 10),
+        tocMaxLevel: parseInt(this.refs.previewTocMaxLevel.value, 10),
         latexInlineOpen: this.refs.previewLatexInlineOpen.value,
         latexInlineClose: this.refs.previewLatexInlineClose.value,
         latexBlockOpen: this.refs.previewLatexBlockOpen.value,
@@ -1146,6 +1149,44 @@ class UiTab extends React.Component {
               &nbsp;
               {i18n.__('Show line numbers for preview code blocks')}
             </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input
+                onChange={e => this.handleUIChange(e)}
+                checked={this.state.config.preview.showToc !== false}
+                ref='previewShowToc'
+                type='checkbox'
+              />
+              &nbsp;
+              {i18n.__('Show the outline pane')}
+            </label>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Heading levels in the outline')}
+            </div>
+            <div styleName='group-section-control'>
+              <select
+                value={this.state.config.preview.tocMinLevel || 1}
+                onChange={e => this.handleUIChange(e)}
+                ref='previewTocMinLevel'
+              >
+                {[1, 2, 3, 4, 5, 6].map(level => (
+                  <option key={level} value={level}>{`H${level}`}</option>
+                ))}
+              </select>
+              &nbsp;-&nbsp;
+              <select
+                value={this.state.config.preview.tocMaxLevel || 3}
+                onChange={e => this.handleUIChange(e)}
+                ref='previewTocMaxLevel'
+              >
+                {[1, 2, 3, 4, 5, 6].map(level => (
+                  <option key={level} value={level}>{`H${level}`}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div styleName='group-checkBoxSection'>
             <label>

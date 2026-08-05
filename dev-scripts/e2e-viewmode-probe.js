@@ -252,7 +252,7 @@ app.on('web-contents-created', (_e, wc) => {
              }
              if (!cm) return { ok: false, step: 'no empty editor' }
              cm.CodeMirror.setValue(
-               '# Alpha\\n\\ntext\\n\\n## Beta\\n\\n\\\`\\\`\\\`sh\\n# not a heading\\n\\\`\\\`\\\`\\n\\n### Gamma\\n'
+               '# Alpha\\n\\n- [ ] todo one\\n- [x] todo two\\n\\ntext\\n\\n## Beta\\n\\n\\\`\\\`\\\`sh\\n# not a heading\\n\\\`\\\`\\\`\\n\\n### Gamma\\n'
              )
              await sleep(1200)
              return { ok: true }
@@ -273,7 +273,31 @@ app.on('web-contents-created', (_e, wc) => {
                paneVisible: !!(pane && pane.offsetParent !== null),
                paneRect: r ? { x: Math.round(r.x), w: Math.round(r.width), h: Math.round(r.height) } : null,
                editorWidth: e ? Math.round(e.width) : null,
-               toggle: !!document.querySelector('button i.fa-list-ul')
+               toggle: !!document.querySelector('button i.fa-list-ul'),
+               // ツールバーの並び: 目次ボタンはゴミ箱の手前（右端の単独アイコン群）
+               toolbar: Array.from(
+                 document.querySelectorAll('[class*="info-right"] button')
+               ).map(b => {
+                 const i = b.querySelector('i.fa')
+                 return i ? (i.className.match(/fa-[a-z-]+/) || [''])[0] : 'other'
+               }),
+               // TODO バーと目次が重なっていないか
+               rects: (() => {
+                 const bar = document.querySelector('[class*="percentageBar"]')
+                 const body = document.querySelector('[class*="body-editor"]')
+                 const p = document.querySelector('.TocPane')
+                 const r = n => { const b = n && n.getBoundingClientRect(); return b ? { top: Math.round(b.top), bottom: Math.round(b.bottom) } : null }
+                 return { bar: r(bar), body: r(body), toc: r(p) }
+               })(),
+               overlap: (() => {
+                 const bar = document.querySelector('[class*="percentageBar"]')
+                 const p = document.querySelector('.TocPane')
+                 if (!bar || !p) return null
+                 const b = bar.getBoundingClientRect()
+                 const t = p.getBoundingClientRect()
+                 if (getComputedStyle(bar).display === 'none') return 'no-bar'
+                 return b.bottom > t.top ? 'OVERLAP' : 'ok'
+               })()
              }
            })()`,
           true
@@ -299,6 +323,20 @@ app.on('web-contents-created', (_e, wc) => {
           tocView.paneRect
         )
         check('目次の表示切替ボタンがある', tocView.toggle)
+        check(
+          'TODO バーが出ていて、目次に食い込んでいない',
+          tocView.overlap === 'ok',
+          { overlap: tocView.overlap }
+        )
+        check(
+          '目次の切替ボタンが右端のアイコン群にある（ModeSwitcher の外）',
+          (() => {
+            const t = tocView.toolbar || []
+            const i = t.indexOf('fa-list-ul')
+            return i > t.indexOf('fa-eye')
+          })(),
+          tocView.toolbar
+        )
         await shootPane(win, 'toc-pane.png')
 
         // ---------- (1) Preview がスニペットを跨いで保たれるか ----------

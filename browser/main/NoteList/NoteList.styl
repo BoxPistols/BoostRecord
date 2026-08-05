@@ -63,10 +63,13 @@ $control-height = 30px
   // Tab でこのペインへフォーカスが移ったことを見せる。
   // これが無い間、Tab は正しくフォーカスを動かしていたのに画面が一切
   // 変わらず「Tab が効かない」と受け取られていた（実測: 移動後の
-  // activeElement は .list、outline:none / box-shadow:none）
+  // activeElement は .list、outline:none / box-shadow:none）。
+  //
+  // ペイン全周を囲むと空白の広い面まで枠で括られて重い。隣のペインとの
+  // 境界（内側の左エッジ）に細いバーを1本出すだけにする
   &:focus
     outline none
-    box-shadow inset 0 0 0 2px $ui-active-color
+    box-shadow inset 2px 0 0 $ui-active-color
 
 // Bulk-action bar shown when 2+ notes are selected (multi-select via
 // cmd/shift-click). Overlays just below the sort/view header.

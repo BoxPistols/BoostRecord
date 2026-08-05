@@ -33,8 +33,8 @@ import markdownToc from 'browser/lib/markdown-toc-generator'
 import queryString from 'query-string'
 import { replace } from 'connected-react-router'
 import {
-  subscribe as subscribeMetaKey,
   getJumpNumber,
+  getBracketDirection,
   MAX_JUMP_TARGETS
 } from 'browser/lib/metaKeyHold'
 
@@ -52,19 +52,6 @@ const DESCRIPTION_LINE_HEIGHT = 1.6
 const DESCRIPTION_CHROME_HEIGHT = 8
 const DESCRIPTION_GAP = 20
 const DESCRIPTION_GAP_COLLAPSED = 12
-
-/**
- * 修飾キー + Shift + [ / ] を「左へ(-1) / 右へ(+1) / 該当なし(0)」に落とす。
- * @param {KeyboardEvent} e
- * @returns {number}
- */
-function getBracketDirection(e) {
-  const isSuper = global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey
-  if (!isSuper || !e.shiftKey || e.altKey) return 0
-  if (e.code === 'BracketLeft' || e.keyCode === 219) return -1
-  if (e.code === 'BracketRight' || e.keyCode === 221) return 1
-  return 0
-}
 
 // SNIPPET_NOTE は「タブが最低1個ある」前提で描画される。過去の保存不具合で
 // snippets: [] のファイルが実在するため、state に入れる前に必ずここを通す

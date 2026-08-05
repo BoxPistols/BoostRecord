@@ -125,6 +125,16 @@ describe('isDescendantPath', () => {
   it('親子が逆なら偽', () => {
     expect(isDescendantPath('KSD', 'KSD/spec')).toBe(false)
   })
+
+  // ここが緩いと、子孫カスケード削除を載せた瞬間にストレージ全消去になる。
+  // '/' のような名前は CreateFolderModal の trim().length > 0 を素通りするため
+  // 実際に作成でき、机上の話ではない
+  it('正規化して空になる祖先は全 true にしない（全消去の入口）', () => {
+    ;['', '/', '///', '   ', ' / '].forEach(ancestor => {
+      expect(isDescendantPath('KSD/spec', ancestor)).toBe(false)
+      expect(isDescendantPath('anything', ancestor)).toBe(false)
+    })
+  })
 })
 
 describe('collectFolderKeys', () => {

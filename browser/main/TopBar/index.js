@@ -9,6 +9,12 @@ import i18n from 'browser/lib/i18n'
 import debounce from 'lodash/debounce'
 import CInput from 'react-composition-input'
 import { push } from 'connected-react-router'
+import ConfigManager from 'browser/main/lib/ConfigManager'
+import {
+  EXPANDED,
+  resolveSideNavMode,
+  isHiddenFor
+} from 'browser/main/lib/sideNavMode'
 
 class TopBar extends React.Component {
   constructor(props) {
@@ -29,6 +35,7 @@ class TopBar extends React.Component {
     this.codeInitHandler = this.handleCodeInit.bind(this)
     this.handleKeyDown = this.handleKeyDown.bind(this)
     this.handleSearchFocus = this.handleSearchFocus.bind(this)
+    this.handleReopenSideNav = this.handleReopenSideNav.bind(this)
     this.handleSearchBlur = this.handleSearchBlur.bind(this)
     this.handleSearchChange = this.handleSearchChange.bind(this)
     this.handleSearchClearButton = this.handleSearchClearButton.bind(this)
@@ -147,8 +154,20 @@ class TopBar extends React.Component {
     ee.emit('top:search', this.refs.searchInput.value || '')
   }
 
+  /**
+   * サイドバーを完全に隠すと、その中にあるトグルボタンごと消える。
+   * Cmd+B とメニューだけが導線では気づけないので、TopBar から戻せるようにする
+   */
+  handleReopenSideNav() {
+    const { dispatch } = this.props
+    ConfigManager.set({ sideNavMode: EXPANDED, isSideNavFolded: false })
+    dispatch({ type: 'SET_SIDE_NAV_MODE', mode: EXPANDED })
+  }
+
   render() {
     const { config, style, location } = this.props
+    const isSideNavHidden = isHiddenFor(resolveSideNavMode(config))
+    const reopenLabel = i18n.__('Show Side Bar')
     return (
       <div
         className='TopBar'
@@ -156,6 +175,19 @@ class TopBar extends React.Component {
         style={style}
       >
         <div styleName='control'>
+          {isSideNavHidden && (
+            <button
+              styleName='sidenav-reopen'
+              onClick={this.handleReopenSideNav}
+              title={reopenLabel}
+              aria-label={reopenLabel}
+            >
+              <i
+                className='fa fa-fw fa-angle-double-right'
+                aria-hidden='true'
+              />
+            </button>
+          )}
           <div styleName='control-search'>
             <div
               styleName='control-search-input'

@@ -8,6 +8,12 @@ import { openModal } from 'browser/main/lib/modal'
 import PreferencesModal from '../modals/PreferencesModal'
 import RenameTagModal from 'browser/main/modals/RenameTagModal'
 import ConfigManager from 'browser/main/lib/ConfigManager'
+import {
+  nextSideNavMode,
+  resolveSideNavMode,
+  isFoldedFor,
+  isHiddenFor
+} from 'browser/main/lib/sideNavMode'
 import StorageItem from './StorageItem'
 import TagListItem from 'browser/components/TagListItem'
 import SideNavFilter from 'browser/components/SideNavFilter'
@@ -389,11 +395,15 @@ class SideNav extends React.Component {
     const { dispatch, config } = this.props
     const { showSearch, searchText } = this.state
 
-    ConfigManager.set({ isSideNavFolded: !config.isSideNavFolded })
-    dispatch({
-      type: 'SET_IS_SIDENAV_FOLDED',
-      isFolded: !config.isSideNavFolded
+    // Cmd+B は EXPANDED → FOLDED → HIDDEN → … の3サイクル。
+    // HIDDEN ではサイドバー自体が消えてこのボタンも無くなるため、
+    // 戻る導線は TopBar の再展開ボタンが担う
+    const mode = nextSideNavMode(resolveSideNavMode(config))
+    ConfigManager.set({
+      sideNavMode: mode,
+      isSideNavFolded: isFoldedFor(mode)
     })
+    dispatch({ type: 'SET_SIDE_NAV_MODE', mode })
 
     if (showSearch && searchText.length === 0) {
       this.setState({
@@ -735,6 +745,9 @@ class SideNav extends React.Component {
     const isFolded = config.isSideNavFolded
     const style = {}
     if (!isFolded) style.width = this.props.width
+    // HIDDEN: アンマウントせず display:none。検索文字列を失わず、
+    // offsetParent が null になるので Shift+Tab の行き先にもならない
+    if (isHiddenFor(resolveSideNavMode(config))) style.display = 'none'
     const isTagActive = /tag/.test(location.pathname)
 
     const navSearch = (

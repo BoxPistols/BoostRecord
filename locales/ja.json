@@ -321,6 +321,7 @@
   "Descending Order": "降順に並べる",
   "Provider in use": "使用するプロバイダ",
   "AI actions use this provider. Both providers can be configured below.": "AI 機能はこちらのプロバイダを使います。下の両方の設定は同時に保存できます。",
+  "No API key is bundled — bring your own. Keys you enter are saved on this device only, and are sent to the provider's API when you use an AI action.": "API キーは同梱していません。各自でご用意ください。入力したキーはこの端末にのみ保存され、AI 機能の実行時に各プロバイダの API へ送信されます。",
   "Custom color…": "その他の色…",
   "Toggle Info Panel": "情報パネルの表示切替",
   "View": "表示",

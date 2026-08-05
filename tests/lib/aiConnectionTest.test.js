@@ -13,10 +13,8 @@ jest.mock('electron', () => ({
   app: { getPath: () => '/tmp', getName: () => 'test', getVersion: () => '0' }
 }))
 
-const {
-  testAiConnection,
-  DEFAULT_MODELS
-} = require('browser/main/lib/aiAssist')
+const { testAiConnection } = require('browser/main/lib/aiAssist')
+const { DEFAULT_MODELS } = require('browser/main/lib/aiModels')
 
 beforeEach(() => {
   mockInvoke.mockReset()

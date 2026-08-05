@@ -3,6 +3,11 @@ import RcParser from 'browser/lib/RcParser'
 import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
 import { DEFAULT_MODELS, normalizeAiModels } from 'browser/main/lib/aiModels'
+import {
+  EXPANDED,
+  resolveSideNavMode,
+  isFoldedFor
+} from 'browser/main/lib/sideNavMode'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -35,7 +40,13 @@ const DEFAULT_CSS_CONFIG = `
 
 export const DEFAULT_CONFIG = {
   zoom: 1,
+  // 旧 boolean。sideNavMode から導出した値を必ず同時に入れる
+  // （まだ boolean を見ている参照が残っているため）
   isSideNavFolded: false,
+  // サイドバーの表示モード: EXPANDED | FOLDED | HIDDEN。
+  // Cmd+B がこの順で巡回する。validate() には足さない
+  // （既存の設定ファイルに無いキーを必須にすると全部無効判定になる）
+  sideNavMode: EXPANDED,
   // ノート一覧ペインの折りたたみ。既存の設定ファイルにはこのキーが無いので
   // validate() では必須にしない（必須にすると既存ユーザーの設定が全て無効に
   // 判定され、初期値へ巻き戻る）
@@ -225,9 +236,18 @@ function fillEmptyHotkeys(config) {
 
 function get() {
   const rawStoredConfig = window.localStorage.getItem('config')
-  let storedConfig = fillEmptyHotkeys(
-    mergeWithDefaults(DEFAULT_CONFIG, JSON.parse(rawStoredConfig))
-  )
+  const parsed = JSON.parse(rawStoredConfig)
+  let storedConfig = fillEmptyHotkeys(mergeWithDefaults(DEFAULT_CONFIG, parsed))
+
+  // sideNavMode を持たない古い設定は旧 boolean から導く。merge 後だと既定の
+  // EXPANDED で埋まってしまい、畳んで使っていた人の状態が毎回戻るので、
+  // マージ前の生データを見る。isSideNavFolded は常に導出値で揃える
+  // （まだ boolean を見ている参照が残っている）
+  const sideNavMode = resolveSideNavMode(parsed)
+  storedConfig = Object.assign({}, storedConfig, {
+    sideNavMode,
+    isSideNavFolded: isFoldedFor(sideNavMode)
+  })
 
   // 廃止したモデル ID（gpt-5-mini 等）が保存されたままだと API 呼び出しが
   // 失敗し続けるので、提供中の一覧に無い ID は既定へ寄せて保存し直す。

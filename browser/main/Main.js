@@ -9,6 +9,7 @@ import NoteList from './NoteList'
 import Detail from './Detail'
 import dataApi from 'browser/main/lib/dataApi'
 import _ from 'lodash'
+import { resolveSideNavMode, isHiddenFor } from 'browser/main/lib/sideNavMode'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import mobileAnalytics from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import eventEmitter from 'browser/main/lib/eventEmitter'
@@ -516,6 +517,10 @@ class Main extends React.Component {
     // 折りたたみ中はノート一覧の占有幅を 0 にして Detail を左端まで広げる。
     // コンポーネント自体はマウントしたまま（アンマウントすると検索文字列や
     // スクロール位置が失われる）
+    // Cmd+B の3サイクルの3つ目。サイドバーは display:none で消すが
+    // コンポーネントはマウントしたまま（検索文字列が失われないうえ、
+    // offsetParent が null になるので Shift+Tab の行き先からも自然に外れる）
+    const isSideNavHidden = isHiddenFor(resolveSideNavMode(config))
     const isNoteListFolded = !!config.isNoteListFolded
     // 隠さず細くする。display:none にすると一覧そのものが消えてしまい、
     // 何のペインだったのか手がかりが残らない
@@ -558,7 +563,9 @@ class Main extends React.Component {
           id='main-body'
           ref='body'
           style={{
-            left: config.isSideNavFolded
+            left: isSideNavHidden
+              ? 0
+              : config.isSideNavFolded
               ? foldedNavigationWidth
               : this.state.navWidth
           }}

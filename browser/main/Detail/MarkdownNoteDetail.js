@@ -45,6 +45,12 @@ import i18n from 'browser/lib/i18n'
 // 勝手 に Split へ落ちていた。config には持たない（新規ノートの開き方は
 // 変えたくない）ので、セッション内だけ保持する。
 // 目次ペインの幅。狭すぎると見出しが読めず、広すぎると本文が潰れる
+// TodoListPercentage は position:absolute / top:72px / height:17px / z-index:100 で
+// 全幅を覆い、.body（上端 69px）へ 20px ぶん食い込む。目次はその分だけ下げる。
+// エディタは中身に余白があるため見た目には当たっていない。
+// 高さ 17 ではなく「バー下端 89 − body 上端 69」が必要な値（実測で確定）
+const TODO_BAR_OFFSET = 20
+
 const DEFAULT_TOC_WIDTH = 200
 const MIN_TOC_WIDTH = 140
 const MAX_TOC_WIDTH = 480
@@ -695,6 +701,8 @@ class MarkdownNoteDetail extends React.Component {
     const { note } = this.state
     // 目次は Markdown ノートだけ。設定で消せる
     const showToc = (config.preview || {}).showToc !== false
+    // TODO が無ければバーは display:none なので下げない（無駄な余白を作らない）
+    const hasTodoBar = !isNaN(getTodoPercentageOfCompleted(note.content))
     // ドラッグ中は state を見る（config へ書くのは離した時）
     const tocWidth =
       this.state.tocWidth != null
@@ -780,16 +788,6 @@ class MarkdownNoteDetail extends React.Component {
             zoom={config.zoom}
             onChange={zoom => this.handleFontSizeChange(zoom)}
           />
-          {/* 目次を閉じるとペインごと導線が消えるので、ここから戻せるようにする */}
-          <button
-            styleName={showToc ? 'toc-toggle--active' : 'toc-toggle'}
-            onClick={() => this.handleToggleToc(!showToc)}
-            title={i18n.__(showToc ? 'Hide Outline' : 'Show Outline')}
-            aria-label={i18n.__(showToc ? 'Hide Outline' : 'Show Outline')}
-            aria-pressed={showToc}
-          >
-            <i className='fa fa-list-ul' aria-hidden='true' />
-          </button>
           <ModeSwitcher
             viewMode={this.getViewMode()}
             onChange={this.handleSetViewMode}
@@ -804,6 +802,19 @@ class MarkdownNoteDetail extends React.Component {
             onClick={e => this.handleStarButtonClick(e)}
             isActive={note.isStarred}
           />
+
+          {/* 目次の表示切替。ModeSwitcher のピル内に置くと並びが崩れるので、
+              右端の単独アイコン群に合流させる。閉じるとペインごと導線が
+              消えるため、戻す手段としてもここが要る */}
+          <button
+            styleName={showToc ? 'toc-toggle--active' : 'toc-toggle'}
+            onClick={() => this.handleToggleToc(!showToc)}
+            title={i18n.__(showToc ? 'Hide Outline' : 'Show Outline')}
+            aria-label={i18n.__(showToc ? 'Hide Outline' : 'Show Outline')}
+            aria-pressed={showToc}
+          >
+            <i className='fa fa-list-ul' aria-hidden='true' />
+          </button>
 
           <TrashButton onClick={e => this.handleTrashButtonClick(e)} />
 
@@ -852,7 +863,13 @@ class MarkdownNoteDetail extends React.Component {
             {this.renderEditor()}
           </div>
           {showToc && (
-            <div styleName='body-toc' style={{ width: tocWidth }}>
+            <div
+              styleName='body-toc'
+              style={{
+                width: tocWidth,
+                top: hasTodoBar ? TODO_BAR_OFFSET : 0
+              }}
+            >
               <div
                 styleName='toc-slider'
                 onMouseDown={e => this.handleTocSliderMouseDown(e)}

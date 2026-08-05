@@ -10,7 +10,7 @@
 //
 // Run: TB_E2E_PROBE=dev-scripts/e2e-snippettab-probe.js \
 //      TB_E2E_RESULT=/tmp/snippettab-result.json electron .
-const { app } = require('electron')
+const { app, Menu, BrowserWindow } = require('electron')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
@@ -296,6 +296,48 @@ app.on('web-contents-created', (_e, wc) => {
         rep.afterPrev = await wc.executeJavaScript(layout(), true)
         rep.checks.prevTabWithBracket =
           !!rep.afterPrev && rep.afterPrev.activeIndex === 1
+
+        // ネイティブメニュー経由（実機で Cmd+Shift+[ が DOM まで届かないため
+        // メニュー項目として登録した経路）。sendInputEvent は OS のメニュー
+        // 判定を通らないので、ここは menu item を直接クリックして配線を見る
+        const menu = Menu.getApplicationMenu()
+        const findItem = (m, label) => {
+          if (!m) return null
+          for (const item of m.items) {
+            if (item.label === label) return item
+            if (item.submenu) {
+              const found = findItem(item.submenu, label)
+              if (found) return found
+            }
+          }
+          return null
+        }
+        const win = BrowserWindow.getAllWindows()[0]
+        const nextItem = findItem(menu, 'Next Snippet Tab')
+        const prevItem = findItem(menu, 'Previous Snippet Tab')
+        rep.menuItems = {
+          next: nextItem ? String(nextItem.accelerator) : null,
+          prev: prevItem ? String(prevItem.accelerator) : null
+        }
+        rep.checks.snippetTabMenuItemsExist = !!nextItem && !!prevItem
+        if (nextItem && prevItem) {
+          const before = await wc.executeJavaScript(layout(), true)
+          nextItem.click(nextItem, win, {})
+          await new Promise(resolve => setTimeout(resolve, 500))
+          const afterMenuNext = await wc.executeJavaScript(layout(), true)
+          prevItem.click(prevItem, win, {})
+          await new Promise(resolve => setTimeout(resolve, 500))
+          const afterMenuPrev = await wc.executeJavaScript(layout(), true)
+          rep.menuTab = {
+            before: before.activeIndex,
+            afterNext: afterMenuNext.activeIndex,
+            afterPrev: afterMenuPrev.activeIndex
+          }
+          rep.checks.menuNextTabMoves =
+            afterMenuNext.activeIndex !== before.activeIndex
+          rep.checks.menuPrevTabReturns =
+            afterMenuPrev.activeIndex === before.activeIndex
+        }
 
         await pressKey(wc, ']', [PRIMARY, 'shift'])
         rep.afterNext = await wc.executeJavaScript(layout(), true)

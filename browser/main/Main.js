@@ -38,7 +38,10 @@ const MAX_FOLDED_LIST_WIDTH = 200
 // 最大幅。600px まで広げられたが、どちらもタイトルの長さ以上には情報が
 // 増えないため無駄に場所を取っていた。実用上の上限に寄せる
 const MAX_LIST_WIDTH = 360
-const MAX_NAV_WIDTH = 200
+// 既定値と同値だと「広げる」逃げ道が無くなる。多階層になるとインデントの分
+// ラベルが削られ、末尾省略で葉の名前（唯一の識別情報）が消えるので広げられる
+// 必要がある
+const MAX_NAV_WIDTH = 400
 
 // ショートカット表記の OS 出し分け（キー名はハードコードしない）
 const isMac = /Mac|iPhone|iPad|iPod/.test(

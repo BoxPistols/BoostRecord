@@ -34,6 +34,8 @@ import markdownToc from 'browser/lib/markdown-toc-generator'
 import queryString from 'query-string'
 import { replace } from 'connected-react-router'
 import ToggleDirectionButton from 'browser/main/Detail/ToggleDirectionButton'
+import TocPane from 'browser/main/Detail/TocPane'
+import i18n from 'browser/lib/i18n'
 
 // Preview-only は「今の見え方」であってノート単位の属性ではないので、
 // コンポーネント state だけに置いてはいけない。Detail/index.js はノート種別で
@@ -130,6 +132,39 @@ class MarkdownNoteDetail extends React.Component {
         this.handleSetViewMode('PREVIEW')
       }
     }
+  }
+
+  /**
+   * 目次から見出しへ飛ぶ。slug ではなく行番号で引く（プレビューは data-line を
+   * 持っている）。エディタとプレビューのどちらが出ていても効くよう、両方に
+   * 当てる。参照が取れない構成では黙って何もしない
+   */
+  handleTocJump(line) {
+    const content = this.refs.content
+    if (!content) return
+    const preview =
+      (content.previewRef && content.previewRef.current) ||
+      (content.refs && content.refs.preview)
+    if (preview && typeof preview.scrollToLine === 'function') {
+      preview.scrollToLine(line)
+    }
+    const code = content.refs && content.refs.code
+    const cm = code && code.editor
+    if (cm && typeof cm.setCursor === 'function') {
+      cm.setCursor({ line, ch: 0 })
+      cm.scrollIntoView({ line, ch: 0 }, 200)
+    }
+  }
+
+  /**
+   * 目次の表示切替。閉じると再表示の導線がペインごと消えるので、
+   * ツールバーのボタンから戻せるようにしてある
+   */
+  handleToggleToc(next) {
+    const { config, dispatch } = this.props
+    const preview = Object.assign({}, config.preview, { showToc: !!next })
+    ConfigManager.set({ preview })
+    dispatch({ type: 'SET_UI', config: { preview } })
   }
 
   // Current view as one of the 3 switcher values.
@@ -610,6 +645,8 @@ class MarkdownNoteDetail extends React.Component {
   render() {
     const { data, dispatch, location, config } = this.props
     const { note } = this.state
+    // 目次は Markdown ノートだけ。設定で消せる
+    const showToc = (config.preview || {}).showToc !== false
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -690,6 +727,16 @@ class MarkdownNoteDetail extends React.Component {
             zoom={config.zoom}
             onChange={zoom => this.handleFontSizeChange(zoom)}
           />
+          {/* 目次を閉じるとペインごと導線が消えるので、ここから戻せるようにする */}
+          <button
+            styleName={showToc ? 'toc-toggle--active' : 'toc-toggle'}
+            onClick={() => this.handleToggleToc(!showToc)}
+            title={i18n.__(showToc ? 'Hide Outline' : 'Show Outline')}
+            aria-label={i18n.__(showToc ? 'Hide Outline' : 'Show Outline')}
+            aria-pressed={showToc}
+          >
+            <i className='fa fa-list-ul' aria-hidden='true' />
+          </button>
           <ModeSwitcher
             viewMode={this.getViewMode()}
             onChange={this.handleSetViewMode}
@@ -744,7 +791,19 @@ class MarkdownNoteDetail extends React.Component {
       >
         {location.pathname === '/trashed' ? trashTopBar : detailTopBar}
 
-        <div styleName='body'>{this.renderEditor()}</div>
+        <div styleName={showToc ? 'body--with-toc' : 'body'}>
+          {this.renderEditor()}
+        </div>
+        {showToc && (
+          <div styleName='toc-pane'>
+            <TocPane
+              content={note.content}
+              config={config}
+              onJump={line => this.handleTocJump(line)}
+              onClose={() => this.handleToggleToc(false)}
+            />
+          </div>
+        )}
 
         <StatusBar
           {..._.pick(this.props, ['config', 'location', 'dispatch'])}

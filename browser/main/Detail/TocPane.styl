@@ -1,0 +1,100 @@
+// 目次ペイン。プレビューの右に常設する。
+$toc-width = 200px
+
+.root
+  flex 0 0 $toc-width
+  width $toc-width
+  display flex
+  flex-direction column
+  overflow hidden
+  border-left $ui-border
+  background-color $ui-backgroundColor
+
+.header
+  flex 0 0 auto
+  display flex
+  align-items center
+  justify-content space-between
+  gap 6px
+  padding 6px 6px 6px 10px
+  border-bottom $ui-border
+
+.title
+  font-size 11px
+  font-weight 700
+  letter-spacing 0.06em
+  text-transform uppercase
+  color $ui-inactive-text-color
+  white-space nowrap
+  overflow hidden
+  text-overflow ellipsis
+
+.close
+  flex 0 0 auto
+  width 22px
+  height 22px
+  padding 0
+  border none
+  border-radius 4px
+  background-color transparent
+  color $ui-inactive-text-color
+  cursor pointer
+  &:hover
+    color $ui-text-color
+  &:focus
+    outline none
+    box-shadow inset 0 0 0 2px $ui-active-color
+
+.list
+  flex 1 1 auto
+  overflow-y auto
+  margin 0
+  padding 4px 0
+  list-style none
+
+.item
+  display block
+  width 100%
+  padding 4px 10px
+  border none
+  background-color transparent
+  color $ui-text-color
+  font-size 12px
+  line-height 1.5
+  text-align left
+  cursor pointer
+  // 長い見出しで横スクロールを出さない
+  white-space nowrap
+  overflow hidden
+  text-overflow ellipsis
+  &:hover
+    background-color $ui-button--hover-backgroundColor
+  &:focus
+    outline none
+    box-shadow inset 2px 0 0 $ui-active-color
+
+.empty
+  padding 12px 10px
+  font-size 12px
+  line-height 1.6
+  color $ui-inactive-text-color
+
+apply-theme(theme)
+  body[data-theme={theme}]
+    .root
+      border-color get-theme-var(theme, 'borderColor')
+      background-color get-theme-var(theme, 'backgroundColor')
+    .header
+      border-color get-theme-var(theme, 'borderColor')
+    .title
+      color get-theme-var(theme, 'inactive-text-color')
+    .item
+      color get-theme-var(theme, 'text-color')
+    .empty
+      color get-theme-var(theme, 'inactive-text-color')
+
+for theme in 'white' 'dark' 'solarized-dark' 'dracula'
+  apply-theme(theme)
+
+for theme in $themes
+  apply-theme(theme)

@@ -165,6 +165,13 @@ function pressKey(wc, keyCode, modifiers = []) {
   return new Promise(resolve => setTimeout(resolve, 350))
 }
 
+async function shootPane(win, name) {
+  const img = await win.webContents.capturePage()
+  const file = path.join(SHOT_DIR, name)
+  fs.writeFileSync(file, img.toPNG())
+  shots.push(file)
+}
+
 app.on('web-contents-created', (_e, wc) => {
   wc.on('did-finish-load', () => {
     setTimeout(async () => {
@@ -224,6 +231,76 @@ app.on('web-contents-created', (_e, wc) => {
           ring
         )
 
+        // ---------- (3) 目次ペイン ----------
+        // .cson を直接置く方式ではノートが一覧に出ないので、他の probe と同じく
+        // UI からノートを作る（NewNoteButton → モーダル → CodeMirror へ流し込み）
+        const made = await wc.executeJavaScript(
+          `(async () => { const sleep = ms => new Promise(r => setTimeout(r, ms))
+             const newBtn = document.querySelector('.NewNoteButton button')
+             if (!newBtn) return { ok: false, step: 'no NewNoteButton' }
+             newBtn.click(); await sleep(700)
+             const modal = document.querySelector('.ModalBase') || document
+             const md = Array.from(modal.querySelectorAll('button'))
+               .find(b => /markdown|マークダウン/i.test(b.textContent))
+             if (!md) return { ok: false, step: 'no markdown button' }
+             md.click()
+             let cm = null
+             for (let i = 0; i < 40; i++) {
+               cm = document.querySelector('.CodeMirror')
+               if (cm && cm.CodeMirror && cm.CodeMirror.getValue() === '') break
+               cm = null; await sleep(250)
+             }
+             if (!cm) return { ok: false, step: 'no empty editor' }
+             cm.CodeMirror.setValue(
+               '# Alpha\\n\\ntext\\n\\n## Beta\\n\\n\\\`\\\`\\\`sh\\n# not a heading\\n\\\`\\\`\\\`\\n\\n### Gamma\\n'
+             )
+             await sleep(1200)
+             return { ok: true }
+           })()`,
+          true
+        )
+        check('ノートを作れる', made.ok, made)
+        if (!made.ok)
+          return finish(2, { error: 'probe setup failed: ' + made.step })
+
+        const tocView = await wc.executeJavaScript(
+          `(() => {
+             const pane = document.querySelector('.TocPane')
+             const editor = document.querySelector('.MarkdownSplitEditor, .NoteDetail')
+             const r = pane ? pane.getBoundingClientRect() : null
+             const e = editor ? editor.getBoundingClientRect() : null
+             return {
+               paneVisible: !!(pane && pane.offsetParent !== null),
+               paneRect: r ? { x: Math.round(r.x), w: Math.round(r.width), h: Math.round(r.height) } : null,
+               editorWidth: e ? Math.round(e.width) : null,
+               toggle: !!document.querySelector('button i.fa-list-ul')
+             }
+           })()`,
+          true
+        )
+        tocView.items = await wc.executeJavaScript(
+          `(() => Array.from(document.querySelectorAll('.TocPane button'))
+             .map(b => (b.textContent || '').trim()).filter(Boolean))()`,
+          true
+        )
+        note('目次ペイン', tocView)
+        check(
+          '見出しが並ぶ（コードフェンス内の # は入らない）',
+          JSON.stringify(tocView.items) ===
+            JSON.stringify(['Alpha', 'Beta', 'Gamma']),
+          tocView.items
+        )
+        check('目次ペインが描画されている', tocView.paneVisible, tocView)
+        check(
+          '目次ペインに幅と高さがある（潰れていない）',
+          !!tocView.paneRect &&
+            tocView.paneRect.w > 100 &&
+            tocView.paneRect.h > 100,
+          tocView.paneRect
+        )
+        check('目次の表示切替ボタンがある', tocView.toggle)
+        await shootPane(win, 'toc-pane.png')
+
         // ---------- (1) Preview がスニペットを跨いで保たれるか ----------
         // アプリは seed した boostnote.json のフォルダキーを無視して自前生成
         // する。先に .cson を置いても folder が一致せず一覧に出ないので、
@@ -279,6 +356,19 @@ app.on('web-contents-created', (_e, wc) => {
           if (loaded.titles.some(t => t.indexOf('MDTOP') !== -1)) break
         }
         note('note list (seed 後)', loaded)
+        note(
+          'アプリが持っている storages',
+          await wc.executeJavaScript(
+            `(() => { try { return JSON.parse(localStorage.getItem('storages')) } catch (e) { return String(e) } })()`,
+            true
+          )
+        )
+        note('notes ディレクトリの中身', {
+          files: fs.readdirSync(notesDir),
+          boostnote: JSON.parse(
+            fs.readFileSync(path.join(storageDir, 'boostnote.json'), 'utf8')
+          )
+        })
         const seededOk = ['MDTOP', 'SNIPMID', 'MDBOTTOM'].every(t =>
           loaded.titles.some(x => x.indexOf(t) !== -1)
         )

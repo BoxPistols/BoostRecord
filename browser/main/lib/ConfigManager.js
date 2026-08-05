@@ -2,6 +2,7 @@ import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
 import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
+import { DEFAULT_MODELS, normalizeAiModels } from 'browser/main/lib/aiModels'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -168,10 +169,12 @@ export const DEFAULT_CONFIG = {
     prefixAttachmentFolder: false
   },
   coloredTags: {},
+  // 既定モデルは aiModels の一覧から取る。ここに ID を直書きすると
+  // モデル更新のたびに片方だけ古いまま残る
   ai: {
     provider: 'openai', // 'openai' | 'gemini'
-    openai: { apiKey: '', model: 'gpt-5-mini' },
-    gemini: { apiKey: '', model: 'gemini-2.5-flash' }
+    openai: { apiKey: '', model: DEFAULT_MODELS.openai },
+    gemini: { apiKey: '', model: DEFAULT_MODELS.gemini }
   }
 }
 
@@ -222,9 +225,21 @@ function fillEmptyHotkeys(config) {
 
 function get() {
   const rawStoredConfig = window.localStorage.getItem('config')
-  const storedConfig = fillEmptyHotkeys(
+  let storedConfig = fillEmptyHotkeys(
     mergeWithDefaults(DEFAULT_CONFIG, JSON.parse(rawStoredConfig))
   )
+
+  // 廃止したモデル ID（gpt-5-mini 等）が保存されたままだと API 呼び出しが
+  // 失敗し続けるので、提供中の一覧に無い ID は既定へ寄せて保存し直す。
+  // 一度書き戻せば以降は一致するので、実質「起動時に1回」で終わる。
+  // .boostnoterc 由来の値は下の assignConfigValues で後から重なるため
+  // ここでは触らない（明示指定の逃げ道を潰さない）
+  const migratedAi = normalizeAiModels(storedConfig.ai)
+  if (migratedAi !== storedConfig.ai) {
+    storedConfig = Object.assign({}, storedConfig, { ai: migratedAi })
+    _save(storedConfig)
+  }
+
   let config = storedConfig
 
   try {

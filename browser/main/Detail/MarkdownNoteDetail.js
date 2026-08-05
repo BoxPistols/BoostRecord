@@ -44,6 +44,11 @@ import i18n from 'browser/lib/i18n'
 // 上下キーでノートを送っていると、スニペットを通過した瞬間に全面 Preview が
 // 勝手 に Split へ落ちていた。config には持たない（新規ノートの開き方は
 // 変えたくない）ので、セッション内だけ保持する。
+// 目次ペインの幅。狭すぎると見出しが読めず、広すぎると本文が潰れる
+const DEFAULT_TOC_WIDTH = 200
+const MIN_TOC_WIDTH = 140
+const MAX_TOC_WIDTH = 480
+
 let sessionPreviewOnly = false
 
 // テスト用。実アプリからは呼ばない
@@ -77,6 +82,8 @@ class MarkdownNoteDetail extends React.Component {
       // it never changes how new notes open — it's a per-session view toggle.
       // 直前の見え方を引き継ぐ（unmount を挟んでも Preview のまま）
       previewOnly: sessionPreviewOnly,
+      // ドラッグ中だけ使う一時値。離した時に config へ書く
+      tocWidth: null,
       RTL: false
     }
 
@@ -132,6 +139,40 @@ class MarkdownNoteDetail extends React.Component {
         this.handleSetViewMode('PREVIEW')
       }
     }
+  }
+
+  /**
+   * 目次の幅をドラッグで変える。mousemove / mouseup は window で受ける
+   * （ポインタがペインの外へ出ても追従させるため）。確定時にだけ config へ
+   * 書くので、ドラッグ中に保存が走り続けることはない
+   */
+  handleTocSliderMouseDown(e) {
+    e.preventDefault()
+    const startX = e.clientX
+    const startWidth =
+      (this.props.config.preview || {}).tocWidth || DEFAULT_TOC_WIDTH
+
+    const onMove = ev => {
+      // 右へ動かすほど目次は狭くなる（境界は目次の左端）
+      const next = Math.min(
+        MAX_TOC_WIDTH,
+        Math.max(MIN_TOC_WIDTH, startWidth - (ev.clientX - startX))
+      )
+      this.setState({ tocWidth: next })
+    }
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+      const width = this.state.tocWidth
+      this.setState({ tocWidth: null })
+      if (width == null) return
+      const { config, dispatch } = this.props
+      const preview = Object.assign({}, config.preview, { tocWidth: width })
+      ConfigManager.set({ preview })
+      dispatch({ type: 'SET_UI', config: { preview } })
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
   }
 
   /**
@@ -197,6 +238,12 @@ class MarkdownNoteDetail extends React.Component {
     this.focusNoteLinkHandler = () => this.focusNoteLink()
     ee.on('detail:toggleinfo', this.toggleInfoHandler)
     ee.on('detail:focusnotelink', this.focusNoteLinkHandler)
+    // 目次の表示切替（config.hotkey.toggleToc / 既定 Cmd+Shift+O）
+    this.toggleTocHandler = () =>
+      this.handleToggleToc(
+        !((this.props.config.preview || {}).showToc !== false)
+      )
+    ee.on('detail:toggletoc', this.toggleTocHandler)
   }
 
   /**
@@ -269,6 +316,7 @@ class MarkdownNoteDetail extends React.Component {
     ee.off('code:generate-toc', this.generateToc)
     ee.off('detail:toggleinfo', this.toggleInfoHandler)
     ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
+    ee.off('detail:toggletoc', this.toggleTocHandler)
     if (this.saveQueue != null) this.saveNow()
   }
 
@@ -647,6 +695,11 @@ class MarkdownNoteDetail extends React.Component {
     const { note } = this.state
     // 目次は Markdown ノートだけ。設定で消せる
     const showToc = (config.preview || {}).showToc !== false
+    // ドラッグ中は state を見る（config へ書くのは離した時）
+    const tocWidth =
+      this.state.tocWidth != null
+        ? this.state.tocWidth
+        : (config.preview || {}).tocWidth || DEFAULT_TOC_WIDTH
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -791,19 +844,31 @@ class MarkdownNoteDetail extends React.Component {
       >
         {location.pathname === '/trashed' ? trashTopBar : detailTopBar}
 
-        <div styleName={showToc ? 'body--with-toc' : 'body'}>
-          {this.renderEditor()}
-        </div>
-        {showToc && (
-          <div styleName='toc-pane'>
-            <TocPane
-              content={note.content}
-              config={config}
-              onJump={line => this.handleTocJump(line)}
-              onClose={() => this.handleToggleToc(false)}
-            />
+        <div styleName='body'>
+          <div
+            styleName={showToc ? 'body-editor--with-toc' : 'body-editor'}
+            style={showToc ? { right: tocWidth } : undefined}
+          >
+            {this.renderEditor()}
           </div>
-        )}
+          {showToc && (
+            <div styleName='body-toc' style={{ width: tocWidth }}>
+              <div
+                styleName='toc-slider'
+                onMouseDown={e => this.handleTocSliderMouseDown(e)}
+                draggable='false'
+              >
+                <div styleName='toc-slider-hitbox' />
+              </div>
+              <TocPane
+                content={note.content}
+                config={config}
+                onJump={line => this.handleTocJump(line)}
+                onClose={() => this.handleToggleToc(false)}
+              />
+            </div>
+          )}
+        </div>
 
         <StatusBar
           {..._.pick(this.props, ['config', 'location', 'dispatch'])}

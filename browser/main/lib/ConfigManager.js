@@ -92,7 +92,9 @@ export const DEFAULT_CONFIG = {
     // （バインドはされるが keydown と一致せず発火しない）。
     // Shift + L は「表示／非表示」と重なるので C = Copy を使う
     // （HTMLで貼り付け = Shift + V と対になる）
-    focusNoteLink: OSX ? 'Command + Shift + C' : 'Ctrl + Shift + C'
+    focusNoteLink: OSX ? 'Command + Shift + C' : 'Ctrl + Shift + C',
+    // 目次ペインの表示切替。Command + Shift + O（Outline）
+    toggleToc: OSX ? 'Command + Shift + O' : 'Ctrl + Shift + O'
   },
   ui: {
     language: 'ja',
@@ -177,7 +179,9 @@ export const DEFAULT_CONFIG = {
     // （既存の設定ファイルに無いキーを必須にすると初期値へ巻き戻る）
     showToc: true,
     tocMinLevel: 1,
-    tocMaxLevel: 3
+    tocMaxLevel: 3,
+    // 目次ペインの幅（ドラッグで変更 → ここに保存）
+    tocWidth: 200
   },
   export: {
     metadata: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'

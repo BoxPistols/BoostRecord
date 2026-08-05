@@ -41,6 +41,7 @@ $toc-width = 200px
   cursor pointer
   &:hover
     color $ui-text-color
+    background-color rgba(128, 128, 128, 0.18)
   &:focus
     outline none
     box-shadow inset 0 0 0 2px $ui-active-color
@@ -68,7 +69,10 @@ $toc-width = 200px
   overflow hidden
   text-overflow ellipsis
   &:hover
-    background-color $ui-button--hover-backgroundColor
+    // 固定色の hover 背景はテーマ次第で文字とコントラストが取れない。
+    // 暗テーマで明るい背景 + 薄い文字になり読めなくなっていた（実機で確認）。
+    // どちらのテーマでも「少しだけ明度が動く」中立の半透明にする
+    background-color rgba(128, 128, 128, 0.18)
   &:focus
     outline none
     box-shadow inset 2px 0 0 $ui-active-color

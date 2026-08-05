@@ -323,6 +323,7 @@
   "AI actions use this provider. Both providers can be configured below.": "AI 機能はこちらのプロバイダを使います。下の両方の設定は同時に保存できます。",
   "No API key is bundled — bring your own. Keys you enter are saved on this device only, and are sent to the provider's API when you use an AI action.": "API キーは同梱していません。各自でご用意ください。入力したキーはこの端末にのみ保存され、AI 機能の実行時に各プロバイダの API へ送信されます。",
   "In use": "使用中",
+  "Toggle Outline": "目次の表示切替",
   "Outline": "目次",
   "Hide Outline": "目次を隠す",
   "Show Outline": "目次を表示",

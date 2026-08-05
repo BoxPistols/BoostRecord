@@ -5,11 +5,12 @@ import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
+import { testAiConnection } from 'browser/main/lib/aiAssist'
 import {
   MODEL_OPTIONS,
   DEFAULT_MODELS,
-  testAiConnection
-} from 'browser/main/lib/aiAssist'
+  modelLabel
+} from 'browser/main/lib/aiModels'
 import uiThemes from 'browser/lib/ui-themes'
 
 const KEY_PATTERNS = {
@@ -347,6 +348,25 @@ class AITab extends React.Component {
         <div style={innerStyle}>
           <div style={pageTitleStyle}>AI Settings</div>
 
+          {/* BYOK 方針の明示。キーは同梱しないと決めたので、空欄のまま実行して
+              エラーで気づく状態にせず、設定画面の先頭で伝える */}
+          <div
+            style={{
+              fontSize: 12,
+              lineHeight: '1.6',
+              color: c.dim,
+              background: c.cardBg,
+              border: `1px solid ${c.cardBorder}`,
+              borderRadius: 8,
+              padding: '10px 14px',
+              marginBottom: 10
+            }}
+          >
+            {i18n.__(
+              "No API key is bundled — bring your own. Keys you enter are saved on this device only, and are sent to the provider's API when you use an AI action."
+            )}
+          </div>
+
           {/* Provider: どちらを使うかの設定。下の OpenAI / Gemini カードは
               常に両方出ているので、タブと誤読されないよう説明を添える */}
           <div style={cardStyle}>
@@ -395,8 +415,7 @@ class AITab extends React.Component {
               >
                 {modelChoices('openai', openaiModel).map((m, i) => (
                   <option key={m} value={m}>
-                    {m}
-                    {i === 0 ? ' （既定）' : ''}
+                    {modelLabel(m, i === 0)}
                   </option>
                 ))}
               </select>
@@ -427,8 +446,7 @@ class AITab extends React.Component {
               >
                 {modelChoices('gemini', geminiModel).map((m, i) => (
                   <option key={m} value={m}>
-                    {m}
-                    {i === 0 ? ' （既定）' : ''}
+                    {modelLabel(m, i === 0)}
                   </option>
                 ))}
               </select>

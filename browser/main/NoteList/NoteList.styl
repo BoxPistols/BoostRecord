@@ -60,6 +60,13 @@ $control-height = 30px
   absolute left right bottom
   top $control-height
   overflow auto
+  // Tab でこのペインへフォーカスが移ったことを見せる。
+  // これが無い間、Tab は正しくフォーカスを動かしていたのに画面が一切
+  // 変わらず「Tab が効かない」と受け取られていた（実測: 移動後の
+  // activeElement は .list、outline:none / box-shadow:none）
+  &:focus
+    outline none
+    box-shadow inset 0 0 0 2px $ui-active-color
 
 // Bulk-action bar shown when 2+ notes are selected (multi-select via
 // cmd/shift-click). Overlays just below the sort/view header.

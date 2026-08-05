@@ -35,6 +35,20 @@ import queryString from 'query-string'
 import { replace } from 'connected-react-router'
 import ToggleDirectionButton from 'browser/main/Detail/ToggleDirectionButton'
 
+// Preview-only は「今の見え方」であってノート単位の属性ではないので、
+// コンポーネント state だけに置いてはいけない。Detail/index.js はノート種別で
+// 別コンポーネント（SnippetNoteDetail）を描くため、スニペットノートを1件挟むと
+// MarkdownNoteDetail が unmount され、戻った時に false で作り直される。
+// 上下キーでノートを送っていると、スニペットを通過した瞬間に全面 Preview が
+// 勝手 に Split へ落ちていた。config には持たない（新規ノートの開き方は
+// 変えたくない）ので、セッション内だけ保持する。
+let sessionPreviewOnly = false
+
+// テスト用。実アプリからは呼ばない
+export function __resetSessionPreviewOnly() {
+  sessionPreviewOnly = false
+}
+
 class MarkdownNoteDetail extends React.Component {
   constructor(props) {
     super(props)
@@ -59,7 +73,8 @@ class MarkdownNoteDetail extends React.Component {
       switchPreview: props.config.editor.switchPreview,
       // Transient preview-only view (editor hidden). Not persisted to config, so
       // it never changes how new notes open — it's a per-session view toggle.
-      previewOnly: false,
+      // 直前の見え方を引き継ぐ（unmount を挟んでも Preview のまま）
+      previewOnly: sessionPreviewOnly,
       RTL: false
     }
 
@@ -80,15 +95,19 @@ class MarkdownNoteDetail extends React.Component {
     // viewMode is derived from (editorType, previewOnly) so no new persisted
     // state is needed: SPLIT/EDITOR persist via editor.type, PREVIEW is the
     // transient previewOnly override.
+    // previewOnly の変更は必ずここを通す。state と一緒にセッション値も更新して
+    // おかないと、unmount 後に戻した時に古い値へ巻き戻る
+    this.setPreviewOnly = (value, callback) => {
+      sessionPreviewOnly = value
+      this.setState({ previewOnly: value }, callback)
+    }
     this.handleSetViewMode = mode => {
       if (mode === 'PREVIEW') {
-        this.setState({ previewOnly: true })
+        this.setPreviewOnly(true)
       } else if (mode === 'SPLIT') {
-        this.setState({ previewOnly: false }, () =>
-          this.handleSwitchMode('SPLIT')
-        )
+        this.setPreviewOnly(false, () => this.handleSwitchMode('SPLIT'))
       } else {
-        this.setState({ previewOnly: false }, () => {
+        this.setPreviewOnly(false, () => {
           this.handleSwitchMode('EDITOR_PREVIEW')
           this.focus()
         })

@@ -18,6 +18,7 @@ require('./lib/ipcClient')
 require('../lib/customMeta')
 import i18n from 'browser/lib/i18n'
 import ConfigManager from './lib/ConfigManager'
+import { migratePlaintextKeys } from './lib/aiKeys'
 
 const electron = require('electron')
 
@@ -161,6 +162,12 @@ ReactDOM.render(
   function() {
     const loadingCover = document.getElementById('loadingCover')
     loadingCover.parentNode.removeChild(loadingCover)
+
+    // localStorage に平文で残っている API キーを OS の資格情報ストアへ移す。
+    // 移せたものだけ平文を消すので、暗号化が使えない環境では今までどおり動く
+    migratePlaintextKeys().catch(err => {
+      console.warn('AI key migration skipped:', err)
+    })
 
     ipcRenderer.on('update-ready', function() {
       store.dispatch({

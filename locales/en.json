@@ -277,6 +277,7 @@
   "Provider in use": "Provider in use",
   "AI actions use this provider. Both providers can be configured below.": "AI actions use this provider. Both providers can be configured below.",
   "No API key is bundled — bring your own. Keys you enter are saved on this device only, and are sent to the provider's API when you use an AI action.": "No API key is bundled — bring your own. Keys you enter are saved on this device only, and are sent to the provider's API when you use an AI action.",
+  "In use": "In use",
   "Saved in this OS credential store": "Saved in this OS credential store",
   "Not set. The key is stored in this OS credential store.": "Not set. The key is stored in this OS credential store.",
   "Saved — enter a new key only to replace it": "Saved — enter a new key only to replace it",

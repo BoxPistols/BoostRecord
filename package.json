@@ -34,6 +34,7 @@
     "e2e:realinput": "cross-env TB_E2E_PROBE=dev-scripts/e2e-realinput-probe.js electron .",
     "e2e:snippettab": "cross-env TB_E2E_PROBE=dev-scripts/e2e-snippettab-probe.js electron .",
     "e2e:aikeys": "cross-env TB_E2E_PROBE=dev-scripts/e2e-aikeys-probe.js electron .",
+    "e2e:aitab": "cross-env TB_E2E_PROBE=dev-scripts/e2e-aitab-probe.js electron .",
     "pre-release": "node scripts/pre-release-check.mjs"
   },
   "config": {

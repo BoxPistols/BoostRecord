@@ -431,25 +431,57 @@ class AITab extends React.Component {
       letterSpacing: '-0.01em'
     }
 
-    const cardStyle = {
+    // 選択中の provider のカードは枠を accent にして「どちらが使われるか」を
+    // 画面上で分かるようにする。以前はセグメントを押しても下の表示が一切
+    // 変わらず、タブに見えるのに何も起きないコントロールになっていた
+    const cardStyle = (active = false) => ({
       background: c.cardBg,
-      border: `1px solid ${c.cardBorder}`,
+      border: `1px solid ${active ? c.accent : c.cardBorder}`,
       borderRadius: 8,
       padding: '16px 18px',
       marginBottom: 10
+    })
+
+    const cardTitleRowStyle = {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+      marginBottom: 14,
+      paddingBottom: 10,
+      borderBottom: `1px solid ${c.divider}`
     }
 
     const cardTitleStyle = {
-      display: 'block',
       fontSize: 12,
       fontWeight: 700,
       letterSpacing: '0.08em',
       textTransform: 'uppercase',
       color: c.muted,
-      marginBottom: 14,
-      paddingBottom: 10,
-      borderBottom: `1px solid ${c.divider}`
+      minWidth: 0,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
     }
+
+    const inUseBadgeStyle = {
+      flex: '0 0 auto',
+      padding: '2px 9px',
+      borderRadius: 999,
+      background: c.accent,
+      color: '#fff',
+      fontSize: 10,
+      fontWeight: 700,
+      letterSpacing: '0.04em'
+    }
+
+    // カード見出し。使用中の provider にはバッジを添える
+    const cardTitle = (label, active = false) => (
+      <div style={cardTitleRowStyle}>
+        <span style={cardTitleStyle}>{label}</span>
+        {active && <span style={inUseBadgeStyle}>{i18n.__('In use')}</span>}
+      </div>
+    )
 
     const fieldStyle = { marginBottom: 14 }
     const fieldLastStyle = { marginBottom: 0 }
@@ -544,8 +576,8 @@ class AITab extends React.Component {
 
           {/* Provider: どちらを使うかの設定。下の OpenAI / Gemini カードは
               常に両方出ているので、タブと誤読されないよう説明を添える */}
-          <div style={cardStyle}>
-            <span style={cardTitleStyle}>{i18n.__('Provider in use')}</span>
+          <div style={cardStyle()}>
+            {cardTitle(i18n.__('Provider in use'))}
             <div style={segWrapStyle}>
               {['openai', 'gemini'].map(p => (
                 <button
@@ -568,8 +600,8 @@ class AITab extends React.Component {
           </div>
 
           {/* OpenAI */}
-          <div style={cardStyle}>
-            <span style={cardTitleStyle}>OpenAI</span>
+          <div style={cardStyle(provider === 'openai')}>
+            {cardTitle('OpenAI', provider === 'openai')}
             <div style={fieldStyle}>
               <label style={labelStyle}>API Key</label>
               <input
@@ -600,8 +632,8 @@ class AITab extends React.Component {
           </div>
 
           {/* Gemini */}
-          <div style={cardStyle}>
-            <span style={cardTitleStyle}>Gemini</span>
+          <div style={cardStyle(provider === 'gemini')}>
+            {cardTitle('Gemini', provider === 'gemini')}
             <div style={fieldStyle}>
               <label style={labelStyle}>API Key</label>
               <input
@@ -632,8 +664,8 @@ class AITab extends React.Component {
           </div>
 
           {/* VOICEVOX TTS */}
-          <div style={cardStyle}>
-            <span style={cardTitleStyle}>VOICEVOX TTS</span>
+          <div style={cardStyle()}>
+            {cardTitle('VOICEVOX TTS')}
             <div style={fieldStyle}>
               <label style={labelStyle}>{i18n.__('Port')}</label>
               <input

@@ -40,6 +40,7 @@ import {
 } from 'browser/lib/metaKeyHold'
 
 const electron = require('electron')
+const { ipcRenderer } = electron
 const remote = require('@electron/remote')
 const { dialog } = remote
 
@@ -108,6 +109,29 @@ class SnippetNoteDetail extends React.Component {
     ee.on('detail:toggleinfo', this.toggleInfoHandler)
     ee.on('detail:focusnotelink', this.focusNoteLinkHandler)
     ee.on('topbar:togglepreviewbutton', this.togglePreviewHandler)
+
+    // ネイティブメニュー（Cmd/Ctrl+Shift+[ / ]）からのタブ移動。
+    // メニューの accelerator は webContents.send で来るので ipcRenderer で
+    // 受ける（eventEmitter だけでは届かない）。
+    // DOM の keydown 経路が先に動いていたら降りる。両方が同じ押下を拾うと
+    // 2つ先のタブへ飛ぶ（Windows/Linux では DOM にも届きうる）
+    this.ipcTabHandler = direction => () => {
+      if (Date.now() - (this.lastDomTabJumpAt || 0) < 300) {
+        window.__tbSnippetBracket = Object.assign(
+          {},
+          window.__tbSnippetBracket,
+          { ipcSkipped: true }
+        )
+        return
+      }
+      window.__tbSnippetBracket = { source: 'ipc', direction }
+      if (direction < 0) this.jumpPrevTab()
+      else this.jumpNextTab()
+    }
+    this.ipcPrevTab = this.ipcTabHandler(-1)
+    this.ipcNextTab = this.ipcTabHandler(1)
+    ipcRenderer.on('snippet:prev-tab', this.ipcPrevTab)
+    ipcRenderer.on('snippet:next-tab', this.ipcNextTab)
 
     const visibleTabs = this.visibleTabs
     const allTabs = this.allTabs
@@ -198,6 +222,8 @@ class SnippetNoteDetail extends React.Component {
     ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
     ee.off('topbar:togglepreviewbutton', this.togglePreviewHandler)
     if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
+    ipcRenderer.removeListener('snippet:prev-tab', this.ipcPrevTab)
+    ipcRenderer.removeListener('snippet:next-tab', this.ipcNextTab)
   }
 
   /** 情報パネルを開いてノートリンクを選択・コピーする（Markdown 側と同じ） */
@@ -683,6 +709,8 @@ class SnippetNoteDetail extends React.Component {
     }
     if (bracket !== 0) {
       e.preventDefault()
+      // IPC 経路との二重発火を防ぐ（先に動いた方が勝つ）
+      this.lastDomTabJumpAt = Date.now()
       if (bracket < 0) this.jumpPrevTab()
       else this.jumpNextTab()
       return

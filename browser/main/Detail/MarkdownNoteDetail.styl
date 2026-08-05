@@ -44,27 +44,44 @@
   bottom $statusBar-height
   margin 0 30px
 
-// 目次ペインを出す時は、本文側の右端を目次の幅だけ手前で止める。
-// エディタ（MarkdownEditor / MarkdownSplitEditor）はどちらも内部で
-// 絶対配置しており、flex 子にすると噛み合わない。親の right を動かすだけなら
-// エディタ側に一切触らずに済む
-$toc-pane-width = 200px
-.body--with-toc
-  @extend .body
-  right $toc-pane-width
+// 目次は **.body の内側** に置く。兄弟として外に出すと、上のタグ行や
+// TODO 進捗バー（clear ボタンを含む）に見出しが食い込んだ（実機で確認）。
+// .body の中なら座標系が完全に一致するので構造的に被らない。
+//
+// 幅はドラッグで変えられるので JS 側から style で上書きする。ここの値は
+// 初期値ではなく「変数を持たない時の保険」
+.body-editor
+  absolute top bottom left right
 
-// 目次は body の兄弟として右端に置く
-.toc-pane
-  // top/bottom は .body と揃える（ずれるとツールバーやステータスバーに被る）。
-  // nib の `absolute` は引数付き（absolute top left 等）で使うもので、
-  // 単独で書いても position:absolute が出ない。実測で静的配置のまま
-  // 左端に 121px の高さで置かれていた
+.body-editor--with-toc
+  @extend .body-editor
+  // right は JS 側で目次の実幅に合わせて上書きする
+  right 200px
+
+.body-toc
   position absolute
-  top $info-height + $info-margin-under-border
-  bottom $statusBar-height
-  right 30px
-  width $toc-pane-width
+  top 0
+  bottom 0
+  right 0
+  width 200px
   display flex
+
+// 目次の幅を変えるドラッグ用の境界。掴みやすいよう当たり判定を広げる
+.toc-slider
+  position absolute
+  top 0
+  bottom 0
+  width 1px
+  background-color $ui-borderColor
+  cursor col-resize
+  z-index 5
+
+.toc-slider-hitbox
+  position absolute
+  top 0
+  bottom 0
+  left -4px
+  width 9px
 
 .body-noteEditor
   absolute top bottom left right

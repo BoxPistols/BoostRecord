@@ -135,3 +135,13 @@ for theme in $themes
 .toc-toggle--active
   @extend .toc-toggle
   color $ui-active-color
+
+// 近隣の Trash / Info と同じ暗テーマ用の色を当てる。
+// これが無いと暗テーマで自分だけ明テーマの色のまま残り、
+// アイコン列の中で1つだけ沈んで見える（実機で指摘を受けた）
+body[data-theme="dark"]
+  .toc-toggle
+    topBarButtonDark()
+  .toc-toggle--active
+    topBarButtonDark()
+    color $ui-active-color

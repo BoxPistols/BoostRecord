@@ -19,6 +19,7 @@ require('../lib/customMeta')
 import i18n from 'browser/lib/i18n'
 import ConfigManager from './lib/ConfigManager'
 import { migratePlaintextKeys } from './lib/aiKeys'
+import { saveLastRoute, readLastRoute } from './lib/lastRoute'
 
 const electron = require('electron')
 
@@ -131,12 +132,20 @@ function downloadUpdate() {
   }
 }
 
+// 起動時に開くルートは render 前に一度だけ決める。描画中に読み直すと
+// 遷移のたびに初期値が変わってしまう
+const initialRoute = readLastRoute()
+// 以降の遷移を保存する。history.listen は unlisten を返すが、
+// このリスナはウィンドウと寿命を共にするので解除しない
+history.listen(location => saveLastRoute(location))
+
 ReactDOM.render(
   <Provider store={store}>
     <ConnectedRouter history={history}>
       <Fragment>
         <Switch>
-          <Redirect path='/' to='/home' exact />
+          {/* 起動時は最後に見ていたページへ戻す（未保存 / 未知の形なら /home） */}
+          <Redirect path='/' to={initialRoute} exact />
           <Route
             path='/(home|alltags|starred|bookmarked|trashed)'
             component={Main}

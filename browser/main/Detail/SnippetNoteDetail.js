@@ -660,6 +660,27 @@ class SnippetNoteDetail extends React.Component {
     // Shift を押している間 e.key は '{' '}' 等になるので判定に使えない。
     // 物理キー位置を指す e.code で見て、古い環境向けに keyCode も残す
     const bracket = getBracketDirection(e)
+    // 実機で「[ が効かない」が続いているので、判断の材料をそのまま残す。
+    // DevTools で window.__tbSnippetBracket を見れば、ハンドラまで来ているか /
+    // どの値で判定したか / 実際に何番のタブへ動いたかが一撃で分かる
+    // （undefined ならこのハンドラ自体が呼ばれていない）
+    if (
+      (global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey) &&
+      e.shiftKey
+    ) {
+      window.__tbSnippetBracket = {
+        key: e.key,
+        code: e.code,
+        keyCode: e.keyCode,
+        meta: e.metaKey,
+        ctrl: e.ctrlKey,
+        shift: e.shiftKey,
+        alt: e.altKey,
+        direction: bracket,
+        fromIndex: this.getActiveSnippetIndex(),
+        tabs: this.state.note.snippets.length
+      }
+    }
     if (bracket !== 0) {
       e.preventDefault()
       if (bracket < 0) this.jumpPrevTab()

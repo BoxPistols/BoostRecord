@@ -33,6 +33,7 @@ import markdownToc from 'browser/lib/markdown-toc-generator'
 import queryString from 'query-string'
 import { replace } from 'connected-react-router'
 import {
+  subscribe as subscribeMetaKey,
   getJumpNumber,
   getBracketDirection,
   MAX_JUMP_TARGETS

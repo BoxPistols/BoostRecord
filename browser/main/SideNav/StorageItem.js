@@ -208,6 +208,15 @@ class StorageItem extends React.Component {
     })
   }
 
+  /** 親フォルダの配下に作る。パスは自動で前置される */
+  handleAddSubfolderClick(parentPath) {
+    const { storage } = this.props
+    modal.open(CreateFolderModal, {
+      storage,
+      parentPath
+    })
+  }
+
   handleHeaderInfoClick(e) {
     const { storage, dispatch } = this.props
     dispatch(push('/storages/' + storage.key))
@@ -244,6 +253,12 @@ class StorageItem extends React.Component {
         // アイコンにできず、色見本を動的に作れない）
         label: i18n.__('Change Folder Color'),
         click: () => this.handleFolderColorClick(folder, anchor)
+      },
+      {
+        // ここから作れば「どこに作られるか」が明示され、パス表記を
+        // 手打ちしなくてよい
+        label: i18n.__('Add Subfolder'),
+        click: () => this.handleAddSubfolderClick(folder.name)
       },
       {
         type: 'separator'

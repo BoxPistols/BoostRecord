@@ -1,0 +1,118 @@
+// ノート内検索バー。エディタ／プレビューの上に重ねて出す。
+// 本文の幅を変えない（レイアウトが動くと読んでいた場所を見失う）ので
+// 絶対配置で浮かせる。
+// 位置は呼び出し側が style で決める。ツールバー・TODO バー・目次ペインの
+// 実測値を知っているのは MarkdownNoteDetail 側だけなので、ここで固定値を
+// 持つとどれかに必ず被る（実際 top:6px はツールバーを覆っていた）
+.root
+  position absolute
+  z-index 20
+  display flex
+  align-items center
+  // ペインが狭いと左へはみ出して虫眼鏡や入力欄が画面外へ出る。
+  // 収まる幅に抑え、入力欄が縮む側になるようにする
+  max-width calc(100% - 36px)
+  box-sizing border-box
+  gap 6px
+  padding 5px 6px 5px 10px
+  border-radius 8px
+  border 1px solid $ui-borderColor
+  background-color $ui-backgroundColor
+  box-shadow 0 6px 20px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.12)
+
+.icon
+  flex-shrink 0
+  font-size 11px
+  color $ui-inactive-text-color
+
+.input
+  flex 1 1 auto
+  min-width 0
+  width 190px
+  padding 3px 6px
+  border 1px solid transparent
+  border-radius 5px
+  background-color transparent
+  color $ui-text-color
+  font-size 13px
+  line-height 1.4
+  outline none
+  &::placeholder
+    color $ui-inactive-text-color
+  &:focus
+    border-color $ui-active-color
+
+// 0件は入力欄自体の色で伝える。文言を足すと横幅が伸びて本文を隠す
+.input--empty
+  @extend .input
+  &:focus
+    border-color #e74c3c
+
+.count
+  flex-shrink 0
+  min-width 52px
+  text-align right
+  font-size 12px
+  font-variant-numeric tabular-nums
+  color $ui-inactive-text-color
+
+.count--empty
+  @extend .count
+  color #e74c3c
+
+.step
+  flex-shrink 0
+  width 24px
+  height 24px
+  padding 0
+  border none
+  border-radius 5px
+  background-color transparent
+  color $ui-inactive-text-color
+  font-size 11px
+  cursor pointer
+  &:hover:not(:disabled)
+    color $ui-text-color
+    background-color rgba(128, 128, 128, 0.18)
+  &:disabled
+    opacity 0.35
+    cursor default
+  &:focus
+    outline none
+  &:focus-visible
+    box-shadow inset 0 0 0 2px $ui-active-color
+
+// いまどちらを探しているか（エディタ / プレビュー）。
+// 「検索」という語が3か所にある以上、対象を書かないと区別できない
+.target
+  flex-shrink 0
+  padding 0 4px
+  font-size 10px
+  letter-spacing 0.03em
+  color $ui-inactive-text-color
+  white-space nowrap
+
+.close
+  @extend .step
+
+apply-theme(theme)
+  body[data-theme={theme}]
+    .root
+      border-color get-theme-var(theme, 'borderColor')
+      background-color get-theme-var(theme, 'backgroundColor')
+    .input
+      color get-theme-var(theme, 'text-color')
+    .count
+      color get-theme-var(theme, 'inactive-text-color')
+    .target
+      color get-theme-var(theme, 'inactive-text-color')
+    .step
+      color get-theme-var(theme, 'inactive-text-color')
+      &:hover:not(:disabled)
+        color get-theme-var(theme, 'text-color')
+
+for theme in 'white' 'dark' 'solarized-dark' 'dracula'
+  apply-theme(theme)
+
+for theme in $themes
+  apply-theme(theme)

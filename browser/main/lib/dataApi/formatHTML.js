@@ -817,6 +817,17 @@ body p {
   }
 }
 
+/* ノート内検索のハイライト。iframe の中に注入しないと効かない。
+   ::highlight() は疑似要素なので background-color と color しか効かない。
+   **利用者のカスタム CSS より前に置く**（後ろに置くと上書きできなくなる） */
+::highlight(tb-find-all) {
+  background-color: rgba(255, 213, 79, 0.45);
+}
+::highlight(tb-find-active) {
+  background-color: #ff9800;
+  color: #1a1a1a;
+}
+
 ${allowCustomCSS ? customCSS : ''}
 `
 }

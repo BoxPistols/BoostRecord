@@ -342,6 +342,7 @@
   "No headings in this note": "このノートに見出しがありません",
   "Show the outline pane": "目次ペインを表示する",
   "Heading levels in the outline": "目次に含める見出しレベル",
+  "Show Note List": "ノート一覧を表示",
   "Show Side Bar": "サイドバーを表示",
   "Saved in this OS credential store": "この端末の資格情報ストアに保存済み",
   "Not set. The key is stored in this OS credential store.": "未設定です。キーはこの端末の資格情報ストアに保存されます。",
@@ -379,5 +380,6 @@
   "Next / previous match": "次 / 前の一致",
   "Replace all": "全置換",
   "Expand description": "説明欄を広げる",
-  "Collapse description": "説明欄を折りたたむ"
+  "Collapse description": "説明欄を折りたたむ",
+  "Reset": "色をリセット"
 }

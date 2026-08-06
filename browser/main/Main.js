@@ -9,7 +9,13 @@ import NoteList from './NoteList'
 import Detail from './Detail'
 import dataApi from 'browser/main/lib/dataApi'
 import _ from 'lodash'
-import { resolveSideNavMode, isHiddenFor } from 'browser/main/lib/sideNavMode'
+import {
+  resolveSideNavMode,
+  resolveNoteListMode,
+  nextSideNavMode,
+  isFoldedFor,
+  isHiddenFor
+} from 'browser/main/lib/sideNavMode'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import mobileAnalytics from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import eventEmitter from 'browser/main/lib/eventEmitter'
@@ -72,7 +78,7 @@ class Main extends React.Component {
 
     this.toggleFullScreen = () => this.handleFullScreenButton()
     // IPC は引数を伴うので、それを捨てるラッパーで受ける
-    this.toggleNoteListHandler = () => this.toggleNoteList()
+    this.toggleNoteListHandler = () => this.toggleNoteList('ee')
     this.paneTabHandler = e => this.handlePaneTab(e)
     // main プロセスの before-input-event からの転送 (#122)。DOM に Tab が
     // 届かない実機環境向けの「予備」経路。同じ押下を DOM も観測した場合は
@@ -198,15 +204,32 @@ class Main extends React.Component {
     return done('moved to note list')
   }
 
-  toggleNoteList() {
+  toggleNoteList(source) {
     // フルスクリーン中は hideLeftLists が DOM を直接触って一覧を隠しており、
     // ここで再描画すると React が display を戻して一覧が復活してしまう。
     // フルスクリーンでは一覧はそもそも見えないので、操作自体を無視する
     if (this.state.fullScreen) return
     const { dispatch, config } = this.props
-    const isFolded = !config.isNoteListFolded
-    ConfigManager.set({ isNoteListFolded: isFolded })
-    dispatch({ type: 'SET_IS_NOTELIST_FOLDED', isFolded })
+    // サイドバー(Cmd+B)と同じ3サイクル: 展開 → 細く → 完全に閉じる。
+    // 2状態だと畳んでも 100px 残り「少ししか閉じない」ことになる
+    const from = resolveNoteListMode(config)
+    const mode = nextSideNavMode(from)
+    // 「押しても切り替わらない」時の切り分け用（__tbPaneTab と同じ用途）。
+    // 呼ばれたか / 読んだ現在値は何か / 何回呼ばれたか、を1つで見る。
+    // 1クリックで2件並ぶ＝二重発火（実際にこれで検証側の欠陥を見つけた）
+    window.__tbNoteListMode = (window.__tbNoteListMode || [])
+      .concat([
+        `${source || '?'}:${from}>${mode}@${Math.round(
+          window.performance.now()
+        )}`
+      ])
+      .slice(-10)
+    ConfigManager.set({
+      noteListMode: mode,
+      // 旧 boolean を見ている参照が残っているので必ず同時に更新する
+      isNoteListFolded: isFoldedFor(mode)
+    })
+    dispatch({ type: 'SET_NOTE_LIST_MODE', mode })
   }
 
   getChildContext() {
@@ -524,13 +547,19 @@ class Main extends React.Component {
     // コンポーネントはマウントしたまま（検索文字列が失われないうえ、
     // offsetParent が null になるので Shift+Tab の行き先からも自然に外れる）
     const isSideNavHidden = isHiddenFor(resolveSideNavMode(config))
-    const isNoteListFolded = !!config.isNoteListFolded
-    // 隠さず細くする。display:none にすると一覧そのものが消えてしまい、
-    // 何のペインだったのか手がかりが残らない
-    const listWidth = isNoteListFolded
+    const noteListMode = resolveNoteListMode(config)
+    const isNoteListFolded = isFoldedFor(noteListMode)
+    const isNoteListHidden = isHiddenFor(noteListMode)
+    // FOLDED は隠さず細くする（何のペインだったか手がかりを残す）。
+    // HIDDEN は幅 0。アンマウントはしない（検索文字列とスクロール位置を失う）
+    const listWidth = isNoteListHidden
+      ? 0
+      : isNoteListFolded
       ? this.state.foldedListWidth
       : this.state.listWidth
-    const paneStyle = { width: listWidth }
+    const paneStyle = isNoteListHidden
+      ? { width: 0, display: 'none' }
+      : { width: listWidth }
 
     return (
       <div
@@ -620,7 +649,7 @@ class Main extends React.Component {
               })`}
               aria-label={i18n.__('Toggle Note List')}
               aria-expanded={!isNoteListFolded}
-              onClick={() => this.toggleNoteList()}
+              onClick={() => this.toggleNoteList('btn')}
             >
               <i
                 className={

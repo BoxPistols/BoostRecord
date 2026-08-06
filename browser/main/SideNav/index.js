@@ -30,7 +30,7 @@ import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
 const remote = require('@electron/remote')
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
-import ColorPicker from 'browser/components/ColorPicker'
+import FolderColorPopover from 'browser/components/FolderColorPopover'
 import {
   subscribe as subscribeMetaKey,
   getJumpNumber
@@ -53,7 +53,8 @@ class SideNav extends React.Component {
         show: false,
         color: null,
         tagName: null,
-        targetRect: null,
+        x: 0,
+        y: 0,
         showSearch: false,
         searchText: ''
       },
@@ -335,7 +336,9 @@ class SideNav extends React.Component {
         show: true,
         color: config.coloredTags[tagName],
         tagName,
-        targetRect: rect
+        // ポップオーバーは fixed 配置。右クリックしたタグのすぐ右に出す
+        x: rect.right + 4,
+        y: rect.top
       }
     })
   }
@@ -359,7 +362,7 @@ class SideNav extends React.Component {
       colorPicker: { tagName }
     } = this.state
     const newColoredTags = Object.assign({}, coloredTags, {
-      [tagName]: color.hex
+      [tagName]: color
     })
 
     const config = { coloredTags: newColoredTags }
@@ -740,12 +743,15 @@ class SideNav extends React.Component {
     let colorPicker
     if (colorPickerState.show) {
       colorPicker = (
-        <ColorPicker
-          color={colorPickerState.color}
-          targetRect={colorPickerState.targetRect}
-          onConfirm={this.handleColorPickerConfirm}
-          onCancel={this.dismissColorPicker}
+        <FolderColorPopover
+          x={colorPickerState.x}
+          y={colorPickerState.y}
+          value={colorPickerState.color}
+          label={i18n.__('Customize Color')}
+          resetLabel={i18n.__('Reset')}
+          onSelect={this.handleColorPickerConfirm}
           onReset={this.handleColorPickerReset}
+          onClose={this.dismissColorPicker}
         />
       )
     }

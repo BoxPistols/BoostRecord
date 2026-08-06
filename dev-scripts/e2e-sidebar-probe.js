@@ -29,6 +29,15 @@ let ran = false
 function finish(code, result) {
   if (finished) return
   finished = true
+  // 判定は必ず stdout に出す。結果ファイルは CI から読めないので、
+  // 書くだけだと「exit 0 で無言」＝永久グリーンと区別が付かない
+  console.log('\n=== sidebar probe ===')
+  const rep = (result && result.rep) || {}
+  Object.keys(rep).forEach(k =>
+    console.log(`ROW   ${k} — ${JSON.stringify(rep[k])}`)
+  )
+  if (result && result.error) console.log(`ERROR: ${result.error}`)
+  console.log(`--- ${result && result.ok ? 'OK' : 'NG'} exit ${code}`)
   try {
     fs.writeFileSync(
       RESULT_FILE,

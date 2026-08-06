@@ -298,6 +298,7 @@
   "No headings in this note": "No headings in this note",
   "Show the outline pane": "Show the outline pane",
   "Heading levels in the outline": "Heading levels in the outline",
+  "Show Note List": "Show Note List",
   "Show Side Bar": "Show Side Bar",
   "Saved in this OS credential store": "Saved in this OS credential store",
   "Not set. The key is stored in this OS credential store.": "Not set. The key is stored in this OS credential store.",
@@ -336,5 +337,6 @@
   "Next / previous match": "Next / previous match",
   "Replace all": "Replace all",
   "Expand description": "Expand description",
-  "Collapse description": "Collapse description"
+  "Collapse description": "Collapse description",
+  "Reset": "Reset"
 }

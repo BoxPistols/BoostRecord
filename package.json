@@ -39,6 +39,7 @@
     "e2e:navfocus": "cross-env TB_E2E_PROBE=dev-scripts/e2e-navfocus-probe.js electron .",
     "e2e:bracketkey": "cross-env TB_E2E_PROBE=dev-scripts/e2e-bracketkey-probe.js electron .",
     "e2e:foldertree": "cross-env TB_E2E_PROBE=dev-scripts/e2e-foldertree-probe.js electron .",
+    "e2e:searchfocus": "cross-env TB_E2E_PROBE=dev-scripts/e2e-searchfocus-probe.js electron .",
     "pre-release": "node scripts/pre-release-check.mjs"
   },
   "config": {

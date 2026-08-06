@@ -143,7 +143,16 @@ class TopBar extends React.Component {
 
   handleOnSearchFocus() {
     const el = this.refs.search.childNodes[0]
-    if (this.state.isSearching) {
+    // **フラグではなく実際のフォーカスを見る。**
+    // componentDidMount は URL に searchword があると、フォーカスを当てずに
+    // isSearching: true をセットする。非フォーカス要素への blur() は blur
+    // イベントを発火しないので isSearching が true のまま張り付き、以後の
+    // Focus Search / Ctrl+L / 一覧の L キーが**永久に空振りする**。
+    // 起動時に最終閲覧ページを復元するようにしたことで、/searched で終了すると
+    // 次回起動から常にこの状態になる
+    const active =
+      typeof document !== 'undefined' ? document.activeElement : null
+    if (el === active) {
       el.blur()
     } else {
       el.select()

@@ -8,6 +8,7 @@ import { openModal } from 'browser/main/lib/modal'
 import PreferencesModal from '../modals/PreferencesModal'
 import RenameTagModal from 'browser/main/modals/RenameTagModal'
 import ConfigManager from 'browser/main/lib/ConfigManager'
+import { countVisibleRows, readCollapsedPaths } from 'browser/lib/folderTree'
 import {
   nextSideNavMode,
   resolveSideNavMode,
@@ -499,7 +500,14 @@ class SideNav extends React.Component {
         // 消費すると次のストレージの番号が画面上の並びとずれる
         const isStorageOpen = !!storage.isOpen
         const jumpHintOffset = isStorageOpen ? jumpHintCursor : null
-        if (isStorageOpen) jumpHintCursor += storage.folders.length
+        // storage.folders.length では数えられない。中間ノードが行を増やし、
+        // 折りたたみが行を減らすので、次のストレージの採番がずれる
+        if (isStorageOpen) {
+          jumpHintCursor += countVisibleRows(
+            storage.folders,
+            readCollapsedPaths(storage.key)
+          )
+        }
         return (
           <SortableStorageItem
             key={storage.key}

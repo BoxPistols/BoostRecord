@@ -218,7 +218,10 @@ class NoteList extends React.Component {
       const targetIndex = this.getTargetIndex()
       if (targetIndex > -1) {
         const list = this.refs.list
-        const item = list.childNodes[targetIndex]
+        // childNodes 添字はノートの位置と一致しない。サブフォルダ見出しを
+        // 挟むと、見出しの分だけ後ろのノートがずれて別の要素へスクロールする。
+        // ノート行だけを対象に引く
+        const item = list.querySelectorAll('[data-note-item]')[targetIndex]
 
         if (item == null) return false
 
@@ -528,8 +531,12 @@ class NoteList extends React.Component {
 
     // 子孫フォルダのノートも含める。フォルダ名のパス表記が階層なので、
     // 親を選べば配下の課題ノートがまとめて見える（葉を選べば従来どおり）
+    // 選択したフォルダ自身は**必ず**含める。名前が '/' のように正規化して
+    // 空になるフォルダでは isDescendantPath が常に false を返すため
+    // （空祖先を全 true にすると全消去の入口になるので意図的にそうしている）、
+    // 自身も外れて「ノートが1件も出ない」退行になる
     const targets = storage.folders.filter(f =>
-      isDescendantPath(f.name, folder.name)
+      f.key === folder.key ? true : isDescendantPath(f.name, folder.name)
     )
     const uniqueKeys = []
     targets.forEach(target => {
@@ -1048,6 +1055,8 @@ class NoteList extends React.Component {
     const { selectedNoteKeys } = this.state
     const { dispatch, location } = this.props
     const { storage, folder } = this.resolveTargetFolder()
+    // 同上。folder が無ければ複製先が決まらないので中断する
+    if (storage == null || folder == null) return
     const notes = this.notes.map(note => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const firstNote = selectedNotes[0]
@@ -1145,7 +1154,9 @@ class NoteList extends React.Component {
     const { dispatch, location } = this.props
     const { storage, folder } = this.resolveTargetFolder()
 
-    if (filepaths === undefined) return
+    // resolveTargetFolder は対象が消えている時に folder: null を返す。
+    // 以降は folder.key を読むので、ここで止めないと TypeError になる
+    if (filepaths === undefined || storage == null || folder == null) return
     filepaths.forEach(filepath => {
       fs.readFile(filepath, (err, data) => {
         if (err) throw Error('File reading error: ', err)

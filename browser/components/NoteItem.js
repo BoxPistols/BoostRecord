@@ -86,6 +86,9 @@ const NoteItem = ({
 }) => (
   <div
     styleName={isActive ? 'item--active' : 'item'}
+    // 自動スクロールがノート行だけを引けるようにする印。
+    // childNodes 添字だと、サブフォルダ見出しを挟んだ時にずれる
+    data-note-item=''
     key={note.key}
     onClick={e => handleNoteClick(e, note.key)}
     onContextMenu={e => handleNoteContextMenu(e, note.key)}

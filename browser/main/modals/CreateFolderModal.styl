@@ -1,8 +1,7 @@
 .root
   modal()
   width 500px
-  height 270px
-  overflow hidden
+  min-height 270px
   position relative
 
 .header
@@ -55,14 +54,14 @@ apply-theme(theme)
   body[data-theme={theme}]
     .root
       width 500px
-      height 270px
-      overflow hidden
+      min-height 270px
       position relative
       position relative
       z-index $modal-z-index
       width 100%
       background-color get-theme-var(theme, 'backgroundColor')
-      overflow hidden
+      // 内容が増えた分（ヒント・エラー・親パス）を切り取らない。
+      // 固定 height と overflow:hidden の組み合わせで確定ボタンが隠れていた
       border-radius $modal-border-radius
 
     .header

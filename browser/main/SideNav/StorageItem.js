@@ -15,7 +15,8 @@ import {
   buildFolderTree,
   ancestorPaths,
   collectFolderKeys,
-  leafName
+  readCollapsedPaths,
+  writeCollapsedPaths
 } from 'browser/lib/folderTree'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
@@ -25,32 +26,6 @@ const remote = require('@electron/remote')
 const { dialog } = remote
 const escapeStringRegexp = require('escape-string-regexp')
 const path = require('path')
-
-// 折りたたんだフォルダのパスは localStorage に置く。config に混ぜると、
-// 壊れた値が設定全体の検証を巻き込む（v0.18.1 の教訓）。
-// 「閉じた方」を覚えるので、新しく作った子フォルダが勝手に隠れることはない
-const COLLAPSED_KEY = storageKey => `folderTree.collapsed.${storageKey}`
-
-function readCollapsedPaths(storageKey) {
-  try {
-    const raw = window.localStorage.getItem(COLLAPSED_KEY(storageKey))
-    const parsed = JSON.parse(raw)
-    return new Set(Array.isArray(parsed) ? parsed.filter(_.isString) : [])
-  } catch (e) {
-    return new Set()
-  }
-}
-
-function writeCollapsedPaths(storageKey, paths) {
-  try {
-    window.localStorage.setItem(
-      COLLAPSED_KEY(storageKey),
-      JSON.stringify(Array.from(paths))
-    )
-  } catch (e) {
-    // 保存に失敗しても開閉自体は動かす（永続化は付加価値）
-  }
-}
 
 class StorageItem extends React.Component {
   constructor(props) {
@@ -561,7 +536,12 @@ class StorageItem extends React.Component {
             if (!folder) return
             this.handleFolderButtonContextMenu(e, folder)
           }}
-          folderName={leafName(node.path) || node.name || ''}
+          folderName={
+            // node.name は既に葉の名前。leafName(node.path) を使うと、
+            // 名前が空のフォルダで path に混ぜた key（' a1b2c3d4'）が
+            // そのまま表示名になり、利用者には意味不明な文字列に見える
+            node.name || i18n.__('Untitled folder')
+          }
           folderColor={folder ? folder.color : undefined}
           isFolded={isFolded}
           noteCount={countNotes(node)}

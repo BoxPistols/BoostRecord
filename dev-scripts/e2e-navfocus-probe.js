@@ -267,7 +267,9 @@ function openFolderColorModalAndReport() {
     // data-modal / [data-modal-swatch] / .sketch-picker を見ており、
     // 実装と噛み合わないまま常に false を返していた。しかもこの結果は
     // ok 判定に入っていなかったので、ずっと緑のまま気づけなかった
-    const dialog = document.querySelector('[role="dialog"]')
+    // 固有の目印で引く。role="dialog" だけだと別のダイアログを掴んで
+    // 通ってしまい、検証がまた嘘をつく
+    const dialog = document.querySelector('[data-folder-color-popover]')
     const swatches = dialog ? dialog.querySelectorAll('button') : []
     return {
       opened: !!dialog,

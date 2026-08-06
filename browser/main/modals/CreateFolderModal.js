@@ -62,9 +62,13 @@ class CreateFolderModal extends React.Component {
 
   confirm() {
     AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_FOLDER')
+    // 入力そのものが空の時に親パスだけで作ろうとすると、dataApi が
+    // 「同じパスが既にある」で拒否し、名前未入力だと伝わらない。先に止める
+    if (splitPath(this.state.name).length === 0) {
+      this.setState({ error: i18n.__('Please enter a folder name') })
+      return
+    }
     const name = this.buildName()
-    // '/' だけ等、正規化して空になる名前は dataApi が拒否する。
-    // ここでも先に止めて、押しても何も起きない状態にしない
     if (splitPath(name).length === 0) {
       this.setState({ error: i18n.__('Please enter a folder name') })
       return

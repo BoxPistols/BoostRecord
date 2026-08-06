@@ -316,6 +316,76 @@ app.on('web-contents-created', (_e, wc) => {
           listView.headers
         )
 
+        // --- 作成導線: 親から作るとパスが前置されるか ---
+        const created = await wc.executeJavaScript(
+          `(async () => {
+             const sleep = ms => new Promise(r => setTimeout(r, ms))
+             const nav = document.querySelector('.SideNav')
+             const rows = Array.from(nav.querySelectorAll('button')).filter(b =>
+               /folderList-item/.test(b.className))
+             const row = rows.find(b => (b.getAttribute('title')||'') === 'KSD/onboarding')
+             if (!row) return { ok: false, step: 'no row' }
+             // 右クリックメニューはネイティブなので、ハンドラを直接叩く
+             const key = Object.keys(nav).find(k => k.startsWith('__reactInternalInstance') || k.startsWith('__reactFiber'))
+             let inst = null
+             const stack = [nav[key]]; const seen = new Set()
+             while (stack.length && !inst) {
+               const f = stack.pop()
+               if (!f || seen.has(f)) continue
+               seen.add(f)
+               if (f.stateNode && typeof f.stateNode.handleAddSubfolderClick === 'function') { inst = f.stateNode; break }
+               if (f.child) stack.push(f.child)
+               if (f.sibling) stack.push(f.sibling)
+             }
+             if (!inst) return { ok: false, step: 'no StorageItem' }
+             inst.handleAddSubfolderClick('KSD/onboarding')
+             await sleep(700)
+             const input = document.querySelector('[class*="control-folder-input"]')
+             if (!input) return { ok: false, step: 'no modal' }
+             const parentLabel = document.querySelector('[class*="parent-path"]')
+             // React の value を書き換えるには setter を直接呼ぶ
+             const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
+             setter.call(input, 'PR-9999')
+             input.dispatchEvent(new Event('input', { bubbles: true }))
+             await sleep(200)
+             // 画面全体から /作成/ で探すと「ノート作成 ⌘ + N」に当たる。
+             // モーダルの確定ボタンをクラスで特定する
+             const btn = document.querySelector('[class*="control-confirmButton"]')
+             if (!btn) return { ok: false, step: 'no create button' }
+             const btnText = (btn.textContent||'').trim()
+             btn.click(); await sleep(1200)
+             const err = document.querySelector('[class*="control-folder-error"]')
+             const stillOpen = !!document.querySelector('[class*="control-folder-input"]')
+             return {
+               ok: true,
+               parentLabel: parentLabel ? (parentLabel.textContent||'').trim() : null,
+               btnText,
+               inputValue: input.value,
+               modalStillOpen: stillOpen,
+               error: err ? (err.textContent||'').trim() : null
+             }
+           })()`,
+          true
+        )
+        check('親フォルダから子を作れる', created.ok, created)
+        check(
+          '作成先のパスがモーダルに出る（暗黙の前置を見せる）',
+          created.parentLabel === 'KSD/onboarding/',
+          created
+        )
+        const afterCreate = await wc.executeJavaScript(READ_ROWS, true)
+        note(
+          'rows after create',
+          afterCreate.rows.map(r => r.title)
+        )
+        check(
+          '打った名前に親パスが前置されて保存される',
+          (afterCreate.rows || []).some(
+            r => r.title === 'KSD/onboarding/PR-9999'
+          ),
+          afterCreate.rows.map(r => r.title)
+        )
+
         const img3 = await win.webContents.capturePage()
         const f3 = path.join(SHOT_DIR, 'folder-tree-grouped-list.png')
         fs.writeFileSync(f3, img3.toPNG())

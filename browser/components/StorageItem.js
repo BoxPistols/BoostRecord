@@ -8,6 +8,7 @@ import CSSModules from 'browser/lib/CSSModules'
 import _ from 'lodash'
 import { SortableHandle } from 'react-sortable-hoc'
 import ee from 'browser/main/lib/eventEmitter'
+import i18n from 'browser/lib/i18n'
 
 const DraggableIcon = SortableHandle(({ className }) => (
   <i className={`fa ${className}`} />
@@ -115,7 +116,7 @@ const StorageItem = ({
             styleName='folderList-item-expander'
             role='button'
             tabIndex={-1}
-            aria-label={isExpanded ? 'Collapse' : 'Expand'}
+            aria-label={i18n.__(isExpanded ? 'Collapse' : 'Expand')}
             aria-expanded={isExpanded}
             onClick={e => {
               // 親行のクリック（フォルダ選択）まで巻き込まない

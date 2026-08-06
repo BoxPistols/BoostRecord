@@ -69,6 +69,9 @@ class FolderColorPopover extends React.Component {
         ref={this.ref}
         role='dialog'
         aria-label={this.props.label}
+        // role="dialog" だけだと他のダイアログにも当たる。検証が別物を
+        // 掴んで緑になるのを防ぐため、固有の目印を持たせる
+        data-folder-color-popover=''
         style={{
           position: 'fixed',
           left,

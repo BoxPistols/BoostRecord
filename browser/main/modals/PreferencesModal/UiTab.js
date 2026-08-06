@@ -14,64 +14,12 @@ import VimKeyReference from 'browser/components/VimKeyReference'
 import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 import uiThemes from 'browser/lib/ui-themes'
+import { coupleEditorTheme } from 'browser/lib/editorThemes'
 import { chooseTheme, applyTheme } from 'browser/main/lib/ThemeManager'
 
 const OSX = global.process.platform === 'darwin'
 
-// CodeMirror editor themes that are dark. Used to keep the editor's light/dark
-// mode in sync with the interface theme (a dark editor under a light UI, or
-// vice versa, reads as a bug). Themes not listed are treated as light.
-const DARK_EDITOR_THEMES = [
-  '3024-night',
-  'abcdef',
-  'ambiance',
-  'ayu-dark',
-  'ayu-mirage',
-  'base16-dark',
-  'bespin',
-  'blackboard',
-  'cobalt',
-  'colorforth',
-  'darcula',
-  'dracula',
-  'duotone-dark',
-  'erlang-dark',
-  'gruvbox-dark',
-  'hopscotch',
-  'icecoder',
-  'isotope',
-  'lesser-dark',
-  'liquibyte',
-  'lucario',
-  'material',
-  'material-darker',
-  'material-ocean',
-  'material-palenight',
-  'mbo',
-  'midnight',
-  'monokai',
-  'moxer',
-  'night',
-  'nord',
-  'oceanic-next',
-  'panda-syntax',
-  'paraiso-dark',
-  'pastel-on-dark',
-  'railscasts',
-  'rubyblue',
-  'seti',
-  'shadowfox',
-  'solarized dark',
-  'the-matrix',
-  'tomorrow-night-bright',
-  'tomorrow-night-eighties',
-  'twilight',
-  'vibrant-ink',
-  'xq-dark',
-  'zenburn'
-]
-const DEFAULT_LIGHT_EDITOR_THEME = 'base16-light'
-const DEFAULT_DARK_EDITOR_THEME = 'monokai'
+// 明暗の表と既定値は browser/lib/editorThemes.js が単一の出どころ
 
 const electron = require('electron')
 const ipc = electron.ipcRenderer
@@ -149,13 +97,7 @@ class UiTab extends React.Component {
     // theme (e.g. dracula under a dark UI) is preserved.
     const uiIsDark = uiThemes.some(t => t.name === selectedTheme && t.isDark)
     const rawEditorTheme = this.refs.editorTheme.value
-    const editorIsDark = DARK_EDITOR_THEMES.indexOf(rawEditorTheme) !== -1
-    const coupledEditorTheme =
-      uiIsDark && !editorIsDark
-        ? DEFAULT_DARK_EDITOR_THEME
-        : !uiIsDark && editorIsDark
-        ? DEFAULT_LIGHT_EDITOR_THEME
-        : rawEditorTheme
+    const coupledEditorTheme = coupleEditorTheme(uiIsDark, rawEditorTheme)
 
     const newConfig = {
       ui: {

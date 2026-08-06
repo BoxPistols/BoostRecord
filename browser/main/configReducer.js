@@ -16,6 +16,12 @@ export function createConfigReducer(defaultConfig) {
       case 'SET_IS_NOTELIST_FOLDED':
         state.isNoteListFolded = action.isFolded
         return Object.assign({}, state)
+      // ノート一覧もサイドバーと同じ3値。旧 boolean を見ている参照が
+      // 残っているので必ず両方を更新する
+      case 'SET_NOTE_LIST_MODE':
+        state.noteListMode = action.mode
+        state.isNoteListFolded = action.mode !== 'EXPANDED'
+        return Object.assign({}, state)
       case 'SET_ZOOM':
         state.zoom = action.zoom
         return Object.assign({}, state)

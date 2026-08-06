@@ -9,7 +9,9 @@ const {
   nextSideNavMode,
   resolveSideNavMode,
   isFoldedFor,
-  isHiddenFor
+  isHiddenFor,
+  resolvePaneMode,
+  resolveNoteListMode
 } = require('browser/main/lib/sideNavMode')
 
 describe('nextSideNavMode', () => {
@@ -73,5 +75,22 @@ describe('導出値', () => {
     expect(SIDE_NAV_MODES).toEqual([EXPANDED, FOLDED, HIDDEN])
     SIDE_NAV_MODES.forEach(m => expect(isValidSideNavMode(m)).toBe(true))
     expect(isValidSideNavMode('NOPE')).toBe(false)
+  })
+})
+
+describe('ノート一覧も同じ3サイクル', () => {
+  it('noteListMode を読む', () => {
+    expect(resolveNoteListMode({ noteListMode: HIDDEN })).toBe(HIDDEN)
+  })
+
+  it('旧 isNoteListFolded から引き継ぐ', () => {
+    expect(resolveNoteListMode({ isNoteListFolded: true })).toBe(FOLDED)
+    expect(resolveNoteListMode({ isNoteListFolded: false })).toBe(EXPANDED)
+  })
+
+  it('汎用版はキー名を差し替えて使える（実装を1箇所に保つ）', () => {
+    expect(resolvePaneMode({ aMode: HIDDEN }, 'aMode', 'aBool')).toBe(HIDDEN)
+    expect(resolvePaneMode({ aBool: true }, 'aMode', 'aBool')).toBe(FOLDED)
+    expect(resolvePaneMode({}, 'aMode', 'aBool')).toBe(EXPANDED)
   })
 })

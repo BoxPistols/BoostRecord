@@ -29,6 +29,23 @@ export function nextSideNavMode(mode) {
 }
 
 /**
+ * 汎用版。ペインごとにキー名だけ差し替えて使う。
+ *
+ * サイドバー（Cmd+B）とノート一覧（Cmd+Shift+B）で同じ3サイクルにするため、
+ * ロジックはここ1箇所に置く。別々に書くと片方だけ直す事故が起きる。
+ *
+ * @param {object} stored localStorage から読んだ生の config
+ * @param {string} modeKey 3値のキー（例 'sideNavMode'）
+ * @param {string} legacyBoolKey 旧 boolean のキー（例 'isSideNavFolded'）
+ * @returns {string}
+ */
+export function resolvePaneMode(stored, modeKey, legacyBoolKey) {
+  if (!stored || typeof stored !== 'object') return EXPANDED
+  if (isValidSideNavMode(stored[modeKey])) return stored[modeKey]
+  return stored[legacyBoolKey] ? FOLDED : EXPANDED
+}
+
+/**
  * 保存済み設定から現在のモードを決める。
  *
  * sideNavMode があればそれを使う。無い（＝この機能より前に保存された設定）
@@ -39,9 +56,12 @@ export function nextSideNavMode(mode) {
  * @returns {string}
  */
 export function resolveSideNavMode(stored) {
-  if (!stored || typeof stored !== 'object') return EXPANDED
-  if (isValidSideNavMode(stored.sideNavMode)) return stored.sideNavMode
-  return stored.isSideNavFolded ? FOLDED : EXPANDED
+  return resolvePaneMode(stored, 'sideNavMode', 'isSideNavFolded')
+}
+
+/** ノート一覧のモード。サイドバーと同じ3サイクル */
+export function resolveNoteListMode(stored) {
+  return resolvePaneMode(stored, 'noteListMode', 'isNoteListFolded')
 }
 
 // 旧 boolean を見ている箇所のための導出値。

@@ -3,9 +3,12 @@ import RcParser from 'browser/lib/RcParser'
 import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
 import { DEFAULT_MODELS, normalizeAiModels } from 'browser/main/lib/aiModels'
+import uiThemes from 'browser/lib/ui-themes'
+import { migrateUntouchedEditorTheme } from 'browser/lib/editorThemes'
 import {
   EXPANDED,
   resolveSideNavMode,
+  resolveNoteListMode,
   isFoldedFor
 } from 'browser/main/lib/sideNavMode'
 
@@ -51,6 +54,9 @@ export const DEFAULT_CONFIG = {
   // validate() では必須にしない（必須にすると既存ユーザーの設定が全て無効に
   // 判定され、初期値へ巻き戻る）
   isNoteListFolded: false,
+  // ノート一覧の表示モード: EXPANDED | FOLDED | HIDDEN。
+  // Cmd+Shift+B がこの順で巡回する（サイドバーと同じ）
+  noteListMode: EXPANDED,
   // 折りたたみ時の幅。0 にせず残すのは何のペインか分かるようにするため。
   // 畳んだ状態でもドラッグで微調整できるので、その結果をここに保存する
   foldedListWidth: 100,
@@ -253,10 +259,32 @@ function get() {
   // マージ前の生データを見る。isSideNavFolded は常に導出値で揃える
   // （まだ boolean を見ている参照が残っている）
   const sideNavMode = resolveSideNavMode(parsed)
+  const noteListMode = resolveNoteListMode(parsed)
   storedConfig = Object.assign({}, storedConfig, {
     sideNavMode,
-    isSideNavFolded: isFoldedFor(sideNavMode)
+    isSideNavFolded: isFoldedFor(sideNavMode),
+    noteListMode,
+    isNoteListFolded: isFoldedFor(noteListMode)
   })
+
+  // 明暗の連動は環境設定を保存した時にしか走らないので、それ以前に
+  // ダークへ切り替えた利用者はエディタだけが白い柱のまま残る。
+  // 既定値のままの人だけ揃える（選び直した人の設定は触らない）
+  const uiIsDark = uiThemes.some(
+    t => t.name === storedConfig.ui.theme && t.isDark
+  )
+  const coupledEditorTheme = migrateUntouchedEditorTheme(
+    uiIsDark,
+    storedConfig.editor.theme
+  )
+  if (coupledEditorTheme !== storedConfig.editor.theme) {
+    storedConfig = Object.assign({}, storedConfig, {
+      editor: Object.assign({}, storedConfig.editor, {
+        theme: coupledEditorTheme
+      })
+    })
+    _save(storedConfig)
+  }
 
   // 廃止したモデル ID（gpt-5-mini 等）が保存されたままだと API 呼び出しが
   // 失敗し続けるので、提供中の一覧に無い ID は既定へ寄せて保存し直す。

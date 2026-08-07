@@ -24,11 +24,34 @@ fs.mkdirSync(SHOT_DIR, { recursive: true })
 fs.writeFileSync(
   path.join(storageDir, 'boostnote.json'),
   JSON.stringify({
-    folders: [{ key: 'dfolder', name: 'Notes', color: '#E10051' }],
+    // 親 + 子（パス表記）。子があるとノート一覧がグループ表示になり、
+    // 見出しの帯が出る
+    folders: [
+      { key: 'dfolder', name: 'Notes', color: '#E10051' },
+      { key: 'dsub', name: 'Notes/Docs', color: '#2BA5F7' }
+    ],
     version: '1.0'
   })
 )
 // タグを1つ持つノート（タグの色ピッカーを開くのに要る）
+function note(key, folder, title) {
+  fs.writeFileSync(
+    path.join(storageDir, 'notes', key + '.cson'),
+    [
+      'createdAt: "2026-01-01T00:00:00.000Z"',
+      'updatedAt: "2026-01-01T00:00:00.000Z"',
+      'type: "MARKDOWN_NOTE"',
+      `folder: "${folder}"`,
+      `title: "${title}"`,
+      'tags: [ "sample" ]',
+      'isStarred: false',
+      'isTrashed: false',
+      `content: "# ${title}"`
+    ].join('\n')
+  )
+}
+note('darkui-2', 'dfolder', 'Parent note')
+note('darkui-3', 'dsub', 'Child note')
 fs.writeFileSync(
   path.join(storageDir, 'notes', 'darkui-1.cson'),
   [
@@ -227,6 +250,36 @@ app.on('browser-window-created', (_e, win) => {
         )
         await new Promise(resolve => setTimeout(resolve, 500))
       }
+
+      // --- 1.5 サブフォルダのグループ見出し（暗いテーマで白い帯だった） ---
+      await wc.executeJavaScript(
+        `(() => {
+          const el = document.querySelector('.SideNav button[class*="folderList-item"]')
+          if (el) el.click()
+          return !!el
+        })()`,
+        true
+      )
+      await new Promise(resolve => setTimeout(resolve, 900))
+      rows.push({
+        label: 'group header bg',
+        data: await wc.executeJavaScript(
+          `(${LUMA})('[data-group-header]')`,
+          true
+        )
+      })
+      rows.push({
+        label: 'group headers',
+        data: await wc.executeJavaScript(
+          `(() => Array.from(document.querySelectorAll('[data-group-header]'))
+             .map(el => el.textContent))()`,
+          true
+        )
+      })
+      rows.push({
+        label: 'shot: note list groups',
+        data: await shoot(win, '4-note-list-groups-dark')
+      })
 
       // --- 2. タグの色ピッカー（react-color / インラインスタイルで白） ---
       lastMenu = null

@@ -206,6 +206,13 @@ apply-theme(theme)
       &:active
         color get-theme-var(theme, 'text-color')
 
+    // 見出しはテーマ非対応のまま既定(明)の変数を参照しており、
+    // 暗いテーマで白い帯として残っていた
+    .group-header
+      color get-theme-var(theme, 'text-color')
+      background-color get-theme-var(theme, 'noteList-backgroundColor')
+      border-bottom-color get-theme-var(theme, 'borderColor')
+
 for theme in 'white' 'dark' 'solarized-dark' 'dracula'
   apply-theme(theme)
 
@@ -223,7 +230,9 @@ for theme in $themes
   font-size 11px
   font-weight 700
   letter-spacing 0.04em
-  color $ui-inactive-text-color
+  // 見出しは 11px と小さいので $ui-inactive-text-color(#939395)だと
+  // 明るい地で 2.8:1 しか出ない。階層は太さと帯で示し、色は本文と揃える
+  color $ui-text-color
   background-color $ui-noteList-backgroundColor
   border-bottom 1px solid alpha($ui-borderColor, 60%)
   white-space nowrap

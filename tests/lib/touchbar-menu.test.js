@@ -10,6 +10,23 @@ jest.mock('../../lib/main-window', () => ({
 const mainWindow = require('../../lib/main-window')
 const { build } = require('../../lib/touchbar-menu')
 
+// action 名 → 期待する send 呼び出し列。1エントリ足すだけで検証が付いてくる
+const EXPECTED_SENDS = {
+  allNotes: [['list:navigate', '/home']],
+  starredNotes: [['list:navigate', '/starred']],
+  bookmarks: [['list:navigate', '/bookmarked']],
+  tags: [['list:navigate', '/alltags']],
+  trash: [['list:navigate', '/trashed']],
+  find: [['detail:find']],
+  noteLink: [['detail:focusnotelink']],
+  newNote: [['list:navigate', '/home'], ['top:new-note']],
+  toggleNoteList: [['sidenav:togglenotelist']],
+  toggleInfo: [['detail:toggleinfo']],
+  toggleToc: [['detail:toggletoc']],
+  toggleMode: [['topbar:togglemodebutton']],
+  togglePreview: [['topbar:togglepreviewbutton']]
+}
+
 describe('touchbar-menu', () => {
   beforeEach(() => {
     mainWindow.webContents.send.mockClear()
@@ -19,53 +36,35 @@ describe('touchbar-menu', () => {
     const { touchBar } = build()
     // 旧実装は new TouchBar([...]) で items が undefined になり空バーだった
     expect(Array.isArray(touchBar.items)).toBe(true)
-    expect(touchBar.items.length).toBe(7)
+    // ボタン8 + spacer3 + popover1
+    expect(touchBar.items.length).toBe(12)
   })
 
-  it('has labeled buttons and callable actions', () => {
+  it('表示系トグルは popover のサブバーに入っている', () => {
+    const { viewPopover } = build()
+    expect(viewPopover.items.items.length).toBe(5)
+  })
+
+  it('has labeled buttons and callable actions (過不足なし)', () => {
     const { buttons, actions } = build()
     Object.values(buttons).forEach(b => {
       expect(typeof b.label).toBe('string')
       expect(b.label.length).toBeGreaterThan(0)
     })
-    Object.values(actions).forEach(fn => {
-      expect(typeof fn).toBe('function')
+    expect(Object.keys(actions).sort()).toEqual(
+      Object.keys(EXPECTED_SENDS).sort()
+    )
+    expect(Object.keys(buttons).sort()).toEqual(
+      Object.keys(EXPECTED_SENDS).sort()
+    )
+  })
+
+  Object.keys(EXPECTED_SENDS).forEach(name => {
+    it(`${name} → ${EXPECTED_SENDS[name].map(c => c[0]).join(' + ')}`, () => {
+      build().actions[name]()
+      expect(mainWindow.webContents.send.mock.calls).toEqual(
+        EXPECTED_SENDS[name]
+      )
     })
-    expect(Object.keys(buttons).sort()).toEqual(Object.keys(actions).sort())
-  })
-
-  it('allNotes → list:navigate /home', () => {
-    build().actions.allNotes()
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
-      'list:navigate',
-      '/home'
-    )
-  })
-
-  it('starredNotes → list:navigate /starred', () => {
-    build().actions.starredNotes()
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
-      'list:navigate',
-      '/starred'
-    )
-  })
-
-  it('trash → list:navigate /trashed', () => {
-    build().actions.trash()
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith(
-      'list:navigate',
-      '/trashed'
-    )
-  })
-
-  it('find → detail:find', () => {
-    build().actions.find()
-    expect(mainWindow.webContents.send).toHaveBeenCalledWith('detail:find')
-  })
-
-  it('newNote → /home へ移動してから top:new-note', () => {
-    build().actions.newNote()
-    const calls = mainWindow.webContents.send.mock.calls
-    expect(calls).toEqual([['list:navigate', '/home'], ['top:new-note']])
   })
 })

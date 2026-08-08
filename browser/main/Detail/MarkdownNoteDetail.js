@@ -50,10 +50,14 @@ import i18n from 'browser/lib/i18n'
 // 変えたくない）ので、セッション内だけ保持する。
 // 目次ペインの幅。狭すぎると見出しが読めず、広すぎると本文が潰れる
 // TodoListPercentage は position:absolute / top:72px / height:17px / z-index:100 で
-// 全幅を覆い、.body（上端 69px）へ 20px ぶん食い込む。目次はその分だけ下げる。
-// エディタは中身に余白があるため見た目には当たっていない。
+// 全幅を覆い、.body（上端 69px）へ 20px ぶん食い込む。目次だけ下げても
+// エディタの1行目とプレビューの先頭がバーの下に隠れる（実機スクショで確認）
+// ので、バーがある時は .body 全体を食い込み分だけ下げる。
 // 高さ 17 ではなく「バー下端 89 − body 上端 69」が必要な値（実測で確定）
 const TODO_BAR_OFFSET = 20
+// .body の styl 上の top ($info-height + $info-margin-under-border)。
+// バー表示時に inline style で top を上書きする際の基準値
+const BODY_TOP = 69
 
 const DEFAULT_TOC_WIDTH = 200
 const MIN_TOC_WIDTH = 140
@@ -1026,7 +1030,10 @@ class MarkdownNoteDetail extends React.Component {
             onClose={() => this.handleFindClose()}
           />
         )}
-        <div styleName='body'>
+        <div
+          styleName='body'
+          style={hasTodoBar ? { top: BODY_TOP + TODO_BAR_OFFSET } : undefined}
+        >
           <div
             styleName={showToc ? 'body-editor--with-toc' : 'body-editor'}
             style={showToc ? { right: tocWidth } : undefined}
@@ -1034,13 +1041,7 @@ class MarkdownNoteDetail extends React.Component {
             {this.renderEditor()}
           </div>
           {showToc && (
-            <div
-              styleName='body-toc'
-              style={{
-                width: tocWidth,
-                top: hasTodoBar ? TODO_BAR_OFFSET : 0
-              }}
-            >
+            <div styleName='body-toc' style={{ width: tocWidth }}>
               <div
                 styleName='toc-slider'
                 onMouseDown={e => this.handleTocSliderMouseDown(e)}

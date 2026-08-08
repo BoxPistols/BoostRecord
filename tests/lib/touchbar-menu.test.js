@@ -16,7 +16,6 @@ const EXPECTED_SENDS = {
   starredNotes: [['list:navigate', '/starred']],
   bookmarks: [['list:navigate', '/bookmarked']],
   tags: [['list:navigate', '/alltags']],
-  trash: [['list:navigate', '/trashed']],
   find: [['detail:find']],
   noteLink: [['detail:focusnotelink']],
   newNote: [['list:navigate', '/home'], ['top:new-note']],
@@ -34,10 +33,14 @@ describe('touchbar-menu', () => {
 
   it('builds a TouchBar with items (Electron 28 の {items} API)', () => {
     const { touchBar } = build()
+    // 頻用(🔍🔗👁表示)が左端（ユーザー実機フィードバックによる並び）
+    expect(touchBar.items[0].label).toBe('🔍')
+    expect(touchBar.items[1].label).toBe('🔗')
+    expect(touchBar.items[2].label).toBe('👁 表示')
     // 旧実装は new TouchBar([...]) で items が undefined になり空バーだった
     expect(Array.isArray(touchBar.items)).toBe(true)
-    // ボタン8 + spacer3 + popover1
-    expect(touchBar.items.length).toBe(12)
+    // ボタン7 + spacer2 + popover1
+    expect(touchBar.items.length).toBe(10)
   })
 
   it('表示系トグルは popover のサブバーに入っている', () => {

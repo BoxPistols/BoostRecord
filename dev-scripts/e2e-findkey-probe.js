@@ -173,6 +173,25 @@ app.on('web-contents-created', (_e, wc) => {
         )
         if (editorPos) await clickAt(wc, editorPos.x, editorPos.y)
         await wc.executeJavaScript(STATE, true) // reset counter
+
+        // --- 0. Cmd+Shift+F は検索を開いてはいけない ---
+        // before-input-event が shift を除外しないと、ホットキー設定の
+        // prettifyMarkdown (Cmd/Ctrl+Shift+F) を検索が横取りして
+        // preventDefault で握り潰す退行があった
+        await press(wc, 'F', [SUPER, 'shift'])
+        const shifted = await wc.executeJavaScript(
+          `(() => ({
+             findBarOpen: !!document.querySelector('.FindBar'),
+             ipcReceived: (window.__findKey || {}).ipc || 0
+           }))()`,
+          true
+        )
+        rows.push({
+          label: 'Cmd+Shift+F: 検索は開かない(期待)',
+          data: shifted
+        })
+        await wc.executeJavaScript(STATE, true) // reset counter
+
         await press(wc, 'F', [SUPER])
         const inEditor = await wc.executeJavaScript(STATE, true)
         rows.push({ label: 'Cmd+F: エディタにフォーカス', data: inEditor })
@@ -314,6 +333,11 @@ app.on('web-contents-created', (_e, wc) => {
         rows.push({ label: 'SHOT', data: shot })
 
         const verdict = [
+          `Cmd+Shift+F: ${
+            shifted.findBarOpen || shifted.ipcReceived > 0
+              ? '検索が横取りする(NG)'
+              : '検索は開かない(OK)'
+          }`,
           `エディタ: ${
             inEditor.hasSearchField
               ? '検索ダイアログが出る'
@@ -331,7 +355,10 @@ app.on('web-contents-created', (_e, wc) => {
           }`
         ].join(' / ')
 
-        finish(0, { verdict })
+        // Shift 横取りの退行だけは観測でなく判定として落とす
+        finish(shifted.findBarOpen || shifted.ipcReceived > 0 ? 1 : 0, {
+          verdict
+        })
       } catch (err) {
         finish(2, {
           error: 'exec failed: ' + (err && (err.stack || err.message))

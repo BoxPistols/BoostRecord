@@ -41,6 +41,8 @@
     "e2e:foldertree": "cross-env TB_E2E_PROBE=dev-scripts/e2e-foldertree-probe.js electron .",
     "e2e:searchfocus": "cross-env TB_E2E_PROBE=dev-scripts/e2e-searchfocus-probe.js electron .",
     "e2e:findkey": "cross-env TB_E2E_PROBE=dev-scripts/e2e-findkey-probe.js electron .",
+    "e2e:todobar": "cross-env TB_E2E_PROBE=dev-scripts/e2e-todobar-probe.js electron .",
+    "e2e:taskwrap": "cross-env TB_E2E_PROBE=dev-scripts/e2e-taskwrap-probe.js electron .",
     "e2e:notelistfold": "cross-env TB_E2E_PROBE=dev-scripts/e2e-notelistfold-probe.js electron .",
     "e2e:darkui": "cross-env TB_E2E_PROBE=dev-scripts/e2e-darkui-probe.js electron .",
     "e2e:rename": "cross-env TB_E2E_PROBE=dev-scripts/e2e-rename-probe.js electron .",

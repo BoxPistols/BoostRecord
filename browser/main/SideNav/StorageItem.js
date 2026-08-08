@@ -4,13 +4,23 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './StorageItem.styl'
 import modal from 'browser/main/lib/modal'
 import CreateFolderModal from 'browser/main/modals/CreateFolderModal'
-import RenameFolderModal from 'browser/main/modals/RenameFolderModal'
 import FolderColorPopover from 'browser/components/FolderColorPopover'
 import dataApi from 'browser/main/lib/dataApi'
 import { moveNotesToFolder } from 'browser/main/lib/moveNotes'
 import StorageItemChild from 'browser/components/StorageItem'
 import _ from 'lodash'
 import { SortableElement } from 'react-sortable-hoc'
+import {
+  buildFolderTree,
+  ancestorPaths,
+  collectFolderKeys,
+  splitPath,
+  joinPath,
+  resolveRenamedPath,
+  migrateCollapsedPaths,
+  readCollapsedPaths,
+  writeCollapsedPaths
+} from 'browser/lib/folderTree'
 import i18n from 'browser/lib/i18n'
 import context from 'browser/lib/context'
 import { push } from 'connected-react-router'
@@ -19,6 +29,12 @@ const remote = require('@electron/remote')
 const { dialog } = remote
 const escapeStringRegexp = require('escape-string-regexp')
 const path = require('path')
+
+// render() の中で SortableElement() を呼ぶと**毎描画で新しいコンポーネント型**
+// になり、全行が再マウントされる。1回目のクリック（フォルダ選択）の再描画で
+// 行の DOM が入れ替わり、ネイティブの dblclick が成立しなくなる
+// （ダブルクリック改名が「たまにしか効かない」形で壊れる）
+const SortableStorageItemChild = SortableElement(StorageItemChild)
 
 class StorageItem extends React.Component {
   constructor(props) {
@@ -30,8 +46,23 @@ class StorageItem extends React.Component {
       isOpen: !!storage.isOpen,
       draggedOver: null,
       // 右クリック位置に出す色ポップオーバー { folder, x, y } | null
-      colorPopover: null
+      colorPopover: null,
+      // その場編集中のフォルダ key。ダブルクリック / 右クリック→名称変更で入る
+      renamingKey: null,
+      // 折りたたんだフォルダのパス集合。既定は「全部開いている」。
+      // 閉じた方を覚える形にすると、新しく作った子が勝手に隠れない
+      collapsedPaths: readCollapsedPaths(storage.key)
     }
+  }
+
+  toggleFolderExpand(path) {
+    this.setState(prev => {
+      const next = new Set(prev.collapsedPaths)
+      if (next.has(path)) next.delete(path)
+      else next.add(path)
+      writeCollapsedPaths(this.props.storage.key, next)
+      return { collapsedPaths: next }
+    })
   }
 
   handleHeaderContextMenu(e) {
@@ -163,6 +194,15 @@ class StorageItem extends React.Component {
     })
   }
 
+  /** 親フォルダの配下に作る。パスは自動で前置される */
+  handleAddSubfolderClick(parentPath) {
+    const { storage } = this.props
+    modal.open(CreateFolderModal, {
+      storage,
+      parentPath
+    })
+  }
+
   handleHeaderInfoClick(e) {
     const { storage, dispatch } = this.props
     dispatch(push('/storages/' + storage.key))
@@ -199,6 +239,12 @@ class StorageItem extends React.Component {
         // アイコンにできず、色見本を動的に作れない）
         label: i18n.__('Change Folder Color'),
         click: () => this.handleFolderColorClick(folder, anchor)
+      },
+      {
+        // ここから作れば「どこに作られるか」が明示され、パス表記を
+        // 手打ちしなくてよい
+        label: i18n.__('Add Subfolder'),
+        click: () => this.handleAddSubfolderClick(folder.name)
       },
       {
         type: 'separator'
@@ -257,11 +303,48 @@ class StorageItem extends React.Component {
   }
 
   handleRenameFolderClick(e, folder) {
-    const { storage } = this.props
-    modal.open(RenameFolderModal, {
-      storage,
-      folder
-    })
+    // モーダルは出さず、行のその場編集に切り替える（ダブルクリックと同じ）
+    this.setState({ renamingKey: folder.key })
+  }
+
+  handleRenameConfirm(folder, value) {
+    const { storage, dispatch } = this.props
+    // 入力は**葉の名前**。親のパスは保ったまま差し替える。
+    // 空入力=取り消し / no-op の判定は resolveRenamedPath に集約
+    // （newPath === '' だけで見ると、ネストしたフォルダで親パスが残って
+    // 「全選択→Delete→確定」が親パスへの改名として通ってしまう）
+    const newPath = resolveRenamedPath(folder.name, value)
+    if (newPath === null) {
+      this.setState({ renamingKey: null })
+      return
+    }
+    const oldPath = joinPath(splitPath(folder.name))
+    dataApi
+      .updateFolder(storage.key, folder.key, { name: newPath })
+      .then(data => {
+        // 折りたたみ集合は path 文字列キー。移行しないと畳んだ状態が
+        // 失われ、旧 path が幽霊エントリとして残る
+        this.setState(prev => {
+          const next = migrateCollapsedPaths(
+            prev.collapsedPaths,
+            oldPath,
+            newPath
+          )
+          writeCollapsedPaths(storage.key, next)
+          return { collapsedPaths: next, renamingKey: null }
+        })
+        dispatch({ type: 'UPDATE_FOLDER', storage: data.storage })
+      })
+      .catch(err => {
+        // 失敗は元の名前に戻す（編集を開いたままにすると blur→確定→失敗の
+        // ループになりうる）。理由は通知して黙って戻さない
+        this.setState({ renamingKey: null })
+        const message =
+          err && typeof err.message === 'string' && err.message !== ''
+            ? err.message
+            : 'Unknown error'
+        window.alert(`${i18n.__('Rename Folder')}: ${message}`)
+      })
   }
 
   handleExportFolderClick(e, folder, fileType) {
@@ -381,71 +464,184 @@ class StorageItem extends React.Component {
       showJumpHint
     } = this.props
     const { folderNoteMap, trashedSet } = data
-    const SortableStorageItemChild = SortableElement(StorageItemChild)
-    const folderList = storage.folders.map((folder, index) => {
-      const folderRegex = new RegExp(
-        escapeStringRegexp(path.sep) +
-          'storages' +
-          escapeStringRegexp(path.sep) +
-          storage.key +
-          escapeStringRegexp(path.sep) +
-          'folders' +
-          escapeStringRegexp(path.sep) +
-          folder.key
-      )
-      const isActive = !!location.pathname.match(folderRegex)
-      const tooltipRef = React.createRef(null)
-      const noteSet = folderNoteMap.get(storage.key + '-' + folder.key)
 
-      let noteCount = 0
-      if (noteSet) {
+    // フォルダ名のパス表記からツリーを導出する。boostnote.json は平坦なまま
+    const tree = buildFolderTree(storage.folders)
+    const hasNesting = tree.some(node => node.children.length > 0)
+    // 並び替え D&D は storage.folders の配列添字を前提にしている。ツリーでは
+    // 画面上の並びと配列の並びが一致しないので、掴めると**画面上とは別の
+    // フォルダを動かして boostnote.json に書き込む**。
+    // 嘘のジェスチャを見せるより機能が無い方がましなので、ネストがある時だけ
+    // ハンドルを隠す（平坦なストレージは今までどおり並び替えできる）
+    const showReorderHandle = !hasNesting
+
+    // 選択中フォルダの祖先は開いておく（現在地を見失わない）
+    const activeFolder = storage.folders.find(folder =>
+      location.pathname.match(
+        new RegExp(
+          escapeStringRegexp(path.sep) +
+            'storages' +
+            escapeStringRegexp(path.sep) +
+            storage.key +
+            escapeStringRegexp(path.sep) +
+            'folders' +
+            escapeStringRegexp(path.sep) +
+            folder.key
+        )
+      )
+    )
+    const forcedOpen = new Set(
+      activeFolder ? ancestorPaths(activeFolder.name) : []
+    )
+
+    const countNotes = node => {
+      // 子孫の合計。中間ノードは実体を持たないことがあるので key を集めて足す
+      let total = 0
+      collectFolderKeys(node).forEach(folderKey => {
+        const noteSet = folderNoteMap.get(storage.key + '-' + folderKey)
+        if (!noteSet) return
+        const noteKeys = noteSet.map(noteKey => noteKey)
         let trashedNoteCount = 0
-        const noteKeys = noteSet.map(noteKey => {
-          return noteKey
-        })
         trashedSet.toJS().forEach(trashedKey => {
-          if (
-            noteKeys.some(noteKey => {
-              return noteKey === trashedKey
-            })
-          )
+          if (noteKeys.some(noteKey => noteKey === trashedKey)) {
             trashedNoteCount++
-        })
-        noteCount = noteSet.size - trashedNoteCount
-      }
-      return (
-        <SortableStorageItemChild
-          key={folder.key}
-          index={index}
-          jumpHint={
-            jumpHintOffset && jumpHintOffset + index <= 9
-              ? jumpHintOffset + index
-              : null
           }
+        })
+        total += noteSet.size - trashedNoteCount
+      })
+      return total
+    }
+
+    // react-sortable-hoc の index は storage.folders の添字と一致させる。
+    // 画面順で採番すると、並び替えが別のフォルダを動かす
+    const arrayIndexOf = folder => storage.folders.indexOf(folder)
+
+    let renderedCount = 0
+    const renderNode = node => {
+      const folder = node.folder
+      const isNodeActive = !!(
+        folder &&
+        location.pathname.match(
+          new RegExp(
+            escapeStringRegexp(path.sep) +
+              'storages' +
+              escapeStringRegexp(path.sep) +
+              storage.key +
+              escapeStringRegexp(path.sep) +
+              'folders' +
+              escapeStringRegexp(path.sep) +
+              folder.key
+          )
+        )
+      )
+      const tooltipRef = React.createRef(null)
+      const hasChildren = node.children.length > 0
+      const isExpanded =
+        !this.state.collapsedPaths.has(node.path) || forcedOpen.has(node.path)
+      // 番号ジャンプは**画面に出ている行**の順に振る。配列添字で振ると、
+      // 折りたたみで隠れた行が番号を食って画面の並びとずれる
+      const visibleIndex = renderedCount++
+      const jumpHint =
+        jumpHintOffset && jumpHintOffset + visibleIndex <= 9
+          ? jumpHintOffset + visibleIndex
+          : null
+
+      const row = (
+        <SortableStorageItemChild
+          key={node.path}
+          index={folder ? arrayIndexOf(folder) : -1}
+          disabled={!showReorderHandle || !folder}
+          jumpHint={jumpHint}
           showJumpHint={showJumpHint}
-          isActive={isActive || folder.key === this.state.draggedOver}
+          isActive={
+            isNodeActive || (folder && folder.key === this.state.draggedOver)
+          }
           tooltipRef={tooltipRef}
-          handleButtonClick={e => this.handleFolderButtonClick(folder.key)(e)}
+          depth={node.depth}
+          fullPath={node.path}
+          hasChildren={hasChildren}
+          isExpanded={isExpanded}
+          onToggleExpand={() => this.toggleFolderExpand(node.path)}
+          showReorderHandle={showReorderHandle}
+          handleButtonClick={e => {
+            // 「ダブルクリックしても改名にならない」時の切り分け用
+            // （__tbPaneTab と同じ用途。detail が 2 で届いているかを見る）
+            window.__tbRenameTrace = (window.__tbRenameTrace || [])
+              .concat([
+                `click detail=${e.detail} folder=${
+                  folder ? folder.key : null
+                } last=${this.lastClickedFolderKey} renaming=${
+                  this.state.renamingKey
+                }`
+              ])
+              .slice(-10)
+            // 実体のない中間ノードは選べない（選ばせるとルーティングが
+            // 未知の folderKey になり、NoteList がストレージ全件へ
+            // 黙ってフォールバックする）。代わりに開閉する
+            if (!folder) {
+              // 2回目のクリック（ダブルクリック相当）で開閉を打ち消さない
+              if (e.detail >= 2) return
+              this.toggleFolderExpand(node.path)
+              return
+            }
+            // ダブルクリック = その場で名称変更。ネイティブ dblclick は
+            // 1回目のクリックの再描画で対象要素が入れ替わると**合成されない**
+            // （実測: click detail=2 は届くが dblclick が来ない）ため、
+            // click の detail で判定する。
+            // detail はターゲットが替わってもリセットされない（時間+座標
+            // ベース）ので、直前のクリックが同じフォルダだった時に限る。
+            // 折りたたみで行がずれた直後の連打で、別のフォルダに改名が
+            // 誤発火するのを防ぐ
+            if (e.detail >= 2 && this.lastClickedFolderKey === folder.key) {
+              this.setState({ renamingKey: folder.key })
+              return
+            }
+            this.lastClickedFolderKey = folder.key
+            this.handleFolderButtonClick(folder.key)(e)
+          }}
           handleMouseEnter={e =>
             this.handleFolderMouseEnter(e, tooltipRef, isFolded)
           }
-          handleContextMenu={e => this.handleFolderButtonContextMenu(e, folder)}
-          folderName={folder.name}
-          folderColor={folder.color}
+          isEditing={!!folder && folder.key === this.state.renamingKey}
+          renameDefaultValue={node.name}
+          onRenameConfirm={value => this.handleRenameConfirm(folder, value)}
+          onRenameCancel={() => this.setState({ renamingKey: null })}
+          handleContextMenu={e => {
+            // 中間ノードには削除・リネームのメニューを出さない。
+            // folder が無い状態で削除へ進むと folderKey が undefined になり、
+            // `folder` フィールドを持たない .cson が軒並み一致して消える
+            if (!folder) return
+            this.handleFolderButtonContextMenu(e, folder)
+          }}
+          folderName={
+            // node.name は既に葉の名前。leafName(node.path) を使うと、
+            // 名前が空のフォルダで path に混ぜた key（' a1b2c3d4'）が
+            // そのまま表示名になり、利用者には意味不明な文字列に見える
+            node.name || i18n.__('Untitled folder')
+          }
+          folderColor={folder ? folder.color : undefined}
           isFolded={isFolded}
-          noteCount={noteCount}
+          noteCount={countNotes(node)}
           handleDrop={e => {
+            if (!folder) return
             this.handleDrop(e, storage, folder, dispatch, location)
           }}
           handleDragEnter={e => {
+            if (!folder) return
             this.handleDragEnter(e, folder.key)
           }}
           handleDragLeave={e => {
+            if (!folder) return
             this.handleDragLeave(e, folder)
           }}
         />
       )
-    })
+
+      if (!hasChildren || !isExpanded || isFolded) return [row]
+      return [row].concat(...node.children.map(renderNode))
+    }
+
+    const folderList = [].concat(...tree.map(renderNode))
 
     const isActive = location.pathname.match(
       new RegExp(

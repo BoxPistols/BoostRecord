@@ -206,8 +206,42 @@ apply-theme(theme)
       &:active
         color get-theme-var(theme, 'text-color')
 
+    // 見出しはテーマ非対応のまま既定(明)の変数を参照しており、
+    // 暗いテーマで白い帯として残っていた
+    .group-header
+      color get-theme-var(theme, 'text-color')
+      background-color get-theme-var(theme, 'noteList-backgroundColor')
+      border-bottom-color get-theme-var(theme, 'borderColor')
+
 for theme in 'white' 'dark' 'solarized-dark' 'dracula'
   apply-theme(theme)
 
 for theme in $themes
   apply-theme(theme)
+
+// サブフォルダ見出し。親フォルダを選んで子孫のノートをまとめて出す時に、
+// グループの切れ目へ挟む。**this.notes には入れない**ので、上下キーや
+// Cmd+数字ジャンプの「ノートの並び」とは独立している
+.group-header
+  position sticky
+  top 0
+  z-index 2
+  padding 4px 14px
+  font-size 11px
+  font-weight 700
+  letter-spacing 0.04em
+  // 見出しは 11px と小さいので $ui-inactive-text-color(#939395)だと
+  // 明るい地で 2.8:1 しか出ない。階層は太さと帯で示し、色は本文と揃える
+  color $ui-text-color
+  background-color $ui-noteList-backgroundColor
+  // 一覧と同色だと見出しが「帯」に見えず、区切りとして働かない。
+  // テーマごとに色を当てると追随漏れが出るので、中立グレーの半透明を
+  // 1枚重ねる（明暗どちらの地でも同じだけ差が付く。行ハイライトと同じ手）
+  background-image linear-gradient(
+    rgba(128, 128, 128, 0.1),
+    rgba(128, 128, 128, 0.1)
+  )
+  border-bottom 1px solid alpha($ui-borderColor, 60%)
+  white-space nowrap
+  overflow hidden
+  text-overflow ellipsis

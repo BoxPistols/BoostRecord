@@ -234,6 +234,13 @@ for theme in $themes
   // 明るい地で 2.8:1 しか出ない。階層は太さと帯で示し、色は本文と揃える
   color $ui-text-color
   background-color $ui-noteList-backgroundColor
+  // 一覧と同色だと見出しが「帯」に見えず、区切りとして働かない。
+  // テーマごとに色を当てると追随漏れが出るので、中立グレーの半透明を
+  // 1枚重ねる（明暗どちらの地でも同じだけ差が付く。行ハイライトと同じ手）
+  background-image linear-gradient(
+    rgba(128, 128, 128, 0.1),
+    rgba(128, 128, 128, 0.1)
+  )
   border-bottom 1px solid alpha($ui-borderColor, 60%)
   white-space nowrap
   overflow hidden

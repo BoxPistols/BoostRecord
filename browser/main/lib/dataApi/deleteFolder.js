@@ -23,6 +23,15 @@ const { findStorage } = require('browser/lib/findStorage')
 function deleteFolder(storageKey, folderKey) {
   let targetStorage
   try {
+    // folderKey の検証が無いと致命的になる。この関数は
+    // `note.folder === folderKey` でノートを選び、deleteNote は
+    // ゴミ箱を経由せず sander.unlinkSync で**物理削除**する。
+    // folderKey が undefined のまま来ると、`folder` フィールドを持たない
+    // .cson が軒並み一致して消える（storage.folders 側のフィルタは
+    // 何も除外しないので、フォルダ一覧は無傷のまま中身だけ失われる）
+    if (!_.isString(folderKey) || folderKey.trim() === '') {
+      throw new Error('Invalid folder key')
+    }
     targetStorage = findStorage(storageKey)
   } catch (e) {
     return Promise.reject(e)
@@ -39,6 +48,12 @@ function deleteFolder(storageKey, folderKey) {
     })
     .then(function deleteFolderAndNotes(data) {
       const { storage, notes } = data
+      // レコードの実在を確かめてから消す。存在しない key で呼ばれた場合、
+      // フォルダ一覧は 1 件も減らないのにノートだけ消えるという最悪の形に
+      // なるので、ここで止める
+      if (!_.find(storage.folders, { key: folderKey })) {
+        throw new Error('Folder not found: ' + folderKey)
+      }
       storage.folders = storage.folders.filter(function excludeTargetFolder(
         folder
       ) {
@@ -55,6 +70,13 @@ function deleteFolder(storageKey, folderKey) {
       return Promise.all(deleteAllNotes).then(() => storage)
     })
     .then(function(storage) {
+      // boostnote.json が読めなかったストレージへは書き戻さない。
+      // 空の folders を永続化すると全フォルダレコードが失われる
+      if (storage.foldersUnreadable) {
+        throw new Error(
+          'boostnote.json could not be read; refusing to overwrite it'
+        )
+      }
       CSON.writeFileSync(
         path.join(storage.path, 'boostnote.json'),
         _.pick(storage, ['folders', 'version'])

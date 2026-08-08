@@ -52,3 +52,48 @@ it('選択中の色だけ aria-pressed が立つ', () => {
   expect(pressed.length).toBe(1)
   expect(pressed[0].props['data-folder-swatch']).toBe(target)
 })
+
+// タグの色は「外す」ことができる（フォルダと違い既定色が無い）。
+// 旧実装（react-color の SketchPicker）は Reset ボタンを持っていたので、
+// 置き換えでその導線を落とさないことを固定する
+it('onReset を渡した時だけ「色なし」を先頭に足す', () => {
+  const withReset = renderer.create(
+    <FolderColorSwatches
+      value={null}
+      onSelect={jest.fn()}
+      onReset={jest.fn()}
+    />
+  )
+  expect(withReset.root.findAllByType('button').length).toBe(
+    consts.FOLDER_COLORS.length + 1
+  )
+
+  const without = renderer.create(
+    <FolderColorSwatches value={null} onSelect={jest.fn()} />
+  )
+  expect(
+    without.root.findAll(
+      n => n.props && n.props['data-folder-swatch'] === 'none'
+    ).length
+  ).toBe(0)
+})
+
+it('「色なし」は onReset を呼び、祖先へ伝播させない', () => {
+  const onReset = jest.fn()
+  const onSelect = jest.fn()
+  const component = renderer.create(
+    <FolderColorSwatches
+      value='#E10051'
+      onSelect={onSelect}
+      onReset={onReset}
+    />
+  )
+  const none = component.root.find(
+    n => n.props && n.props['data-folder-swatch'] === 'none'
+  )
+  const stopPropagation = jest.fn()
+  none.props.onClick({ preventDefault: jest.fn(), stopPropagation })
+  expect(onReset).toHaveBeenCalled()
+  expect(onSelect).not.toHaveBeenCalled()
+  expect(stopPropagation).toHaveBeenCalled()
+})

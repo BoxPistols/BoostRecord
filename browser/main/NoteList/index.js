@@ -10,6 +10,7 @@ import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import NoteItem from 'browser/components/NoteItem'
 import NoteItemSimple from 'browser/components/NoteItemSimple'
+import { isDescendantPath, leafName } from 'browser/lib/folderTree'
 import {
   subscribe as subscribeMetaKey,
   getJumpNumber,
@@ -217,7 +218,10 @@ class NoteList extends React.Component {
       const targetIndex = this.getTargetIndex()
       if (targetIndex > -1) {
         const list = this.refs.list
-        const item = list.childNodes[targetIndex]
+        // childNodes 添字はノートの位置と一致しない。サブフォルダ見出しを
+        // 挟むと、見出しの分だけ後ろのノートがずれて別の要素へスクロールする。
+        // ノート行だけを対象に引く
+        const item = list.querySelectorAll('[data-note-item]')[targetIndex]
 
         if (item == null) return false
 
@@ -517,13 +521,58 @@ class NoteList extends React.Component {
 
     const folder = _.find(storage.folders, { key: folderKey })
     if (folder === undefined) {
+      // folderKey が指定されているのに見つからない = 経路が壊れている。
+      // ここでストレージ全件へ落とすと、誤りに気づけないまま「全部出ている」
+      // ように見える（中間ノードを選ばせた時に実際に起きる）。空を返す
+      if (folderKey) return []
       const storageNoteSet = data.storageNoteMap.get(storage.key) || []
       return storageNoteSet.map(uniqueKey => data.noteMap.get(uniqueKey))
     }
 
-    const folderNoteKeyList =
-      data.folderNoteMap.get(`${storage.key}-${folder.key}`) || []
-    return folderNoteKeyList.map(uniqueKey => data.noteMap.get(uniqueKey))
+    // 子孫フォルダのノートも含める。フォルダ名のパス表記が階層なので、
+    // 親を選べば配下の課題ノートがまとめて見える（葉を選べば従来どおり）
+    // 選択したフォルダ自身は**必ず**含める。名前が '/' のように正規化して
+    // 空になるフォルダでは isDescendantPath が常に false を返すため
+    // （空祖先を全 true にすると全消去の入口になるので意図的にそうしている）、
+    // 自身も外れて「ノートが1件も出ない」退行になる
+    const targets = storage.folders.filter(f =>
+      f.key === folder.key ? true : isDescendantPath(f.name, folder.name)
+    )
+    const uniqueKeys = []
+    targets.forEach(target => {
+      const list = data.folderNoteMap.get(`${storage.key}-${target.key}`) || []
+      list.forEach(uniqueKey => uniqueKeys.push(uniqueKey))
+    })
+    return uniqueKeys.map(uniqueKey => data.noteMap.get(uniqueKey))
+  }
+
+  /**
+   * いま子孫をまとめて表示しているか。表示中なら一覧をサブフォルダ見出しで
+   * 区切る。葉フォルダや /home では従来どおり平坦に出す。
+   * @returns {{active: boolean, base: string}}
+   */
+  getGroupingContext() {
+    const {
+      data,
+      match: { params }
+    } = this.props
+    const storage = data.storageMap.get(params.storageKey)
+    if (!storage) return { active: false, base: '' }
+    const folder = _.find(storage.folders, { key: params.folderKey })
+    if (!folder) return { active: false, base: '' }
+    const hasDescendant = storage.folders.some(
+      f => f.key !== folder.key && isDescendantPath(f.name, folder.name)
+    )
+    return { active: hasDescendant, base: folder.name }
+  }
+
+  /** ノートの所属フォルダのパス。見出しの識別に使う */
+  getNoteFolderPath(note) {
+    const { data } = this.props
+    const storage = data.storageMap.get(note.storage)
+    if (!storage) return ''
+    const folder = _.find(storage.folders, { key: note.folder })
+    return folder ? folder.name : ''
   }
 
   sortByPin(unorderedNotes) {
@@ -1006,6 +1055,8 @@ class NoteList extends React.Component {
     const { selectedNoteKeys } = this.state
     const { dispatch, location } = this.props
     const { storage, folder } = this.resolveTargetFolder()
+    // 同上。folder が無ければ複製先が決まらないので中断する
+    if (storage == null || folder == null) return
     const notes = this.notes.map(note => Object.assign({}, note))
     const selectedNotes = findNotesByKeys(notes, selectedNoteKeys)
     const firstNote = selectedNotes[0]
@@ -1103,7 +1154,9 @@ class NoteList extends React.Component {
     const { dispatch, location } = this.props
     const { storage, folder } = this.resolveTargetFolder()
 
-    if (filepaths === undefined) return
+    // resolveTargetFolder は対象が消えている時に folder: null を返す。
+    // 以降は folder.key を読むので、ここで止めないと TypeError になる
+    if (filepaths === undefined || storage == null || folder == null) return
     filepaths.forEach(filepath => {
       fs.readFile(filepath, (err, data) => {
         if (err) throw Error('File reading error: ', err)
@@ -1170,8 +1223,15 @@ class NoteList extends React.Component {
     }
 
     if (storage == null) this.showMessageBox('No storage for importing note(s)')
-    const folder =
-      _.find(storage.folders, { key: params.folderKey }) || storage.folders[0]
+    // params.folderKey が見つからない時に黙って先頭フォルダへ書くと、
+    // 利用者は別のフォルダに入ったことに気づけない。指定があって見つからない
+    // 場合はフォールバックせず知らせる（未指定なら従来どおり先頭）
+    const namedFolder = _.find(storage.folders, { key: params.folderKey })
+    if (params.folderKey && !namedFolder) {
+      this.showMessageBox('The target folder no longer exists')
+      return { storage, folder: null }
+    }
+    const folder = namedFolder || storage.folders[0]
     if (folder == null) this.showMessageBox('No folder for importing note(s)')
 
     return {
@@ -1246,6 +1306,26 @@ class NoteList extends React.Component {
     })
     if (sortDir === 'DESCENDING') this.notes.reverse()
 
+    // 子孫をまとめて表示している時は、同じサブフォルダのノートを隣接させる。
+    // 隣接していないと見出しが何度も現れて一覧として読めない。
+    // **並べ替えるのは this.notes 自体**（描画順と一致させないと、
+    // 上下キーの移動や Cmd+数字ジャンプが画面の並びとずれる）
+    const grouping = this.getGroupingContext()
+    if (grouping.active) {
+      const order = new Map()
+      this.notes.forEach((note, index) => order.set(note, index))
+      this.notes = notes = this.notes.slice().sort((a, b) => {
+        const pa = this.getNoteFolderPath(a)
+        const pb = this.getNoteFolderPath(b)
+        if (pa === pb) return order.get(a) - order.get(b)
+        // 親（= base 自身）を先頭に、以降はパスの辞書順。
+        // 命名でソートを効かせたいという要望に沿う
+        if (pa === grouping.base) return -1
+        if (pb === grouping.base) return 1
+        return pa < pb ? -1 : 1
+      })
+    }
+
     moment.updateLocale('en', {
       relativeTime: {
         future: 'in %s',
@@ -1275,6 +1355,10 @@ class NoteList extends React.Component {
       selectedNoteKeys.length === 0 ||
       notes.every(note => !selectedNoteKeys.includes(note.key))
 
+    // サブフォルダ見出し。**this.notes には入れない**（見出しを配列に混ぜると
+    // 上下キー・複数選択・番号ジャンプが「ノートの並び」と食い違う）。
+    // 描画時にだけ挟むので、index はノートの位置を指したまま
+    let lastGroupPath = null
     const noteList = notes.map((note, index) => {
       if (note == null) {
         return null
@@ -1298,8 +1382,40 @@ class NoteList extends React.Component {
       const jumpHint =
         this.state.showJumpHints && index < MAX_JUMP_TARGETS ? index + 1 : null
 
+      // グループの切れ目で見出しを出す
+      let groupHeader = null
+      if (grouping.active) {
+        const groupPath = this.getNoteFolderPath(note)
+        if (groupPath !== lastGroupPath) {
+          lastGroupPath = groupPath
+          groupHeader = (
+            <div
+              styleName='group-header'
+              key={`group-${groupPath}`}
+              data-group-header={groupPath}
+              title={groupPath}
+            >
+              {groupPath === grouping.base
+                ? i18n.__('Directly in this folder')
+                : leafName(groupPath) || groupPath}
+            </div>
+          )
+        }
+      }
+
+      // 見出しがある時は Fragment で包んで挟む。this.notes は触らない
+      const wrap = row =>
+        groupHeader ? (
+          <React.Fragment key={`g-${uniqueKey}`}>
+            {groupHeader}
+            {row}
+          </React.Fragment>
+        ) : (
+          row
+        )
+
       if (isDefault) {
-        return (
+        return wrap(
           <NoteItem
             jumpHint={jumpHint}
             isActive={isActive}
@@ -1319,7 +1435,7 @@ class NoteList extends React.Component {
         )
       }
 
-      return (
+      return wrap(
         <NoteItemSimple
           jumpHint={jumpHint}
           isActive={isActive}

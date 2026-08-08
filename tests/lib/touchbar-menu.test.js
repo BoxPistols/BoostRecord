@@ -33,10 +33,10 @@ describe('touchbar-menu', () => {
 
   it('builds a TouchBar with items (Electron 28 の {items} API)', () => {
     const { touchBar } = build()
-    // 頻用(🔍🔗👁表示)が左端（ユーザー実機フィードバックによる並び）
-    expect(touchBar.items[0].label).toBe('🔍')
-    expect(touchBar.items[1].label).toBe('🔗')
-    expect(touchBar.items[2].label).toBe('👁 表示')
+    // 頻用が左端、中でも 👁表示 が最左端（ユーザー実機フィードバックによる並び）
+    expect(touchBar.items[0].label).toBe('👁 表示')
+    expect(touchBar.items[1].label).toBe('🔍')
+    expect(touchBar.items[2].label).toBe('🔗')
     // 旧実装は new TouchBar([...]) で items が undefined になり空バーだった
     expect(Array.isArray(touchBar.items)).toBe(true)
     // ボタン7 + spacer2 + popover1
@@ -45,7 +45,11 @@ describe('touchbar-menu', () => {
 
   it('表示系トグルは popover のサブバーに入っている', () => {
     const { viewPopover } = build()
-    expect(viewPopover.items.items.length).toBe(5)
+    const sub = viewPopover.items.items
+    expect(sub.length).toBe(5)
+    // プレビューが左端、目次が右端（ユーザー実機フィードバックによる並び）
+    expect(sub[0].label).toBe('プレビュー')
+    expect(sub[sub.length - 1].label).toBe('目次')
   })
 
   it('has labeled buttons and callable actions (過不足なし)', () => {

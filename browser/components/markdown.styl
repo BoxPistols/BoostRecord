@@ -83,6 +83,12 @@ li
     &.checked
       text-decoration line-through
       opacity 0.5
+  &.taskListItem
+    // チェックボックス直後が長い URL / inline code だと、p の break-word は
+    // 語を丸ごと次行へ送るためチェックボックスだけが1行目に取り残される。
+    // 行の途中（チェックボックスの隣）から折り始めるには break-all が要る
+    a, code
+      word-break break-all
   &.taskListItem.checked
     text-decoration line-through
     opacity 0.5

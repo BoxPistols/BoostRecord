@@ -6,8 +6,8 @@
 // （このマシンでは BTT が Touch Bar を占有している点に注意）。
 //
 // 測ること:
-//   1. build() がバー(ボタン13 + popover)を作る（Electron 28 実 API で崩れない）
-//   2. ナビ5種 (📒⭐️🔖🏷🗑) がそれぞれのルートへ遷移する
+//   1. build() がバー(ボタン12 + popover)を作る（Electron 28 実 API で崩れない）
+//   2. ナビ4種 (📒⭐️🔖🏷) がそれぞれのルートへ遷移する（ゴミ箱は不要の指示で撤去）
 //   3. 🔍 → FindBar、🔗 → focusNoteLink（__tbNoteLink で観測）
 //   4. 表示系トグル5種（一覧/情報/目次/モード/プレビュー）が実際に画面を変える
 //   5. ✎ → ノート種別モーダルが開く
@@ -136,9 +136,6 @@ app.on('web-contents-created', (_e, wc) => {
         actions.tags()
         await sleep(600)
         const afterTags = await hash()
-        actions.trash()
-        await sleep(600)
-        const afterTrash = await hash()
         actions.allNotes()
         await sleep(600)
         const afterHome = await hash()
@@ -148,7 +145,6 @@ app.on('web-contents-created', (_e, wc) => {
             afterStarred,
             afterBookmarks,
             afterTags,
-            afterTrash,
             afterHome
           }
         })
@@ -245,8 +241,8 @@ app.on('web-contents-created', (_e, wc) => {
 
         const problems = []
         if (!touchBar) problems.push('TouchBar が作れない')
-        if (Object.keys(buttons).length !== 13) {
-          problems.push('ボタンが13個ない: ' + Object.keys(buttons).length)
+        if (Object.keys(buttons).length !== 12) {
+          problems.push('ボタンが12個ない: ' + Object.keys(buttons).length)
         }
         if (afterStarred !== '#/starred') {
           problems.push(`⭐️ 遷移先が ${afterStarred}`)
@@ -256,9 +252,6 @@ app.on('web-contents-created', (_e, wc) => {
         }
         if (afterTags !== '#/alltags') {
           problems.push(`🏷 遷移先が ${afterTags}`)
-        }
-        if (afterTrash !== '#/trashed') {
-          problems.push(`🗑 遷移先が ${afterTrash}`)
         }
         if (afterHome !== '#/home') problems.push(`📒 遷移先が ${afterHome}`)
         if (!findBar) problems.push('🔍 で FindBar が開かない')

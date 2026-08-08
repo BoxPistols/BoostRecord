@@ -8,7 +8,10 @@ const {
   ancestorPaths,
   isDescendantPath,
   collectFolderKeys,
-  childPath
+  childPath,
+  renameFolderPaths,
+  resolveRenamedPath,
+  migrateCollapsedPaths
 } = require('browser/lib/folderTree')
 
 const f = (key, name) => ({ key, name, color: '#fff' })
@@ -177,5 +180,117 @@ describe('joinPath', () => {
     expect(joinPath(['a', 'b'])).toBe('a/b')
     expect(joinPath([])).toBe('')
     expect(joinPath(undefined)).toBe('')
+  })
+})
+
+describe('renameFolderPaths', () => {
+  const folders = [
+    { key: 'a', name: 'KSD' },
+    { key: 'b', name: 'KSD/onboarding' },
+    { key: 'c', name: 'KSD/onboarding/PR-1281' },
+    { key: 'd', name: 'KSDX' },
+    { key: 'e', name: 'Docs' }
+  ]
+
+  it('葉の改名は自分だけ', () => {
+    const r = renameFolderPaths(folders, 'c', 'KSD/onboarding/PR-2000')
+    expect(r.ok).toBe(true)
+    expect(r.changes).toEqual([{ key: 'c', name: 'KSD/onboarding/PR-2000' }])
+  })
+
+  it('親の改名は子孫のパスも書き換える', () => {
+    const r = renameFolderPaths(folders, 'a', 'KSD2')
+    expect(r.ok).toBe(true)
+    expect(r.changes).toEqual([
+      { key: 'a', name: 'KSD2' },
+      { key: 'b', name: 'KSD2/onboarding' },
+      { key: 'c', name: 'KSD2/onboarding/PR-1281' }
+    ])
+  })
+
+  it('前方一致だけの別フォルダ（KSDX）は巻き込まない', () => {
+    const r = renameFolderPaths(folders, 'a', 'KSD2')
+    expect(r.changes.some(c => c.key === 'd')).toBe(false)
+  })
+
+  it('既存パスと衝突する改名は拒否する', () => {
+    const r = renameFolderPaths(folders, 'a', 'Docs')
+    expect(r.ok).toBe(false)
+    expect(r.error).toBe('PATH_CLASH')
+  })
+
+  it('カスケード先が衝突しても拒否する', () => {
+    const list = folders.concat([{ key: 'f', name: 'KSD2/onboarding' }])
+    const r = renameFolderPaths(list, 'a', 'KSD2')
+    expect(r.ok).toBe(false)
+    expect(r.error).toBe('PATH_CLASH')
+  })
+
+  it('同名（正規化後）への変更は no-op', () => {
+    const r = renameFolderPaths(folders, 'a', ' KSD ')
+    expect(r.ok).toBe(true)
+    expect(r.changes).toEqual([])
+  })
+
+  it('空になる名前は拒否する', () => {
+    expect(renameFolderPaths(folders, 'a', ' / ').ok).toBe(false)
+    expect(renameFolderPaths(folders, 'zzz', 'X').ok).toBe(false)
+  })
+
+  it('正規化を含む改名（a//b → a/b 配下へ）', () => {
+    const r = renameFolderPaths(folders, 'a', 'Top//KSD')
+    expect(r.changes[0]).toEqual({ key: 'a', name: 'Top/KSD' })
+    expect(r.changes[1]).toEqual({ key: 'b', name: 'Top/KSD/onboarding' })
+  })
+})
+
+describe('resolveRenamedPath', () => {
+  it('葉の改名は親パスを保つ', () => {
+    expect(resolveRenamedPath('KSD/onboarding', 'spec')).toBe('KSD/spec')
+  })
+
+  it('ルート直下も同じ', () => {
+    expect(resolveRenamedPath('KSD', 'KSD2')).toBe('KSD2')
+  })
+
+  it('区切りを含む入力はその場で深くできる', () => {
+    expect(resolveRenamedPath('KSD/onboarding', 'sub/leaf')).toBe(
+      'KSD/sub/leaf'
+    )
+  })
+
+  it('空入力は親パスに関係なく取り消し（親パスへの改名にしない）', () => {
+    // newPath === '' だけで判定すると 'a/b' → 'a' の改名として通ってしまい、
+    // 全選択→Delete→確定 で階層が1段潰れる
+    expect(resolveRenamedPath('a/b', '')).toBe(null)
+    expect(resolveRenamedPath('a/b', '  ')).toBe(null)
+    expect(resolveRenamedPath('a/b', ' / ')).toBe(null)
+    expect(resolveRenamedPath('a', '')).toBe(null)
+  })
+
+  it('変更が無ければ取り消し', () => {
+    expect(resolveRenamedPath('a/b', 'b')).toBe(null)
+    expect(resolveRenamedPath('a/b', ' b ')).toBe(null)
+  })
+})
+
+describe('migrateCollapsedPaths', () => {
+  it('改名したパス自身と子孫を付け替え、無関係は保つ', () => {
+    const next = migrateCollapsedPaths(
+      new Set(['a', 'a/x', 'ab', 'other']),
+      'a',
+      'b'
+    )
+    expect(Array.from(next).sort()).toEqual(['ab', 'b', 'b/x', 'other'])
+  })
+
+  it('前方一致だけの別パス（ab）は巻き込まない', () => {
+    const next = migrateCollapsedPaths(new Set(['ab/x']), 'a', 'b')
+    expect(next.has('ab/x')).toBe(true)
+  })
+
+  it('空集合・空 oldPath でも落ちない', () => {
+    expect(migrateCollapsedPaths(null, 'a', 'b').size).toBe(0)
+    expect(Array.from(migrateCollapsedPaths(['x'], '', 'b'))).toEqual(['x'])
   })
 })

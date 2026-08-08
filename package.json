@@ -43,6 +43,7 @@
     "e2e:findkey": "cross-env TB_E2E_PROBE=dev-scripts/e2e-findkey-probe.js electron .",
     "e2e:notelistfold": "cross-env TB_E2E_PROBE=dev-scripts/e2e-notelistfold-probe.js electron .",
     "e2e:darkui": "cross-env TB_E2E_PROBE=dev-scripts/e2e-darkui-probe.js electron .",
+    "e2e:rename": "cross-env TB_E2E_PROBE=dev-scripts/e2e-rename-probe.js electron .",
     "pre-release": "node scripts/pre-release-check.mjs"
   },
   "config": {

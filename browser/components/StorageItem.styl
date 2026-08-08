@@ -47,6 +47,21 @@
   overflow hidden
   text-overflow ellipsis
 
+.folderList-item-rename-input
+  // その場編集の入力欄。行の見た目を保ったまま名前部分だけ差し替える。
+  // 色は行から継承する（テーマ別の指定を足さずに全テーマで読める）
+  width calc(100% - 24px)
+  padding 1px 4px
+  border none
+  border-bottom 1px solid $ui-active-color
+  border-radius 0
+  background transparent
+  color inherit
+  font-size inherit
+  font-family inherit
+  line-height inherit
+  outline none
+
 .folderList-item-noteCount
   float right
   line-height 26px

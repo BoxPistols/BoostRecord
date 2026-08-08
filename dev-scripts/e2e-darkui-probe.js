@@ -206,15 +206,20 @@ app.on('browser-window-created', (_e, win) => {
       if (rename) {
         rename.click(rename, win, {})
         await new Promise(resolve => setTimeout(resolve, 700))
-        // 実際の利用時と同じく、入力欄の文字は選択された状態にする
-        await wc.executeJavaScript(
+        // 名称変更はモーダルではなく行のその場編集になった。
+        // 入力欄が出ていることも判定に含める（出ていなければ found:false で落ちる）
+        const inlineInput = await wc.executeJavaScript(
           `(() => {
-            const i = document.querySelector('.ModalBase input')
+            const i = document.querySelector('.SideNav input[class*="rename"]')
             if (i) { i.focus(); i.select() }
             return !!i
           })()`,
           true
         )
+        rows.push({
+          label: 'inline rename input',
+          data: { found: inlineInput }
+        })
         await new Promise(resolve => setTimeout(resolve, 300))
         rows.push({
           label: 'modal dom',
@@ -234,22 +239,50 @@ app.on('browser-window-created', (_e, win) => {
           )
         })
         rows.push({
-          label: 'rename modal bg',
+          label: 'inline rename row bg',
           data: await wc.executeJavaScript(
-            `(${LUMA})('.ModalBase [class*="RenameModal"], .ModalBase > div > div')`,
+            `(${LUMA})('.SideNav div[class*="folderList-item"]')`,
             true
           )
         })
         rows.push({
-          label: 'shot: rename modal',
-          data: await shoot(win, '1-rename-modal-dark')
+          label: 'shot: inline rename',
+          data: await shoot(win, '1-inline-rename-dark')
         })
+        // Esc で取り消して閉じる。開いたままだと行が DIV になり、
+        // 次のフォルダクリックが別の行へ逸れる。
+        // （未フォーカスのウィンドウでは el.blur() が React の onBlur に
+        // 届かないため、キーイベントの dispatch で閉じる）
         await wc.executeJavaScript(
-          `(() => { const b=document.querySelector('.ModalBase [class*="ModalEscButton"], .ModalBase button'); if(b) b.click(); return true })()`,
+          `(() => {
+            const i = document.querySelector('.SideNav input[class*="rename"]')
+            if (!i) return false
+            i.dispatchEvent(new KeyboardEvent('keydown', {
+              key: 'Escape', keyCode: 27, bubbles: true
+            }))
+            return true
+          })()`,
           true
         )
         await new Promise(resolve => setTimeout(resolve, 500))
       }
+
+      rows.push({
+        label: 'editing closed after blur',
+        data: await wc.executeJavaScript(
+          `({ divRow: !!document.querySelector('.SideNav div[class*="folderList-item"]'),
+              input: !!document.querySelector('.SideNav input[class*="rename"]'),
+              active: document.activeElement ? document.activeElement.tagName : null })`,
+          true
+        )
+      })
+      rows.push({
+        label: 'no modal opened',
+        data: await wc.executeJavaScript(
+          `(() => { const m=document.querySelector('.ModalBase'); return !m || m.className.indexOf('hide') !== -1 })()`,
+          true
+        )
+      })
 
       // --- 1.5 サブフォルダのグループ見出し（暗いテーマで白い帯だった） ---
       await wc.executeJavaScript(
@@ -261,6 +294,14 @@ app.on('browser-window-created', (_e, win) => {
         true
       )
       await new Promise(resolve => setTimeout(resolve, 900))
+      rows.push({
+        label: 'route after folder click',
+        data: await wc.executeJavaScript(
+          `({ hash: location.hash.slice(0, 80),
+              rows: Array.from(document.querySelectorAll('.SideNav [class*="folderList-item"]')).map(el => el.tagName + ':' + (el.getAttribute('title') || '')) })`,
+          true
+        )
+      })
       rows.push({
         label: 'group header bg',
         data: await wc.executeJavaScript(
@@ -367,6 +408,10 @@ app.on('browser-window-created', (_e, win) => {
       const missing = rows
         .filter(r => r.data && r.data.found === false)
         .map(r => r.label)
+      const headerRow = rows.find(r => r.label === 'group headers')
+      if (headerRow && (!headerRow.data || headerRow.data.length === 0)) {
+        missing.push('group headers（グループ表示が出ていない）')
+      }
       const bgRows = rows.filter(
         r => r.label.endsWith(' bg') && r.data && r.data.luma != null
       )

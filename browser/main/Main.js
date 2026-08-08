@@ -79,7 +79,15 @@ class Main extends React.Component {
     this.toggleFullScreen = () => this.handleFullScreenButton()
     // IPC は引数を伴うので、それを捨てるラッパーで受ける
     this.toggleNoteListHandler = () => this.toggleNoteList('ee')
-    this.paneTabHandler = e => this.handlePaneTab(e)
+    this.paneTabHandler = e => {
+      // keepFocus の再取得が「利用者の次の操作」と喧嘩しないための観測。
+      // Tab より後に何か入力があれば、その後のフォーカスは意図的とみなす
+      this.lastUserInputAt = window.performance.now()
+      this.handlePaneTab(e)
+    }
+    this.userInputObserver = () => {
+      this.lastUserInputAt = window.performance.now()
+    }
     // main プロセスの before-input-event からの転送 (#122)。DOM に Tab が
     // 届かない実機環境向けの「予備」経路。同じ押下を DOM も観測した場合は
     // DOM の判断(実行/スキップ)が正: 入力欄では native の Tab 移動が既に
@@ -187,6 +195,41 @@ class Main extends React.Component {
     // 畳まれたペインや隠れたフォルダを行き先にしないよう可視判定を挟む
     const isVisible = node => !!node && node.offsetParent !== null
 
+    // #122: focus() は成功しているのに、CodeMirror の遅延 focus が後から
+    // 着弾して奪い返すことがある（cold start で顕著。トレースでは
+    // decision: "moved to ..." なのに最終フォーカスがエディタだった）。
+    // 捕捉層を厚くしても直らないのはこのため。移動の直後に2回だけ検証し、
+    // **エディタに奪われていた時に限って**取り返す（モーダルや利用者の
+    // 明示的なクリックによる正当な移動は尊重する）
+    const keepFocus = target => {
+      target.focus()
+      const startedAt = window.performance.now()
+      const reassert = at => {
+        setTimeout(() => {
+          // Tab の後に利用者が何か操作した（E キーでエディタへ・クリック等）
+          // なら、そのフォーカスは意図的な移動。奪い返してはいけない
+          // （奪うと、エディタに打っているつもりの入力がノート一覧の
+          // 単キーショートカットへ流れる）。取り返すのは、入力が何も無いのに
+          // CodeMirror の遅延 focus だけが着弾したケースに限る
+          if (this.lastUserInputAt && this.lastUserInputAt > startedAt) return
+          const el = document.activeElement
+          if (el === target) return
+          const stolenByEditor =
+            el && el.closest && el.closest('.CodeMirror') !== null
+          if (!stolenByEditor) return
+          target.focus()
+          if (window.__tbPaneTab) {
+            window.__tbPaneTab.refocus = {
+              at,
+              stolenBy: el.tagName
+            }
+          }
+        }, at)
+      }
+      reassert(60)
+      reassert(220)
+    }
+
     if (e.shiftKey) {
       // ノート一覧 → サイドバー。選択中フォルダが見えていればそこへ、
       // 無ければサイドバー自体へ（tabIndex を持つのでフォーカスできる）
@@ -194,13 +237,13 @@ class Main extends React.Component {
       const target = isVisible(activeFolder) ? activeFolder : sideNav
       if (!isVisible(target)) return done('skip: sidebar not visible')
       e.preventDefault()
-      target.focus()
+      keepFocus(target)
       return done('moved to sidebar')
     }
 
     if (!isVisible(noteList)) return done('skip: note list not visible')
     e.preventDefault()
-    noteList.focus()
+    keepFocus(noteList)
     return done('moved to note list')
   }
 
@@ -380,6 +423,7 @@ class Main extends React.Component {
     // 走らない（実機で window.__tbPaneTab が undefined のままだった）。
     // capture は target へ降りる前に必ず通るので誰にも止められない
     window.addEventListener('keydown', this.paneTabHandler, true)
+    window.addEventListener('mousedown', this.userInputObserver, true)
     // それでも実機では Tab が DOM に届かない環境が残った (#122)。
     // main プロセスの before-input-event 転送を第二経路として受ける
     ipcRenderer.on('pane:tab', this.paneTabIpcHandler)
@@ -395,6 +439,7 @@ class Main extends React.Component {
     eventEmitter.off('dispatch:push', this.changeRoutePush.bind(this))
     eventEmitter.off('sidenav:togglenotelist', this.toggleNoteListHandler)
     window.removeEventListener('keydown', this.paneTabHandler, true)
+    window.removeEventListener('mousedown', this.userInputObserver, true)
     ipcRenderer.removeListener('pane:tab', this.paneTabIpcHandler)
     clearInterval(this.refreshTheme)
   }

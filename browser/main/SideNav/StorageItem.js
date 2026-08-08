@@ -4,7 +4,6 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './StorageItem.styl'
 import modal from 'browser/main/lib/modal'
 import CreateFolderModal from 'browser/main/modals/CreateFolderModal'
-import RenameFolderModal from 'browser/main/modals/RenameFolderModal'
 import FolderColorPopover from 'browser/components/FolderColorPopover'
 import dataApi from 'browser/main/lib/dataApi'
 import { moveNotesToFolder } from 'browser/main/lib/moveNotes'
@@ -15,6 +14,10 @@ import {
   buildFolderTree,
   ancestorPaths,
   collectFolderKeys,
+  splitPath,
+  joinPath,
+  resolveRenamedPath,
+  migrateCollapsedPaths,
   readCollapsedPaths,
   writeCollapsedPaths
 } from 'browser/lib/folderTree'
@@ -27,6 +30,12 @@ const { dialog } = remote
 const escapeStringRegexp = require('escape-string-regexp')
 const path = require('path')
 
+// render() の中で SortableElement() を呼ぶと**毎描画で新しいコンポーネント型**
+// になり、全行が再マウントされる。1回目のクリック（フォルダ選択）の再描画で
+// 行の DOM が入れ替わり、ネイティブの dblclick が成立しなくなる
+// （ダブルクリック改名が「たまにしか効かない」形で壊れる）
+const SortableStorageItemChild = SortableElement(StorageItemChild)
+
 class StorageItem extends React.Component {
   constructor(props) {
     super(props)
@@ -38,6 +47,8 @@ class StorageItem extends React.Component {
       draggedOver: null,
       // 右クリック位置に出す色ポップオーバー { folder, x, y } | null
       colorPopover: null,
+      // その場編集中のフォルダ key。ダブルクリック / 右クリック→名称変更で入る
+      renamingKey: null,
       // 折りたたんだフォルダのパス集合。既定は「全部開いている」。
       // 閉じた方を覚える形にすると、新しく作った子が勝手に隠れない
       collapsedPaths: readCollapsedPaths(storage.key)
@@ -292,11 +303,48 @@ class StorageItem extends React.Component {
   }
 
   handleRenameFolderClick(e, folder) {
-    const { storage } = this.props
-    modal.open(RenameFolderModal, {
-      storage,
-      folder
-    })
+    // モーダルは出さず、行のその場編集に切り替える（ダブルクリックと同じ）
+    this.setState({ renamingKey: folder.key })
+  }
+
+  handleRenameConfirm(folder, value) {
+    const { storage, dispatch } = this.props
+    // 入力は**葉の名前**。親のパスは保ったまま差し替える。
+    // 空入力=取り消し / no-op の判定は resolveRenamedPath に集約
+    // （newPath === '' だけで見ると、ネストしたフォルダで親パスが残って
+    // 「全選択→Delete→確定」が親パスへの改名として通ってしまう）
+    const newPath = resolveRenamedPath(folder.name, value)
+    if (newPath === null) {
+      this.setState({ renamingKey: null })
+      return
+    }
+    const oldPath = joinPath(splitPath(folder.name))
+    dataApi
+      .updateFolder(storage.key, folder.key, { name: newPath })
+      .then(data => {
+        // 折りたたみ集合は path 文字列キー。移行しないと畳んだ状態が
+        // 失われ、旧 path が幽霊エントリとして残る
+        this.setState(prev => {
+          const next = migrateCollapsedPaths(
+            prev.collapsedPaths,
+            oldPath,
+            newPath
+          )
+          writeCollapsedPaths(storage.key, next)
+          return { collapsedPaths: next, renamingKey: null }
+        })
+        dispatch({ type: 'UPDATE_FOLDER', storage: data.storage })
+      })
+      .catch(err => {
+        // 失敗は元の名前に戻す（編集を開いたままにすると blur→確定→失敗の
+        // ループになりうる）。理由は通知して黙って戻さない
+        this.setState({ renamingKey: null })
+        const message =
+          err && typeof err.message === 'string' && err.message !== ''
+            ? err.message
+            : 'Unknown error'
+        window.alert(`${i18n.__('Rename Folder')}: ${message}`)
+      })
   }
 
   handleExportFolderClick(e, folder, fileType) {
@@ -416,7 +464,6 @@ class StorageItem extends React.Component {
       showJumpHint
     } = this.props
     const { folderNoteMap, trashedSet } = data
-    const SortableStorageItemChild = SortableElement(StorageItemChild)
 
     // フォルダ名のパス表記からツリーを導出する。boostnote.json は平坦なまま
     const tree = buildFolderTree(storage.folders)
@@ -517,18 +564,48 @@ class StorageItem extends React.Component {
           onToggleExpand={() => this.toggleFolderExpand(node.path)}
           showReorderHandle={showReorderHandle}
           handleButtonClick={e => {
+            // 「ダブルクリックしても改名にならない」時の切り分け用
+            // （__tbPaneTab と同じ用途。detail が 2 で届いているかを見る）
+            window.__tbRenameTrace = (window.__tbRenameTrace || [])
+              .concat([
+                `click detail=${e.detail} folder=${
+                  folder ? folder.key : null
+                } last=${this.lastClickedFolderKey} renaming=${
+                  this.state.renamingKey
+                }`
+              ])
+              .slice(-10)
             // 実体のない中間ノードは選べない（選ばせるとルーティングが
             // 未知の folderKey になり、NoteList がストレージ全件へ
             // 黙ってフォールバックする）。代わりに開閉する
             if (!folder) {
+              // 2回目のクリック（ダブルクリック相当）で開閉を打ち消さない
+              if (e.detail >= 2) return
               this.toggleFolderExpand(node.path)
               return
             }
+            // ダブルクリック = その場で名称変更。ネイティブ dblclick は
+            // 1回目のクリックの再描画で対象要素が入れ替わると**合成されない**
+            // （実測: click detail=2 は届くが dblclick が来ない）ため、
+            // click の detail で判定する。
+            // detail はターゲットが替わってもリセットされない（時間+座標
+            // ベース）ので、直前のクリックが同じフォルダだった時に限る。
+            // 折りたたみで行がずれた直後の連打で、別のフォルダに改名が
+            // 誤発火するのを防ぐ
+            if (e.detail >= 2 && this.lastClickedFolderKey === folder.key) {
+              this.setState({ renamingKey: folder.key })
+              return
+            }
+            this.lastClickedFolderKey = folder.key
             this.handleFolderButtonClick(folder.key)(e)
           }}
           handleMouseEnter={e =>
             this.handleFolderMouseEnter(e, tooltipRef, isFolded)
           }
+          isEditing={!!folder && folder.key === this.state.renamingKey}
+          renameDefaultValue={node.name}
+          onRenameConfirm={value => this.handleRenameConfirm(folder, value)}
+          onRenameCancel={() => this.setState({ renamingKey: null })}
           handleContextMenu={e => {
             // 中間ノードには削除・リネームのメニューを出さない。
             // folder が無い状態で削除へ進むと folderKey が undefined になり、

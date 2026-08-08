@@ -157,6 +157,55 @@ describe('updateFolder の名前正規化', () => {
     expect(err.message).toMatch(/already exists/)
   })
 
+  it('親の改名は子孫フォルダのパスも書き換え、ディスクへ1回で反映する', async () => {
+    const folderKey = storageContext.json.folders[0].key
+    await updateFolder(storageKey, folderKey, { name: 'Base', color: '#fff' })
+    const child = await createFolder(storageKey, {
+      name: 'Base/child',
+      color: '#fff'
+    })
+    const grand = await createFolder(storageKey, {
+      name: 'Base/child/grand',
+      color: '#fff'
+    })
+    const childKey = child.storage.folders.find(f => f.name === 'Base/child')
+      .key
+    const grandKey = grand.storage.folders.find(
+      f => f.name === 'Base/child/grand'
+    ).key
+    // 前方一致だけの別フォルダは巻き込まれない
+    await createFolder(storageKey, { name: 'BaseX', color: '#fff' })
+
+    const data = await updateFolder(storageKey, folderKey, {
+      name: 'Moved',
+      color: '#fff'
+    })
+    const byKey = key => data.storage.folders.find(f => f.key === key)
+    expect(byKey(folderKey).name).toBe('Moved')
+    expect(byKey(childKey).name).toBe('Moved/child')
+    expect(byKey(grandKey).name).toBe('Moved/child/grand')
+    expect(data.storage.folders.some(f => f.name === 'BaseX')).toBe(true)
+
+    // ディスクにも反映されている（storage オブジェクトだけの書き換えでない）
+    const CSON = require('@rokt33r/season')
+    const path = require('path')
+    const onDisk = CSON.readFileSync(
+      path.join(data.storage.path, 'boostnote.json')
+    )
+    expect(onDisk.folders.find(f => f.key === grandKey).name).toBe(
+      'Moved/child/grand'
+    )
+  })
+
+  it('改名で色を省略すると現在の色を保つ', async () => {
+    const folderKey = storageContext.json.folders[0].key
+    await updateFolder(storageKey, folderKey, { name: 'Keep', color: '#abc' })
+    const data = await updateFolder(storageKey, folderKey, { name: 'Keep2' })
+    const updated = data.storage.folders.find(f => f.key === folderKey)
+    expect(updated.name).toBe('Keep2')
+    expect(updated.color).toBe('#abc')
+  })
+
   it('自分自身と同じパスへの更新は通る（色だけ変える操作を塞がない）', async () => {
     const folderKey = storageContext.json.folders[0].key
     const first = await updateFolder(storageKey, folderKey, {

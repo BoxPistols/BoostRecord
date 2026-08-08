@@ -38,6 +38,15 @@ let ran = false
 function finish(code, result) {
   if (finished) return
   finished = true
+  // 判定は必ず stdout に出す（結果ファイルは CI から読めない。
+  // 無言の exit 0 は「回っていない」のと区別が付かない）
+  console.log('\n=== navfocus probe ===')
+  const rep = (result && result.rep) || {}
+  Object.keys(rep).forEach(k =>
+    console.log(`ROW   ${k} — ${JSON.stringify(rep[k])}`)
+  )
+  if (result && result.error) console.log(`ERROR: ${result.error}`)
+  console.log(`--- ${result && result.ok !== false ? 'OK' : 'NG'} exit ${code}`)
   try {
     fs.writeFileSync(
       RESULT_FILE,

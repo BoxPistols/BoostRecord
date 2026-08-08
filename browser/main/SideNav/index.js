@@ -43,6 +43,15 @@ function matchActiveTags(tags, activeTags) {
   return every(activeTags, v => tags.indexOf(v) >= 0)
 }
 
+// render 内（しかも map の中）で SortableContainer() を呼ぶと**毎描画で新しい
+// コンポーネント型**になり、StorageItem がインスタンスごと再マウントされる。
+// その場改名の入力が「フォルダ選択のナビゲーション再描画」で state ごと消える
+// （renamingKey / lastClickedFolderKey が click1→click2 の間に失われ、
+// ダブルクリック改名が一切効かない）実害が出た。FolderList.js の同型は
+// SortableContainer が状態を持たない関数コンポーネントを包むため実害が薄いが、
+// ここは Component を包ぐので致命的
+const SortableStorageItem = SortableContainer(StorageItem)
+
 class SideNav extends React.Component {
   // TODO: should not use electron stuff v0.7
   constructor(props) {
@@ -498,7 +507,6 @@ class SideNav extends React.Component {
       // （ゴミ箱は対象外）。フォルダは 4 から、ストレージをまたいで通し番号
       let jumpHintCursor = 4
       const storageList = storageMap.map((storage, key) => {
-        const SortableStorageItem = SortableContainer(StorageItem)
         // 折りたたまれたストレージはフォルダを描画しないので番号を消費しない。
         // 消費すると次のストレージの番号が画面上の並びとずれる
         const isStorageOpen = !!storage.isOpen
@@ -807,7 +815,19 @@ class SideNav extends React.Component {
           // ハンドラは既定動作より前に走るため、ここで focus() しても打ち消される。
           // 次のタスクへ回して既定動作の後に上書きする
           setTimeout(() => {
-            if (this.sideNavRoot) this.sideNavRoot.focus()
+            if (!this.sideNavRoot) return
+            // サイドバー内の編集要素（その場改名・検索欄）にフォーカスが
+            // あるなら奪わない。ここで奪うと、入力欄が開いた瞬間に
+            // blur して打てなくなる（実測: 改名入力がこれで即閉じた）
+            const el = document.activeElement
+            if (
+              el &&
+              (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') &&
+              this.sideNavRoot.contains(el)
+            ) {
+              return
+            }
+            this.sideNavRoot.focus()
           }, 0)
         }}
       >

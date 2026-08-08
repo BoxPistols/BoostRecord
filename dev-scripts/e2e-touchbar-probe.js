@@ -6,11 +6,12 @@
 // （このマシンでは BTT が Touch Bar を占有している点に注意）。
 //
 // 測ること:
-//   1. build() が items 7 個のバーを作る（Electron 28 実 API で崩れない）
-//   2. ⭐️ → /starred、🗑 → /trashed、📒 → /home に遷移する
-//   3. 🔍 → FindBar が開く
-//   4. ✎ → ノート種別モーダルが開く
-//   5. setTouchBar(bar/null) の focus/blur サイクルが例外を出さない
+//   1. build() がバー(ボタン13 + popover)を作る（Electron 28 実 API で崩れない）
+//   2. ナビ5種 (📒⭐️🔖🏷🗑) がそれぞれのルートへ遷移する
+//   3. 🔍 → FindBar、🔗 → focusNoteLink（__tbNoteLink で観測）
+//   4. 表示系トグル5種（一覧/情報/目次/モード/プレビュー）が実際に画面を変える
+//   5. ✎ → ノート種別モーダルが開く
+//   6. setTouchBar(bar/null) の focus/blur サイクルが例外を出さない
 //
 // Exit: 0 PASS / 1 FAIL / 2 probe error / 3 watchdog
 const { app, BrowserWindow } = require('electron')
@@ -125,10 +126,16 @@ app.on('web-contents-created', (_e, wc) => {
         const hash = () =>
           wc.executeJavaScript('location.hash.split("?")[0]', true)
 
-        // --- 2. ナビゲーション3ボタン ---
+        // --- 2. ナビゲーション5ボタン ---
         actions.starredNotes()
         await sleep(600)
         const afterStarred = await hash()
+        actions.bookmarks()
+        await sleep(600)
+        const afterBookmarks = await hash()
+        actions.tags()
+        await sleep(600)
+        const afterTags = await hash()
         actions.trash()
         await sleep(600)
         const afterTrash = await hash()
@@ -137,7 +144,13 @@ app.on('web-contents-created', (_e, wc) => {
         const afterHome = await hash()
         rows.push({
           label: 'navigate',
-          data: { afterStarred, afterTrash, afterHome }
+          data: {
+            afterStarred,
+            afterBookmarks,
+            afterTags,
+            afterTrash,
+            afterHome
+          }
         })
 
         // --- 3. 🔍 → FindBar（ノートを開いた状態で）---
@@ -157,6 +170,56 @@ app.on('web-contents-created', (_e, wc) => {
         rows.push({ label: 'find → FindBar', data: { findBar } })
         // 後始末（Esc 相当は FindBar の × でなく keydown だと環境依存なので
         // そのままにする。以降の判定に影響しない）
+
+        // --- 3b. 🔗 → ノートリンクへフォーカス（app が __tbNoteLink を残す）---
+        actions.noteLink()
+        await sleep(800)
+        const noteLink = await wc.executeJavaScript(
+          `(() => ({
+             called: !!(window.__tbNoteLink && window.__tbNoteLink.called),
+             field: !!document.querySelector('[data-note-link]')
+           }))()`,
+          true
+        )
+        rows.push({ label: 'noteLink', data: noteLink })
+
+        // --- 3c. 表示系トグル（呼ぶ→変化を測る→呼び直して復元）---
+        const measureView = () =>
+          wc.executeJavaScript(
+            `(() => {
+               const p = document.querySelector('.infoPanel')
+               const nl = document.querySelector('.NoteList')
+               const toc = document.querySelector('[class*="body-toc"]')
+               const pressed = document.querySelector(
+                 'button[aria-pressed="true"] i.fa'
+               )
+               return {
+                 info: !!(p && p.style && p.style.display !== 'none'),
+                 noteListW: nl ? Math.round(nl.getBoundingClientRect().width) : null,
+                 toc: !!(toc && toc.getBoundingClientRect().width > 0),
+                 mode: pressed ? pressed.className : null
+               }
+             })()`,
+            true
+          )
+        const toggles = {}
+        const flip = async (name, restoreCount) => {
+          const before = await measureView()
+          actions[name]()
+          await sleep(700)
+          const after = await measureView()
+          for (let i = 0; i < restoreCount; i++) {
+            actions[name]()
+            await sleep(700)
+          }
+          toggles[name] = { before, after }
+        }
+        await flip('toggleInfo', 1)
+        await flip('toggleToc', 1)
+        await flip('toggleNoteList', 2) // 3状態サイクル(通常→折畳→非表示)
+        await flip('togglePreview', 1)
+        await flip('toggleMode', 2) // 3値サイクルなので2回で元に戻る
+        rows.push({ label: 'view toggles', data: toggles })
 
         // --- 4. ✎ → ノート種別モーダル ---
         actions.newNote()
@@ -182,17 +245,44 @@ app.on('web-contents-created', (_e, wc) => {
 
         const problems = []
         if (!touchBar) problems.push('TouchBar が作れない')
-        if (Object.keys(buttons).length !== 5) {
-          problems.push('ボタンが5個ない: ' + Object.keys(buttons).length)
+        if (Object.keys(buttons).length !== 13) {
+          problems.push('ボタンが13個ない: ' + Object.keys(buttons).length)
         }
         if (afterStarred !== '#/starred') {
           problems.push(`⭐️ 遷移先が ${afterStarred}`)
+        }
+        if (afterBookmarks !== '#/bookmarked') {
+          problems.push(`🔖 遷移先が ${afterBookmarks}`)
+        }
+        if (afterTags !== '#/alltags') {
+          problems.push(`🏷 遷移先が ${afterTags}`)
         }
         if (afterTrash !== '#/trashed') {
           problems.push(`🗑 遷移先が ${afterTrash}`)
         }
         if (afterHome !== '#/home') problems.push(`📒 遷移先が ${afterHome}`)
         if (!findBar) problems.push('🔍 で FindBar が開かない')
+        if (!noteLink.called) problems.push('🔗 で focusNoteLink が呼ばれない')
+        if (toggles.toggleInfo.before.info === toggles.toggleInfo.after.info) {
+          problems.push('情報パネルが切り替わらない')
+        }
+        if (toggles.toggleToc.before.toc === toggles.toggleToc.after.toc) {
+          problems.push('目次が切り替わらない')
+        }
+        if (
+          toggles.toggleNoteList.before.noteListW ===
+          toggles.toggleNoteList.after.noteListW
+        ) {
+          problems.push('ノート一覧が切り替わらない')
+        }
+        if (
+          toggles.togglePreview.before.mode === toggles.togglePreview.after.mode
+        ) {
+          problems.push('プレビュー切替でモードが変わらない')
+        }
+        if (toggles.toggleMode.before.mode === toggles.toggleMode.after.mode) {
+          problems.push('モード切替でモードが変わらない')
+        }
         if (!modal) problems.push('✎ でモーダルが開かない')
         if (cycleError) problems.push('setTouchBar cycle: ' + cycleError)
 

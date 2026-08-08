@@ -10,6 +10,12 @@ class TouchBarSpacer {
   }
 }
 
+class TouchBarPopover {
+  constructor(opts) {
+    Object.assign(this, opts)
+  }
+}
+
 class TouchBar {
   constructor(opts) {
     this.items = (opts && opts.items) || []
@@ -17,6 +23,7 @@ class TouchBar {
 }
 TouchBar.TouchBarButton = TouchBarButton
 TouchBar.TouchBarSpacer = TouchBarSpacer
+TouchBar.TouchBarPopover = TouchBarPopover
 
 module.exports = {
   require: jest.genMockFunction(),

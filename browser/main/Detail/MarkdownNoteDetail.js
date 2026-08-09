@@ -62,6 +62,17 @@ const BODY_TOP = 69
 const DEFAULT_TOC_WIDTH = 200
 const MIN_TOC_WIDTH = 140
 const MAX_TOC_WIDTH = 480
+// 目次幅は px で永続化されるが、px 単独ではペイン幅と無関係に効いてしまう。
+// 480px を保存した状態で窓を狭めると、実測で本文が 164px → 0px まで潰れた。
+// 「.body 幅の TOC_MAX_PERCENT% を超えない」を CSS の min() で表現すると、
+// JS の再計測・resize 購読なしにウィンドウ幅へ追従できる
+const TOC_MAX_PERCENT = 40
+const TOC_MAX_RATIO = TOC_MAX_PERCENT / 100
+// .body の左右マージン（MarkdownNoteDetail.styl の `margin 0 30px`）
+const BODY_MARGIN = 30
+// FindBar と目次の間隔 + 目次の外側に足す余白
+const FIND_BAR_GAP = 48
+const FIND_BAR_EDGE = 18
 
 let sessionPreviewOnly = false
 
@@ -166,13 +177,31 @@ class MarkdownNoteDetail extends React.Component {
   handleTocSliderMouseDown(e) {
     e.preventDefault()
     const startX = e.clientX
-    const startWidth =
-      (this.props.config.preview || {}).tocWidth || DEFAULT_TOC_WIDTH
+    // 起点は config の保存値ではなく**画面に出ている実寸**。保存値は
+    // ペイン幅で頭打ちされていることがあり、そこから始めると掴んだ瞬間に飛ぶ
+    const tocEl = e.currentTarget.parentElement
+    const bodyEl = tocEl && tocEl.parentElement
+    const bodyWidth = bodyEl ? bodyEl.getBoundingClientRect().width : 0
+    const startWidth = tocEl
+      ? Math.round(tocEl.getBoundingClientRect().width)
+      : (this.props.config.preview || {}).tocWidth || DEFAULT_TOC_WIDTH
+    // 広げられる上限もペイン幅に従わせる。こうしないと「見えている幅」と
+    // 「保存される値」がずれる（描画側は min() で頭打ちにしているため）
+    const maxWidth = bodyWidth
+      ? Math.min(MAX_TOC_WIDTH, Math.round(bodyWidth * TOC_MAX_RATIO))
+      : MAX_TOC_WIDTH
 
     const onMove = ev => {
+      // プレビュー(iframe)の上で mouseup を取り逃すと、ボタンを離した後も
+      // 掴んだままになり、マウスを動かすだけで幅が変わり続ける。押されて
+      // いないことを見たら自分で終う
+      if (ev.buttons === 0) {
+        onUp()
+        return
+      }
       // 右へ動かすほど目次は狭くなる（境界は目次の左端）
       const next = Math.min(
-        MAX_TOC_WIDTH,
+        maxWidth,
         Math.max(MIN_TOC_WIDTH, startWidth - (ev.clientX - startX))
       )
       this.setState({ tocWidth: next })
@@ -842,12 +871,6 @@ class MarkdownNoteDetail extends React.Component {
     const { note } = this.state
     // 目次は Markdown ノートだけ。設定で消せる
     const showToc = (config.preview || {}).showToc !== false
-    const findRight =
-      ((config.preview || {}).showToc !== false
-        ? (this.state.tocWidth != null
-            ? this.state.tocWidth
-            : (config.preview || {}).tocWidth || DEFAULT_TOC_WIDTH) + 30
-        : 0) + 18
     // TODO が無ければバーは display:none なので下げない（無駄な余白を作らない）
     const hasTodoBar = !isNaN(getTodoPercentageOfCompleted(note.content))
     // ドラッグ中は state を見る（config へ書くのは離した時）
@@ -855,6 +878,16 @@ class MarkdownNoteDetail extends React.Component {
       this.state.tocWidth != null
         ? this.state.tocWidth
         : (config.preview || {}).tocWidth || DEFAULT_TOC_WIDTH
+    // 目次と本文の境界。px 単独だと窓を狭めた時に本文が 0px まで潰れるので、
+    // .body 幅に対する比率で頭打ちにする。同じ包含ブロック（.body）に対する
+    // 指定なので、本文の right と目次の width は常に一致する
+    const tocSize = `min(${tocWidth}px, ${TOC_MAX_PERCENT}%)`
+    // FindBar の基準は .body ではなく detail のルート。.body の左右マージンを
+    // 引いてから比率を掛けないと、上の tocSize と食い違って目次に潜り込む
+    const findRight = showToc
+      ? `calc(min(${tocWidth}px, (100% - ${BODY_MARGIN *
+          2}px) * ${TOC_MAX_RATIO}) + ${FIND_BAR_GAP}px)`
+      : `${FIND_BAR_EDGE}px`
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -1014,7 +1047,7 @@ class MarkdownNoteDetail extends React.Component {
               // max-width は right の分を引かないと意味が無い。
               // 引かないと、右へ寄せた分だけ左端からはみ出して
               // 虫眼鏡と入力欄の頭が画面外へ出る
-              maxWidth: `calc(100% - ${findRight + 18}px)`
+              maxWidth: `calc(100% - ${findRight} - ${FIND_BAR_EDGE}px)`
             }}
             query={this.state.find.query}
             index={this.state.find.index}
@@ -1036,12 +1069,12 @@ class MarkdownNoteDetail extends React.Component {
         >
           <div
             styleName={showToc ? 'body-editor--with-toc' : 'body-editor'}
-            style={showToc ? { right: tocWidth } : undefined}
+            style={showToc ? { right: tocSize } : undefined}
           >
             {this.renderEditor()}
           </div>
           {showToc && (
-            <div styleName='body-toc' style={{ width: tocWidth }}>
+            <div styleName='body-toc' style={{ width: tocSize }}>
               <div
                 styleName='toc-slider'
                 onMouseDown={e => this.handleTocSliderMouseDown(e)}

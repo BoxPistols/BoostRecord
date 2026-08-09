@@ -1,9 +1,12 @@
 // 目次ペイン。プレビューの右に常設する。
-$toc-width = 200px
 
 .root
-  flex 0 0 $toc-width
-  width $toc-width
+  // 幅は親（.body-toc）が持つ。ここで固定幅を持つと、親が広がっても
+  // 中身が付いてこず右側が丸ごと死に領域になる（実測: 箱 480px に対し
+  // 中身 200px、差 280px が空白のまま本文を圧迫していた）
+  flex 1 1 auto
+  width 100%
+  min-width 0
   display flex
   flex-direction column
   overflow hidden

@@ -7,11 +7,13 @@
 //
 // 測ること:
 //   1. build() がバー(ボタン12 + popover)を作る（Electron 28 実 API で崩れない）
-//   2. ナビ4種 (📒⭐️🔖🏷) がそれぞれのルートへ遷移する（ゴミ箱は不要の指示で撤去）
-//   3. 🔍 → FindBar、🔗 → focusNoteLink（__tbNoteLink で観測）
+//   2. ナビ4種（すべて/スター/ブックマーク/タグ）がそれぞれのルートへ遷移する
+//      （ゴミ箱は不要の指示で撤去）
+//   3. 検索 → FindBar、リンク → focusNoteLink（__tbNoteLink で観測）
 //   4. 表示系トグル5種（一覧/情報/目次/モード/プレビュー）が実際に画面を変える
-//   5. ✎ → ノート種別モーダルが開く
-//   6. setTouchBar(bar/null) の focus/blur サイクルが例外を出さない
+//   5. 新規 → ノート種別モーダルが開く
+//   6. グリフアイコンが実 nativeImage として読める（PNG 生成漏れの検知）
+//   7. setTouchBar(bar/null) の focus/blur サイクルが例外を出さない
 //
 // Exit: 0 PASS / 1 FAIL / 2 probe error / 3 watchdog
 const { app, BrowserWindow } = require('electron')
@@ -121,6 +123,32 @@ app.on('web-contents-created', (_e, wc) => {
         rows.push({
           label: 'build()',
           data: { hasBar: !!touchBar, buttonCount: Object.keys(buttons).length }
+        })
+
+        // グリフアイコンが実 nativeImage として読めているか（モックでなく
+        // 実 Electron で確かめる。PNG の生成漏れ・パス誤りはここで出る）
+        const glyphNames = [
+          'allNotes',
+          'starredNotes',
+          'bookmarks',
+          'tags',
+          'find',
+          'noteLink',
+          'newNote'
+        ]
+        const iconless = glyphNames.filter(n => {
+          const icon = buttons[n] && buttons[n].icon
+          return !icon || icon.isEmpty()
+        })
+        // template 判定は Electron の getter が別インスタンスを返す可能性が
+        // あるので参考値に留める（verdict には使わない）
+        const nonTemplate = glyphNames.filter(n => {
+          const icon = buttons[n] && buttons[n].icon
+          return icon && !icon.isEmpty() && !icon.isTemplateImage()
+        })
+        rows.push({
+          label: 'glyph icons',
+          data: { checked: glyphNames.length, iconless, nonTemplate }
         })
 
         const hash = () =>
@@ -244,18 +272,23 @@ app.on('web-contents-created', (_e, wc) => {
         if (Object.keys(buttons).length !== 12) {
           problems.push('ボタンが12個ない: ' + Object.keys(buttons).length)
         }
+        if (iconless.length) {
+          problems.push('アイコンが読めないボタン: ' + iconless.join(', '))
+        }
         if (afterStarred !== '#/starred') {
-          problems.push(`⭐️ 遷移先が ${afterStarred}`)
+          problems.push(`スター 遷移先が ${afterStarred}`)
         }
         if (afterBookmarks !== '#/bookmarked') {
-          problems.push(`🔖 遷移先が ${afterBookmarks}`)
+          problems.push(`ブックマーク 遷移先が ${afterBookmarks}`)
         }
         if (afterTags !== '#/alltags') {
-          problems.push(`🏷 遷移先が ${afterTags}`)
+          problems.push(`タグ 遷移先が ${afterTags}`)
         }
-        if (afterHome !== '#/home') problems.push(`📒 遷移先が ${afterHome}`)
-        if (!findBar) problems.push('🔍 で FindBar が開かない')
-        if (!noteLink.called) problems.push('🔗 で focusNoteLink が呼ばれない')
+        if (afterHome !== '#/home')
+          problems.push(`すべて 遷移先が ${afterHome}`)
+        if (!findBar) problems.push('検索 で FindBar が開かない')
+        if (!noteLink.called)
+          problems.push('リンク で focusNoteLink が呼ばれない')
         if (toggles.toggleInfo.before.info === toggles.toggleInfo.after.info) {
           problems.push('情報パネルが切り替わらない')
         }

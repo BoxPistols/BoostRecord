@@ -146,9 +146,6 @@ body[data-theme="dark"]
     topBarButtonDark()
     color $ui-active-color
 
-// ノート内検索のハイライト（エディタ側）。プレビュー側の
-// ::highlight(tb-find-all) と同じ色に揃える。markText は CSS Modules を
-// 通らないので :global で当てる
-:global(.tb-find-all)
-  background-color #ffeb3b
-  color #1a1a1a
+// ノート内検索のハイライト（エディタ側）は CodeEditor.styl に移した。
+// スニペットノートでも使う共有の見た目なので、Markdown ノート専用の
+// ファイルに置いておくと持ち主が分からなくなる

@@ -33,7 +33,10 @@ export default class FindController {
     this.host = host
     this.state = null
     this.hits = []
-    this.marks = null
+    this.marks = []
+    // 置換で本文が変わると change が飛び、refresh() が再入する。
+    // 走っている間は降りる
+    this.busy = false
     this.previewDoc = null
     this.previewRanges = null
   }
@@ -75,7 +78,7 @@ export default class FindController {
    */
   clear() {
     editorFind.clearMarks(this.marks)
-    this.marks = null
+    this.marks = []
     this.hits = []
     const doc = this.previewDoc || this.host.getPreviewDoc()
     if (doc) previewFind.clear(doc)
@@ -102,7 +105,7 @@ export default class FindController {
       const marked = editorFind.markMatches(this.host.getCm(), query)
       this.hits = marked.hits
       this.marks = marked.marks
-      count = marked.hits.length
+      count = marked.marks.length
     }
 
     const prev = this.state || INITIAL
@@ -132,8 +135,18 @@ export default class FindController {
       const doc = this.previewDoc || this.host.getPreviewDoc()
       if (doc) previewFind.setActive(doc, this.previewRanges, index)
     } else {
-      editorFind.revealHit(this.host.getCm(), this.hits[index])
+      editorFind.revealHit(this.host.getCm(), this.marks[index])
     }
+  }
+
+  /**
+   * 本文が変わった時に呼ぶ。開いていなければ何もしない。
+   * 置換そのものも本文を変えるので、二重に走らないよう印で守る
+   */
+  refresh() {
+    if (!this.state || this.busy) return
+    if (this.host.getTarget() === 'PREVIEW') return
+    this.rescan(this.state.index)
   }
 
   toggleReplace() {
@@ -157,9 +170,14 @@ export default class FindController {
     if (!prev || !prev.count || !this.canReplace()) return
     const cm = this.host.getCm()
     const at = prev.index < 0 ? 0 : prev.index
-    const hit = this.hits[at]
-    if (!cm || !hit) return
-    editorFind.replaceHit(cm, hit, prev.replacement)
+    const mark = this.marks[at]
+    if (!cm || !mark) return
+    // マークが消えていれば（その箇所が編集で失われていれば）何もしない。
+    // 数値のオフセットで持っていると、ここで無関係な文字を書き換える
+    if (!editorFind.replaceHit(cm, mark, prev.replacement)) {
+      this.rescan(at)
+      return
+    }
     // 置換した箇所は一致から消えるので、同じ添字に「次の一致」が来る
     this.rescan(at)
   }
@@ -169,7 +187,7 @@ export default class FindController {
     if (!prev || !prev.count || !this.canReplace()) return
     const cm = this.host.getCm()
     if (!cm) return
-    editorFind.replaceAllHits(cm, this.hits, prev.replacement)
+    editorFind.replaceAllHits(cm, this.marks, prev.replacement)
     this.rescan(-1)
   }
 
@@ -180,14 +198,16 @@ export default class FindController {
    */
   rescan(at) {
     const prev = this.state || INITIAL
+    this.busy = true
     const cm = this.host.getCm()
     editorFind.clearMarks(this.marks)
     const marked = editorFind.markMatches(cm, prev.query)
     this.hits = marked.hits
     this.marks = marked.marks
-    const count = marked.hits.length
+    const count = marked.marks.length
     const index = count === 0 || at < 0 ? -1 : Math.min(at, count - 1)
-    if (index >= 0) editorFind.revealHit(cm, this.hits[index])
+    if (index >= 0) editorFind.revealHit(cm, this.marks[index])
+    this.busy = false
     this.emit(Object.assign({}, prev, { count, index }))
   }
 }

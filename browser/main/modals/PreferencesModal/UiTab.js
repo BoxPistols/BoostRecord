@@ -35,7 +35,10 @@ class UiTab extends React.Component {
     super(props)
     this.state = {
       config: props.config,
-      codemirrorTheme: props.config.editor.theme
+      codemirrorTheme: props.config.editor.theme,
+      // テーマ一覧は既定で「推奨」だけを出す。54件を一度に並べると、
+      // 名前から中身が想像できないぶん選べない（利用者からの指摘）
+      showAllThemes: false
     }
   }
 
@@ -231,24 +234,61 @@ class UiTab extends React.Component {
    * テーマの選択肢。**推奨（実測でコントラスト合格）を先に出す。**
    * 54 個を名前順に並べても、どれが読めるのか利用者には判断材料が無い
    */
-  renderThemeOptions(themes) {
+  renderThemeOptions(themes, currentValue) {
     const { recommended, others } = groupThemes(themes)
-    return [
+    const { showAllThemes } = this.state
+    const groups = [
       <optgroup key='recommended' label={i18n.__('Recommended (readable)')}>
         {recommended.map(theme => (
           <option value={theme.name} key={theme.name}>
             {displayName(theme.name)}
           </option>
         ))}
-      </optgroup>,
-      <optgroup key='others' label={i18n.__('Others')}>
-        {others.map(theme => (
-          <option value={theme.name} key={theme.name}>
-            {displayName(theme.name)}
-          </option>
-        ))}
       </optgroup>
     ]
+
+    // 畳んでいる時でも、いま選ばれているものは必ず選択肢に残す。
+    // 消すと value が一覧に無い状態になり、選択が黙って別物へ飛ぶ
+    const currentIsHidden =
+      !showAllThemes &&
+      others.some(theme => theme.name === currentValue) &&
+      !recommended.some(theme => theme.name === currentValue)
+    if (currentIsHidden) {
+      groups.push(
+        <optgroup key='current' label={i18n.__('Current setting')}>
+          <option value={currentValue}>{displayName(currentValue)}</option>
+        </optgroup>
+      )
+    }
+
+    if (showAllThemes) {
+      groups.push(
+        <optgroup key='others' label={i18n.__('Others')}>
+          {others.map(theme => (
+            <option value={theme.name} key={theme.name}>
+              {displayName(theme.name)}
+            </option>
+          ))}
+        </optgroup>
+      )
+    }
+    return groups
+  }
+
+  /** 全件表示の切替。設定には保存しない（その場の探し物のためのもの） */
+  renderShowAllThemes(themes) {
+    const { others } = groupThemes(themes)
+    return (
+      <label styleName='theme-toggle'>
+        <input
+          type='checkbox'
+          checked={this.state.showAllThemes}
+          onChange={e => this.setState({ showAllThemes: e.target.checked })}
+        />
+        &nbsp;
+        {i18n.__('Show all themes (%s more)', String(others.length))}
+      </label>
+    )
   }
 
   /**
@@ -283,13 +323,19 @@ class UiTab extends React.Component {
 
   /** プリセットは押した時点で適用・保存する（保存ボタンを探させない） */
   handlePresetClick(preset) {
-    const newConfig = applyPreset(this.state.config, preset)
+    // applyPreset は ui/editor/preview しか返さない。state.config には
+    // 他のキー（hotkey 等）も入っているので、**上書きではなく重ねる**
+    const patch = applyPreset(this.state.config, preset)
+    const newConfig = Object.assign({}, this.state.config, patch)
     this.setState(
       { config: newConfig, codemirrorTheme: newConfig.editor.theme },
       () => {
         applyTheme(newConfig.ui.theme)
-        ConfigManager.set(newConfig)
-        store.dispatch({ type: 'SET_UI', config: newConfig })
+        ConfigManager.set(patch)
+        store.dispatch({ type: 'SET_UI', config: patch })
+        // 押した時点で保存しているので、未保存バナーを残さない
+        this.currentConfig = newConfig
+        this.props.haveToSave()
       }
     )
   }
@@ -402,8 +448,9 @@ class UiTab extends React.Component {
                 ref='editorTheme'
                 onChange={e => this.handleUIChange(e)}
               >
-                {this.renderThemeOptions(themes)}
+                {this.renderThemeOptions(themes, config.editor.theme)}
               </select>
+              {this.renderShowAllThemes(themes)}
               <div styleName='code-mirror' style={{ fontFamily }}>
                 <ReactCodeMirror
                   ref={e => (this.codeMirrorInstance = e)}
@@ -428,8 +475,9 @@ class UiTab extends React.Component {
                 ref='previewCodeBlockTheme'
                 onChange={e => this.handleUIChange(e)}
               >
-                {this.renderThemeOptions(themes)}
+                {this.renderThemeOptions(themes, config.preview.codeBlockTheme)}
               </select>
+              {this.renderShowAllThemes(themes)}
             </div>
           </div>
           <div styleName='group-section'>
@@ -756,154 +804,158 @@ class UiTab extends React.Component {
             </div>
           </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Front matter title field')}
+          <details styleName='advanced'>
+            <summary styleName='advanced-summary'>
+              {i18n.__('Advanced editor options')}
+            </summary>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Front matter title field')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='frontMatterTitleField'
+                  value={config.editor.frontMatterTitleField}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='frontMatterTitleField'
-                value={config.editor.frontMatterTitleField}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Matching character pairs')}
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Matching character pairs')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.matchingPairs}
+                  ref='matchingPairs'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.matchingPairs}
-                ref='matchingPairs'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label-right'>
-              {i18n.__('in code blocks')}
+            <div styleName='group-section'>
+              <div styleName='group-section-label-right'>
+                {i18n.__('in code blocks')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.codeBlockMatchingPairs}
+                  ref='codeBlockMatchingPairs'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.codeBlockMatchingPairs}
-                ref='codeBlockMatchingPairs'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Close pairs before')}
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Close pairs before')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.matchingCloseBefore}
+                  ref='matchingCloseBefore'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.matchingCloseBefore}
-                ref='matchingCloseBefore'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label-right'>
-              {i18n.__('in code blocks')}
+            <div styleName='group-section'>
+              <div styleName='group-section-label-right'>
+                {i18n.__('in code blocks')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.codeBlockMatchingCloseBefore}
+                  ref='codeBlockMatchingCloseBefore'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.codeBlockMatchingCloseBefore}
-                ref='codeBlockMatchingCloseBefore'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Matching character triples')}
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Matching character triples')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.matchingTriples}
+                  ref='matchingTriples'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.matchingTriples}
-                ref='matchingTriples'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label-right'>
-              {i18n.__('in code blocks')}
+            <div styleName='group-section'>
+              <div styleName='group-section-label-right'>
+                {i18n.__('in code blocks')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.codeBlockMatchingTriples}
+                  ref='codeBlockMatchingTriples'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.codeBlockMatchingTriples}
-                ref='codeBlockMatchingTriples'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Exploding character pairs')}
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Exploding character pairs')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.explodingPairs}
+                  ref='explodingPairs'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.explodingPairs}
-                ref='explodingPairs'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label-right'>
-              {i18n.__('in code blocks')}
+            <div styleName='group-section'>
+              <div styleName='group-section-label-right'>
+                {i18n.__('in code blocks')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.codeBlockExplodingPairs}
+                  ref='codeBlockExplodingPairs'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
             </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.codeBlockExplodingPairs}
-                ref='codeBlockExplodingPairs'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.enableFrontMatterTitle}
+                  ref='enableFrontMatterTitle'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Extract title from front matter')}
+              </label>
             </div>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.enableFrontMatterTitle}
-                ref='enableFrontMatterTitle'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Extract title from front matter')}
-            </label>
-          </div>
-
+          </details>
           <div styleName='group-checkBoxSection'>
             <label>
               <input
@@ -1264,125 +1316,130 @@ class UiTab extends React.Component {
               {i18n.__('Enable HTML label in mermaid flowcharts')}
             </label>
           </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('LaTeX Inline Open Delimiter')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewLatexInlineOpen'
-                value={config.preview.latexInlineOpen}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('LaTeX Inline Close Delimiter')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewLatexInlineClose'
-                value={config.preview.latexInlineClose}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('LaTeX Block Open Delimiter')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewLatexBlockOpen'
-                value={config.preview.latexBlockOpen}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('LaTeX Block Close Delimiter')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewLatexBlockClose'
-                value={config.preview.latexBlockClose}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('PlantUML Server')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewPlantUMLServerAddress'
-                value={config.preview.plantUMLServerAddress}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Custom CSS')}</div>
-            <div styleName='group-section-control'>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={config.preview.allowCustomCSS}
-                ref='previewAllowCustomCSS'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Allow custom CSS for preview')}
-              <div style={{ fontFamily }}>
-                <ReactCodeMirror
-                  width='400px'
-                  height='400px'
+          <details styleName='advanced'>
+            <summary styleName='advanced-summary'>
+              {i18n.__('Advanced preview options')}
+            </summary>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('LaTeX Inline Open Delimiter')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewLatexInlineOpen'
+                  value={config.preview.latexInlineOpen}
                   onChange={e => this.handleUIChange(e)}
-                  ref={e => (this.customCSSCM = e)}
-                  value={config.preview.customCSS}
-                  options={{
-                    lineNumbers: true,
-                    mode: 'css',
-                    theme: codemirrorTheme
-                  }}
+                  type='text'
                 />
               </div>
             </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Prettier Config')}
-            </div>
-            <div styleName='group-section-control'>
-              <div style={{ fontFamily }}>
-                <ReactCodeMirror
-                  width='400px'
-                  height='400px'
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('LaTeX Inline Close Delimiter')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewLatexInlineClose'
+                  value={config.preview.latexInlineClose}
                   onChange={e => this.handleUIChange(e)}
-                  ref={e => (this.prettierConfigCM = e)}
-                  value={config.editor.prettierConfig}
-                  options={{
-                    lineNumbers: true,
-                    mode: 'application/json',
-                    lint: true,
-                    theme: codemirrorTheme
-                  }}
+                  type='text'
                 />
               </div>
             </div>
-          </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('LaTeX Block Open Delimiter')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewLatexBlockOpen'
+                  value={config.preview.latexBlockOpen}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('LaTeX Block Close Delimiter')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewLatexBlockClose'
+                  value={config.preview.latexBlockClose}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('PlantUML Server')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewPlantUMLServerAddress'
+                  value={config.preview.plantUMLServerAddress}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>{i18n.__('Custom CSS')}</div>
+              <div styleName='group-section-control'>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={config.preview.allowCustomCSS}
+                  ref='previewAllowCustomCSS'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Allow custom CSS for preview')}
+                <div style={{ fontFamily }}>
+                  <ReactCodeMirror
+                    width='400px'
+                    height='400px'
+                    onChange={e => this.handleUIChange(e)}
+                    ref={e => (this.customCSSCM = e)}
+                    value={config.preview.customCSS}
+                    options={{
+                      lineNumbers: true,
+                      mode: 'css',
+                      theme: codemirrorTheme
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Prettier Config')}
+              </div>
+              <div styleName='group-section-control'>
+                <div style={{ fontFamily }}>
+                  <ReactCodeMirror
+                    width='400px'
+                    height='400px'
+                    onChange={e => this.handleUIChange(e)}
+                    ref={e => (this.prettierConfigCM = e)}
+                    value={config.editor.prettierConfig}
+                    options={{
+                      lineNumbers: true,
+                      mode: 'application/json',
+                      lint: true,
+                      theme: codemirrorTheme
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          </details>
           <div styleName='group-control'>
             <button
               styleName='group-control-rightButton'

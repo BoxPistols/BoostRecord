@@ -1,9 +1,10 @@
 // エディタ／コードブロックのテーマ一覧を「選べる形」に整える。
 //
-// 同梱テーマは 54 個あり、名前(3024-day, mbo, moxer, yonce ...)からは中身が
-// 想像できない。しかも**全トークンが WCAG 2.1 の本文基準 4.5:1 を満たすのは
-// 10 個だけで、light は1つも無い**。一覧をそのまま出すと、選んでも読めない
-// 確率のほうが高い。
+// 同梱テーマは名前(3024-day, mbo, moxer, yonce ...)からは中身が想像できない。
+// しかも実測すると、**測れた 68 テーマのうち全トークンが WCAG 2.1 の
+// 本文基準 4.5:1 を満たすのは 11 個だけで、明るいテーマは1つも無い**
+// （自前の theboosters-light が唯一の合格）。一覧をそのまま出すと、
+// 選んでも読めない確率のほうが高い。
 //
 // そこで「推奨（実測合格）」を先頭に出し、残りは畳んだ扱いにする。
 // 実測は `node dev-scripts/theme-contrast-report.js --all`。
@@ -13,7 +14,9 @@
 // 自前テーマ。全トークン 4.5:1 以上を保証している（tests/lib/boostersThemes）
 export const BOOSTERS_THEMES = ['theboosters-light', 'theboosters-dark']
 
-// 同梱テーマのうち、実測で全トークンが基準を満たしたもの（すべて dark）
+// 同梱テーマのうち、実測で全トークンが基準を満たしたもの（すべて dark）。
+// 背景を宣言しないテーマは CodeMirror 既定色を継承するので、その分も
+// 合わせて測っている（測らないと「3色しか塗っていないので合格」になる）
 export const MEASURED_CLEAN_THEMES = [
   'abcdef',
   'ayu-dark',
@@ -24,6 +27,7 @@ export const MEASURED_CLEAN_THEMES = [
   'shadowfox',
   'tomorrow-night-bright',
   'tomorrow-night-eighties',
+  'vibrant-ink',
   'yonce'
 ]
 

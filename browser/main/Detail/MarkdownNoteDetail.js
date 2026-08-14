@@ -387,6 +387,11 @@ class MarkdownNoteDetail extends React.Component {
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     const isNewNote = nextProps.note.key !== this.props.note.key
+    // 別のノートへ移ったら検索を閉じる。**開いたままにすると、前のノートで
+    // 数えた一致がそのまま残り、置換が新しいノートの無関係な場所に当たる**
+    if (isNewNote && this.findController && this.findController.isOpen()) {
+      this.handleFindClose()
+    }
     const hasDeletedTags =
       nextProps.note.tags.length < this.props.note.tags.length
     if (!this.state.isMovingNote && (isNewNote || hasDeletedTags)) {
@@ -452,6 +457,9 @@ class MarkdownNoteDetail extends React.Component {
     note.title = title
 
     this.updateNote(note)
+    // 本文が変わったら検索の一致を数え直す。開いていなければ何もしない。
+    // 数え直さないと「1 / 5」と出ているのに実体が無い、という状態になる
+    if (this.findController) this.findController.refresh()
   }
 
   updateNote(note) {

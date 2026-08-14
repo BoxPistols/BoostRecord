@@ -7,26 +7,58 @@ function createCm(text) {
     value: text,
     marks: [],
     selection: null,
+    scrolled: 0,
+    operations: 0,
     getValue: () => cm.value,
     posFromIndex: index => ({ index }),
-    markText: (from, to) => {
+    indexFromPos: pos => pos.index,
+    markText: (from, to, opts) => {
       const mark = {
+        from: from.index,
+        to: to.index,
+        className: opts && opts.className,
         cleared: false,
         clear() {
           this.cleared = true
+        },
+        // CodeMirror と同じ契約: 消えていたら undefined を返す
+        find() {
+          if (this.cleared || this.from == null) return undefined
+          return { from: { index: this.from }, to: { index: this.to } }
         }
       }
       cm.marks.push(mark)
       return mark
     },
+    // 本文が変わったらマークを動かす。CodeMirror の挙動を最小限まねる:
+    // 置換範囲に重なったマークは消え、後ろのマークは差分だけずれる
     replaceRange: (str, from, to) => {
-      cm.value = cm.value.slice(0, from.index) + str + cm.value.slice(to.index)
+      const start = from.index
+      const end = to.index
+      cm.value = cm.value.slice(0, start) + str + cm.value.slice(end)
+      const delta = str.length - (end - start)
+      cm.marks.forEach(mark => {
+        if (mark.cleared || mark.from == null) return
+        if (mark.to <= start) return
+        if (mark.from >= end) {
+          mark.from += delta
+          mark.to += delta
+          return
+        }
+        mark.from = null
+        mark.to = null
+      })
     },
     setSelection: (from, to) => {
       cm.selection = [from.index, to.index]
     },
-    scrollIntoView: () => {},
-    operation: fn => fn()
+    scrollIntoView: () => {
+      cm.scrolled += 1
+    },
+    operation: fn => {
+      cm.operations += 1
+      fn()
+    }
   }
   return cm
 }
@@ -247,5 +279,49 @@ describe('置換欄の開閉', () => {
     expect(controller.state.showReplace).toBe(true)
     controller.toggleReplace()
     expect(controller.state.showReplace).toBe(false)
+  })
+})
+
+describe('本文が変わった後（データ破壊の防止）', () => {
+  it('**検索後に前の方を編集しても、置換は正しい箇所に当たる**', () => {
+    // 数値のオフセットで位置を持っていると、ここで無関係な文字を壊す
+    const { cm, controller } = createController('0123456789 cat')
+    controller.open()
+    controller.search('cat')
+    expect(controller.state.count).toBe(1)
+    // 先頭の 5 文字を消す（一致箇所より前を編集）
+    cm.replaceRange('', { index: 0 }, { index: 5 })
+    expect(cm.value).toBe('56789 cat')
+    controller.setReplacement('fox')
+    controller.replace()
+    expect(cm.value).toBe('56789 fox')
+  })
+
+  it('一致箇所そのものが編集で消えたら、置換は本文に触れない', () => {
+    const { cm, controller } = createController('cat dog')
+    controller.open()
+    controller.search('cat')
+    cm.replaceRange('bird', { index: 0 }, { index: 3 })
+    expect(cm.value).toBe('bird dog')
+    controller.setReplacement('fox')
+    controller.replace()
+    expect(cm.value).toBe('bird dog')
+    expect(controller.state.count).toBe(0)
+  })
+
+  it('refresh() で件数を数え直す', () => {
+    const { cm, controller } = createController('cat')
+    controller.open()
+    controller.search('cat')
+    expect(controller.state.count).toBe(1)
+    cm.replaceRange(' cat cat', { index: 3 }, { index: 3 })
+    controller.refresh()
+    expect(controller.state.count).toBe(3)
+  })
+
+  it('閉じている間は refresh() で何も配らない', () => {
+    const { controller, seen } = createController('cat')
+    controller.refresh()
+    expect(seen).toHaveLength(0)
   })
 })

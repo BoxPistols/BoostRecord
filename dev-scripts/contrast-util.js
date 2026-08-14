@@ -4,11 +4,77 @@
 // 半透明を不透明として扱うと数字が嘘になる。getComputedStyle が
 // rgba(...) を返したら、下の面と合成してから測ること（compositeOver）。
 
-/** '#rgb' / '#rrggbb' / 'rgb(r,g,b)' / 'rgba(r,g,b,a)' を {r,g,b,a} にする */
+// CSS の名前付き色。CodeMirror のテーマが実際に使っているものだけ持つ。
+// **黙って落とすと「測れていないのに不足0件」になる**ので、必要になったら足す
+const NAMED_COLORS = {
+  black: '#000000',
+  white: '#ffffff',
+  red: '#ff0000',
+  green: '#008000',
+  blue: '#0000ff',
+  gray: '#808080',
+  grey: '#808080',
+  silver: '#c0c0c0',
+  maroon: '#800000',
+  olive: '#808000',
+  navy: '#000080',
+  purple: '#800080',
+  teal: '#008080',
+  lime: '#00ff00',
+  aqua: '#00ffff',
+  cyan: '#00ffff',
+  fuchsia: '#ff00ff',
+  magenta: '#ff00ff',
+  yellow: '#ffff00',
+  orange: '#ffa500',
+  pink: '#ffc0cb',
+  brown: '#a52a2a',
+  violet: '#ee82ee',
+  gold: '#ffd700',
+  darkgoldenrod: '#b8860b',
+  goldenrod: '#daa520',
+  darkgreen: '#006400',
+  darkblue: '#00008b',
+  darkred: '#8b0000',
+  darkcyan: '#008b8b',
+  darkorange: '#ff8c00',
+  darkgray: '#a9a9a9',
+  darkgrey: '#a9a9a9',
+  lightblue: '#add8e6',
+  lightgreen: '#90ee90',
+  lightgray: '#d3d3d3',
+  lightgrey: '#d3d3d3',
+  skyblue: '#87ceeb',
+  steelblue: '#4682b4',
+  royalblue: '#4169e1',
+  slateblue: '#6a5acd',
+  seagreen: '#2e8b57',
+  tomato: '#ff6347',
+  salmon: '#fa8072',
+  khaki: '#f0e68c',
+  plum: '#dda0dd',
+  orchid: '#da70d6',
+  turquoise: '#40e0d0',
+  chocolate: '#d2691e',
+  firebrick: '#b22222',
+  indianred: '#cd5c5c',
+  peru: '#cd853f',
+  tan: '#d2b48c',
+  wheat: '#f5deb3',
+  beige: '#f5f5dc',
+  ivory: '#fffff0',
+  azure: '#f0ffff',
+  lavender: '#e6e6fa',
+  linen: '#faf0e6',
+  snow: '#fffafa'
+}
+
+/** '#rgb' / '#rrggbb' / 'rgb(r,g,b)' / 'rgba(r,g,b,a)' / 名前付き色 を {r,g,b,a} に */
 function parseCssColor(input) {
   if (typeof input !== 'string') return null
   const value = input.trim().toLowerCase()
   if (value === 'transparent') return { r: 0, g: 0, b: 0, a: 0 }
+  if (NAMED_COLORS[value]) return parseCssColor(NAMED_COLORS[value])
 
   const hex = value.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/)
   if (hex) {

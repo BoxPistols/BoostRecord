@@ -53,3 +53,31 @@ describe('migrateUntouchedEditorTheme', () => {
     )
   })
 })
+
+describe('旧既定からの移行は一度だけ', () => {
+  const {
+    migrateUntouchedEditorTheme,
+    DEFAULT_LIGHT_EDITOR_THEME,
+    DEFAULT_DARK_EDITOR_THEME
+  } = require('browser/lib/editorThemes')
+
+  it('未移行なら base16-light を自前テーマへ移す', () => {
+    expect(migrateUntouchedEditorTheme(false, 'base16-light', false)).toBe(
+      DEFAULT_LIGHT_EDITOR_THEME
+    )
+    expect(migrateUntouchedEditorTheme(true, 'base16-light', false)).toBe(
+      DEFAULT_DARK_EDITOR_THEME
+    )
+  })
+
+  it('**移行済みなら base16-light を選び直せる**（毎回奪わない）', () => {
+    expect(migrateUntouchedEditorTheme(false, 'base16-light', true)).toBe(
+      'base16-light'
+    )
+  })
+
+  it('自分で選んだ他のテーマは移行済みかに関わらず触らない', () => {
+    expect(migrateUntouchedEditorTheme(true, 'dracula', false)).toBe('dracula')
+    expect(migrateUntouchedEditorTheme(true, 'dracula', true)).toBe('dracula')
+  })
+})

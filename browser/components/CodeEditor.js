@@ -326,10 +326,12 @@ export default class CodeEditor extends React.Component {
         // **以前は常に markdown パーサを通していた。** シェル等の
         // スニペットにかけると `#` 行が見出しと解釈され、ブロックの間に
         // 空行が入って内容が壊れる（利用者からの報告）
+        const mode = typeof cm.getMode === 'function' ? cm.getMode() : null
+        // Plain Text の内部名は 'null' という文字列。そのまま出すと
+        // 「現在: null」と表示されて何のことか分からない
+        const rawModeName = mode && mode.name
         const modeName =
-          typeof cm.getMode === 'function' && cm.getMode()
-            ? cm.getMode().name
-            : null
+          !rawModeName || rawModeName === 'null' ? null : rawModeName
         const parser = prettierParserForMode(cm.getOption('mode'), modeName)
         if (parser == null) {
           // 黙って何もしないと「壊れた」のか「効かない」のか分からない。
@@ -338,8 +340,16 @@ export default class CodeEditor extends React.Component {
           return
         }
 
-        // Default / User configured prettier options
-        const currentConfig = JSON.parse(self.props.prettierConfig)
+        // Default / User configured prettier options。
+        // **ここも投げっぱなしにしない。** 設定に壊れた JSON が入っていると
+        // キーマップごと死ぬ（下の try/catch を足したのと同じ理由）
+        let currentConfig
+        try {
+          currentConfig = JSON.parse(self.props.prettierConfig)
+        } catch (err) {
+          self.showFormatFailed(err)
+          return
+        }
         currentConfig.parser = parser
 
         // Get current cursor position

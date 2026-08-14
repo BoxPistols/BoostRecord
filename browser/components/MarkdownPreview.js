@@ -337,6 +337,13 @@ document.addEventListener('DOMContentLoaded', function () {
    * プレビュー本来の操作なので奪わない。
    */
   handleKeyForward(e) {
+    // keydown だけ転送すると、修飾キーの長押し検知(metaKeyHold)が
+    // 「押しっぱなし」のまま固まる（keyup は iframe の外へ出ない）。
+    // 同じ経路で keyup も送る
+    if (e.type === 'keyup') {
+      this.forwardKey(e)
+      return
+    }
     if (!(e.metaKey || e.ctrlKey)) return
     // Tab はペイン移動が main の before-input-event で別途扱われている。
     // 二重に動かさない
@@ -359,6 +366,23 @@ document.addEventListener('DOMContentLoaded', function () {
     // 効かない時に「転送していない」のか「転送したが拾われない」のかを
     // 実機で切り分けられるようにする
     window.__tbPreviewKey = { key: e.key, keyCode: e.keyCode, at: Date.now() }
+    document.dispatchEvent(forwarded)
+  }
+
+  /** keyup をそのまま親へ流す（押しっぱなし判定を解除させる） */
+  forwardKey(e) {
+    const forwarded = new window.KeyboardEvent(e.type, {
+      key: e.key,
+      code: e.code,
+      metaKey: e.metaKey,
+      ctrlKey: e.ctrlKey,
+      shiftKey: e.shiftKey,
+      altKey: e.altKey,
+      bubbles: true,
+      cancelable: true
+    })
+    Object.defineProperty(forwarded, 'keyCode', { get: () => e.keyCode })
+    Object.defineProperty(forwarded, 'which', { get: () => e.which })
     document.dispatchEvent(forwarded)
   }
 
@@ -418,6 +442,11 @@ document.addEventListener('DOMContentLoaded', function () {
       this.keyForwardHandler,
       true
     )
+    this.refs.root.contentWindow.document.addEventListener(
+      'keyup',
+      this.keyForwardHandler,
+      true
+    )
     this.refs.root.contentWindow.addEventListener('resize', this.resizeHandler)
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
@@ -460,6 +489,11 @@ document.addEventListener('DOMContentLoaded', function () {
     )
     this.refs.root.contentWindow.document.removeEventListener(
       'keydown',
+      this.keyForwardHandler,
+      true
+    )
+    this.refs.root.contentWindow.document.removeEventListener(
+      'keyup',
       this.keyForwardHandler,
       true
     )

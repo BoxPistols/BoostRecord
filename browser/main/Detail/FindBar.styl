@@ -8,17 +8,31 @@
   position absolute
   z-index 20
   display flex
-  align-items center
+  // 置換行を出すと2段になる。1段でも見た目が変わらないよう
+  // align-items は行側で面倒を見る
+  flex-direction column
+  align-items stretch
   // ペインが狭いと左へはみ出して虫眼鏡や入力欄が画面外へ出る。
   // 収まる幅に抑え、入力欄が縮む側になるようにする
   max-width calc(100% - 36px)
   box-sizing border-box
-  gap 6px
+  gap 4px
   padding 5px 6px 5px 10px
   border-radius 8px
   border 1px solid $ui-borderColor
   background-color $ui-backgroundColor
   box-shadow 0 6px 20px rgba(0, 0, 0, 0.18), 0 1px 3px rgba(0, 0, 0, 0.12)
+
+.row
+  display flex
+  align-items center
+  gap 6px
+  min-width 0
+
+// 置換行の入力欄を検索欄と縦に揃える。トグルボタン(24px)+gap(6px) 分
+.row-indent
+  flex-shrink 0
+  width 24px
 
 .icon
   flex-shrink 0
@@ -82,6 +96,28 @@
   &:focus-visible
     box-shadow inset 0 0 0 2px $ui-active-color
 
+// 置換ボタン。アイコンだけだと「置換」と「すべて置換」を押し分けられない
+.action
+  flex-shrink 0
+  height 24px
+  padding 0 8px
+  border 1px solid $ui-borderColor
+  border-radius 5px
+  background-color transparent
+  color $ui-text-color
+  font-size 12px
+  white-space nowrap
+  cursor pointer
+  &:hover:not(:disabled)
+    background-color rgba(128, 128, 128, 0.18)
+  &:disabled
+    opacity 0.35
+    cursor default
+  &:focus
+    outline none
+  &:focus-visible
+    box-shadow inset 0 0 0 2px $ui-active-color
+
 // いまどちらを探しているか（エディタ / プレビュー）。
 // 「検索」という語が3か所にある以上、対象を書かないと区別できない
 .target
@@ -110,6 +146,9 @@ apply-theme(theme)
       color get-theme-var(theme, 'inactive-text-color')
       &:hover:not(:disabled)
         color get-theme-var(theme, 'text-color')
+    .action
+      border-color get-theme-var(theme, 'borderColor')
+      color get-theme-var(theme, 'text-color')
 
 for theme in 'white' 'dark' 'solarized-dark' 'dracula'
   apply-theme(theme)

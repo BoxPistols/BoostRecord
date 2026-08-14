@@ -38,6 +38,8 @@ import {
   getBracketDirection,
   MAX_JUMP_TARGETS
 } from 'browser/lib/metaKeyHold'
+import FindBar from 'browser/main/Detail/FindBar'
+import FindController from 'browser/lib/findController'
 
 const electron = require('electron')
 const { ipcRenderer } = electron
@@ -54,6 +56,11 @@ const DESCRIPTION_LINE_HEIGHT = 1.6
 const DESCRIPTION_CHROME_HEIGHT = 8
 const DESCRIPTION_GAP = 20
 const DESCRIPTION_GAP_COLLAPSED = 12
+// SnippetNoteDetail.styl の $tabList-height と同じ値。検索バーをタブ列の
+// 下へ置くのに要る（ずれるとタブに被る）
+const TAB_LIST_HEIGHT = 30
+// 検索バーとエディタ右端の間隔
+const FIND_BAR_EDGE = 12
 
 // SNIPPET_NOTE は「タブが最低1個ある」前提で描画される。過去の保存不具合で
 // snippets: [] のファイルが実在するため、state に入れる前に必ずここを通す
@@ -83,6 +90,9 @@ class SnippetNoteDetail extends React.Component {
       // description は既定で畳む。トグルで固定展開、フォーカス中は一時展開
       isDescriptionPinned: false,
       isDescriptionFocused: false,
+      // ノート内検索・置換。対象はアクティブなタブだけ（他のタブまで
+      // 探すと、件数が出ているのに画面には何も起きない状態になる）
+      find: null,
       note: Object.assign(
         {
           description: ''
@@ -133,6 +143,14 @@ class SnippetNoteDetail extends React.Component {
     ipcRenderer.on('snippet:prev-tab', this.ipcPrevTab)
     ipcRenderer.on('snippet:next-tab', this.ipcNextTab)
 
+    // ノート内検索 (Cmd/Ctrl+F)。main の before-input-event から来る。
+    // **Markdown 側にしか受け口が無く、スニペットノートでは Cmd+F が
+    // preventDefault で握り潰されるだけで何も起きなかった**
+    // (CodeMirror 内蔵の検索も FIND_BINDINGS で殺してあるため、
+    //  逃げ道がひとつも無い状態だった)
+    this.findOpenHandler = () => this.handleFindOpen()
+    ipcRenderer.on('detail:find', this.findOpenHandler)
+
     const visibleTabs = this.visibleTabs
     const allTabs = this.allTabs
 
@@ -176,6 +194,12 @@ class SnippetNoteDetail extends React.Component {
       this.isDescriptionExpanded(prevState) !== this.isDescriptionExpanded()
     ) {
       window.dispatchEvent(new window.Event('resize'))
+    }
+
+    // 検索中にタブを切り替えたら探し直す。**タブごとに別の本文**なので、
+    // 探し直さないと前のタブの件数が残ったまま「次へ」が効かなくなる
+    if (this.state.find && prevState.snippetIndex !== this.state.snippetIndex) {
+      this.getFindController().search(this.state.find.query)
     }
   }
 
@@ -224,6 +248,8 @@ class SnippetNoteDetail extends React.Component {
     if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
     ipcRenderer.removeListener('snippet:prev-tab', this.ipcPrevTab)
     ipcRenderer.removeListener('snippet:next-tab', this.ipcNextTab)
+    ipcRenderer.removeListener('detail:find', this.findOpenHandler)
+    this.clearFindMarks()
   }
 
   /** 情報パネルを開いてノートリンクを選択・コピーする（Markdown 側と同じ） */
@@ -273,6 +299,71 @@ class SnippetNoteDetail extends React.Component {
       const currentEditor = this.refs[`code-${snippetIndex}`].refs.code.editor
       markdownToc.generateInEditor(currentEditor)
     }
+  }
+
+  // ---- ノート内検索・置換 ----
+
+  /** アクティブなタブのエディタコンポーネント（CodeEditor か MarkdownEditor） */
+  getActiveEditor() {
+    return this.refs['code-' + this.state.snippetIndex] || null
+  }
+
+  /**
+   * アクティブなタブの CodeMirror。
+   * Markdown タブは MarkdownEditor が CodeEditor を包むので1段深い
+   */
+  getEditorCm() {
+    const editor = this.getActiveEditor()
+    if (!editor) return null
+    const code = editor.refs && editor.refs.code
+    if (code && code.editor) return code.editor
+    return editor.editor || null
+  }
+
+  /** Markdown タブがプレビュー表示中のときだけ document が取れる */
+  getPreviewDoc() {
+    const editor = this.getActiveEditor()
+    if (!editor) return null
+    const preview = editor.previewRef && editor.previewRef.current
+    const root = preview && preview.refs && preview.refs.root
+    return root && root.contentWindow ? root.contentWindow.document : null
+  }
+
+  /**
+   * いま何を探すか。Markdown タブをプレビューで見ている間は、エディタを
+   * 探しても画面には何も起きない（件数だけ出る）ので、探す先もプレビューにする
+   */
+  getFindTarget() {
+    const editor = this.getActiveEditor()
+    const status = editor && editor.state && editor.state.status
+    return status === 'PREVIEW' ? 'PREVIEW' : 'EDITOR'
+  }
+
+  getFindController() {
+    if (!this.findController) {
+      this.findController = new FindController({
+        getCm: () => this.getEditorCm(),
+        getPreviewDoc: () => this.getPreviewDoc(),
+        getTarget: () => this.getFindTarget(),
+        onChange: find => this.setState({ find })
+      })
+    }
+    return this.findController
+  }
+
+  handleFindOpen() {
+    this.getFindController().open()
+  }
+
+  handleFindClose() {
+    this.getFindController().close()
+    // 閉じたらエディタへ戻す。フォーカスが宙に浮くと次の操作が効かない
+    const editor = this.getActiveEditor()
+    if (editor && editor.focus) editor.focus()
+  }
+
+  clearFindMarks() {
+    if (this.findController) this.findController.clear()
   }
 
   handleChange(e) {
@@ -1394,6 +1485,36 @@ class SnippetNoteDetail extends React.Component {
               <i className='fa fa-plus' />
             </button>
           </div>
+          {this.state.find && (
+            <FindBar
+              // タブ列の下、エディタの右上に重ねる。本文の幅は変えない
+              // （レイアウトが動くと読んでいた場所を見失う）
+              style={{
+                top: tabsTop + TAB_LIST_HEIGHT + 8,
+                right: FIND_BAR_EDGE,
+                maxWidth: `calc(100% - ${FIND_BAR_EDGE * 2}px)`
+              }}
+              query={this.state.find.query}
+              index={this.state.find.index}
+              count={this.state.find.count}
+              focusToken={this.state.find.focusToken}
+              target={
+                this.getFindTarget() === 'PREVIEW'
+                  ? i18n.__('Preview')
+                  : i18n.__('Editor')
+              }
+              onChange={q => this.getFindController().search(q)}
+              onStep={d => this.getFindController().step(d)}
+              onClose={() => this.handleFindClose()}
+              canReplace={this.getFindController().canReplace()}
+              showReplace={this.state.find.showReplace}
+              replacement={this.state.find.replacement}
+              onToggleReplace={() => this.getFindController().toggleReplace()}
+              onReplaceChange={r => this.getFindController().setReplacement(r)}
+              onReplace={() => this.getFindController().replace()}
+              onReplaceAll={() => this.getFindController().replaceAll()}
+            />
+          )}
           {viewList}
         </div>
 

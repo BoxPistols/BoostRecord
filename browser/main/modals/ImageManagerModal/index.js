@@ -740,7 +740,7 @@ class ImageManagerModal extends React.Component {
                       disabled={busy}
                       onClick={() => this.replaceDetail()}
                     >
-                      {i18n.__('Replace')}
+                      {i18n.__('Replace image')}
                     </button>
                   )}
                   {!detail.broken && !detail.isTrash && (

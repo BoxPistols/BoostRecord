@@ -11,7 +11,11 @@
 // 判定は WCAG 2.1 の本文基準 4.5:1。コードは長時間読むものなので緩めない。
 const fs = require('fs')
 const path = require('path')
-const { parseCssColor, compositeOver, contrastRatio } = require('./contrast-util')
+const {
+  parseCssColor,
+  compositeOver,
+  contrastRatio
+} = require('./contrast-util')
 
 const CM_DIR = path.join(__dirname, '..', 'node_modules', 'codemirror')
 const THEME_DIR = path.join(CM_DIR, 'theme')
@@ -160,7 +164,10 @@ function collectAll() {
 }
 
 function measureDefault() {
-  const css = fs.readFileSync(path.join(CM_DIR, 'lib', 'codemirror.css'), 'utf8')
+  const css = fs.readFileSync(
+    path.join(CM_DIR, 'lib', 'codemirror.css'),
+    'utf8'
+  )
   const row = measure('default', css)
   if (row) return row
   // 既定テーマは背景を .CodeMirror（テーマ非依存）で持つ
@@ -204,9 +211,13 @@ function main() {
   const rows = args.includes('--all')
     ? rowsAll
     : rowsAll.filter(r =>
-        ['default', 'base16-light', 'base16-dark', 'monokai', 'dracula'].includes(
-          r.theme
-        )
+        [
+          'default',
+          'base16-light',
+          'base16-dark',
+          'monokai',
+          'dracula'
+        ].includes(r.theme)
       )
 
   const sorted = rows

@@ -241,6 +241,26 @@ app.on('web-contents-created', (_e, wc) => {
         )
         rows.push({ label: 'FindBar 入力', data: bar })
 
+        // 置換はエディタでだけ出す。プレビューは読むだけの面なので、
+        // 押せるのに何も起きないボタンを作らない
+        const replaceUiInEditor = await wc.executeJavaScript(
+          `(async () => {
+             const sleep = ms => new Promise(r => setTimeout(r, ms))
+             const barEl = document.querySelector('.FindBar')
+             if (!barEl) return { ok:false }
+             const toggle = barEl.querySelector('button')
+             toggle.click(); await sleep(300)
+             return {
+               ok:true,
+               inputs: barEl.querySelectorAll('input').length,
+               labels: Array.from(barEl.querySelectorAll('button'))
+                 .map(b => (b.textContent||'').trim()).filter(Boolean)
+             }
+           })()`,
+          true
+        )
+        rows.push({ label: '置換行(エディタ)', data: replaceUiInEditor })
+
         // Enter で次へ（3回押して巡回するか）
         const stepped = []
         for (let i = 0; i < 3; i++) {
@@ -304,6 +324,24 @@ app.on('web-contents-created', (_e, wc) => {
           true
         )
         rows.push({ label: 'PREVIEW で検索', data: pv })
+
+        const replaceUiInPreview = await wc.executeJavaScript(
+          `(() => {
+             const barEl = document.querySelector('.FindBar')
+             if (!barEl) return { ok:false }
+             return {
+               ok:true,
+               inputs: barEl.querySelectorAll('input').length,
+               labels: Array.from(barEl.querySelectorAll('button'))
+                 .map(b => (b.textContent||'').trim()).filter(Boolean)
+             }
+           })()`,
+          true
+        )
+        rows.push({
+          label: '置換行(プレビュー): 出さないのが期待',
+          data: replaceUiInPreview
+        })
 
         await press(wc, 'Return', [])
         const pvHl = await wc.executeJavaScript(

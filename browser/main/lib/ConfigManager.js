@@ -4,7 +4,10 @@ import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
 import { DEFAULT_MODELS, normalizeAiModels } from 'browser/main/lib/aiModels'
 import uiThemes from 'browser/lib/ui-themes'
-import { migrateUntouchedEditorTheme } from 'browser/lib/editorThemes'
+import {
+  migrateUntouchedEditorTheme,
+  DEFAULT_LIGHT_EDITOR_THEME
+} from 'browser/lib/editorThemes'
 import {
   EXPANDED,
   resolveSideNavMode,
@@ -118,7 +121,9 @@ export const DEFAULT_CONFIG = {
     isStacking: false
   },
   editor: {
-    theme: 'base16-light',
+    // 自前テーマ。同梱テーマは light に基準を満たすものが1つも無い
+    // （詳細は browser/lib/editorThemes.js）
+    theme: DEFAULT_LIGHT_EDITOR_THEME,
     keyMap: 'sublime',
     fontSize: '14',
     fontFamily: win ? 'Consolas' : 'Monaco',

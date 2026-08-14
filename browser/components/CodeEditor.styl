@@ -3,3 +3,19 @@
 
 .spellcheck-select
   border: none
+
+// ノート内検索のハイライト。Markdown ノートとスニペットノートで共有する。
+// markText が付ける class は CSS Modules を通らないので :global で当てる。
+//
+// **色は !important で当てる。** markText の class は構文トークンの span に
+// 合流するため、CodeMirror テーマ側の `.cm-s-<theme> span.cm-string`
+// (詳細度 0,2,1、mbo 等は 0,3,1) の方が強く、color の指定が黙って負ける。
+// 実測で base16-light の文字列トークン(#f4bf75)が蛍光ペン(#ffeb3b)の上に
+// 残り、コントラスト 1.37 で**文字が消えていた**。
+// 詳細度を積み増す書き方(クラスの重ね掛け)はテーマが増えるたびに再発するので、
+// 「検索ハイライトは構文色より必ず優先する」と宣言で書く。
+// エディタ側にはカスタム CSS の差し込み口が無いので、利用者の上書きは潰さない。
+// 比の検証は pnpm run e2e:findcontrast（実ブラウザの computed style で測る）
+:global(.CodeMirror .tb-find-all)
+  background-color #ffeb3b !important
+  color #1a1a1a !important

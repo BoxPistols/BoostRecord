@@ -20,11 +20,22 @@ const {
 } = require('./contrast-util')
 
 // 本文なので WCAG 2.1 の 1.4.3 = 4.5:1
+const REPO_ROOT = path.join(__dirname, '..')
 const MIN_RATIO = 4.5
 
 // 既定(base16-light)と、黄色系トークンを持つ暗テーマを混ぜる。
 // 1テーマだけ見て「大丈夫」と言わない
-const THEMES = ['base16-light', 'monokai', 'default', 'dracula', 'solarized']
+// 'solarized' はアプリ側で 'solarized dark' / 'solarized light' の2エントリに
+// 分けられており、単体のファイル名としては存在しない。測れないものを
+// 一覧に入れると「測定不能」で落ちるだけなので、実在するテーマを並べる
+const THEMES = [
+  'base16-light',
+  'monokai',
+  'default',
+  'dracula',
+  'base16-dark',
+  'theboosters-dark'
+]
 
 const RESULT_FILE =
   process.env.TB_E2E_RESULT ||
@@ -204,16 +215,59 @@ app.on('web-contents-created', (_e, wc) => {
         }
 
         for (const theme of THEMES) {
-          await wc.executeJavaScript(
+          // **CSS も読ませる。** setOption だけではクラス名が変わるだけで、
+          // テーマの CSS が無ければ構文色も背景も付かない。それに気づかず
+          // 測ると「どのテーマでも安全」という嘘の結果になる
+          const cssPath = [
+            path.join(
+              REPO_ROOT,
+              'extra_scripts',
+              'codemirror',
+              'theme',
+              `${theme}.css`
+            ),
+            path.join(
+              REPO_ROOT,
+              'node_modules',
+              'codemirror',
+              'theme',
+              `${theme}.css`
+            )
+          ].find(candidate => fs.existsSync(candidate))
+          const switched = await wc.executeJavaScript(
             `(async () => {
                const sleep = ms => new Promise(r => setTimeout(r, ms))
+               const link = document.getElementById('editorTheme')
+               if (link && ${JSON.stringify(!!cssPath)}) {
+                 link.setAttribute('href', ${JSON.stringify(
+                   'file://' + (cssPath || '')
+                 )})
+               }
                const cm = document.querySelector('.CodeMirror')
                cm.CodeMirror.setOption('theme', ${JSON.stringify(theme)})
-               await sleep(350)
-               return true
+               for (let i = 0; i < 40; i++) {
+                 await sleep(100)
+                 const bg = getComputedStyle(cm).backgroundColor
+                 if (bg && bg !== 'rgba(0, 0, 0, 0)') break
+               }
+               await sleep(300)
+               return { rootBg: getComputedStyle(cm).backgroundColor }
              })()`,
             true
           )
+          const rootBg = parseCssColor(switched.rootBg)
+          const isDarkTheme = /dark|monokai|dracula|solarized/.test(theme)
+          if (
+            isDarkTheme &&
+            !(rootBg && rootBg.r + rootBg.g + rootBg.b < 384)
+          ) {
+            rows.push({
+              label: `${theme}: テーマが効いていない（測定不能）`,
+              verdict: 'FAIL',
+              data: switched
+            })
+            continue
+          }
           const measured = await wc.executeJavaScript(MEASURE, true)
           if (!measured.length) {
             rows.push({

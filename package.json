@@ -46,6 +46,7 @@
     "e2e:prettify": "cross-env TB_E2E_PROBE=dev-scripts/e2e-prettify-probe.js electron .",
     "e2e:snippetpreview": "cross-env TB_E2E_PROBE=dev-scripts/e2e-snippetpreview-probe.js electron .",
     "e2e:prefs": "cross-env TB_E2E_PROBE=dev-scripts/e2e-prefs-probe.js electron .",
+    "e2e:linehighlight": "cross-env TB_E2E_PROBE=dev-scripts/e2e-linehighlight-probe.js electron .",
     "e2e:todobar": "cross-env TB_E2E_PROBE=dev-scripts/e2e-todobar-probe.js electron .",
     "e2e:taskwrap": "cross-env TB_E2E_PROBE=dev-scripts/e2e-taskwrap-probe.js electron .",
     "e2e:touchbar": "cross-env TB_E2E_PROBE=dev-scripts/e2e-touchbar-probe.js electron .",

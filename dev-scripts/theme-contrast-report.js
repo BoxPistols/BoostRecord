@@ -113,14 +113,45 @@ function ratioOf(color, background) {
   return contrastRatio(solid, background)
 }
 
+// solarized は `.cm-s-solarized.cm-s-light` / `.cm-s-dark` の組み合わせで
+// 明暗を切り替える特殊な作り。アプリ側も 'solarized light' / 'solarized dark'
+// の2エントリに分けている。単純な root 規則が無いので、ここでは測らない
+const UNMEASURABLE = ['solarized']
+
+/**
+ * 背景を宣言しないテーマは、CodeMirror 既定(codemirror.css)の色の上に
+ * 自分のトークン色だけを重ねている。**既定分も一緒に測らないと、
+ * 「3トークンしか定義していないので不足0件」という嘘の合格が出る**
+ */
+function baseTokens() {
+  if (baseTokens.cache) return baseTokens.cache
+  const css = fs.readFileSync(
+    path.join(CM_DIR, 'lib', 'codemirror.css'),
+    'utf8'
+  )
+  baseTokens.cache = collectTheme(css, 'default').tokens
+  return baseTokens.cache
+}
+
 function measure(themeName, css) {
   const { background, foreground, tokens } = collectTheme(css, themeName)
-  if (!background) return null
+  if (!background && UNMEASURABLE.indexOf(themeName) !== -1) return null
+
+  // 背景を宣言していないテーマは、CodeMirror 既定の白地・黒文字の上に
+  // トークン色だけを載せている（eclipse / elegant / idea / neat 等）。
+  // **測れないのではなく「白地」が答え**。捨てると集計が嘘になる
+  const inheritsBase = !background
+  const bg = background || parseCssColor('#ffffff')
+  const fg = foreground || (inheritsBase ? parseCssColor('#000000') : null)
+  // 既定を継承するテーマは、自分で塗っていないトークンに既定色が出る
+  const effective = inheritsBase
+    ? Object.assign({}, baseTokens(), tokens)
+    : tokens
 
   const results = {}
-  if (foreground) results.__text = ratioOf(foreground, background)
-  Object.keys(tokens).forEach(token => {
-    results[token] = ratioOf(tokens[token], background)
+  if (fg) results.__text = ratioOf(fg, bg)
+  Object.keys(effective).forEach(token => {
+    results[token] = ratioOf(effective[token], bg)
   })
 
   const measured = Object.keys(results).filter(k => results[k] != null)
@@ -132,10 +163,11 @@ function measure(themeName, css) {
 
   return {
     theme: themeName,
-    background: `rgb(${Math.round(background.r)}, ${Math.round(
-      background.g
-    )}, ${Math.round(background.b)})`,
-    isDark: background.r + background.g + background.b < 384,
+    background: `rgb(${Math.round(bg.r)}, ${Math.round(bg.g)}, ${Math.round(
+      bg.b
+    )})`,
+    inheritsBase,
+    isDark: bg.r + bg.g + bg.b < 384,
     measured: measured.length,
     failing: failing.length,
     failingTokens: failing.sort((a, b) => results[a] - results[b]),
@@ -158,8 +190,13 @@ const EXTRA_THEME_DIR = path.join(
   'theme'
 )
 
+// 測れなかったテーマ。**黙って捨てると「54中10だけ合格」のような
+// 集計そのものが嘘になる**ので、必ず数えて出す
+const skipped = []
+
 function collectAll() {
   const out = []
+  skipped.length = 0
   // 既定テーマは codemirror.css の中（`.cm-s-default`）
   out.push(measureDefault())
   ;[THEME_DIR, EXTRA_THEME_DIR].forEach(dir => {
@@ -171,6 +208,7 @@ function collectAll() {
         const css = fs.readFileSync(path.join(dir, file), 'utf8')
         const row = measure(name, css)
         if (row) out.push(row)
+        else skipped.push(name)
       })
   })
   return out.filter(Boolean)
@@ -268,8 +306,21 @@ function main() {
     })
     console.log('\n（--all で全テーマ、--json で機械処理用）')
   }
+  if (skipped.length) {
+    console.log(
+      `\n測れなかったテーマ ${skipped.length} 件（背景の宣言が読めない）: ` +
+        skipped.join(', ')
+    )
+  }
 }
 
 if (require.main === module) main()
 
-module.exports = { collectAll, measure, collectTheme, MIN_RATIO, TOKENS }
+module.exports = {
+  collectAll,
+  measure,
+  collectTheme,
+  skipped,
+  MIN_RATIO,
+  TOKENS
+}

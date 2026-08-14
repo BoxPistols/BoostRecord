@@ -393,10 +393,25 @@ app.on('web-contents-created', (_e, wc) => {
           }`
         ].join(' / ')
 
-        // Shift 横取りの退行だけは観測でなく判定として落とす
-        finish(shifted.findBarOpen || shifted.ipcReceived > 0 ? 1 : 0, {
-          verdict
+        // 観測を並べるだけでは退行を止められない。判定に使う:
+        //   1. Cmd+Shift+F の横取り（整形のホットキーを潰す）
+        //   2. 置換行の出し分け（プレビューで押せる置換を作らない）
+        const replaceRowBroken =
+          !replaceUiInEditor.ok ||
+          replaceUiInEditor.inputs !== 2 ||
+          !replaceUiInPreview.ok ||
+          replaceUiInPreview.inputs !== 1 ||
+          replaceUiInPreview.labels.length !== 0
+        rows.push({
+          label: '置換行の出し分け（エディタのみ）',
+          data: { editor: replaceUiInEditor, preview: replaceUiInPreview }
         })
+        finish(
+          shifted.findBarOpen || shifted.ipcReceived > 0 || replaceRowBroken
+            ? 1
+            : 0,
+          { verdict }
+        )
       } catch (err) {
         finish(2, {
           error: 'exec failed: ' + (err && (err.stack || err.message))

@@ -160,6 +160,19 @@ div[id^="firstRow"]
   background-color transparent
 
 // 目的から選ぶプリセット。1行に並べて、狭い幅では折り返す
+// 詳細オプション。<details> を使うのでキーボード操作は既定で通る
+.advanced
+  margin 6px 0 10px 0
+  border-top 1px solid $ui-borderColor
+
+.advanced-summary
+  padding 8px 0
+  font-size 14px
+  cursor pointer
+  outline none
+  &:focus-visible
+    box-shadow inset 0 0 0 2px $ui-active-color
+
 .preset-list
   display flex
   flex-wrap wrap
@@ -330,6 +343,11 @@ body[data-theme="dark"]
   .root
     color $ui-dark-text-color
 
+  .advanced
+    border-color $ui-dark-borderColor
+  .advanced-summary
+    color $ui-dark-text-color
+
   .preset, .preset--active
     color $ui-dark-text-color
     border-color $ui-dark-borderColor
@@ -399,6 +417,11 @@ apply-theme(theme)
       select, .group-section-control-input
         colorThemedControl(theme)
     .rs-label
+      color get-theme-var(theme, 'text-color')
+
+    .advanced
+      border-color get-theme-var(theme, 'borderColor')
+    .advanced-summary
       color get-theme-var(theme, 'text-color')
 
     .preset, .preset--active

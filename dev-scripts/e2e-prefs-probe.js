@@ -113,6 +113,12 @@ const PREFS_STATE = `(() => {
   return {
     labels: labels.slice(0, 12),
     themeLabelIndexes: indexes,
+    // 詳細オプションは既定で畳まれていること（開いていたら整理になっていない）
+    accordions: Array.from(modal.querySelectorAll('details')).map(d => ({
+      label: (d.querySelector('summary') || {}).textContent || '',
+      open: d.open,
+      sections: d.querySelectorAll('[class*="group-section"]').length
+    })),
     presetCount: presets.length,
     presetLabels: presets.map(b => (b.textContent || '').trim().slice(0, 24)),
     optgroups: editorSelect
@@ -188,14 +194,23 @@ app.on('web-contents-created', (_e, wc) => {
           indexes: state.themeLabelIndexes
         })
 
+        // 詳細オプションが畳まれていること。開きっぱなしなら整理になっていない
+        check(
+          '詳細オプションが2つあり、既定で畳まれている',
+          state.accordions.length === 2 &&
+            state.accordions.every(a => a.open === false) &&
+            state.accordions.every(a => a.sections >= 3),
+          state.accordions
+        )
         check(
           'プリセットが4つ出る',
           state.presetCount === 4,
           state.presetLabels
         )
+        // 既定は「推奨」だけ。54件を一度に並べない（利用者からの指摘）
         check(
-          'テーマ一覧が「推奨」と「その他」に分かれている',
-          state.optgroups.length === 2 &&
+          '既定では推奨だけを出す',
+          state.optgroups.length === 1 &&
             /推奨|Recommended/.test(state.optgroups[0]),
           state.optgroups
         )
@@ -203,6 +218,39 @@ app.on('web-contents-created', (_e, wc) => {
           '推奨の先頭は自前テーマ',
           /^theboosters-/.test(state.firstRecommended || ''),
           state.firstRecommended
+        )
+
+        // 「すべて表示」を押すと残りが出る（隠して終わりにしない）
+        const expanded = await wc.executeJavaScript(
+          `(async () => {
+             const sleep = ms => new Promise(r => setTimeout(r, ms))
+             const boxes = Array.from(document.querySelectorAll('input[type="checkbox"]'))
+             const toggle = boxes.find(b => {
+               const label = b.closest('label')
+               return label && /すべてのテーマ|Show all themes/.test(label.textContent || '')
+             })
+             if (!toggle) return { ok:false }
+             toggle.click(); await sleep(400)
+             const sel = Array.from(document.querySelectorAll('select')).find(s =>
+               Array.from(s.querySelectorAll('option')).some(o => /^theboosters-/.test(o.value))
+             )
+             const groups = Array.from(sel.querySelectorAll('optgroup')).map(g => g.label)
+             const total = sel.querySelectorAll('option').length
+             toggle.click(); await sleep(300)
+             const collapsed = sel.querySelectorAll('option').length
+             return { ok:true, groups, total, collapsed }
+           })()`,
+          true
+        )
+        check(
+          '「すべて表示」で残りのテーマが出る',
+          expanded.ok && expanded.groups.length === 2 && expanded.total > 40,
+          expanded
+        )
+        check(
+          '畳むと元の件数に戻る',
+          expanded.ok && expanded.collapsed < 20,
+          expanded
         )
 
         const shot1 = path.join(

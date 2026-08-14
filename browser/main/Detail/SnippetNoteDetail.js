@@ -204,6 +204,15 @@ class SnippetNoteDetail extends React.Component {
   }
 
   UNSAFE_componentWillReceiveProps(nextProps) {
+    // 別のノートへ移ったら検索を閉じる（前のノートの一致が残ると、
+    // 置換が新しいノートの無関係な場所に当たる）
+    if (
+      nextProps.note.key !== this.props.note.key &&
+      this.findController &&
+      this.findController.isOpen()
+    ) {
+      this.handleFindClose()
+    }
     if (
       nextProps.note.key !== this.props.note.key &&
       !this.state.isMovingNote
@@ -760,6 +769,9 @@ class SnippetNoteDetail extends React.Component {
           this.save()
         }
       )
+      // 本文が変わったら検索の一致を数え直す。数え直さないと
+      // 「1 / 5」と出ているのに実体が無い、という状態になる
+      if (this.findController) this.findController.refresh()
     }
   }
 

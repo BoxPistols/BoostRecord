@@ -14,6 +14,12 @@ import VimKeyReference from 'browser/components/VimKeyReference'
 import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 import uiThemes from 'browser/lib/ui-themes'
+import { groupThemes, displayName } from 'browser/lib/themeCatalog'
+import {
+  getPresets,
+  applyPreset,
+  detectPreset
+} from 'browser/lib/settingPresets'
 import { coupleEditorTheme } from 'browser/lib/editorThemes'
 import { chooseTheme, applyTheme } from 'browser/main/lib/ThemeManager'
 
@@ -221,6 +227,73 @@ class UiTab extends React.Component {
     )
   }
 
+  /**
+   * テーマの選択肢。**推奨（実測でコントラスト合格）を先に出す。**
+   * 54 個を名前順に並べても、どれが読めるのか利用者には判断材料が無い
+   */
+  renderThemeOptions(themes) {
+    const { recommended, others } = groupThemes(themes)
+    return [
+      <optgroup key='recommended' label={i18n.__('Recommended (readable)')}>
+        {recommended.map(theme => (
+          <option value={theme.name} key={theme.name}>
+            {displayName(theme.name)}
+          </option>
+        ))}
+      </optgroup>,
+      <optgroup key='others' label={i18n.__('Others')}>
+        {others.map(theme => (
+          <option value={theme.name} key={theme.name}>
+            {displayName(theme.name)}
+          </option>
+        ))}
+      </optgroup>
+    ]
+  }
+
+  /**
+   * 目的から選ぶプリセット。見え方の項目だけをまとめて設定する。
+   * 個々の設定は残したままなので、後から自由に上書きできる
+   */
+  renderPresets() {
+    const presets = getPresets()
+    const current = detectPreset(this.state.config, presets)
+    return (
+      <div styleName='group-section'>
+        <div styleName='group-section-label'>{i18n.__('Presets')}</div>
+        <div styleName='group-section-control'>
+          <div styleName='preset-list'>
+            {presets.map(preset => (
+              <button
+                key={preset.id}
+                styleName={current === preset.id ? 'preset--active' : 'preset'}
+                onClick={() => this.handlePresetClick(preset)}
+                title={preset.description}
+                aria-pressed={current === preset.id ? 'true' : 'false'}
+              >
+                <span styleName='preset-label'>{preset.label}</span>
+                <span styleName='preset-description'>{preset.description}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  /** プリセットは押した時点で適用・保存する（保存ボタンを探させない） */
+  handlePresetClick(preset) {
+    const newConfig = applyPreset(this.state.config, preset)
+    this.setState(
+      { config: newConfig, codemirrorTheme: newConfig.editor.theme },
+      () => {
+        applyTheme(newConfig.ui.theme)
+        ConfigManager.set(newConfig)
+        store.dispatch({ type: 'SET_UI', config: newConfig })
+      }
+    )
+  }
+
   handleSaveUIClick(e) {
     const newConfig = {
       ui: this.state.config.ui,
@@ -282,6 +355,8 @@ class UiTab extends React.Component {
         <div styleName='group'>
           <div styleName='group-header'>{i18n.__('Interface')}</div>
 
+          {this.renderPresets()}
+
           <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('Interface Theme')}
@@ -316,6 +391,44 @@ class UiTab extends React.Component {
                       )
                     })}
                 </optgroup>
+              </select>
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>{i18n.__('Editor Theme')}</div>
+            <div styleName='group-section-control'>
+              <select
+                value={config.editor.theme}
+                ref='editorTheme'
+                onChange={e => this.handleUIChange(e)}
+              >
+                {this.renderThemeOptions(themes)}
+              </select>
+              <div styleName='code-mirror' style={{ fontFamily }}>
+                <ReactCodeMirror
+                  ref={e => (this.codeMirrorInstance = e)}
+                  value={codemirrorSampleCode}
+                  options={{
+                    lineNumbers: true,
+                    readOnly: true,
+                    mode: 'javascript',
+                    theme: codemirrorTheme
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Code Block Theme')}
+            </div>
+            <div styleName='group-section-control'>
+              <select
+                value={config.preview.codeBlockTheme}
+                ref='previewCodeBlockTheme'
+                onChange={e => this.handleUIChange(e)}
+              >
+                {this.renderThemeOptions(themes)}
               </select>
             </div>
           </div>
@@ -490,36 +603,6 @@ class UiTab extends React.Component {
 
           <div styleName='group-header2'>Editor</div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Editor Theme')}</div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.editor.theme}
-                ref='editorTheme'
-                onChange={e => this.handleUIChange(e)}
-              >
-                {themes.map(theme => {
-                  return (
-                    <option value={theme.name} key={theme.name}>
-                      {theme.name}
-                    </option>
-                  )
-                })}
-              </select>
-              <div styleName='code-mirror' style={{ fontFamily }}>
-                <ReactCodeMirror
-                  ref={e => (this.codeMirrorInstance = e)}
-                  value={codemirrorSampleCode}
-                  options={{
-                    lineNumbers: true,
-                    readOnly: true,
-                    mode: 'javascript',
-                    theme: codemirrorTheme
-                  }}
-                />
-              </div>
-            </div>
-          </div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
               {i18n.__('Editor Font Size')}
@@ -1024,26 +1107,6 @@ class UiTab extends React.Component {
             </div>
           </div>
 
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Code Block Theme')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.preview.codeBlockTheme}
-                ref='previewCodeBlockTheme'
-                onChange={e => this.handleUIChange(e)}
-              >
-                {themes.map(theme => {
-                  return (
-                    <option value={theme.name} key={theme.name}>
-                      {theme.name}
-                    </option>
-                  )
-                })}
-              </select>
-            </div>
-          </div>
           <div styleName='group-checkBoxSection'>
             <label>
               <input

@@ -148,18 +148,31 @@ function measure(themeName, css) {
   }
 }
 
+// アプリはこの2つのディレクトリからテーマを拾う（consts.js と同じ）。
+// 自前テーマを測れないと、作った当人が基準割れに気づけない
+const EXTRA_THEME_DIR = path.join(
+  __dirname,
+  '..',
+  'extra_scripts',
+  'codemirror',
+  'theme'
+)
+
 function collectAll() {
   const out = []
   // 既定テーマは codemirror.css の中（`.cm-s-default`）
   out.push(measureDefault())
-  fs.readdirSync(THEME_DIR)
-    .filter(f => f.endsWith('.css'))
-    .forEach(file => {
-      const name = file.replace(/\.css$/, '')
-      const css = fs.readFileSync(path.join(THEME_DIR, file), 'utf8')
-      const row = measure(name, css)
-      if (row) out.push(row)
-    })
+  ;[THEME_DIR, EXTRA_THEME_DIR].forEach(dir => {
+    if (!fs.existsSync(dir)) return
+    fs.readdirSync(dir)
+      .filter(f => f.endsWith('.css'))
+      .forEach(file => {
+        const name = file.replace(/\.css$/, '')
+        const css = fs.readFileSync(path.join(dir, file), 'utf8')
+        const row = measure(name, css)
+        if (row) out.push(row)
+      })
+  })
   return out.filter(Boolean)
 }
 

@@ -18,6 +18,8 @@ import eventEmitter from 'browser/main/lib/eventEmitter'
 import iconv from 'iconv-lite'
 
 import { isMarkdownTitleURL } from 'browser/lib/utils'
+import i18n from 'browser/lib/i18n'
+import { prettierParserForMode } from 'browser/lib/prettierParserForMode'
 import styles from '../components/CodeEditor.styl'
 const { ipcRenderer, clipboard } = require('electron')
 const remote = require('@electron/remote')
@@ -188,6 +190,35 @@ export default class CodeEditor extends React.Component {
     })
   }
 
+  /** 整形に対応していない構文だと伝える。本文には触れない */
+  showFormatUnavailable(modeName) {
+    const { dialog } = remote
+    dialog.showMessageBox(remote.getCurrentWindow(), {
+      type: 'info',
+      message: i18n.__('Formatting is not available for this syntax'),
+      detail: i18n.__(
+        'Supported: Markdown, JavaScript, TypeScript, JSON, CSS, SCSS, Less, HTML, Vue, YAML, GraphQL. Current: %s',
+        modeName || i18n.__('Plain Text')
+      ),
+      buttons: [i18n.__('OK')]
+    })
+  }
+
+  /** 整形できなかった理由を出す。本文は変えない */
+  showFormatFailed(err) {
+    const { dialog } = remote
+    const message =
+      err && typeof err.message === 'string' && err.message.trim() !== ''
+        ? err.message
+        : String(err)
+    dialog.showMessageBox(remote.getCurrentWindow(), {
+      type: 'warning',
+      message: i18n.__('Could not format this note'),
+      detail: message.slice(0, 500),
+      buttons: [i18n.__('OK')]
+    })
+  }
+
   handleFormatTable() {
     this.tableEditor.formatAll(
       options({
@@ -291,21 +322,42 @@ export default class CodeEditor extends React.Component {
         return CodeMirror.Pass
       },
       [translateHotkey(hotkey.prettifyMarkdown)]: cm => {
+        // 整形はエディタの構文に合わせたパーサで行う。
+        // **以前は常に markdown パーサを通していた。** シェル等の
+        // スニペットにかけると `#` 行が見出しと解釈され、ブロックの間に
+        // 空行が入って内容が壊れる（利用者からの報告）
+        const modeName =
+          typeof cm.getMode === 'function' && cm.getMode()
+            ? cm.getMode().name
+            : null
+        const parser = prettierParserForMode(cm.getOption('mode'), modeName)
+        if (parser == null) {
+          // 黙って何もしないと「壊れた」のか「効かない」のか分からない。
+          // 対応していないことと、対応している構文を名指しで出す
+          self.showFormatUnavailable(modeName)
+          return
+        }
+
         // Default / User configured prettier options
         const currentConfig = JSON.parse(self.props.prettierConfig)
-
-        // Parser type will always need to be markdown so we override the option before use
-        currentConfig.parser = 'markdown'
+        currentConfig.parser = parser
 
         // Get current cursor position
         const cursorPos = cm.getCursor()
         currentConfig.cursorOffset = cm.doc.indexFromPos(cursorPos)
 
-        // Prettify contents of editor
-        const formattedTextDetails = prettier.formatWithCursor(
-          cm.doc.getValue(),
-          currentConfig
-        )
+        let formattedTextDetails
+        try {
+          formattedTextDetails = prettier.formatWithCursor(
+            cm.doc.getValue(),
+            currentConfig
+          )
+        } catch (err) {
+          // 構文エラーのある本文は整形できない。例外をそのまま投げると
+          // キーマップごと死ぬので、理由を出して本文には触れない
+          self.showFormatFailed(err)
+          return
+        }
 
         const formattedText = formattedTextDetails.formatted
         const formattedCursorPos = formattedTextDetails.cursorOffset

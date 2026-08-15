@@ -47,6 +47,21 @@ top-bar--height = 50px
   .saving--warning
     haveToSave()
 
+// 修飾キー長押し中に出す番号。押していない間は描かない
+.nav-button-hint
+  display inline-block
+  min-width 16px
+  margin-left 8px
+  padding 0 4px
+  border-radius 4px
+  background-color $ui-active-color
+  color #fff
+  font-size 10px
+  font-weight 700
+  line-height 16px
+  text-align center
+  vertical-align middle
+
 .nav-button--active
   @extend .nav-button
   color $ui-text-color

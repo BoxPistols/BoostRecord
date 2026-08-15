@@ -253,6 +253,59 @@ app.on('web-contents-created', (_e, wc) => {
           expanded
         )
 
+        // --- 修飾キー + 数字でタブを移動できる（本体のスニペットタブと同じ）---
+        const jump = await wc.executeJavaScript(
+          `(async () => {
+             const sleep = ms => new Promise(r => setTimeout(r, ms))
+             const activeTab = () => {
+               const btn = Array.from(document.querySelectorAll('button'))
+                 .find(b => /nav-button--active/.test(b.className))
+               return btn ? (btn.textContent || '').trim() : null
+             }
+             const before = activeTab()
+             const hintsBefore = document.querySelectorAll('[class*="nav-button-hint"]').length
+             // 修飾キーを押しっぱなしにするとバッジが出る
+             const isMac = /Mac/.test(navigator.userAgent)
+             const mod = isMac ? { key: 'Meta', metaKey: true } : { key: 'Control', ctrlKey: true }
+             window.dispatchEvent(new KeyboardEvent('keydown', Object.assign({ bubbles: true }, mod)))
+             await sleep(300)
+             const hintsHeld = document.querySelectorAll('[class*="nav-button-hint"]').length
+             window.dispatchEvent(new KeyboardEvent('keyup', Object.assign({ bubbles: true, key: mod.key }, {})))
+             await sleep(300)
+             const hintsAfter = document.querySelectorAll('[class*="nav-button-hint"]').length
+             return { before, hintsBefore, hintsHeld, hintsAfter }
+           })()`,
+          true
+        )
+        check(
+          '修飾キーを押している間だけタブに番号が出る',
+          jump.hintsBefore === 0 && jump.hintsHeld > 0 && jump.hintsAfter === 0,
+          jump
+        )
+
+        // 実際に Cmd/Ctrl+1 を撃って移動するか（合成イベントではなく実入力）
+        const SUPER = process.platform === 'darwin' ? 'cmd' : 'control'
+        wc.sendInputEvent({ type: 'keyDown', keyCode: '1', modifiers: [SUPER] })
+        wc.sendInputEvent({ type: 'keyUp', keyCode: '1', modifiers: [SUPER] })
+        await new Promise(resolve => setTimeout(resolve, 600))
+        const moved = await wc.executeJavaScript(
+          `(() => {
+             const btn = Array.from(document.querySelectorAll('button'))
+               .find(b => /nav-button--active/.test(b.className))
+             return { active: btn ? (btn.textContent || '').trim() : null }
+           })()`,
+          true
+        )
+        check(
+          'Cmd/Ctrl+1 で1番目のタブ（ストレージ）へ移動する',
+          /ストレージ|Storage/.test(moved.active || ''),
+          moved
+        )
+        // 元のタブへ戻す（後続の検証がインターフェースを見るため）
+        wc.sendInputEvent({ type: 'keyDown', keyCode: '3', modifiers: [SUPER] })
+        wc.sendInputEvent({ type: 'keyUp', keyCode: '3', modifiers: [SUPER] })
+        await new Promise(resolve => setTimeout(resolve, 600))
+
         const shot1 = path.join(
           process.env.TB_SHOT_DIR || os.tmpdir(),
           'prefs-interface.png'

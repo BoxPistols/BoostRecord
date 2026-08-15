@@ -32,6 +32,12 @@ function validateKey(provider, key) {
     : null
 }
 
+// カード（role=group）の名前は見出しから引く。id を1か所で作らないと
+// aria-labelledby の参照が静かに切れる
+function providerTitleId(provider) {
+  return `ai-provider-${provider}-title`
+}
+
 const DEFAULT_TTS_PORT = 50021
 const DEFAULT_TTS_SPEAKER = 1
 
@@ -393,6 +399,9 @@ class AITab extends React.Component {
           inputBorder: 'rgba(255,255,255,0.22)',
           divider: 'rgba(255,255,255,0.09)',
           accent: '#7c6cf0',
+          // チップは白文字を乗せるので、accent のままだと 3.99:1 で
+          // 基準割れ（実測）。**枠線と塗りで色を分ける**
+          accentSolid: '#5a49c9',
           success: '#00b894',
           danger: '#e74c3c'
         }
@@ -406,6 +415,7 @@ class AITab extends React.Component {
           inputBorder: 'rgba(0,0,0,0.22)',
           divider: 'rgba(0,0,0,0.08)',
           accent: '#6c5ce7',
+          accentSolid: '#5344bd',
           success: '#00b894',
           danger: '#e74c3c'
         }
@@ -464,22 +474,91 @@ class AITab extends React.Component {
       whiteSpace: 'nowrap'
     }
 
-    const inUseBadgeStyle = {
-      flex: '0 0 auto',
-      padding: '2px 9px',
+    // 状態チップ。選択そのものではなく**結果**を表す
+    const chipStyle = active => ({
+      display: 'inline-block',
+      padding: '3px 10px',
       borderRadius: 999,
-      background: c.accent,
-      color: '#fff',
       fontSize: 10,
       fontWeight: 700,
-      letterSpacing: '0.04em'
+      letterSpacing: '0.04em',
+      whiteSpace: 'nowrap',
+      background: active ? c.accentSolid || c.accent : 'transparent',
+      border: `1px solid ${active ? c.accentSolid || c.accent : c.cardBorder}`,
+      color: active ? '#fff' : c.dim
+    })
+
+    /**
+     * プロバイダのカードは**全体が選択肢**。見出しのラジオだけを的にすると
+     * 押しどころが小さく、カードを押しても何も起きないので迷う。
+     *
+     * ただしカード自身を `role="radio"` にしてはいけない。radio の子孫は
+     * アクセシビリティツリーで presentational として扱われ、中の API キー欄・
+     * モデル選択・ボタンが支援技術から**丸ごと到達不能**になる。選択の意味は
+     * 見出しの native radio が持ち、カードは `group` として境界だけを示す
+     */
+    const providerCardProps = value => ({
+      role: 'group',
+      'aria-labelledby': providerTitleId(value),
+      style: Object.assign({}, cardStyle(provider === value), {
+        cursor: 'pointer'
+      }),
+      onClick: e => {
+        // 中の入力やボタン、見出しのラベル（native の転送に任せる）を
+        // 押した時までカードの選択にしない
+        if (
+          e.target.closest &&
+          e.target.closest('input, select, button, textarea, a, label')
+        ) {
+          return
+        }
+        this.setState({ provider: value })
+      }
+    })
+
+    const titleLabelStyle = {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      minWidth: 0,
+      cursor: 'pointer'
     }
 
-    // カード見出し。使用中の provider にはバッジを添える
-    const cardTitle = (label, active = false) => (
+    const radioStyle = {
+      margin: 0,
+      flexShrink: 0,
+      accentColor: c.accentSolid || c.accent,
+      cursor: 'pointer'
+    }
+
+    // カード見出し。右端に状態チップ（使用中 / 未使用）を置く。
+    // **選択はカード全体をクリック**して行う（上部のセグメンテッド
+    // コントロールは「押しても下が切り替わらないタブ」に見えていたので廃止）。
+    // 選択の意味と keyboard 操作は native の radio が持つ
+    const cardTitle = (label, choice = null) => (
       <div style={cardTitleRowStyle}>
-        <span style={cardTitleStyle}>{label}</span>
-        {active && <span style={inUseBadgeStyle}>{i18n.__('In use')}</span>}
+        {choice ? (
+          <label style={titleLabelStyle}>
+            <input
+              type='radio'
+              name='ai-provider'
+              value={choice.value}
+              checked={choice.active}
+              onChange={() => this.setState({ provider: choice.value })}
+              style={radioStyle}
+            />
+            <span id={providerTitleId(choice.value)} style={cardTitleStyle}>
+              {label}
+            </span>
+          </label>
+        ) : (
+          <span style={cardTitleStyle}>{label}</span>
+        )}
+        {choice && (
+          <span style={chipStyle(choice.active)}>
+            {choice.active ? i18n.__('In use') : i18n.__('Not in use')}
+          </span>
+        )}
       </div>
     )
 
@@ -515,28 +594,6 @@ class AITab extends React.Component {
       fontSize: 12,
       marginTop: 5
     }
-
-    // Provider: segmented control (two halves sharing a border)
-    const segWrapStyle = {
-      display: 'flex',
-      border: `1px solid ${c.cardBorder}`,
-      borderRadius: 6,
-      overflow: 'hidden'
-    }
-
-    const segBtnStyle = active => ({
-      flex: 1,
-      padding: '9px 0',
-      textAlign: 'center',
-      fontSize: 13,
-      fontWeight: active ? 600 : 400,
-      background: active ? c.accent : 'transparent',
-      color: active ? '#fff' : c.dim,
-      cursor: 'pointer',
-      border: 'none',
-      outline: 'none',
-      fontFamily: 'inherit'
-    })
 
     const isMac =
       typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent)
@@ -574,93 +631,81 @@ class AITab extends React.Component {
             )}
           </div>
 
-          {/* Provider: どちらを使うかの設定。下の OpenAI / Gemini カードは
-              常に両方出ているので、タブと誤読されないよう説明を添える */}
-          <div style={cardStyle()}>
-            {cardTitle(i18n.__('Provider in use'))}
-            <div style={segWrapStyle}>
-              {['openai', 'gemini'].map(p => (
-                <button
-                  key={p}
-                  type='button'
-                  role='radio'
-                  aria-checked={provider === p}
-                  style={segBtnStyle(provider === p)}
-                  onClick={() => this.setState({ provider: p })}
+          {/* 使用するプロバイダ。2枚のカードで1つのラジオグループ */}
+          <div role='radiogroup' aria-label={i18n.__('Provider in use')}>
+            {/* OpenAI */}
+            <div {...providerCardProps('openai')}>
+              {cardTitle('OpenAI', {
+                value: 'openai',
+                active: provider === 'openai'
+              })}
+              <div style={fieldStyle}>
+                <label style={labelStyle}>API Key</label>
+                <input
+                  type='password'
+                  value={openaiKey}
+                  onChange={e => this.setState({ openaiKey: e.target.value })}
+                  placeholder={keyPlaceholder('openai', 'sk-...')}
+                  style={inputStyle(openaiKeyError)}
+                />
+                {openaiKeyError && (
+                  <span style={errStyle}>{openaiKeyError}</span>
+                )}
+                {this.renderKeyStatus('openai', c)}
+              </div>
+              <div style={fieldLastStyle}>
+                <label style={labelStyle}>{i18n.__('Model')}</label>
+                <select
+                  value={openaiModel}
+                  onChange={e => this.setState({ openaiModel: e.target.value })}
+                  style={inputStyle(false)}
                 >
-                  {p === 'openai' ? 'OpenAI' : 'Gemini'}
-                </button>
-              ))}
+                  {modelChoices('openai', openaiModel).map((m, i) => (
+                    <option key={m} value={m}>
+                      {modelLabel(m, i === 0)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {this.renderConnectionTest('openai', c)}
             </div>
-            <span style={Object.assign({}, errStyle, { color: c.muted })}>
-              {i18n.__(
-                'AI actions use this provider. Both providers can be configured below.'
-              )}
-            </span>
-          </div>
 
-          {/* OpenAI */}
-          <div style={cardStyle(provider === 'openai')}>
-            {cardTitle('OpenAI', provider === 'openai')}
-            <div style={fieldStyle}>
-              <label style={labelStyle}>API Key</label>
-              <input
-                type='password'
-                value={openaiKey}
-                onChange={e => this.setState({ openaiKey: e.target.value })}
-                placeholder={keyPlaceholder('openai', 'sk-...')}
-                style={inputStyle(openaiKeyError)}
-              />
-              {openaiKeyError && <span style={errStyle}>{openaiKeyError}</span>}
-              {this.renderKeyStatus('openai', c)}
+            {/* Gemini */}
+            <div {...providerCardProps('gemini')}>
+              {cardTitle('Gemini', {
+                value: 'gemini',
+                active: provider === 'gemini'
+              })}
+              <div style={fieldStyle}>
+                <label style={labelStyle}>API Key</label>
+                <input
+                  type='password'
+                  value={geminiKey}
+                  onChange={e => this.setState({ geminiKey: e.target.value })}
+                  placeholder={keyPlaceholder('gemini', 'AIza...')}
+                  style={inputStyle(geminiKeyError)}
+                />
+                {geminiKeyError && (
+                  <span style={errStyle}>{geminiKeyError}</span>
+                )}
+                {this.renderKeyStatus('gemini', c)}
+              </div>
+              <div style={fieldLastStyle}>
+                <label style={labelStyle}>{i18n.__('Model')}</label>
+                <select
+                  value={geminiModel}
+                  onChange={e => this.setState({ geminiModel: e.target.value })}
+                  style={inputStyle(false)}
+                >
+                  {modelChoices('gemini', geminiModel).map((m, i) => (
+                    <option key={m} value={m}>
+                      {modelLabel(m, i === 0)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {this.renderConnectionTest('gemini', c)}
             </div>
-            <div style={fieldLastStyle}>
-              <label style={labelStyle}>{i18n.__('Model')}</label>
-              <select
-                value={openaiModel}
-                onChange={e => this.setState({ openaiModel: e.target.value })}
-                style={inputStyle(false)}
-              >
-                {modelChoices('openai', openaiModel).map((m, i) => (
-                  <option key={m} value={m}>
-                    {modelLabel(m, i === 0)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {this.renderConnectionTest('openai', c)}
-          </div>
-
-          {/* Gemini */}
-          <div style={cardStyle(provider === 'gemini')}>
-            {cardTitle('Gemini', provider === 'gemini')}
-            <div style={fieldStyle}>
-              <label style={labelStyle}>API Key</label>
-              <input
-                type='password'
-                value={geminiKey}
-                onChange={e => this.setState({ geminiKey: e.target.value })}
-                placeholder={keyPlaceholder('gemini', 'AIza...')}
-                style={inputStyle(geminiKeyError)}
-              />
-              {geminiKeyError && <span style={errStyle}>{geminiKeyError}</span>}
-              {this.renderKeyStatus('gemini', c)}
-            </div>
-            <div style={fieldLastStyle}>
-              <label style={labelStyle}>{i18n.__('Model')}</label>
-              <select
-                value={geminiModel}
-                onChange={e => this.setState({ geminiModel: e.target.value })}
-                style={inputStyle(false)}
-              >
-                {modelChoices('gemini', geminiModel).map((m, i) => (
-                  <option key={m} value={m}>
-                    {modelLabel(m, i === 0)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            {this.renderConnectionTest('gemini', c)}
           </div>
 
           {/* VOICEVOX TTS */}

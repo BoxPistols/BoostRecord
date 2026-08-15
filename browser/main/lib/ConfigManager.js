@@ -4,7 +4,10 @@ import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
 import { DEFAULT_MODELS, normalizeAiModels } from 'browser/main/lib/aiModels'
 import uiThemes from 'browser/lib/ui-themes'
-import { migrateUntouchedEditorTheme } from 'browser/lib/editorThemes'
+import {
+  migrateUntouchedEditorTheme,
+  DEFAULT_LIGHT_EDITOR_THEME
+} from 'browser/lib/editorThemes'
 import {
   EXPANDED,
   resolveSideNavMode,
@@ -118,7 +121,11 @@ export const DEFAULT_CONFIG = {
     isStacking: false
   },
   editor: {
-    theme: 'base16-light',
+    // 自前テーマ。同梱テーマは light に基準を満たすものが1つも無い
+    // （詳細は browser/lib/editorThemes.js）
+    theme: DEFAULT_LIGHT_EDITOR_THEME,
+    // 旧既定(base16-light)からの移行を済ませたか。**一度きり**の印
+    legacyThemeMigrated: false,
     keyMap: 'sublime',
     fontSize: '14',
     fontFamily: win ? 'Consolas' : 'Monaco',
@@ -275,12 +282,19 @@ function get() {
   )
   const coupledEditorTheme = migrateUntouchedEditorTheme(
     uiIsDark,
-    storedConfig.editor.theme
+    storedConfig.editor.theme,
+    storedConfig.editor.legacyThemeMigrated
   )
-  if (coupledEditorTheme !== storedConfig.editor.theme) {
+  if (
+    coupledEditorTheme !== storedConfig.editor.theme ||
+    !storedConfig.editor.legacyThemeMigrated
+  ) {
     storedConfig = Object.assign({}, storedConfig, {
       editor: Object.assign({}, storedConfig.editor, {
-        theme: coupledEditorTheme
+        theme: coupledEditorTheme,
+        // 旧既定からの移行は一度だけ。印を付けておかないと、
+        // base16-light を選び直した人から起動のたびに奪ってしまう
+        legacyThemeMigrated: true
       })
     })
     _save(storedConfig)

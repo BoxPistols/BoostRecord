@@ -107,6 +107,8 @@ class MarkdownPreview extends React.Component {
     this.printHandler = () => this.handlePrint()
     this.resizeHandler = _.throttle(this.handleResize.bind(this), 100)
 
+    this.keyForwardHandler = e => this.handleKeyForward(e)
+
     this.linkClickHandler = this.handleLinkClick.bind(this)
     this.initMarkdown = this.initMarkdown.bind(this)
     this.initMarkdown()
@@ -323,6 +325,71 @@ document.addEventListener('DOMContentLoaded', function () {
       : scrollBarStyle
   }
 
+  /**
+   * プレビュー(iframe)の中で押された修飾キー付きの打鍵を親へ転送する。
+   *
+   * ホットキーは Mousetrap が**親ドキュメント**に張っている。プレビューへ
+   * 切り替えると focus が iframe に入るので、以降そのキーは親に届かず、
+   * ホットキーが全部死ぬ。Cmd/Ctrl+E(プレビュー切替)が「初回だけ効く」のは
+   * これが理由（利用者からの報告）。
+   *
+   * 転送するのは修飾キー付きだけ。素のキー(矢印・スペースのスクロール等)は
+   * プレビュー本来の操作なので奪わない。
+   */
+  handleKeyForward(e) {
+    // **実際の打鍵だけ通す。** sanitize が NONE のときは本文の raw HTML が
+    // iframe 内で任意の keydown を dispatch できる。それを親へ転送すると、
+    // ノートを開いただけでホットキー（削除・書き出し等）が発火しうる
+    if (e.isTrusted !== true) return
+    // keydown だけ転送すると、修飾キーの長押し検知(metaKeyHold)が
+    // 「押しっぱなし」のまま固まる（keyup は iframe の外へ出ない）。
+    // 同じ経路で keyup も送る
+    if (e.type === 'keyup') {
+      this.forwardKey(e)
+      return
+    }
+    if (!(e.metaKey || e.ctrlKey)) return
+    // Tab はペイン移動が main の before-input-event で別途扱われている。
+    // 二重に動かさない
+    if (e.key === 'Tab') return
+
+    const forwarded = new window.KeyboardEvent('keydown', {
+      key: e.key,
+      code: e.code,
+      metaKey: e.metaKey,
+      ctrlKey: e.ctrlKey,
+      shiftKey: e.shiftKey,
+      altKey: e.altKey,
+      bubbles: true,
+      cancelable: true
+    })
+    // **keyCode / which は構築時の辞書からは設定できない。**
+    // Mousetrap はこの2つを見るので、後から生やさないと一致しない
+    Object.defineProperty(forwarded, 'keyCode', { get: () => e.keyCode })
+    Object.defineProperty(forwarded, 'which', { get: () => e.which })
+    // 効かない時に「転送していない」のか「転送したが拾われない」のかを
+    // 実機で切り分けられるようにする
+    window.__tbPreviewKey = { key: e.key, keyCode: e.keyCode, at: Date.now() }
+    document.dispatchEvent(forwarded)
+  }
+
+  /** keyup をそのまま親へ流す（押しっぱなし判定を解除させる） */
+  forwardKey(e) {
+    const forwarded = new window.KeyboardEvent(e.type, {
+      key: e.key,
+      code: e.code,
+      metaKey: e.metaKey,
+      ctrlKey: e.ctrlKey,
+      shiftKey: e.shiftKey,
+      altKey: e.altKey,
+      bubbles: true,
+      cancelable: true
+    })
+    Object.defineProperty(forwarded, 'keyCode', { get: () => e.keyCode })
+    Object.defineProperty(forwarded, 'which', { get: () => e.which })
+    document.dispatchEvent(forwarded)
+  }
+
   componentDidMount() {
     const { onDrop } = this.props
 
@@ -373,6 +440,17 @@ document.addEventListener('DOMContentLoaded', function () {
       'scroll',
       this.scrollHandler
     )
+    // capture で受ける。iframe 内の他のハンドラに止められる前に転送する
+    this.refs.root.contentWindow.document.addEventListener(
+      'keydown',
+      this.keyForwardHandler,
+      true
+    )
+    this.refs.root.contentWindow.document.addEventListener(
+      'keyup',
+      this.keyForwardHandler,
+      true
+    )
     this.refs.root.contentWindow.addEventListener('resize', this.resizeHandler)
     eventEmitter.on('export:save-text', this.saveAsTextHandler)
     eventEmitter.on('export:save-md', this.saveAsMdHandler)
@@ -412,6 +490,16 @@ document.addEventListener('DOMContentLoaded', function () {
     this.refs.root.contentWindow.document.removeEventListener(
       'scroll',
       this.scrollHandler
+    )
+    this.refs.root.contentWindow.document.removeEventListener(
+      'keydown',
+      this.keyForwardHandler,
+      true
+    )
+    this.refs.root.contentWindow.document.removeEventListener(
+      'keyup',
+      this.keyForwardHandler,
+      true
     )
     this.refs.root.contentWindow.removeEventListener(
       'resize',

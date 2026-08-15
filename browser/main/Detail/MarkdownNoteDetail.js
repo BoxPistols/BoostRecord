@@ -37,8 +37,7 @@ import ToggleDirectionButton from 'browser/main/Detail/ToggleDirectionButton'
 import TocPane from 'browser/main/Detail/TocPane'
 const { ipcRenderer } = require('electron')
 import FindBar from 'browser/main/Detail/FindBar'
-import { findMatches, stepIndex } from 'browser/lib/findInText'
-import * as previewFind from 'browser/lib/findInPreview'
+import FindController from 'browser/lib/findController'
 import i18n from 'browser/lib/i18n'
 
 // Preview-only は「今の見え方」であってノート単位の属性ではないので、
@@ -247,102 +246,27 @@ class MarkdownNoteDetail extends React.Component {
     return (code && code.editor) || null
   }
 
+  /** 状態機械は FindController が持つ。ここは「どこを探すか」だけ渡す */
+  getFindController() {
+    if (!this.findController) {
+      this.findController = new FindController({
+        getCm: () => this.getEditorCm(),
+        getPreviewDoc: () => this.getPreviewDoc(),
+        getTarget: () => this.getFindTarget(),
+        onChange: find => this.setState({ find })
+      })
+    }
+    return this.findController
+  }
+
   handleFindOpen() {
-    // 既に開いていれば入力欄を選び直すだけ（打ち直せる）
-    this.setState(prev => ({
-      find: Object.assign(
-        { query: '', index: -1, count: 0, focusToken: 0 },
-        prev.find,
-        { focusToken: ((prev.find && prev.find.focusToken) || 0) + 1 }
-      )
-    }))
+    this.getFindController().open()
   }
 
   handleFindClose() {
-    const doc = this.getPreviewDoc()
-    if (doc) previewFind.clear(doc)
-    this.clearEditorMarks()
-    this.setState({ find: null })
+    this.getFindController().close()
     // 閉じたら本文へ戻す。閉じてもフォーカスが宙に浮くと次の操作が効かない
     if (this.refs.content && this.refs.content.focus) this.refs.content.focus()
-  }
-
-  clearEditorMarks() {
-    const cm = this.getEditorCm()
-    if (!cm || !this.editorMarks) return
-    this.editorMarks.forEach(mark => mark.clear())
-    this.editorMarks = null
-  }
-
-  /** 探すだけ。**現在地は動かさない** */
-  runFind(query) {
-    const target = this.getFindTarget()
-    let count = 0
-    if (target === 'PREVIEW') {
-      const doc = this.getPreviewDoc()
-      this.clearEditorMarks()
-      if (doc) {
-        const result = previewFind.search(doc, query)
-        this.previewRanges = result.ranges
-        count = result.count
-      }
-    } else {
-      const doc = this.getPreviewDoc()
-      if (doc) previewFind.clear(doc)
-      this.previewRanges = null
-      count = this.markEditorMatches(query)
-    }
-    this.setState(prev => ({
-      find: Object.assign({}, prev.find, {
-        query,
-        count,
-        // 件数が変わったら現在地は無効。ただし勝手に進めない
-        index:
-          count === 0
-            ? -1
-            : Math.min(prev.find ? prev.find.index : -1, count - 1)
-      })
-    }))
-  }
-
-  markEditorMatches(query) {
-    const cm = this.getEditorCm()
-    this.clearEditorMarks()
-    if (!cm || !query) return 0
-    const value = cm.getValue()
-    const hits = findMatches(value, query)
-    this.editorHits = hits
-    this.editorMarks = hits.map(hit =>
-      cm.markText(cm.posFromIndex(hit.start), cm.posFromIndex(hit.end), {
-        className: 'tb-find-all'
-      })
-    )
-    return hits.length
-  }
-
-  /** 現在地を動かす。**Enter / ボタンからしか呼ばない** */
-  handleFindStep(direction) {
-    const find = this.state.find
-    if (!find || !find.count) return
-    const next = stepIndex(find.index, find.count, direction)
-    const target = this.getFindTarget()
-
-    if (target === 'PREVIEW') {
-      const doc = this.getPreviewDoc()
-      if (doc) previewFind.setActive(doc, this.previewRanges, next)
-    } else {
-      const cm = this.getEditorCm()
-      const hit = this.editorHits && this.editorHits[next]
-      if (cm && hit) {
-        const from = cm.posFromIndex(hit.start)
-        const to = cm.posFromIndex(hit.end)
-        cm.setSelection(from, to)
-        cm.scrollIntoView({ from, to }, 120)
-      }
-    }
-    this.setState(prev => ({
-      find: Object.assign({}, prev.find, { index: next })
-    }))
   }
 
   /**
@@ -393,6 +317,18 @@ class MarkdownNoteDetail extends React.Component {
 
   focus() {
     this.refs.content.focus()
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    // 検索中に エディタ⇄プレビュー を切り替えると探す先が変わる。探し直さないと
+    // 前の面のハイライトが残ったまま、件数だけ食い違う
+    if (!this.state.find) return
+    if (
+      prevState.previewOnly !== this.state.previewOnly ||
+      prevState.editorType !== this.state.editorType
+    ) {
+      this.getFindController().search(this.state.find.query)
+    }
   }
 
   componentDidMount() {
@@ -451,6 +387,11 @@ class MarkdownNoteDetail extends React.Component {
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     const isNewNote = nextProps.note.key !== this.props.note.key
+    // 別のノートへ移ったら検索を閉じる。**開いたままにすると、前のノートで
+    // 数えた一致がそのまま残り、置換が新しいノートの無関係な場所に当たる**
+    if (isNewNote && this.findController && this.findController.isOpen()) {
+      this.handleFindClose()
+    }
     const hasDeletedTags =
       nextProps.note.tags.length < this.props.note.tags.length
     if (!this.state.isMovingNote && (isNewNote || hasDeletedTags)) {
@@ -516,6 +457,9 @@ class MarkdownNoteDetail extends React.Component {
     note.title = title
 
     this.updateNote(note)
+    // 本文が変わったら検索の一致を数え直す。開いていなければ何もしない。
+    // 数え直さないと「1 / 5」と出ているのに実体が無い、という状態になる
+    if (this.findController) this.findController.refresh()
   }
 
   updateNote(note) {
@@ -1058,9 +1002,16 @@ class MarkdownNoteDetail extends React.Component {
                 ? i18n.__('Preview')
                 : i18n.__('Editor')
             }
-            onChange={q => this.runFind(q)}
-            onStep={d => this.handleFindStep(d)}
+            onChange={q => this.getFindController().search(q)}
+            onStep={d => this.getFindController().step(d)}
             onClose={() => this.handleFindClose()}
+            canReplace={this.getFindController().canReplace()}
+            showReplace={this.state.find.showReplace}
+            replacement={this.state.find.replacement}
+            onToggleReplace={() => this.getFindController().toggleReplace()}
+            onReplaceChange={r => this.getFindController().setReplacement(r)}
+            onReplace={() => this.getFindController().replace()}
+            onReplaceAll={() => this.getFindController().replaceAll()}
           />
         )}
         <div

@@ -17,6 +17,11 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './PreferencesModal.styl'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
+import {
+  subscribe as subscribeMetaKey,
+  getJumpNumber,
+  MAX_JUMP_TARGETS
+} from 'browser/lib/metaKeyHold'
 
 class Preferences extends React.Component {
   constructor(props) {
@@ -24,6 +29,9 @@ class Preferences extends React.Component {
 
     this.state = {
       currentTab: 'STORAGES',
+      // 修飾キー長押し中だけタブへ 1..9 のバッジを出す（本体のスニペット
+      // タブと同じ操作にする）。押していない間は出さない
+      showJumpHints: false,
       UIAlert: '',
       HotkeyAlert: '',
       ExportAlert: ''
@@ -34,6 +42,15 @@ class Preferences extends React.Component {
     this.refs.root.focus()
     const boundingBox = this.getContentBoundingBox()
     this.setState({ boundingBox })
+    this.unsubscribeMetaKey = subscribeMetaKey(held => {
+      if (held !== this.state.showJumpHints) {
+        this.setState({ showJumpHints: held })
+      }
+    })
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
   }
 
   switchTeam(teamId) {
@@ -100,24 +117,12 @@ class Preferences extends React.Component {
     }
   }
 
-  handleKeyDown(e) {
-    if (e.keyCode === 27) {
-      this.props.close()
-    }
-  }
-
-  getContentBoundingBox() {
-    return this.refs.content.getBoundingClientRect()
-  }
-
-  haveToSaveNotif(type, message) {
-    return <p styleName={`saving--${type}`}>{message}</p>
-  }
-
-  render() {
-    const content = this.renderContent()
-
-    const tabs = [
+  /**
+   * タブ定義。**描画とキー操作の両方から参照する**ので1か所に置く。
+   * 2か所に書くと、タブを足した時に片方だけ更新して番号がずれる
+   */
+  tabs() {
+    return [
       { target: 'STORAGES', label: i18n.__('Storage') },
       {
         target: 'HOTKEY',
@@ -135,8 +140,38 @@ class Preferences extends React.Component {
       { target: 'AI', label: i18n.__('AI') },
       { target: 'IMAGES', label: i18n.__('Images') }
     ]
+  }
 
-    const navButtons = tabs.map(tab => {
+  handleKeyDown(e) {
+    if (e.keyCode === 27) {
+      this.props.close()
+      return
+    }
+    // 修飾キー + 1..9 で N 番目のタブへ。本体のスニペットタブと同じ規則
+    // （keyCode で見るので US 配列以外でも同じ位置のキーで動く）
+    const jumpTo = getJumpNumber(e)
+    if (jumpTo !== null) {
+      const tab = this.tabs()[jumpTo - 1]
+      if (!tab) return
+      e.preventDefault()
+      this.setState({ currentTab: tab.target })
+    }
+  }
+
+  getContentBoundingBox() {
+    return this.refs.content.getBoundingClientRect()
+  }
+
+  haveToSaveNotif(type, message) {
+    return <p styleName={`saving--${type}`}>{message}</p>
+  }
+
+  render() {
+    const content = this.renderContent()
+
+    const tabs = this.tabs()
+
+    const navButtons = tabs.map((tab, index) => {
       const isActive = this.state.currentTab === tab.target
       const isUiHotkeyTab =
         _.isObject(tab[tab.label]) && tab.label === tab[tab.label].tab
@@ -147,6 +182,9 @@ class Preferences extends React.Component {
           onClick={e => this.handleNavButtonClick(tab.target)(e)}
         >
           <span>{tab.label}</span>
+          {this.state.showJumpHints && index < MAX_JUMP_TARGETS && (
+            <span styleName='nav-button-hint'>{index + 1}</span>
+          )}
           {isUiHotkeyTab
             ? this.haveToSaveNotif(tab[tab.label].type, tab[tab.label].message)
             : null}

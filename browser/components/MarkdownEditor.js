@@ -137,6 +137,11 @@ class MarkdownEditor extends React.Component {
 
   handleBlur(e) {
     if (this.state.isLocked) return
+    // 検索バーへフォーカスが移っただけならモードを変えない。
+    // switchPreview:'BLUR'(既定)のままだと、Cmd+F を押した瞬間に
+    // プレビューへ切り替わり、打鍵が iframe へ吸われて検索できなくなる
+    const movedTo = e && e.relatedTarget
+    if (movedTo && movedTo.closest && movedTo.closest('.FindBar')) return
     this.setState({ keyPressed: new Set() })
     const { config } = this.props
     if (

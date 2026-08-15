@@ -10,8 +10,18 @@
 //
 // electron を require しないので単体テストできる。
 
-export const DEFAULT_LIGHT_EDITOR_THEME = 'base16-light'
-export const DEFAULT_DARK_EDITOR_THEME = 'monokai'
+// 既定は自前テーマ。実測すると、測れた 68 テーマのうち全トークンが
+// WCAG 2.1 の本文基準 4.5:1 を満たすのは 11 個だけで、**同梱の明るいテーマは
+// 1つも通らない**（旧既定の base16-light は文字列が 1.53 でほぼ読めない）。
+// 実測は node dev-scripts/theme-contrast-report.js --all
+export const DEFAULT_LIGHT_EDITOR_THEME = 'theboosters-light'
+export const DEFAULT_DARK_EDITOR_THEME = 'theboosters-dark'
+
+// 旧既定の light。**利用者が選んだのではなく、こちらが入れていた値**で、
+// かつ実測で壊れている（文字列 1.53）ので移行する。
+// 旧既定の dark(monokai) は移行しない。コメントは 4.58 で基準を満たしており、
+// 自分で選んだ人と区別が付かない以上、動かさないほうが害が少ない
+const LEGACY_BROKEN_DEFAULT = 'base16-light'
 
 // 一覧に無いものは light 扱い。CodeMirror のテーマは追加されうるので、
 // 「暗いものを列挙する」向きにしておく（未知を暗いと誤判定すると、
@@ -59,6 +69,7 @@ export const DARK_EDITOR_THEMES = [
   'shadowfox',
   'solarized dark',
   'the-matrix',
+  'theboosters-dark',
   'tomorrow-night-bright',
   'tomorrow-night-eighties',
   'twilight',
@@ -101,9 +112,16 @@ export function coupleEditorTheme(uiIsDark, editorTheme) {
  *
  * @param {boolean} uiIsDark
  * @param {string} editorTheme
+ * @param {boolean} [migrated] 旧既定からの移行を済ませたか
  * @returns {string}
  */
-export function migrateUntouchedEditorTheme(uiIsDark, editorTheme) {
+export function migrateUntouchedEditorTheme(uiIsDark, editorTheme, migrated) {
+  // 壊れている旧既定(base16-light)だけは、明暗どちらでも自前テーマへ移す。
+  // **一度だけ。** 毎回書き換えると、base16-light を自分で選び直した人が
+  // 起動のたびに奪われ、その設定に戻す手段が無くなる
+  if (!migrated && editorTheme === LEGACY_BROKEN_DEFAULT) {
+    return uiIsDark ? DEFAULT_DARK_EDITOR_THEME : DEFAULT_LIGHT_EDITOR_THEME
+  }
   if (!uiIsDark) return editorTheme
   if (editorTheme !== DEFAULT_LIGHT_EDITOR_THEME) return editorTheme
   return DEFAULT_DARK_EDITOR_THEME

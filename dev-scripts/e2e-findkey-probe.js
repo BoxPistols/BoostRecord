@@ -241,6 +241,26 @@ app.on('web-contents-created', (_e, wc) => {
         )
         rows.push({ label: 'FindBar 入力', data: bar })
 
+        // 置換はエディタでだけ出す。プレビューは読むだけの面なので、
+        // 押せるのに何も起きないボタンを作らない
+        const replaceUiInEditor = await wc.executeJavaScript(
+          `(async () => {
+             const sleep = ms => new Promise(r => setTimeout(r, ms))
+             const barEl = document.querySelector('.FindBar')
+             if (!barEl) return { ok:false }
+             const toggle = barEl.querySelector('button')
+             toggle.click(); await sleep(300)
+             return {
+               ok:true,
+               inputs: barEl.querySelectorAll('input').length,
+               labels: Array.from(barEl.querySelectorAll('button'))
+                 .map(b => (b.textContent||'').trim()).filter(Boolean)
+             }
+           })()`,
+          true
+        )
+        rows.push({ label: '置換行(エディタ)', data: replaceUiInEditor })
+
         // Enter で次へ（3回押して巡回するか）
         const stepped = []
         for (let i = 0; i < 3; i++) {
@@ -305,6 +325,24 @@ app.on('web-contents-created', (_e, wc) => {
         )
         rows.push({ label: 'PREVIEW で検索', data: pv })
 
+        const replaceUiInPreview = await wc.executeJavaScript(
+          `(() => {
+             const barEl = document.querySelector('.FindBar')
+             if (!barEl) return { ok:false }
+             return {
+               ok:true,
+               inputs: barEl.querySelectorAll('input').length,
+               labels: Array.from(barEl.querySelectorAll('button'))
+                 .map(b => (b.textContent||'').trim()).filter(Boolean)
+             }
+           })()`,
+          true
+        )
+        rows.push({
+          label: '置換行(プレビュー): 出さないのが期待',
+          data: replaceUiInPreview
+        })
+
         await press(wc, 'Return', [])
         const pvHl = await wc.executeJavaScript(
           `(() => {
@@ -355,10 +393,25 @@ app.on('web-contents-created', (_e, wc) => {
           }`
         ].join(' / ')
 
-        // Shift 横取りの退行だけは観測でなく判定として落とす
-        finish(shifted.findBarOpen || shifted.ipcReceived > 0 ? 1 : 0, {
-          verdict
+        // 観測を並べるだけでは退行を止められない。判定に使う:
+        //   1. Cmd+Shift+F の横取り（整形のホットキーを潰す）
+        //   2. 置換行の出し分け（プレビューで押せる置換を作らない）
+        const replaceRowBroken =
+          !replaceUiInEditor.ok ||
+          replaceUiInEditor.inputs !== 2 ||
+          !replaceUiInPreview.ok ||
+          replaceUiInPreview.inputs !== 1 ||
+          replaceUiInPreview.labels.length !== 0
+        rows.push({
+          label: '置換行の出し分け（エディタのみ）',
+          data: { editor: replaceUiInEditor, preview: replaceUiInPreview }
         })
+        finish(
+          shifted.findBarOpen || shifted.ipcReceived > 0 || replaceRowBroken
+            ? 1
+            : 0,
+          { verdict }
+        )
       } catch (err) {
         finish(2, {
           error: 'exec failed: ' + (err && (err.stack || err.message))

@@ -32,6 +32,12 @@ function validateKey(provider, key) {
     : null
 }
 
+// カード（role=group）の名前は見出しから引く。id を1か所で作らないと
+// aria-labelledby の参照が静かに切れる
+function providerTitleId(provider) {
+  return `ai-provider-${provider}-title`
+}
+
 const DEFAULT_TTS_PORT = 50021
 const DEFAULT_TTS_SPEAKER = 1
 
@@ -485,40 +491,69 @@ class AITab extends React.Component {
     /**
      * プロバイダのカードは**全体が選択肢**。見出しのラジオだけを的にすると
      * 押しどころが小さく、カードを押しても何も起きないので迷う。
-     * ARIA の radio として振る舞わせ、キーボードでも選べるようにする
+     *
+     * ただしカード自身を `role="radio"` にしてはいけない。radio の子孫は
+     * アクセシビリティツリーで presentational として扱われ、中の API キー欄・
+     * モデル選択・ボタンが支援技術から**丸ごと到達不能**になる。選択の意味は
+     * 見出しの native radio が持ち、カードは `group` として境界だけを示す
      */
     const providerCardProps = value => ({
-      role: 'radio',
-      'aria-checked': provider === value,
-      'aria-label': value === 'openai' ? 'OpenAI' : 'Gemini',
-      tabIndex: provider === value ? 0 : -1,
+      role: 'group',
+      'aria-labelledby': providerTitleId(value),
       style: Object.assign({}, cardStyle(provider === value), {
         cursor: 'pointer'
       }),
       onClick: e => {
-        // 中の入力やボタンを押した時までカードの選択にしない
+        // 中の入力やボタン、見出しのラベル（native の転送に任せる）を
+        // 押した時までカードの選択にしない
         if (
           e.target.closest &&
-          e.target.closest('input, select, button, textarea, a')
+          e.target.closest('input, select, button, textarea, a, label')
         ) {
           return
         }
         this.setState({ provider: value })
-      },
-      onKeyDown: e => {
-        if (e.key === ' ' || e.key === 'Enter') {
-          e.preventDefault()
-          this.setState({ provider: value })
-        }
       }
     })
 
+    const titleLabelStyle = {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      minWidth: 0,
+      cursor: 'pointer'
+    }
+
+    const radioStyle = {
+      margin: 0,
+      flexShrink: 0,
+      accentColor: c.accentSolid || c.accent,
+      cursor: 'pointer'
+    }
+
     // カード見出し。右端に状態チップ（使用中 / 未使用）を置く。
     // **選択はカード全体をクリック**して行う（上部のセグメンテッド
-    // コントロールは「押しても下が切り替わらないタブ」に見えていたので廃止）
+    // コントロールは「押しても下が切り替わらないタブ」に見えていたので廃止）。
+    // 選択の意味と keyboard 操作は native の radio が持つ
     const cardTitle = (label, choice = null) => (
       <div style={cardTitleRowStyle}>
-        <span style={cardTitleStyle}>{label}</span>
+        {choice ? (
+          <label style={titleLabelStyle}>
+            <input
+              type='radio'
+              name='ai-provider'
+              value={choice.value}
+              checked={choice.active}
+              onChange={() => this.setState({ provider: choice.value })}
+              style={radioStyle}
+            />
+            <span id={providerTitleId(choice.value)} style={cardTitleStyle}>
+              {label}
+            </span>
+          </label>
+        ) : (
+          <span style={cardTitleStyle}>{label}</span>
+        )}
         {choice && (
           <span style={chipStyle(choice.active)}>
             {choice.active ? i18n.__('In use') : i18n.__('Not in use')}

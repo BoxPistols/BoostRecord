@@ -188,13 +188,14 @@ app.on('web-contents-created', (_e, wc) => {
              cm.CodeMirror.setValue(${JSON.stringify(NOTE)})
              await sleep(800)
              // 行番号クリックと同じ経路で 3 行目をハイライトする
-             cm.CodeMirror.getDoc()
              const editor = cm.CodeMirror
              editor.options.linesHighlighted = editor.options.linesHighlighted || []
              CodeMirror.signal(editor, 'gutterClick', editor, 2)
              await sleep(500)
+             // activeline-background はアクティブ行と共用なので個数では
+             // 判定できない。ハンドラが通った証拠は linesHighlighted で取る
              return {
-               ok: document.querySelectorAll('.CodeMirror-activeline-background').length > 0,
+               ok: editor.options.linesHighlighted.includes(2),
                highlighted: document.querySelectorAll('.CodeMirror-activeline-background').length
              }
            })()`,

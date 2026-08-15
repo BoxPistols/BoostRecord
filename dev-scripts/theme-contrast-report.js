@@ -142,7 +142,10 @@ function measure(themeName, css) {
   // **測れないのではなく「白地」が答え**。捨てると集計が嘘になる
   const inheritsBase = !background
   const bg = background || parseCssColor('#ffffff')
-  const fg = foreground || (inheritsBase ? parseCssColor('#000000') : null)
+  // ルートの color を宣言しないテーマは、背景を塗っていても
+  // CodeMirror 既定の黒文字で描かれる。落とすと「暗い背景に黒文字」が
+  // 集計に出ないまま合格扱いになる
+  const fg = foreground || parseCssColor('#000000')
   // 既定を継承するテーマは、自分で塗っていないトークンに既定色が出る
   const effective = inheritsBase
     ? Object.assign({}, baseTokens(), tokens)
@@ -191,12 +194,16 @@ const EXTRA_THEME_DIR = path.join(
 )
 
 // 測れなかったテーマ。**黙って捨てると「54中10だけ合格」のような
-// 集計そのものが嘘になる**ので、必ず数えて出す
+// 集計そのものが嘘になる**ので、必ず数えて出す。
+// 意図して測らないもの（excluded）と読めなかったもの（skipped）は
+// 別勘定にする。混ぜると「解析が壊れている」ように読める
 const skipped = []
+const excluded = []
 
 function collectAll() {
   const out = []
   skipped.length = 0
+  excluded.length = 0
   // 既定テーマは codemirror.css の中（`.cm-s-default`）
   out.push(measureDefault())
   ;[THEME_DIR, EXTRA_THEME_DIR].forEach(dir => {
@@ -208,6 +215,7 @@ function collectAll() {
         const css = fs.readFileSync(path.join(dir, file), 'utf8')
         const row = measure(name, css)
         if (row) out.push(row)
+        else if (UNMEASURABLE.indexOf(name) !== -1) excluded.push(name)
         else skipped.push(name)
       })
   })
@@ -306,6 +314,12 @@ function main() {
     })
     console.log('\n（--all で全テーマ、--json で機械処理用）')
   }
+  if (excluded.length) {
+    console.log(
+      `\n測定対象外 ${excluded.length} 件（明暗バリアント構成で単一の root 規則が無い）: ` +
+        excluded.join(', ')
+    )
+  }
   if (skipped.length) {
     console.log(
       `\n測れなかったテーマ ${skipped.length} 件（背景の宣言が読めない）: ` +
@@ -321,6 +335,7 @@ module.exports = {
   measure,
   collectTheme,
   skipped,
+  excluded,
   MIN_RATIO,
   TOKENS
 }

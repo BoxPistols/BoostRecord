@@ -234,6 +234,7 @@ app.on('web-contents-created', (_e, wc) => {
              const sel = Array.from(document.querySelectorAll('select')).find(s =>
                Array.from(s.querySelectorAll('option')).some(o => /^theboosters-/.test(o.value))
              )
+             if (!sel) return { ok:false, step:'no editor theme select' }
              const groups = Array.from(sel.querySelectorAll('optgroup')).map(g => g.label)
              const total = sel.querySelectorAll('option').length
              toggle.click(); await sleep(300)

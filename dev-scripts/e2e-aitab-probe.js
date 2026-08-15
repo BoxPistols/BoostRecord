@@ -121,26 +121,48 @@ function readAiTab() {
       Array.from(s.options).some(o => /gpt-|gemini-/.test(o.text)))
     const selected = selects.map(s => (s.options[s.selectedIndex] || {}).text || '')
     const options = selects.map(s => Array.from(s.options).map(o => o.text))
-    // 「使用中」バッジを持つカード（見出しテキストで識別）
-    const badges = Array.from(document.querySelectorAll('span'))
-      .filter(s => (s.textContent || '').trim() === '使用中')
-    const badgeOwners = badges.map(b => {
-      const card = b.closest('div').parentNode
+    // どのプロバイダを使うかは**カード上のラジオ**で選ぶ。
+    // 以前は上部のセグメンテッドコントロールで、押しても下が切り替わらず
+    // 「意味の無いタブ」に見えていた（利用者からの指摘）
+    const radios = Array.from(
+      document.querySelectorAll('input[name="ai-provider"]')
+    )
+    const owners = radios.map(r => {
+      const card = r.closest('div').parentNode
       const head = card.querySelector('span')
-      return (head && head.textContent || '').trim()
+      return ((head && head.textContent) || '').trim()
     })
+    const checkedIndex = radios.findIndex(r => r.checked)
     return {
       hasByokNotice: text.indexOf('API キーは同梱していません') !== -1,
-      selected, options, badgeCount: badges.length, badgeOwners
+      selected,
+      options,
+      radioCount: radios.length,
+      checkedCount: radios.filter(r => r.checked).length,
+      owners,
+      checkedOwner: checkedIndex >= 0 ? owners[checkedIndex] : null,
+      // 旧 UI が残っていないこと（消し忘れると選択肢が2か所になる）
+      legacyBadges: Array.from(document.querySelectorAll('span')).filter(
+        s => (s.textContent || '').trim() === '使用中'
+      ).length
     }
   })()`
 }
 
 function clickProvider(label) {
   return `(async () => {${helpers}
-    const b = byText(${JSON.stringify(label)})
-    if (!b) return false
-    b.click(); await sleep(400); return true
+    const radios = Array.from(
+      document.querySelectorAll('input[name="ai-provider"]')
+    )
+    const target = radios.find(r => {
+      const card = r.closest('div').parentNode
+      const head = card.querySelector('span')
+      return ((head && head.textContent) || '').trim() === ${JSON.stringify(
+        label
+      )}
+    })
+    if (!target) return false
+    target.click(); await sleep(400); return true
   })()`
 }
 
@@ -185,14 +207,20 @@ app.on('web-contents-created', (_e, wc) => {
             ]),
           { options: view.options[0] }
         )
-        check('「使用中」バッジが1つだけ出ている', view.badgeCount === 1, {
-          badgeCount: view.badgeCount,
-          owners: view.badgeOwners
+        check('各プロバイダのカードに選択ラジオがある', view.radioCount === 2, {
+          radioCount: view.radioCount,
+          owners: view.owners
+        })
+        check('選択は常にどちらか一方だけ', view.checkedCount === 1, {
+          checkedCount: view.checkedCount
+        })
+        check('既定は OpenAI が選ばれている', view.checkedOwner === 'OpenAI', {
+          checkedOwner: view.checkedOwner
         })
         check(
-          'バッジが OpenAI 側に付いている',
-          view.badgeOwners[0] === 'OpenAI',
-          { owners: view.badgeOwners }
+          '旧UI（上部のセグメント／使用中バッジ）が残っていない',
+          view.legacyBadges === 0,
+          { legacyBadges: view.legacyBadges }
         )
         await shoot(win, 'ai-tab-openai.png')
 
@@ -201,15 +229,14 @@ app.on('web-contents-created', (_e, wc) => {
           clickProvider('Gemini'),
           true
         )
-        check('Gemini セグメントを押せる', switched)
+        check('Gemini のラジオを押せる', switched)
         const after = await wc.executeJavaScript(readAiTab(), true)
-        check(
-          '押すとバッジが Gemini へ移る',
-          after.badgeOwners[0] === 'Gemini',
-          {
-            owners: after.badgeOwners
-          }
-        )
+        check('押すと選択が Gemini へ移る', after.checkedOwner === 'Gemini', {
+          checkedOwner: after.checkedOwner
+        })
+        check('移した後も選択は一方だけ', after.checkedCount === 1, {
+          checkedCount: after.checkedCount
+        })
         await shoot(win, 'ai-tab-gemini.png')
 
         finish(checks.every(c => c.pass) ? 0 : 1, {})

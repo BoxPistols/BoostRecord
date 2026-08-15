@@ -144,13 +144,20 @@ function readAiTab() {
     // どのプロバイダを使うかは**カード全体をクリック**して選ぶ。
     // 以前は上部のセグメンテッドコントロールで、押しても下が切り替わらず
     // 「意味の無いタブ」に見えていた（利用者からの指摘）
-    const radios = Array.from(document.querySelectorAll('[role="radio"]'))
+    // カードは role=group（radio にすると中の入力が支援技術から消える）。
+    // 選択の状態は見出しの native radio が持つ
+    const inputs = Array.from(
+      document.querySelectorAll('input[name="ai-provider"]')
+    )
+    const radios = inputs
+      .map(input => input.closest('[role="group"]'))
+      .filter(Boolean)
     const owners = radios.map(card => {
       const head = card.querySelector('span')
       return ((head && head.textContent) || '').trim()
     })
     const checkedIndex = radios.findIndex(
-      r => r.getAttribute('aria-checked') === 'true'
+      card => card.querySelector('input[name="ai-provider"]').checked
     )
     // 状態チップ。選択そのものではなく結果を表す
     const chips = radios.map(card => {
@@ -173,9 +180,17 @@ function readAiTab() {
       selected,
       options,
       radioCount: radios.length,
-      checkedCount: radios.filter(
-        r => r.getAttribute('aria-checked') === 'true'
-      ).length,
+      checkedCount: inputs.filter(input => input.checked).length,
+      // カードの中の入力が支援技術から到達できること。role=radio の子孫は
+      // presentational にされるので、この不変条件は明示的に測る
+      cardsAreGroups: radios.length === inputs.length,
+      legacyRadioRoles: document.querySelectorAll('[role="radio"]').length,
+      interactiveInCards: radios.map(
+        card =>
+          card.querySelectorAll(
+            'input:not([name="ai-provider"]), select, button'
+          ).length
+      ),
       chips,
       // カード全体が押せること（cursor が pointer でないと押せると分からない）
       cursors: radios.map(r => getComputedStyle(r).cursor),
@@ -194,7 +209,9 @@ function readAiTab() {
 
 function clickProvider(label) {
   return `(async () => {${helpers}
-    const radios = Array.from(document.querySelectorAll('[role="radio"]'))
+    const radios = Array.from(
+      document.querySelectorAll('input[name="ai-provider"]')
+    ).map(input => input.closest('[role="group"]')).filter(Boolean)
     const target = radios.find(card => {
       const head = card.querySelector('span')
       return ((head && head.textContent) || '').trim() === ${JSON.stringify(
@@ -202,8 +219,9 @@ function clickProvider(label) {
       )}
     })
     if (!target) return false
-    // カードの余白（見出し行）を押す。中の入力ではない場所
+    // 見出しの文字を押す。label 経由で native radio に転送される経路
     const head = target.querySelector('span')
+    if (!head) return false
     head.click(); await sleep(400); return true
   })()`
 }
@@ -256,6 +274,19 @@ app.on('web-contents-created', (_e, wc) => {
         check('選択は常にどちらか一方だけ', view.checkedCount === 1, {
           checkedCount: view.checkedCount
         })
+        // role=radio の子孫は支援技術から消える。カードを radio に戻したら
+        // ここで落ちる（キー欄もモデル選択も読み上げから消えた状態）
+        check(
+          'カードは group で、中の操作要素が支援技術から到達できる',
+          view.cardsAreGroups &&
+            view.legacyRadioRoles === 0 &&
+            view.interactiveInCards.every(n => n >= 3),
+          {
+            cardsAreGroups: view.cardsAreGroups,
+            legacyRadioRoles: view.legacyRadioRoles,
+            interactiveInCards: view.interactiveInCards
+          }
+        )
         check('既定は OpenAI が選ばれている', view.checkedOwner === 'OpenAI', {
           checkedOwner: view.checkedOwner
         })
@@ -291,18 +322,28 @@ app.on('web-contents-created', (_e, wc) => {
         const innerClick = await wc.executeJavaScript(
           `(async () => {
              const sleep = ms => new Promise(r => setTimeout(r, ms))
-             const cards = Array.from(document.querySelectorAll('[role="radio"]'))
+             const cards = Array.from(
+               document.querySelectorAll('input[name="ai-provider"]')
+             ).map(i => i.closest('[role="group"]')).filter(Boolean)
              const openai = cards.find(card => {
                const head = card.querySelector('span')
                return ((head && head.textContent) || '').trim() === 'OpenAI'
              })
-             const input = openai.querySelector('input, select, button')
-             if (!input) return { ok:false }
+             if (!openai) return { ok:false, step:'no OpenAI card' }
+             // 見出しの選択ラジオ自身は除く（それは選択を変えるのが正しい）
+             const input = openai.querySelector(
+               'input:not([name="ai-provider"]), select, button'
+             )
+             if (!input) return { ok:false, step:'no inner control' }
              input.click(); await sleep(400)
+             const checked = cards.find(
+               c => c.querySelector('input[name="ai-provider"]').checked
+             )
+             if (!checked) return { ok:false, step:'no checked card' }
+             const head = checked.querySelector('span')
              return {
                ok: true,
-               checkedOwner: (cards.find(c => c.getAttribute('aria-checked') === 'true')
-                 .querySelector('span').textContent || '').trim()
+               checkedOwner: ((head && head.textContent) || '').trim()
              }
            })()`,
           true

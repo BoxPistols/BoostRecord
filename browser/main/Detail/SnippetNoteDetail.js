@@ -116,9 +116,20 @@ class SnippetNoteDetail extends React.Component {
     // いる間は情報パネル・リンクのショートカットが効かなかった
     this.toggleInfoHandler = () => this.handleInfoButtonClick()
     this.focusNoteLinkHandler = () => this.focusNoteLink()
+    // Markdown タブのプレビュー切替（Cmd/Ctrl+E 等）は MarkdownEditor 自身の
+    // state で起きるので、componentDidUpdate では気づけない。探す対象が
+    // エディタからプレビューへ変わったのに数え直さないと、FindBar は
+    // 切替前の件数と現在地を出し続ける。**状態が変わるどの経路も
+    // topbar:togglelockbutton を出す**ので、それを合図に探し直す
+    this.editorStatusHandler = () => {
+      if (this.state.find) {
+        this.getFindController().search(this.state.find.query)
+      }
+    }
     ee.on('detail:toggleinfo', this.toggleInfoHandler)
     ee.on('detail:focusnotelink', this.focusNoteLinkHandler)
     ee.on('topbar:togglepreviewbutton', this.togglePreviewHandler)
+    ee.on('topbar:togglelockbutton', this.editorStatusHandler)
 
     // ネイティブメニュー（Cmd/Ctrl+Shift+[ / ]）からのタブ移動。
     // メニューの accelerator は webContents.send で来るので ipcRenderer で
@@ -254,6 +265,7 @@ class SnippetNoteDetail extends React.Component {
     ee.off('detail:toggleinfo', this.toggleInfoHandler)
     ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
     ee.off('topbar:togglepreviewbutton', this.togglePreviewHandler)
+    ee.off('topbar:togglelockbutton', this.editorStatusHandler)
     if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
     ipcRenderer.removeListener('snippet:prev-tab', this.ipcPrevTab)
     ipcRenderer.removeListener('snippet:next-tab', this.ipcNextTab)

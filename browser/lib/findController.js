@@ -39,6 +39,14 @@ export default class FindController {
     this.busy = false
     this.previewDoc = null
     this.previewRanges = null
+    // 現在地の印。全一致の印とは別に持つ（重ねて付けて、動くたびに消す）
+    this.activeMark = null
+  }
+
+  /** 現在地の印を消す。未設定でも呼べる */
+  clearActive() {
+    if (this.activeMark) this.activeMark.clear()
+    this.activeMark = null
   }
 
   isOpen() {
@@ -77,6 +85,7 @@ export default class FindController {
    * 前のタブに印が残る
    */
   clear() {
+    this.clearActive()
     editorFind.clearMarks(this.marks)
     this.marks = []
     this.hits = []
@@ -135,7 +144,11 @@ export default class FindController {
       const doc = this.previewDoc || this.host.getPreviewDoc()
       if (doc) previewFind.setActive(doc, this.previewRanges, index)
     } else {
-      editorFind.revealHit(this.host.getCm(), this.marks[index])
+      const cm = this.host.getCm()
+      this.clearActive()
+      if (editorFind.revealHit(cm, this.marks[index])) {
+        this.activeMark = editorFind.markActive(cm, this.marks[index])
+      }
     }
   }
 
@@ -200,13 +213,15 @@ export default class FindController {
     const prev = this.state || INITIAL
     this.busy = true
     const cm = this.host.getCm()
+    // 現在地の印も一緒に捨てる。残すと置換後の別の位置に色が残る
+    this.clearActive()
     editorFind.clearMarks(this.marks)
     const marked = editorFind.markMatches(cm, prev.query)
     this.hits = marked.hits
     this.marks = marked.marks
     const count = marked.marks.length
     const index = count === 0 || at < 0 ? -1 : Math.min(at, count - 1)
-    if (index >= 0) editorFind.revealHit(cm, this.marks[index])
+    if (index >= 0) this.reveal(index)
     this.busy = false
     this.emit(Object.assign({}, prev, { count, index }))
   }

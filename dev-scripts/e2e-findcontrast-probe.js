@@ -214,6 +214,71 @@ app.on('web-contents-created', (_e, wc) => {
           return finish(2, { error: 'ハイライトが出ない' })
         }
 
+        // **現在地が他の一致と区別できること。** 全一致の背景は !important で
+        // 選択範囲を覆うので、setSelection だけだと「今どれを見ているか」が
+        // エディタ側で分からない（選択だけに頼ると実機で消える）
+        wc.sendInputEvent({ type: 'keyDown', keyCode: 'Return' })
+        wc.sendInputEvent({ type: 'keyUp', keyCode: 'Return' })
+        await new Promise(resolve => setTimeout(resolve, 500))
+        const active = await wc.executeJavaScript(
+          `(() => {
+             const read = el => {
+               const layers = []
+               let node = el
+               for (let i = 0; i < 20 && node && node.nodeType === 1; i++) {
+                 layers.push(getComputedStyle(node).backgroundColor)
+                 node = node.parentElement
+               }
+               return { text: el.textContent, color: getComputedStyle(el).color, layers }
+             }
+             const actives = Array.from(
+               document.querySelectorAll('.CodeMirror .tb-find-active')
+             )
+             const others = Array.from(
+               document.querySelectorAll('.CodeMirror .tb-find-all')
+             ).filter(el => !el.classList.contains('tb-find-active'))
+             if (!actives.length || !others.length) {
+               return { ok:false, actives: actives.length, others: others.length }
+             }
+             return {
+               ok: true,
+               actives: actives.length,
+               active: read(actives[0]),
+               other: read(others[0])
+             }
+           })()`,
+          true
+        )
+        if (!active.ok) {
+          rows.push({
+            label: '現在地に別の印が付く',
+            verdict: 'FAIL',
+            data: active
+          })
+        } else {
+          const activeBg = effectiveBackground(active.active.layers)
+          const otherBg = effectiveBackground(active.other.layers)
+          const activeFg = parseCssColor(active.active.color)
+          const ratio =
+            activeBg && activeFg ? contrastRatio(activeFg, activeBg) : null
+          const distinct =
+            activeBg &&
+            otherBg &&
+            (activeBg.r !== otherBg.r ||
+              activeBg.g !== otherBg.g ||
+              activeBg.b !== otherBg.b)
+          rows.push({
+            label: '現在地は他の一致と色が違う（1件だけ）',
+            verdict: distinct && active.actives === 1 ? 'PASS' : 'FAIL',
+            data: { activeBg, otherBg, actives: active.actives }
+          })
+          rows.push({
+            label: `現在地の文字が ${MIN_RATIO}:1 以上`,
+            verdict: ratio != null && ratio >= MIN_RATIO ? 'PASS' : 'FAIL',
+            data: { ratio: ratio && Math.round(ratio * 100) / 100 }
+          })
+        }
+
         for (const theme of THEMES) {
           // **CSS も読ませる。** setOption だけではクラス名が変わるだけで、
           // テーマの CSS が無ければ構文色も背景も付かない。それに気づかず

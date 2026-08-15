@@ -260,6 +260,55 @@ app.on('web-contents-created', (_e, wc) => {
         const after4 = await wc.executeJavaScript(VIEW_STATE, true)
         check('4回目: またエディタへ', after4.editorOnTop, after4)
 
+        // --- 検索中に切り替えたら数え直す ---
+        // プレビューへの切替は MarkdownEditor 自身の state で起きるので、
+        // 合図を購読していないと**切替前の件数と現在地が残り続ける**
+        await press(wc, 'F', [SUPER])
+        await wc.executeJavaScript(
+          `(async () => {
+             const sleep = ms => new Promise(r => setTimeout(r, ms))
+             const el = document.querySelector('.FindBar input')
+             if (!el) return false
+             const setter = Object.getOwnPropertyDescriptor(
+               window.HTMLInputElement.prototype, 'value'
+             ).set
+             setter.call(el, 'index')
+             el.dispatchEvent(new Event('input', { bubbles: true }))
+             await sleep(500)
+             return true
+           })()`,
+          true
+        )
+        const FIND_STATE = `(() => {
+          const bar = document.querySelector('.FindBar')
+          if (!bar) return { open: false }
+          return {
+            open: true,
+            spans: Array.from(bar.querySelectorAll('span'))
+              .map(s => (s.textContent || '').trim())
+              .filter(Boolean),
+            editorMarks: document.querySelectorAll('.CodeMirror .tb-find-all').length
+          }
+        })()`
+        const findInEditor = await wc.executeJavaScript(FIND_STATE, true)
+        check(
+          '検索がエディタで数えられている（測れている証拠）',
+          findInEditor.open &&
+            findInEditor.spans.some(s => /\d+ \/ [1-9]/.test(s)) &&
+            findInEditor.spans.some(s => /エディタ|Editor/.test(s)),
+          findInEditor
+        )
+        await press(wc, 'E', [SUPER])
+        await new Promise(resolve => setTimeout(resolve, 600))
+        const findInPreview = await wc.executeJavaScript(FIND_STATE, true)
+        check(
+          '**切り替えたら探す対象が変わり、数え直す**',
+          findInPreview.open &&
+            findInPreview.spans.some(s => /プレビュー|Preview/.test(s)) &&
+            findInPreview.editorMarks === 0,
+          findInPreview
+        )
+
         const img = await win.webContents.capturePage()
         const shot = path.join(
           process.env.TB_SHOT_DIR || os.tmpdir(),

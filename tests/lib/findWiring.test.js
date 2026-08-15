@@ -35,6 +35,25 @@ describe('detail:find の配線', () => {
   })
 })
 
+// スニペットノートの Markdown タブは MarkdownEditor 自身の state で
+// プレビューへ切り替わる。親は再描画されないので、合図を購読していないと
+// 「探す対象は変わったのに件数は前のまま」になる
+describe('探す対象が変わったら数え直す', () => {
+  it('MarkdownEditor は状態が変わるたびに合図を出す', () => {
+    const editor = read('browser/components/MarkdownEditor.js')
+    const emits = editor.match(/topbar:togglelockbutton/g) || []
+    const transitions = editor.match(/status: '(CODE|PREVIEW)'/g) || []
+    // 遷移のたびに1回。合図が減ったら購読側が取りこぼす
+    expect(emits.length).toBeGreaterThanOrEqual(transitions.length - 1)
+  })
+
+  it('SnippetNoteDetail が合図を購読して外す', () => {
+    const detail = read('browser/main/Detail/SnippetNoteDetail.js')
+    expect(detail).toContain("ee.on('topbar:togglelockbutton'")
+    expect(detail).toContain("ee.off('topbar:togglelockbutton'")
+  })
+})
+
 describe('CodeMirror 内蔵の検索を殺した以上、代わりが要る', () => {
   it('内蔵の検索・置換キーは無効化したままにする', () => {
     const editor = read('browser/components/CodeEditor.js')

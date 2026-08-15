@@ -177,6 +177,50 @@ describe('現在地の移動', () => {
     controller.step(1)
     expect(cm.selection).toBeNull()
   })
+
+  // 全一致の背景は選択範囲を覆うので、選択だけでは現在地が見えない。
+  // 「今どれを見ているか」は印で示す。**常に1つだけ**が不変条件
+  const activeMarks = cm =>
+    cm.marks.filter(m => !m.cleared && m.className === 'tb-find-active')
+
+  it('現在地には別の印を付ける', () => {
+    const { cm, controller } = createController('needle x needle')
+    controller.open()
+    controller.search('needle')
+    expect(activeMarks(cm)).toHaveLength(0)
+    controller.step(1)
+    expect(activeMarks(cm)).toHaveLength(1)
+    expect(activeMarks(cm)[0].from).toBe(0)
+  })
+
+  it('移動すると前の現在地の印は消える', () => {
+    const { cm, controller } = createController('needle x needle')
+    controller.open()
+    controller.search('needle')
+    controller.step(1)
+    controller.step(1)
+    expect(activeMarks(cm)).toHaveLength(1)
+    expect(activeMarks(cm)[0].from).toBe(9)
+  })
+
+  it('閉じると現在地の印も残らない', () => {
+    const { cm, controller } = createController('needle x needle')
+    controller.open()
+    controller.search('needle')
+    controller.step(1)
+    controller.close()
+    expect(activeMarks(cm)).toHaveLength(0)
+  })
+
+  it('置換して数え直しても現在地の印は1つだけ', () => {
+    const { cm, controller } = createController('needle x needle')
+    controller.open()
+    controller.search('needle')
+    controller.step(1)
+    controller.setReplacement('pin')
+    controller.replace()
+    expect(activeMarks(cm)).toHaveLength(1)
+  })
 })
 
 describe('置換', () => {

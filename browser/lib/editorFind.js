@@ -61,6 +61,19 @@ export function revealHit(cm, mark) {
   return true
 }
 
+/**
+ * 現在地の1件だけ色を変える。
+ * **選択だけでは足りない。** 全一致の背景は構文色に勝つため `!important` で
+ * 塗っており、選択範囲の背景（CodeMirror は文字の後ろの層に描く）を覆う。
+ * プレビュー側は tb-find-active を持っているので、同じ名前で揃える
+ * @returns {object|null} 付けた印。消すのは呼び出し側の責任
+ */
+export function markActive(cm, mark) {
+  const range = rangeOfMark(mark)
+  if (!cm || !range) return null
+  return cm.markText(range.from, range.to, { className: 'tb-find-active' })
+}
+
 /** 1件だけ置換する。置換後の位置は呼び出し側が探し直す前提 */
 export function replaceHit(cm, mark, replacement) {
   const range = rangeOfMark(mark)

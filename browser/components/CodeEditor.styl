@@ -19,3 +19,13 @@
 :global(.CodeMirror .tb-find-all)
   background-color #ffeb3b !important
   color #1a1a1a !important
+
+// 現在地。**全一致の背景は選択範囲（文字の後ろの層）を覆う**ので、
+// setSelection だけでは「今どれを見ているか」がエディタ側で分からない。
+// 色はプレビュー側の ::highlight(tb-find-active) と揃える（同じ意味には
+// 同じ色。面が変わるたびに覚え直させない）。
+// **この宣言は tb-find-all より後ろに置く。** 両方 !important の単一クラスで
+// 詳細度が並ぶため、順序が勝敗を決める
+:global(.CodeMirror .tb-find-active)
+  background-color #ff9800 !important
+  color #1a1a1a !important

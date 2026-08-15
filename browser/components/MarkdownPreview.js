@@ -337,6 +337,10 @@ document.addEventListener('DOMContentLoaded', function () {
    * プレビュー本来の操作なので奪わない。
    */
   handleKeyForward(e) {
+    // **実際の打鍵だけ通す。** sanitize が NONE のときは本文の raw HTML が
+    // iframe 内で任意の keydown を dispatch できる。それを親へ転送すると、
+    // ノートを開いただけでホットキー（削除・書き出し等）が発火しうる
+    if (e.isTrusted !== true) return
     // keydown だけ転送すると、修飾キーの長押し検知(metaKeyHold)が
     // 「押しっぱなし」のまま固まる（keyup は iframe の外へ出ない）。
     // 同じ経路で keyup も送る

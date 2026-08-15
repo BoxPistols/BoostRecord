@@ -464,22 +464,35 @@ class AITab extends React.Component {
       whiteSpace: 'nowrap'
     }
 
-    const inUseBadgeStyle = {
-      flex: '0 0 auto',
-      padding: '2px 9px',
-      borderRadius: 999,
-      background: c.accent,
-      color: '#fff',
-      fontSize: 10,
-      fontWeight: 700,
-      letterSpacing: '0.04em'
-    }
+    // 使用中のカードは枠線と合わせて強調する。文字色は選択時だけ変える
+    const providerChoiceStyle = active => ({
+      display: 'inline-flex',
+      alignItems: 'center',
+      fontSize: 12,
+      fontWeight: active ? 700 : 400,
+      color: active ? c.accent : c.dim,
+      cursor: 'pointer'
+    })
 
-    // カード見出し。使用中の provider にはバッジを添える
-    const cardTitle = (label, active = false) => (
+    // カード見出し。**選択はカードの上で行う。**
+    // 以前は上部にセグメンテッドコントロールを置いていたが、タブの形なのに
+    // 押しても下の表示が切り替わらず、「意味の無いタブ」に見えていた
+    // （利用者からの指摘）。効く対象の上に選択を置けば誤解が消える
+    const cardTitle = (label, choice = null) => (
       <div style={cardTitleRowStyle}>
         <span style={cardTitleStyle}>{label}</span>
-        {active && <span style={inUseBadgeStyle}>{i18n.__('In use')}</span>}
+        {choice && (
+          <label style={providerChoiceStyle(choice.active)}>
+            <input
+              type='radio'
+              name='ai-provider'
+              checked={choice.active}
+              onChange={() => this.setState({ provider: choice.value })}
+            />
+            &nbsp;
+            {i18n.__('Use this provider')}
+          </label>
+        )}
       </div>
     )
 
@@ -515,28 +528,6 @@ class AITab extends React.Component {
       fontSize: 12,
       marginTop: 5
     }
-
-    // Provider: segmented control (two halves sharing a border)
-    const segWrapStyle = {
-      display: 'flex',
-      border: `1px solid ${c.cardBorder}`,
-      borderRadius: 6,
-      overflow: 'hidden'
-    }
-
-    const segBtnStyle = active => ({
-      flex: 1,
-      padding: '9px 0',
-      textAlign: 'center',
-      fontSize: 13,
-      fontWeight: active ? 600 : 400,
-      background: active ? c.accent : 'transparent',
-      color: active ? '#fff' : c.dim,
-      cursor: 'pointer',
-      border: 'none',
-      outline: 'none',
-      fontFamily: 'inherit'
-    })
 
     const isMac =
       typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent)
@@ -574,34 +565,12 @@ class AITab extends React.Component {
             )}
           </div>
 
-          {/* Provider: どちらを使うかの設定。下の OpenAI / Gemini カードは
-              常に両方出ているので、タブと誤読されないよう説明を添える */}
-          <div style={cardStyle()}>
-            {cardTitle(i18n.__('Provider in use'))}
-            <div style={segWrapStyle}>
-              {['openai', 'gemini'].map(p => (
-                <button
-                  key={p}
-                  type='button'
-                  role='radio'
-                  aria-checked={provider === p}
-                  style={segBtnStyle(provider === p)}
-                  onClick={() => this.setState({ provider: p })}
-                >
-                  {p === 'openai' ? 'OpenAI' : 'Gemini'}
-                </button>
-              ))}
-            </div>
-            <span style={Object.assign({}, errStyle, { color: c.muted })}>
-              {i18n.__(
-                'AI actions use this provider. Both providers can be configured below.'
-              )}
-            </span>
-          </div>
-
           {/* OpenAI */}
           <div style={cardStyle(provider === 'openai')}>
-            {cardTitle('OpenAI', provider === 'openai')}
+            {cardTitle('OpenAI', {
+              value: 'openai',
+              active: provider === 'openai'
+            })}
             <div style={fieldStyle}>
               <label style={labelStyle}>API Key</label>
               <input
@@ -633,7 +602,10 @@ class AITab extends React.Component {
 
           {/* Gemini */}
           <div style={cardStyle(provider === 'gemini')}>
-            {cardTitle('Gemini', provider === 'gemini')}
+            {cardTitle('Gemini', {
+              value: 'gemini',
+              active: provider === 'gemini'
+            })}
             <div style={fieldStyle}>
               <label style={labelStyle}>API Key</label>
               <input

@@ -11,6 +11,26 @@ const { app, BrowserWindow } = require('electron')
 const fs = require('fs')
 const os = require('os')
 const path = require('path')
+const {
+  parseCssColor,
+  compositeOver,
+  contrastRatio
+} = require('./contrast-util')
+
+/** 一番外側の不透明な層から内側へ重ねて、実際に描かれている背景を出す */
+function effectiveBackground(layers) {
+  let base = null
+  for (let i = layers.length - 1; i >= 0; i--) {
+    const color = parseCssColor(layers[i])
+    if (!color) continue
+    if (base === null) {
+      if (color.a >= 1) base = color
+      continue
+    }
+    base = compositeOver(color, base)
+  }
+  return base
+}
 
 const SHOT_DIR = process.env.TB_SHOT_DIR || os.tmpdir()
 const RESULT_FILE =
@@ -121,24 +141,47 @@ function readAiTab() {
       Array.from(s.options).some(o => /gpt-|gemini-/.test(o.text)))
     const selected = selects.map(s => (s.options[s.selectedIndex] || {}).text || '')
     const options = selects.map(s => Array.from(s.options).map(o => o.text))
-    // どのプロバイダを使うかは**カード上のラジオ**で選ぶ。
+    // どのプロバイダを使うかは**カード全体をクリック**して選ぶ。
     // 以前は上部のセグメンテッドコントロールで、押しても下が切り替わらず
     // 「意味の無いタブ」に見えていた（利用者からの指摘）
-    const radios = Array.from(
-      document.querySelectorAll('input[name="ai-provider"]')
-    )
-    const owners = radios.map(r => {
-      const card = r.closest('div').parentNode
+    const radios = Array.from(document.querySelectorAll('[role="radio"]'))
+    const owners = radios.map(card => {
       const head = card.querySelector('span')
       return ((head && head.textContent) || '').trim()
     })
-    const checkedIndex = radios.findIndex(r => r.checked)
+    const checkedIndex = radios.findIndex(
+      r => r.getAttribute('aria-checked') === 'true'
+    )
+    // 状態チップ。選択そのものではなく結果を表す
+    const chips = radios.map(card => {
+      const spans = Array.from(card.querySelectorAll('span'))
+      const chip = spans.find(x =>
+        /^(使用中|未使用|In use|Not in use)$/.test((x.textContent || '').trim())
+      )
+      if (!chip) return null
+      const cs = getComputedStyle(chip)
+      const layers = []
+      let node = chip
+      for (let i = 0; i < 20 && node && node.nodeType === 1; i++) {
+        layers.push(getComputedStyle(node).backgroundColor)
+        node = node.parentElement
+      }
+      return { text: (chip.textContent || '').trim(), color: cs.color, layers }
+    })
     return {
       hasByokNotice: text.indexOf('API キーは同梱していません') !== -1,
       selected,
       options,
       radioCount: radios.length,
-      checkedCount: radios.filter(r => r.checked).length,
+      checkedCount: radios.filter(
+        r => r.getAttribute('aria-checked') === 'true'
+      ).length,
+      chips,
+      // カード全体が押せること（cursor が pointer でないと押せると分からない）
+      cursors: radios.map(r => getComputedStyle(r).cursor),
+      inRadioGroup: radios.every(
+        r => r.closest('[role="radiogroup"]') !== null
+      ),
       owners,
       checkedOwner: checkedIndex >= 0 ? owners[checkedIndex] : null,
       // 旧 UI が残っていないこと（消し忘れると選択肢が2か所になる）
@@ -151,18 +194,17 @@ function readAiTab() {
 
 function clickProvider(label) {
   return `(async () => {${helpers}
-    const radios = Array.from(
-      document.querySelectorAll('input[name="ai-provider"]')
-    )
-    const target = radios.find(r => {
-      const card = r.closest('div').parentNode
+    const radios = Array.from(document.querySelectorAll('[role="radio"]'))
+    const target = radios.find(card => {
       const head = card.querySelector('span')
       return ((head && head.textContent) || '').trim() === ${JSON.stringify(
         label
       )}
     })
     if (!target) return false
-    target.click(); await sleep(400); return true
+    // カードの余白（見出し行）を押す。中の入力ではない場所
+    const head = target.querySelector('span')
+    head.click(); await sleep(400); return true
   })()`
 }
 
@@ -217,11 +259,17 @@ app.on('web-contents-created', (_e, wc) => {
         check('既定は OpenAI が選ばれている', view.checkedOwner === 'OpenAI', {
           checkedOwner: view.checkedOwner
         })
-        check(
-          '旧UI（上部のセグメント／使用中バッジ）が残っていない',
-          view.legacyBadges === 0,
-          { legacyBadges: view.legacyBadges }
-        )
+        // チップの文字が読めるか。実際に描かれている色で測る
+        view.chips.filter(Boolean).forEach(chip => {
+          const bg = effectiveBackground(chip.layers)
+          const fg = parseCssColor(chip.color)
+          const ratio = bg && fg ? contrastRatio(fg, bg) : null
+          check(
+            `チップ「${chip.text}」の文字が 4.5:1 以上`,
+            ratio != null && ratio >= 4.5,
+            { ratio: ratio && Math.round(ratio * 100) / 100, color: chip.color }
+          )
+        })
         await shoot(win, 'ai-tab-openai.png')
 
         // セグメントを押したら表示が変わることの確認（ここが今回の指摘）
@@ -229,7 +277,7 @@ app.on('web-contents-created', (_e, wc) => {
           clickProvider('Gemini'),
           true
         )
-        check('Gemini のラジオを押せる', switched)
+        check('Gemini のカードを押せる', switched)
         const after = await wc.executeJavaScript(readAiTab(), true)
         check('押すと選択が Gemini へ移る', after.checkedOwner === 'Gemini', {
           checkedOwner: after.checkedOwner
@@ -237,6 +285,33 @@ app.on('web-contents-created', (_e, wc) => {
         check('移した後も選択は一方だけ', after.checkedCount === 1, {
           checkedCount: after.checkedCount
         })
+
+        // **カードの中の入力を押した時は選択を変えない。**
+        // モデルを選ぼうとしただけで使用先が入れ替わると事故になる
+        const innerClick = await wc.executeJavaScript(
+          `(async () => {
+             const sleep = ms => new Promise(r => setTimeout(r, ms))
+             const cards = Array.from(document.querySelectorAll('[role="radio"]'))
+             const openai = cards.find(card => {
+               const head = card.querySelector('span')
+               return ((head && head.textContent) || '').trim() === 'OpenAI'
+             })
+             const input = openai.querySelector('input, select, button')
+             if (!input) return { ok:false }
+             input.click(); await sleep(400)
+             return {
+               ok: true,
+               checkedOwner: (cards.find(c => c.getAttribute('aria-checked') === 'true')
+                 .querySelector('span').textContent || '').trim()
+             }
+           })()`,
+          true
+        )
+        check(
+          'カード内の入力を押しても選択は変わらない',
+          innerClick.ok && innerClick.checkedOwner === 'Gemini',
+          innerClick
+        )
         await shoot(win, 'ai-tab-gemini.png')
 
         finish(checks.every(c => c.pass) ? 0 : 1, {})

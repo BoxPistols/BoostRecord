@@ -98,8 +98,16 @@ const PREFS_STATE = `(() => {
   const modal = document.querySelector('[class*="ConfigTab"], .ModalBase') || document
   const labels = Array.from(modal.querySelectorAll('[class*="group-section-label"]'))
     .map(el => (el.textContent || '').trim())
-  const themeLabels = ['インターフェーステーマ', 'エディタのテーマ', 'コードブロックのテーマ']
-  const indexes = themeLabels.map(t => labels.indexOf(t))
+  // **日本語決め打ちにしない。** 英語ロケールでは1つも見つからず、
+  // 「設定が離れている」ではなく「測れていない」で落ちる
+  const themeLabels = [
+    ['インターフェーステーマ', 'Interface Theme'],
+    ['エディタのテーマ', 'Editor Theme'],
+    ['コードブロックのテーマ', 'Code Block Theme']
+  ]
+  const indexes = themeLabels.map(names =>
+    labels.findIndex(label => names.indexOf(label) !== -1)
+  )
   const presets = Array.from(modal.querySelectorAll('[class*="preset"]'))
     .filter(el => el.tagName === 'BUTTON')
   // **インターフェーステーマのセレクトも optgroup を持つ**ので、

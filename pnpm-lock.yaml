@@ -145,9 +145,6 @@ importers:
       markdown-it-multimd-table:
         specifier: ^2.0.1
         version: 2.0.1
-      markdown-it-plantuml:
-        specifier: ^1.1.0
-        version: 1.4.1
       markdown-it-smartarrows:
         specifier: ^1.0.1
         version: 1.0.1
@@ -994,6 +991,7 @@ packages:
   '@xmldom/xmldom@0.9.10':
     resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
     engines: {node: '>=14.6'}
+    deprecated: this version has critical issues, please update to the latest version
 
   JSV@4.0.2:
     resolution: {integrity: sha512-ZJ6wx9xaKJ3yFUhq5/sk82PJMuUyLk277I8mQeyDgCTjGdjWJIvPfaU5LIXaMuaN2UO1X3kZH4+lgphublZUHw==}
@@ -5260,9 +5258,6 @@ packages:
 
   markdown-it-multimd-table@2.0.1:
     resolution: {integrity: sha512-wsntWEDAxEG5BnDgLNgP0jwIcpWCG2XMdde+Djnz6G6BkZz+F//e8eLOz7/34vU27eY9U7HV//9Frhya430Ofg==}
-
-  markdown-it-plantuml@1.4.1:
-    resolution: {integrity: sha512-13KgnZaGYTHBp4iUmGofzZSBz+Zj6cyqfR0SXUIc9wgWTto5Xhn7NjaXYxY0z7uBeTUMlc9LMQq5uP4OM5xCHg==}
 
   markdown-it-smartarrows@1.0.1:
     resolution: {integrity: sha512-LwWnlFyLY5ANjLR0a8BuLvQEm4Ri76IavQwqTnpquSiMoE3JXefk5Pu7nD5VKn784bgLqL3sexdt/j8GwuLgOw==}
@@ -14741,8 +14736,6 @@ snapshots:
   markdown-it-multimd-table@2.0.1:
     dependencies:
       markdown-it: 5.1.0
-
-  markdown-it-plantuml@1.4.1: {}
 
   markdown-it-smartarrows@1.0.1: {}
 

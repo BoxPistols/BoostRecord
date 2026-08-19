@@ -1,0 +1,38 @@
+/* Rockabilly — 真空管アンプの朱赤と琥珀を、ニュートラルなチャコールに載せた暗色スキーム。
+   Generated from palette.json. Do not edit by hand. */
+
+:root[data-theme="rockabilly"], .rockabilly {
+  --rockabilly-bg: #1C1C1E;
+  --rockabilly-bg-alt: #242426;
+  --rockabilly-surface: #2A2A2D;
+  --rockabilly-border: #333336;
+  --rockabilly-fg: #EAEAEA;
+  --rockabilly-muted: #9A9A9E;
+  --rockabilly-accent: #D7263D;
+  --rockabilly-accent-alt: #E8A33D;
+  --rockabilly-syntax-red: #F0576B;
+  --rockabilly-syntax-orange: #E8A33D;
+  --rockabilly-syntax-yellow: #E8C86A;
+  --rockabilly-syntax-green: #93C572;
+  --rockabilly-syntax-teal: #63C5B5;
+  --rockabilly-syntax-blue: #7BB0DE;
+  --rockabilly-syntax-purple: #C39BE0;
+  --rockabilly-syntax-comment: #8A8A90;
+  --rockabilly-syntax-brown: #C0865B;
+  --rockabilly-ansi-black: #1C1C1E;
+  --rockabilly-ansi-red: #EA4A5E;
+  --rockabilly-ansi-green: #7FB05C;
+  --rockabilly-ansi-yellow: #E8A33D;
+  --rockabilly-ansi-blue: #5B95C9;
+  --rockabilly-ansi-magenta: #A87BCB;
+  --rockabilly-ansi-cyan: #49AE9E;
+  --rockabilly-ansi-white: #C8C8CC;
+  --rockabilly-ansi-bright-black: #7E7E84;
+  --rockabilly-ansi-bright-red: #F0576B;
+  --rockabilly-ansi-bright-green: #93C572;
+  --rockabilly-ansi-bright-yellow: #E8C86A;
+  --rockabilly-ansi-bright-blue: #7BB0DE;
+  --rockabilly-ansi-bright-magenta: #C39BE0;
+  --rockabilly-ansi-bright-cyan: #63C5B5;
+  --rockabilly-ansi-bright-white: #F2F2F4;
+}

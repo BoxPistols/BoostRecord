@@ -1,0 +1,46 @@
+/* Rockabilly — 真空管アンプの朱赤と琥珀を、ニュートラルなチャコールに載せた暗色スキーム。
+   Generated from palette.json. Do not edit by hand. */
+
+.cm-s-rockabilly.CodeMirror { background: #1C1C1E; color: #EAEAEA; }
+.cm-s-rockabilly div.CodeMirror-selected { background: #333336; }
+.cm-s-rockabilly .CodeMirror-line::selection,
+.cm-s-rockabilly .CodeMirror-line > span::selection,
+.cm-s-rockabilly .CodeMirror-line > span > span::selection { background: #333336; }
+.cm-s-rockabilly .CodeMirror-line::-moz-selection,
+.cm-s-rockabilly .CodeMirror-line > span::-moz-selection,
+.cm-s-rockabilly .CodeMirror-line > span > span::-moz-selection { background: #333336; }
+.cm-s-rockabilly .CodeMirror-gutters { background: #1C1C1E; border-right: 0; }
+.cm-s-rockabilly .CodeMirror-guttermarker { color: #F0576B; }
+.cm-s-rockabilly .CodeMirror-guttermarker-subtle { color: #9A9A9E; }
+.cm-s-rockabilly .CodeMirror-linenumber { color: #7E7E84; }
+.cm-s-rockabilly .CodeMirror-cursor { border-left: 1px solid #E8A33D; }
+.cm-s-rockabilly .CodeMirror-activeline-background { background: #242426; }
+.cm-s-rockabilly .CodeMirror-matchingbracket { color: #EAEAEA !important; text-decoration: underline; }
+.cm-s-rockabilly .CodeMirror-nonmatchingbracket { color: #F0576B !important; }
+
+.cm-s-rockabilly span.cm-comment { color: #8A8A90; font-style: italic; }
+.cm-s-rockabilly span.cm-keyword { color: #F0576B; }
+.cm-s-rockabilly span.cm-atom { color: #E8A33D; }
+.cm-s-rockabilly span.cm-number { color: #E8A33D; }
+.cm-s-rockabilly span.cm-string { color: #93C572; }
+.cm-s-rockabilly span.cm-string-2 { color: #63C5B5; }
+.cm-s-rockabilly span.cm-def { color: #7BB0DE; }
+.cm-s-rockabilly span.cm-variable { color: #EAEAEA; }
+.cm-s-rockabilly span.cm-variable-2 { color: #7BB0DE; }
+.cm-s-rockabilly span.cm-variable-3, .cm-s-rockabilly span.cm-type { color: #E8C86A; }
+.cm-s-rockabilly span.cm-property { color: #63C5B5; }
+.cm-s-rockabilly span.cm-operator { color: #C39BE0; }
+.cm-s-rockabilly span.cm-builtin { color: #63C5B5; }
+.cm-s-rockabilly span.cm-qualifier { color: #E8C86A; }
+.cm-s-rockabilly span.cm-tag { color: #C39BE0; }
+.cm-s-rockabilly span.cm-attribute { color: #E8A33D; }
+.cm-s-rockabilly span.cm-meta { color: #C0865B; }
+.cm-s-rockabilly span.cm-bracket { color: #9A9A9E; }
+.cm-s-rockabilly span.cm-header { color: #E8C86A; font-weight: bold; }
+.cm-s-rockabilly span.cm-hr { color: #333336; }
+.cm-s-rockabilly span.cm-link { color: #C39BE0; text-decoration: underline; }
+.cm-s-rockabilly span.cm-quote { color: #93C572; }
+.cm-s-rockabilly span.cm-em { font-style: italic; }
+.cm-s-rockabilly span.cm-strong { font-weight: bold; }
+.cm-s-rockabilly span.cm-error { background: #F0576B; color: #1C1C1E; }
+.cm-s-rockabilly span.cm-invalidchar { background: #F0576B; color: #1C1C1E; }

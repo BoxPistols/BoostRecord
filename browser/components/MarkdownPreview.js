@@ -6,6 +6,7 @@ import _ from 'lodash'
 import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
 import consts from 'browser/lib/consts'
+import { resolveEditorTheme } from 'browser/lib/editorThemes'
 import Raphael from 'raphael'
 import flowchart from 'flowchart'
 import mermaidRender from './render/MermaidRender'
@@ -481,9 +482,15 @@ document.addEventListener('DOMContentLoaded', function () {
       RTL
     } = getStyleParams(this.props)
 
-    this.getWindow().document.getElementById(
-      'codeTheme'
-    ).href = getCodeThemeLink(codeBlockTheme)
+    // default は読み込む css が無い。href に null を入れると存在しない URL を
+    // 取りに行くので属性ごと外す
+    const codeThemeLink = this.getWindow().document.getElementById('codeTheme')
+    const codeThemeHref = getCodeThemeLink(codeBlockTheme)
+    if (codeThemeHref) {
+      codeThemeLink.href = codeThemeHref
+    } else {
+      codeThemeLink.removeAttribute('href')
+    }
 
     this.getWindow().document.getElementById('style').innerHTML = buildStyle(
       fontFamily,
@@ -554,7 +561,9 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     )
 
-    codeBlockTheme = consts.THEMES.find(theme => theme.name === codeBlockTheme)
+    codeBlockTheme = consts.THEMES.find(
+      theme => theme.name === resolveEditorTheme(codeBlockTheme)
+    )
 
     const codeBlockThemeClassName = codeBlockTheme
       ? codeBlockTheme.className

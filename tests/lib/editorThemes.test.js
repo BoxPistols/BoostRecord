@@ -3,6 +3,7 @@
 const {
   isDarkEditorTheme,
   coupleEditorTheme,
+  applyEditorThemeChoice,
   migrateUntouchedEditorTheme,
   DEFAULT_LIGHT_EDITOR_THEME,
   DEFAULT_DARK_EDITOR_THEME
@@ -51,5 +52,31 @@ describe('migrateUntouchedEditorTheme', () => {
     expect(migrateUntouchedEditorTheme(false, DEFAULT_LIGHT_EDITOR_THEME)).toBe(
       DEFAULT_LIGHT_EDITOR_THEME
     )
+  })
+})
+
+describe('applyEditorThemeChoice', () => {
+  it('エディタのテーマを選び直した時はその選択を通す', () => {
+    // 暗い UI のまま明るいテーマを選ぶ。coupleEditorTheme をそのまま使うと
+    // monokai に書き戻され、選択肢が押しても効かないコントロールになる
+    expect(applyEditorThemeChoice(true, 'default', 'rockabilly')).toBe(
+      'default'
+    )
+    expect(applyEditorThemeChoice(false, 'monokai', 'base16-light')).toBe(
+      'monokai'
+    )
+  })
+
+  it('UI テーマだけ変えた時は明暗を揃える', () => {
+    expect(applyEditorThemeChoice(true, 'base16-light', 'base16-light')).toBe(
+      DEFAULT_DARK_EDITOR_THEME
+    )
+    expect(applyEditorThemeChoice(false, 'monokai', 'monokai')).toBe(
+      DEFAULT_LIGHT_EDITOR_THEME
+    )
+  })
+
+  it('UI テーマだけ変えても明暗が一致していれば触らない', () => {
+    expect(applyEditorThemeChoice(true, 'dracula', 'dracula')).toBe('dracula')
   })
 })

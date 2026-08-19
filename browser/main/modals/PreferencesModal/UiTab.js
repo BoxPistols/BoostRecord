@@ -8,13 +8,23 @@ import consts from 'browser/lib/consts'
 import ReactCodeMirror from 'react-codemirror'
 import CodeMirror from 'codemirror'
 import 'codemirror-mode-elixir'
+// 見本のシンタックスハイライト用。ここで読み込まないとトークンが作られず、
+// テーマを変えても背景しか変わらない（選ぶ画面として成立しない）
+import 'codemirror/mode/javascript/javascript'
+import 'codemirror/mode/css/css'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
 import VimKeyReference from 'browser/components/VimKeyReference'
 import { getLanguages } from 'browser/lib/Languages'
 import normalizeEditorFontFamily from 'browser/lib/normalizeEditorFontFamily'
 import uiThemes from 'browser/lib/ui-themes'
-import { coupleEditorTheme } from 'browser/lib/editorThemes'
+import {
+  applyEditorThemeChoice,
+  resolveEditorTheme,
+  CURATED_EDITOR_THEMES,
+  CURATED_EDITOR_THEME_NAMES
+} from 'browser/lib/editorThemes'
+const { curateEditorThemes } = require('browser/lib/editorThemeFiles')
 import { chooseTheme, applyTheme } from 'browser/main/lib/ThemeManager'
 
 const OSX = global.process.platform === 'darwin'
@@ -92,12 +102,16 @@ class UiTab extends React.Component {
       applyTheme(selectedTheme)
     }
 
-    // Keep the editor (CodeMirror) theme in the same light/dark mode as the
-    // interface. Only switch on a mismatch, so a deliberate same-mode editor
-    // theme (e.g. dracula under a dark UI) is preserved.
+    // UI とエディタの明暗を揃える。ただし揃えるのは UI テーマだけを変えた時で、
+    // エディタのテーマを選び直した時はその選択をそのまま通す
+    // （そうしないと暗い UI のまま明るいテーマを選んでも書き戻される）
     const uiIsDark = uiThemes.some(t => t.name === selectedTheme && t.isDark)
     const rawEditorTheme = this.refs.editorTheme.value
-    const coupledEditorTheme = coupleEditorTheme(uiIsDark, rawEditorTheme)
+    const coupledEditorTheme = applyEditorThemeChoice(
+      uiIsDark,
+      rawEditorTheme,
+      resolveEditorTheme(this.state.config.editor.theme)
+    )
 
     const newConfig = {
       ui: {
@@ -123,7 +137,9 @@ class UiTab extends React.Component {
         saveTagsAlphabetically: this.refs.saveTagsAlphabetically.checked,
         enableLiveNoteCounts: this.refs.enableLiveNoteCounts.checked,
         showScrollBar: this.refs.showScrollBar.checked,
-        showMenuBar: this.refs.showMenuBar.checked,
+        showMenuBar: this.refs.showMenuBar
+          ? this.refs.showMenuBar.checked
+          : this.state.config.ui.showMenuBar,
         disableDirectWrite:
           this.refs.uiD2w != null ? this.refs.uiD2w.checked : false
       },
@@ -177,7 +193,6 @@ class UiTab extends React.Component {
         latexInlineClose: this.refs.previewLatexInlineClose.value,
         latexBlockOpen: this.refs.previewLatexBlockOpen.value,
         latexBlockClose: this.refs.previewLatexBlockClose.value,
-        plantUMLServerAddress: this.refs.previewPlantUMLServerAddress.value,
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
         scrollSync: this.refs.previewScrollSync.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
@@ -264,6 +279,37 @@ class UiTab extends React.Component {
     return `${hour}:${minute}`
   }
 
+  // エディタテーマの選択肢。色の系統ごとに代表を 1 つだけ出す。
+  // 一覧に無いものが保存されていても select が空欄にならないよう、
+  // 表示する値は resolveEditorTheme() を通したものにする
+  renderEditorThemeOptions(themes) {
+    const curated = curateEditorThemes(themes, CURATED_EDITOR_THEME_NAMES)
+    const noteOf = name => {
+      const entry = CURATED_EDITOR_THEMES.find(t => t.name === name)
+      return entry ? entry.label + ' — ' + i18n.__(entry.note) : name
+    }
+    const groups = [
+      { key: 'dark', label: i18n.__('Dark Themes') },
+      { key: 'light', label: i18n.__('Light Themes') }
+    ]
+    return groups.map(group => {
+      const names = CURATED_EDITOR_THEMES.filter(
+        t => t.group === group.key
+      ).map(t => t.name)
+      const items = curated.filter(theme => names.indexOf(theme.name) !== -1)
+      if (items.length === 0) return null
+      return (
+        <optgroup label={group.label} key={group.key}>
+          {items.map(theme => (
+            <option value={theme.name} key={theme.name}>
+              {noteOf(theme.name)}
+            </option>
+          ))}
+        </optgroup>
+      )
+    })
+  }
+
   render() {
     const UiAlert = this.state.UiAlert
     const UiAlertElement =
@@ -273,8 +319,16 @@ class UiTab extends React.Component {
 
     const themes = consts.THEMES
     const { config, codemirrorTheme } = this.state
-    const codemirrorSampleCode =
-      'function iamHappy (happy) {\n\tif (happy) {\n\t  console.log("I am Happy!")\n\t} else {\n\t  console.log("I am not Happy!")\n\t}\n};'
+    // テーマの違いが出る要素を一通り含める（コメント・キーワード・関数名・
+    // プロパティ・文字列・数値・演算子）。1 種類しか出ない見本だと選べない
+    const codemirrorSampleCode = [
+      '// テーマの見本',
+      "const amp = { model: 'Bassman', gain: 7.5 }",
+      'export function play (track) {',
+      '  if (!track) return null',
+      "  return amp.model + ' / ' + track.title",
+      '}'
+    ].join('\n')
     const enableEditRulersStyle = config.editor.enableRulers ? 'block' : 'none'
     const fontFamily = normalizeEditorFontFamily(config.editor.fontFamily)
     return (
@@ -355,18 +409,24 @@ class UiTab extends React.Component {
             </div>
           </div>
 
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.showMenuBar}
-                ref='showMenuBar'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Show menu bar')}
-            </label>
-          </div>
+          {/* macOS のメニューバーはシステム側のもので、
+              BrowserWindow.setMenuBarVisibility() が効かない。
+              押しても何も起きないので出さない（ホットキー側も同じ理由で
+              Mac では隠している。HotkeyTab の showMenuBarHotkey 参照） */}
+          {!OSX && (
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.ui.showMenuBar}
+                  ref='showMenuBar'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show menu bar')}
+              </label>
+            </div>
+          )}
           <div styleName='group-checkBoxSection'>
             <label>
               <input
@@ -422,7 +482,7 @@ class UiTab extends React.Component {
               )}
             </label>
           </div>
-          <div styleName='group-header2'>Tags</div>
+          <div styleName='group-header2'>{i18n.__('Tags')}</div>
           <div styleName='group-checkBoxSection'>
             <label>
               <input
@@ -488,25 +548,25 @@ class UiTab extends React.Component {
             </label>
           </div>
 
-          <div styleName='group-header2'>Editor</div>
+          <div styleName='group-header2'>{i18n.__('Editor')}</div>
 
           <div styleName='group-section'>
             <div styleName='group-section-label'>{i18n.__('Editor Theme')}</div>
             <div styleName='group-section-control'>
               <select
-                value={config.editor.theme}
+                value={resolveEditorTheme(config.editor.theme)}
                 ref='editorTheme'
                 onChange={e => this.handleUIChange(e)}
               >
-                {themes.map(theme => {
-                  return (
-                    <option value={theme.name} key={theme.name}>
-                      {theme.name}
-                    </option>
-                  )
-                })}
+                {this.renderEditorThemeOptions(themes)}
               </select>
-              <div styleName='code-mirror' style={{ fontFamily }}>
+              <div
+                styleName='code-mirror'
+                style={{
+                  fontFamily,
+                  fontSize: `${parseInt(config.editor.fontSize, 10) || 14}px`
+                }}
+              >
                 <ReactCodeMirror
                   ref={e => (this.codeMirrorInstance = e)}
                   value={codemirrorSampleCode}
@@ -1030,17 +1090,11 @@ class UiTab extends React.Component {
             </div>
             <div styleName='group-section-control'>
               <select
-                value={config.preview.codeBlockTheme}
+                value={resolveEditorTheme(config.preview.codeBlockTheme)}
                 ref='previewCodeBlockTheme'
                 onChange={e => this.handleUIChange(e)}
               >
-                {themes.map(theme => {
-                  return (
-                    <option value={theme.name} key={theme.name}>
-                      {theme.name}
-                    </option>
-                  )
-                })}
+                {this.renderEditorThemeOptions(themes)}
               </select>
             </div>
           </div>
@@ -1252,20 +1306,6 @@ class UiTab extends React.Component {
                 styleName='group-section-control-input'
                 ref='previewLatexBlockClose'
                 value={config.preview.latexBlockClose}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('PlantUML Server')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewPlantUMLServerAddress'
-                value={config.preview.plantUMLServerAddress}
                 onChange={e => this.handleUIChange(e)}
                 type='text'
               />

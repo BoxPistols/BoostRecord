@@ -4,7 +4,10 @@ import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
 import { DEFAULT_MODELS, normalizeAiModels } from 'browser/main/lib/aiModels'
 import uiThemes from 'browser/lib/ui-themes'
-import { migrateUntouchedEditorTheme } from 'browser/lib/editorThemes'
+import {
+  migrateUntouchedEditorTheme,
+  resolveEditorTheme
+} from 'browser/lib/editorThemes'
 import {
   EXPANDED,
   resolveSideNavMode,
@@ -170,7 +173,6 @@ export const DEFAULT_CONFIG = {
     latexInlineClose: '$',
     latexBlockOpen: '$$',
     latexBlockClose: '$$',
-    plantUMLServerAddress: 'http://www.plantuml.com/plantuml',
     scrollPastEnd: false,
     scrollSync: true,
     smartQuotes: true,
@@ -201,6 +203,17 @@ export const DEFAULT_CONFIG = {
     provider: 'openai', // 'openai' | 'gemini'
     openai: { apiKey: '', model: DEFAULT_MODELS.openai },
     gemini: { apiKey: '', model: DEFAULT_MODELS.gemini }
+  }
+}
+
+// エディタテーマの stylesheet を張り替える。
+// default は cm-s-default（lib/codemirror.css）で足りるので path を持たない。
+// その時に href を空や null で埋めると存在しない URL を取りに行くので、属性ごと外す
+function applyEditorThemeLink(link, theme) {
+  if (theme && theme.path) {
+    link.setAttribute('href', theme.path)
+  } else {
+    link.removeAttribute('href')
   }
 }
 
@@ -325,15 +338,12 @@ function get() {
       document.head.appendChild(editorTheme)
     }
 
+    // 保存値は書き換えない。一覧から外したテーマは使う時だけ代表へ寄せる
     const theme = consts.THEMES.find(
-      theme => theme.name === config.editor.theme
+      theme => theme.name === resolveEditorTheme(config.editor.theme)
     )
 
-    if (theme) {
-      editorTheme.setAttribute('href', theme.path)
-    } else {
-      config.editor.theme = 'default'
-    }
+    applyEditorThemeLink(editorTheme, theme)
   }
 
   return config
@@ -365,12 +375,10 @@ function set(updates) {
   }
 
   const newTheme = consts.THEMES.find(
-    theme => theme.name === newConfig.editor.theme
+    theme => theme.name === resolveEditorTheme(newConfig.editor.theme)
   )
 
-  if (newTheme) {
-    editorTheme.setAttribute('href', newTheme.path)
-  }
+  applyEditorThemeLink(editorTheme, newTheme)
 
   electronConfig.set('autoUpdateEnabled', newConfig.autoUpdateEnabled)
 

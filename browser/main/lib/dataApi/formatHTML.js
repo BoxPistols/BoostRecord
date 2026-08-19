@@ -4,6 +4,7 @@ import fileUrl from 'file-url'
 import fs from 'fs'
 const remote = require('@electron/remote')
 import consts from 'browser/lib/consts'
+import { resolveEditorTheme } from 'browser/lib/editorThemes'
 import Markdown from 'browser/lib/markdown'
 import attachmentManagement from './attachmentManagement'
 import { version as codemirrorVersion } from 'codemirror/package.json'
@@ -105,7 +106,7 @@ export default function formatHTML(props) {
     indentSize = 4
   }
 
-  const files = [getCodeThemeLink(codeBlockTheme), ...CSS_FILES]
+  const files = [getCodeThemeLink(codeBlockTheme), ...CSS_FILES].filter(Boolean)
 
   return function(note, targetPath, exportTasks) {
     const styles = files
@@ -573,12 +574,16 @@ export function getStyleParams(props) {
   }
 }
 
+// 読み込むべき stylesheet の絶対パス。要らない時は null を返す。
+// default（cm-s-default）は lib/codemirror.css で足りるので追加の css は無く、
+// それは CSS_FILES に既に入っている。elegant.css を返していた昔の実装は
+// cm-s-elegant を当てていないので 1 つも効いていなかった
 export function getCodeThemeLink(name) {
-  const theme = consts.THEMES.find(theme => theme.name === name)
+  const theme = consts.THEMES.find(
+    theme => theme.name === resolveEditorTheme(name)
+  )
 
-  return theme != null
-    ? theme.path
-    : `${appPath}/node_modules/codemirror/theme/elegant.css`
+  return theme != null && theme.path ? theme.path : null
 }
 
 export function buildStyle(

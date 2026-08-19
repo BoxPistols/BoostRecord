@@ -92,27 +92,40 @@ test('Markdown.render() should renders [TOC] placholder correctly', () => {
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML MindMaps correctly', () => {
+// PlantUML の描画は廃止した（図のソースを外部サーバーへ送る仕組みだったため）。
+// 既存ノートの @start... ブロックが素の段落に崩れず、中身を保ったまま
+// 移行先を案内できていることを固定する
+test('Markdown.render() keeps PlantUML MindMap source and shows the notice', () => {
   const rendered = md.render(markdownFixtures.plantUmlMindMap)
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML Gantt correctly', () => {
+test('Markdown.render() keeps PlantUML Gantt source and shows the notice', () => {
   const rendered = md.render(markdownFixtures.plantUmlGantt)
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML WBS correctly', () => {
+test('Markdown.render() keeps PlantUML WBS source and shows the notice', () => {
   const rendered = md.render(markdownFixtures.plantUmlWbs)
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML Umls correctly', () => {
+test('Markdown.render() keeps PlantUML UML source and shows the notice', () => {
   const rendered = md.render(markdownFixtures.plantUmlUml)
   expect(rendered).toMatchSnapshot()
 })
 
-test('Markdown.render() should render PlantUML Ditaa correctly', () => {
+test('Markdown.render() keeps PlantUML Ditaa source and shows the notice', () => {
   const rendered = md.render(markdownFixtures.plantUmlDitaa)
   expect(rendered).toMatchSnapshot()
+})
+
+// スナップショットは「何かが変わった」ことしか言わないので、外部サーバーの
+// URL が出ないことだけは明示的に見る（これが廃止の目的そのもの）
+test('PlantUML のブロックから外部サーバーの URL が出ない', () => {
+  const rendered = md.render(markdownFixtures.plantUmlUml)
+  expect(rendered).toContain('class="retired-diagram"')
+  expect(rendered).toContain('@startuml')
+  expect(rendered).not.toContain('plantuml.com')
+  expect(rendered).not.toContain('<img')
 })

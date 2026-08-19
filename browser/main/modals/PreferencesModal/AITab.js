@@ -553,7 +553,7 @@ class AITab extends React.Component {
     return (
       <div style={outerStyle} onKeyDown={e => this.handleFormKeyDown(e)}>
         <div style={innerStyle}>
-          <div style={pageTitleStyle}>AI Settings</div>
+          <div style={pageTitleStyle}>{i18n.__('AI Settings')}</div>
 
           {/* BYOK 方針の明示。キーは同梱しないと決めたので、空欄のまま実行して
               エラーで気づく状態にせず、設定画面の先頭で伝える */}
@@ -603,7 +603,7 @@ class AITab extends React.Component {
           <div style={cardStyle(provider === 'openai')}>
             {cardTitle('OpenAI', provider === 'openai')}
             <div style={fieldStyle}>
-              <label style={labelStyle}>API Key</label>
+              <label style={labelStyle}>{i18n.__('API Key')}</label>
               <input
                 type='password'
                 value={openaiKey}
@@ -635,7 +635,7 @@ class AITab extends React.Component {
           <div style={cardStyle(provider === 'gemini')}>
             {cardTitle('Gemini', provider === 'gemini')}
             <div style={fieldStyle}>
-              <label style={labelStyle}>API Key</label>
+              <label style={labelStyle}>{i18n.__('API Key')}</label>
               <input
                 type='password'
                 value={geminiKey}

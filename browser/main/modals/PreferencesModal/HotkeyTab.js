@@ -373,14 +373,16 @@ class HotkeyTab extends React.Component {
               <p>
                 {isMac ? (
                   <span>
-                    <strong>Mac キー名:</strong> <code>Command</code> (⌘) &nbsp;
+                    <strong>{i18n.__('Mac key names:')}</strong>{' '}
+                    <code>Command</code> (⌘) &nbsp;
                     <code>Alt</code> = Option (⌥) &nbsp;
                     <code>Ctrl</code> = Control (⌃) &nbsp;
                     <code>Shift</code> (⇧)
                   </span>
                 ) : (
                   <span>
-                    <strong>Windows キー名:</strong> <code>Ctrl</code> &nbsp;
+                    <strong>{i18n.__('Windows key names:')}</strong>{' '}
+                    <code>Ctrl</code> &nbsp;
                     <code>Alt</code> &nbsp;
                     <code>Shift</code> &nbsp;
                     <code>Super</code> (Win キー)

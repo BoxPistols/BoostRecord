@@ -33,7 +33,7 @@ const InfoPanelTrashed = ({
 
     <div>
       <p styleName='infoPanel-default'>
-        <text styleName='infoPanel-trash'>Trash</text>
+        <text styleName='infoPanel-trash'>{i18n.__('Trash')}</text>
         {folderName}
       </p>
       <p styleName='infoPanel-sub'>{i18n.__('FOLDER')}</p>

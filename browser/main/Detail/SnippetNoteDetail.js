@@ -788,11 +788,11 @@ class SnippetNoteDetail extends React.Component {
   handleIndentTypeButtonClick(e) {
     context.popup([
       {
-        label: 'tab',
+        label: i18n.__('Tabs'),
         click: e => this.handleIndentTypeItemClick(e, 'tab')
       },
       {
-        label: 'space',
+        label: i18n.__('Spaces'),
         click: e => this.handleIndentTypeItemClick(e, 'space')
       }
     ])
@@ -1408,15 +1408,20 @@ class SnippetNoteDetail extends React.Component {
             <i className='fa fa-caret-down' />
           </button>
           <button onClick={e => this.handleIndentTypeButtonClick(e)}>
-            Indent: {config.editor.indentType}&nbsp;
+            {i18n.__('Indent')}:{' '}
+            {config.editor.indentType === 'space'
+              ? i18n.__('Spaces')
+              : i18n.__('Tabs')}
+            &nbsp;
             <i className='fa fa-caret-down' />
           </button>
           <button onClick={e => this.handleIndentSizeButtonClick(e)}>
-            size: {config.editor.indentSize}&nbsp;
+            {i18n.__('Size')}: {config.editor.indentSize}&nbsp;
             <i className='fa fa-caret-down' />
           </button>
           <button onClick={e => this.handleWrapLineButtonClick(e)}>
-            Wrap Line: {config.editor.lineWrapping ? 'on' : 'off'}&nbsp;
+            {i18n.__('Wrap Line')}:{' '}
+            {config.editor.lineWrapping ? i18n.__('on') : i18n.__('off')}&nbsp;
             <i className='fa fa-caret-down' />
           </button>
         </div>

@@ -186,7 +186,7 @@ class ExportTab extends React.Component {
             </p>
             <ul>
               <li>
-                <strong>YAML front matter</strong>
+                <strong>{i18n.__('YAML front matter')}</strong>
                 {' — '}
                 {i18n.__(
                   '"Merge with the header" produces standard YAML front matter, compatible with Jekyll, Hugo, Next.js MDX, Obsidian, and most static-site generators.'
@@ -200,7 +200,7 @@ class ExportTab extends React.Component {
                 )}
               </li>
               <li>
-                <strong>AI docs (CLAUDE.md / Skills.md)</strong>
+                <strong>{i18n.__('AI docs (CLAUDE.md / Skills.md)')}</strong>
                 {' — '}
                 {i18n.__(
                   'Export .md with "Merge with the header" to produce AI-ready documents. YAML front matter, Mermaid diagrams, and code blocks are all preserved.'

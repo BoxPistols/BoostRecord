@@ -584,10 +584,13 @@ class SideNav extends React.Component {
                 value={config.sortTagsBy}
                 onChange={e => this.handleSortTagsByChange(e)}
               >
-                <option title='Sort alphabetically' value='ALPHABETICAL'>
+                <option
+                  title={i18n.__('Sort alphabetically')}
+                  value='ALPHABETICAL'
+                >
                   {i18n.__('Alphabetically')}
                 </option>
-                <option title='Sort by update time' value='COUNTER'>
+                <option title={i18n.__('Sort by update time')} value='COUNTER'>
                   {i18n.__('Counter')}
                 </option>
               </select>

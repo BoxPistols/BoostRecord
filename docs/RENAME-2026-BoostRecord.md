@@ -101,11 +101,30 @@ Electron は `package.json` の `productName`（未設定時は `name`）から 
 > ノート本体（`.cson`）はユーザーが指定したストレージパス（既定は `~/Boostnote`）に保存されるため、
 > userData の移動では失われません。影響を受けるのは上記の付随データです。
 
-### 対応方針（いずれかを選択）
+### 対応方針: **方針A を採用し、実装済み**
 
-**方針A: 移行コードを実装する（推奨）**
+起動時に旧 userData ディレクトリを検出し、新ディレクトリへコピーする一回限りの処理を実装しました。
 
-起動時に旧 userData ディレクトリの存在を検出し、新ディレクトリへコピーする一回限りの処理を入れる。
+| ファイル | 役割 |
+|---|---|
+| `lib/migrate-userdata.js` | 移行本体。electron 非依存の純粋関数 `migrateUserData()` と、`app.getPath('userData')` を渡す薄いラッパー `migrateUserDataFromElectron()` |
+| `index.js` | `require('./lib/main-app')` の直前で呼び出す。`lib/main-app.js` は7行目で electron-config が userData に触るため、それより前である必要がある |
+| `tests/lib/migrate-userdata.test.js` | 6シナリオの検証 |
+
+実装上の決定:
+
+- **コピーであって移動ではない。** 旧ディレクトリは無傷で残るため、問題があれば復旧できる
+- **移行先に既にあるファイルは上書きしない**（`force: false`）。新しい側を常に優先する
+- **一度成功したら `.userdata-migrated` マーカーを書き、以降は何もしない**
+- **改名前は旧名と現在名が一致するため自己コピーを検出して no-op になる。** 改名の前に本コードを入れても安全
+- **実行時ファイルは除外する。** `boostnote.service`（node-ipc の Unix ドメインソケット。古いものを持ち込むと接続先が死んでいる状態になり、プラットフォームによっては `cpSync` 自体が ENOTSUP で失敗する）、`Singleton*`、各種 `Cache`
+- **移行の失敗でアプリの起動を止めない。** `index.js` 側で try/catch し、ログのみ出す
+
+検証: 6シナリオ（旧ディレクトリ無し / コピー / マーカーと再実行 / 既存ファイル保護 / 実行時ファイル除外 / 自己コピー防止）が通過。
+
+<details>
+<summary>参考: 当初の検討案（記録用）</summary>
+
 
 ```js
 // 疑似コード: index.js の app.whenReady() より前
@@ -125,6 +144,8 @@ if (fs.existsSync(oldDir) && !fs.existsSync(path.join(newDir, '.migrated'))) {
 **方針C: 破壊的変更として告知する**
 
 メジャーバージョンを上げ、リリースノートで手動移行手順を案内する。既存ユーザーが少数の場合のみ現実的。
+
+</details>
 
 ---
 
@@ -189,8 +210,23 @@ grep -rn -i "booster" --exclude-dir=.git --exclude-dir=node_modules --exclude-di
    ```bash
    git remote set-url origin https://github.com/BoxPistols/BoostRecord.git
    ```
-3. `readme.md` のバッジ URL（現在 `BoxPistols/Boostnote` を指しており、既にリポジトリ名と不一致）を修正
+3. ~~`readme.md` のバッジ URL を修正~~ → **対応済み**（下記参照）
 4. `build.publish.repo` が新リポジトリ名と一致していることを再確認
+
+### 実施済み: 陳腐化した `BoxPistols/Boostnote` 参照の修正
+
+リポジトリは過去に `Boostnote` → `TheBoosters` へ改名されていますが、4箇所が旧名を指したままでした。
+改名とは独立した既存の不具合のため、先行して `BoxPistols/TheBoosters` へ修正済みです。
+Phase 1 の置換で `TheBoosters` → `BoostRecord` に追随します。
+
+| ファイル | 内容 |
+|---|---|
+| `readme.md` | CI バッジ4箇所（Actions のバッジ URL はリダイレクトを追従しないため実際に壊れていた） |
+| `app/package.json` | `repository.url` |
+| `app/CHANGELOG.md` | 冒頭の母体リポジトリへのリンク |
+| `.claude/skills/boostnote-modernize/SKILL.md` | PR 提出先の指定。放置すると以後のエージェントが誤ったリポジトリへ PR を出す |
+
+---
 
 ### Phase 4: CI / リリース
 

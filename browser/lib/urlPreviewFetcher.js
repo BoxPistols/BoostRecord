@@ -111,22 +111,28 @@ function doFetch(url) {
       redirect: 'follow',
       signal: controller != null ? controller.signal : undefined
     })
+    .then(response => {
+      const contentType = response.headers.get('content-type') || ''
+      if (/^image\//.test(contentType)) {
+        const metadata = emptyMetadata(url)
+        metadata.imageUrl = url
+        metadata.isImage = true
+        return metadata
+      }
+      if (!/text\/html|application\/xhtml/.test(contentType)) {
+        return emptyMetadata(url)
+      }
+      return response
+        .text()
+        .then(html => parsePreviewMetadata(html, response.url || url))
+    })
     .then(
-      response => {
+      // The timer must survive until the BODY is read, not just the headers:
+      // a server that stalls mid-body would otherwise pin the cached promise
+      // in a forever-loading state. The abort also cancels the body read.
+      result => {
         clearTimeout(timer)
-        const contentType = response.headers.get('content-type') || ''
-        if (/^image\//.test(contentType)) {
-          const metadata = emptyMetadata(url)
-          metadata.imageUrl = url
-          metadata.isImage = true
-          return metadata
-        }
-        if (!/text\/html|application\/xhtml/.test(contentType)) {
-          return emptyMetadata(url)
-        }
-        return response
-          .text()
-          .then(html => parsePreviewMetadata(html, response.url || url))
+        return result
       },
       err => {
         clearTimeout(timer)

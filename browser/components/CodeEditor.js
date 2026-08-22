@@ -34,7 +34,8 @@ import {
 } from 'browser/lib/markdown-toc-generator'
 import markdownlint from 'markdownlint'
 import Jsonlint from 'jsonlint-mod'
-import { DEFAULT_CONFIG } from '../main/lib/ConfigManager'
+import ConfigManager, { DEFAULT_CONFIG } from '../main/lib/ConfigManager'
+import i18n from 'browser/lib/i18n'
 import prettier from 'prettier'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
@@ -1140,7 +1141,16 @@ export default class CodeEditor extends React.Component {
       !isInLinkTag(editor)
     ) {
       this.handlePasteUrl(editor, pastedTxt)
-    } else if (fetchUrlTitle && isURL(pastedTxt) && !isInLinkTag(editor)) {
+    } else if (
+      // BOOKMARK/ASK are their own opt-in — they must work even when the
+      // fetch-title-on-paste checkbox is off. Only LINK is gated by it.
+      (fetchUrlTitle ||
+        ['BOOKMARK', 'ASK'].indexOf(
+          ConfigManager.get().editor.pasteUrlAction
+        ) !== -1) &&
+      isURL(pastedTxt) &&
+      !isInLinkTag(editor)
+    ) {
       this.handlePasteUrl(editor, pastedTxt)
     } else if (attachmentManagement.isAttachmentLink(pastedTxt)) {
       attachmentManagement
@@ -1181,6 +1191,94 @@ export default class CodeEditor extends React.Component {
   }
 
   handlePasteUrl(editor, pastedTxt) {
+    const action = ConfigManager.get().editor.pasteUrlAction || 'LINK'
+
+    // `# url` (markdown-title URL) always goes the link path — a heading
+    // line can't hold a fence block.
+    if (isMarkdownTitleURL(pastedTxt)) {
+      this.handlePasteUrlAsLink(editor, pastedTxt)
+      return
+    }
+
+    if (action === 'BOOKMARK') {
+      const atLineStart = editor.getCursor('from').ch === 0
+      editor.replaceSelection(
+        this.buildBookmarkFence(pastedTxt, null, atLineStart)
+      )
+      return
+    }
+
+    if (action === 'ASK') {
+      this.showPasteUrlMenu(editor, pastedTxt)
+      return
+    }
+
+    this.handlePasteUrlAsLink(editor, pastedTxt)
+  }
+
+  buildBookmarkFence(url, size, atLineStart) {
+    const sizeParam = size != null && size !== 'm' ? `(size=${size})` : ''
+    const prefix = atLineStart ? '' : '\n'
+    return `${prefix}\`\`\`bookmark${sizeParam}\n${url}\n\`\`\`\n`
+  }
+
+  // Track the exact range of text just inserted at the cursor, so async
+  // replacements can't hit an identical string elsewhere in the note.
+  // (A text marker follows edits; searching with indexOf does not.)
+  markInsertedText(editor, insertedLength) {
+    const to = editor.getCursor()
+    const from = editor.posFromIndex(editor.indexFromPos(to) - insertedLength)
+    return editor.markText(from, to, { clearWhenEmpty: false })
+  }
+
+  // Notion-style paste menu: pick link / bookmark card (S/M/L) / plain URL.
+  // The URL lands as `<url>` immediately so the paste feels instant; the
+  // menu choice then rewrites that placeholder. Dismissing keeps `<url>`.
+  showPasteUrlMenu(editor, pastedTxt) {
+    const taggedUrl = `<${pastedTxt}>`
+    editor.replaceSelection(taggedUrl)
+    const marker = this.markInsertedText(editor, taggedUrl.length)
+
+    const replaceTaggedWith = buildReplacement => {
+      const range = marker.find()
+      marker.clear()
+      if (range == null) return // placeholder edited away meanwhile
+      editor.replaceRange(buildReplacement(range.from), range.from, range.to)
+    }
+
+    const bookmarkItem = size => ({
+      label: `${i18n.__('Bookmark card')} (${size.toUpperCase()})`,
+      click: () =>
+        replaceTaggedWith(from =>
+          this.buildBookmarkFence(pastedTxt, size, from.ch === 0)
+        )
+    })
+
+    const menu = remote.Menu.buildFromTemplate([
+      {
+        label: i18n.__('Link with title'),
+        click: () => this.fetchUrlTitleAndReplace(editor, marker, pastedTxt, '')
+      },
+      { type: 'separator' },
+      bookmarkItem('s'),
+      bookmarkItem('m'),
+      bookmarkItem('l'),
+      { type: 'separator' },
+      {
+        label: i18n.__('URL only'),
+        click: () => replaceTaggedWith(() => pastedTxt)
+      }
+    ])
+
+    const coords = editor.cursorCoords(false, 'window')
+    menu.popup({
+      window: remote.getCurrentWindow(),
+      x: Math.round(coords.left),
+      y: Math.round(coords.bottom + 4)
+    })
+  }
+
+  handlePasteUrlAsLink(editor, pastedTxt) {
     let taggedUrl = `<${pastedTxt}>`
     let urlToFetch = pastedTxt
     let titleMark = ''
@@ -1193,7 +1291,11 @@ export default class CodeEditor extends React.Component {
     }
 
     editor.replaceSelection(taggedUrl)
+    const marker = this.markInsertedText(editor, taggedUrl.length)
+    this.fetchUrlTitleAndReplace(editor, marker, urlToFetch, titleMark)
+  }
 
+  fetchUrlTitleAndReplace(editor, marker, urlToFetch, titleMark) {
     const isImageReponse = response => {
       return (
         response.headers.has('content-type') &&
@@ -1201,15 +1303,10 @@ export default class CodeEditor extends React.Component {
       )
     }
     const replaceTaggedUrl = replacement => {
-      const value = editor.getValue()
-      const cursor = editor.getCursor()
-      const newValue = value.replace(taggedUrl, titleMark + replacement)
-      const newCursor = Object.assign({}, cursor, {
-        ch: cursor.ch + newValue.length - (value.length - titleMark.length)
-      })
-
-      editor.setValue(newValue)
-      editor.setCursor(newCursor)
+      const range = marker.find()
+      marker.clear()
+      if (range == null) return // placeholder edited away meanwhile
+      editor.replaceRange(titleMark + replacement, range.from, range.to)
     }
 
     fetch(urlToFetch, {
@@ -1226,7 +1323,7 @@ export default class CodeEditor extends React.Component {
         replaceTaggedUrl(replacement)
       })
       .catch(e => {
-        replaceTaggedUrl(pastedTxt)
+        replaceTaggedUrl(urlToFetch)
       })
   }
 

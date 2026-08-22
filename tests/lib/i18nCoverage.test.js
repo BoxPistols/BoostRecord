@@ -44,6 +44,30 @@ function collectKeys() {
   return found
 }
 
+// 読み込まれないロケールファイルは、置いてあっても翻訳されない。upstream から
+// 引き継いだ 19 言語がこの状態で、言語欄にも出てこなかった（#141）。
+// 「ファイルはあるが対応言語に入っていない」も「対応言語なのにファイルが無い」も
+// どちらも黙って壊れるので、両方向で突き合わせる。
+describe('対応言語とロケールファイルの対応', () => {
+  const { getLocales } = require('browser/lib/Languages')
+  const declared = getLocales()
+    .slice()
+    .sort()
+  const onDisk = fs
+    .readdirSync(path.join(root, 'locales'))
+    .filter(name => name.endsWith('.json'))
+    .map(name => name.replace(/\.json$/, ''))
+    .sort()
+
+  it('対応言語のファイルがすべてある', () => {
+    expect(declared.filter(locale => onDisk.indexOf(locale) === -1)).toEqual([])
+  })
+
+  it('読み込まれないロケールファイルが残っていない', () => {
+    expect(onDisk.filter(locale => declared.indexOf(locale) === -1)).toEqual([])
+  })
+})
+
 describe('日本語ロケール', () => {
   const keys = collectKeys()
 

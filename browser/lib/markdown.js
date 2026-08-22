@@ -287,6 +287,31 @@ class Markdown {
             <div class="flowchart" data-height="${token.parameters.height}">${token.content}</div>
           </pre>`
         },
+        bookmark: token => {
+          // One URL per line; also accept `[title](url)` / `<url>` lines.
+          const content = token.content
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .map(line => {
+              const linkMatch = /^!?\[[^\]]*]\(([^)\s]*)[^)]*\)$/.exec(line)
+              if (linkMatch) return mdurl.encode(linkMatch[1])
+              const autolinkMatch = /^<(.+)>$/.exec(line)
+              if (autolinkMatch) return mdurl.encode(autolinkMatch[1])
+              return mdurl.encode(line)
+            })
+            .join('\n')
+
+          // Parameter values are attribute-embedded — allow word chars only.
+          const safeParam = value => String(value || '').replace(/[^\w]/g, '')
+
+          return `<pre class="fence" data-line="${token.map[0]}">
+              <span class="filename">${token.fileName}</span>
+              <div class="bookmark" data-size="${safeParam(
+                token.parameters.size
+              )}" data-img="${safeParam(token.parameters.img)}">${content}</div>
+            </pre>`
+        },
         gallery: token => {
           const content = token.content
             .split('\n')

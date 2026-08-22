@@ -147,6 +147,7 @@ export const DEFAULT_CONFIG = {
     scrollPastEnd: false,
     type: 'SPLIT', // 'SPLIT', 'EDITOR_PREVIEW'
     fetchUrlTitle: true,
+    pasteUrlAction: 'LINK', // 'LINK', 'BOOKMARK', 'ASK'
     enableTableEditor: false,
     enableFrontMatterTitle: true,
     frontMatterTitleField: 'title',
@@ -183,6 +184,7 @@ export const DEFAULT_CONFIG = {
     sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
     mermaidHTMLLabel: false,
     lineThroughCheckbox: true,
+    urlPreview: true,
     // 目次（ページ内リンク）ペイン。validate() には足さない
     // （既存の設定ファイルに無いキーを必須にすると初期値へ巻き戻る）
     showToc: true,

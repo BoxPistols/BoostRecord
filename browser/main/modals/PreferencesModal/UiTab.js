@@ -158,6 +158,7 @@ class UiTab extends React.Component {
         snippetDefaultLanguage: this.refs.editorSnippetDefaultLanguage.value,
         scrollPastEnd: this.refs.scrollPastEnd.checked,
         fetchUrlTitle: this.refs.editorFetchUrlTitle.checked,
+        pasteUrlAction: this.refs.editorPasteUrlAction.value,
         enableTableEditor: this.refs.enableTableEditor.checked,
         enableFrontMatterTitle: this.refs.enableFrontMatterTitle.checked,
         frontMatterTitleField: this.refs.frontMatterTitleField.value,
@@ -196,6 +197,7 @@ class UiTab extends React.Component {
         scrollPastEnd: this.refs.previewScrollPastEnd.checked,
         scrollSync: this.refs.previewScrollSync.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
+        urlPreview: this.refs.previewUrlPreview.checked,
         breaks: this.refs.previewBreaks.checked,
         smartArrows: this.refs.previewSmartArrows.checked,
         sanitize: this.refs.previewSanitize.value,
@@ -933,6 +935,23 @@ class UiTab extends React.Component {
             </label>
           </div>
 
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('When pasting URL')}
+            </div>
+            <div styleName='group-section-control'>
+              <select
+                value={this.state.config.editor.pasteUrlAction}
+                ref='editorPasteUrlAction'
+                onChange={e => this.handleUIChange(e)}
+              >
+                <option value='LINK'>{i18n.__('Link with title')}</option>
+                <option value='BOOKMARK'>{i18n.__('Bookmark card')}</option>
+                <option value='ASK'>{i18n.__('Ask every time')}</option>
+              </select>
+            </div>
+          </div>
+
           <div styleName='group-checkBoxSection'>
             <label>
               <input
@@ -1194,6 +1213,18 @@ class UiTab extends React.Component {
               />
               &nbsp;
               {i18n.__('Enable smart quotes')}
+            </label>
+          </div>
+          <div styleName='group-checkBoxSection'>
+            <label>
+              <input
+                onChange={e => this.handleUIChange(e)}
+                checked={this.state.config.preview.urlPreview}
+                ref='previewUrlPreview'
+                type='checkbox'
+              />
+              &nbsp;
+              {i18n.__('Show page preview popup when hovering links')}
             </label>
           </div>
           <div styleName='group-checkBoxSection'>

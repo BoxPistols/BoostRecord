@@ -31,6 +31,14 @@ import {
   findCustomCSSTemplate,
   appendCustomCSSTemplate
 } from 'browser/lib/customCSSTemplates'
+import {
+  CUSTOM_CSS_SYSTEM_PROMPT,
+  buildCustomCSSPrompt,
+  validateGeneratedCSS,
+  appendGeneratedCSS
+} from 'browser/lib/customCSSGenerator'
+import { runAiPrompt } from 'browser/main/lib/aiAssist'
+import { getKeyStatus, isProviderUsable } from 'browser/main/lib/aiKeys'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -45,7 +53,14 @@ class UiTab extends React.Component {
     this.state = {
       config: props.config,
       codemirrorTheme: props.config.editor.theme,
-      customCSSTemplateId: CUSTOM_CSS_TEMPLATES[0].id
+      customCSSTemplateId: CUSTOM_CSS_TEMPLATES[0].id,
+      // AI 生成の導線。キーが無いときは出さないので、状態が分かるまで null
+      aiKeyStatus: null,
+      cssPrompt: '',
+      cssGenerating: false,
+      cssPreview: null,
+      cssError: null,
+      cssUndo: null
     }
   }
 
@@ -55,6 +70,12 @@ class UiTab extends React.Component {
       'javascript'
     )
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
+    // 「押しても必ず失敗する導線を出さない」ため、キーの有無を実行時に見る。
+    // アンマウント後の setState を避けるため生存フラグを持つ
+    this.mounted = true
+    getKeyStatus().then(status => {
+      if (this.mounted) this.setState({ aiKeyStatus: status })
+    })
     CodeMirror.autoLoadMode(
       this.customMarkdownLintConfigCM.getCodeMirror(),
       'javascript'
@@ -87,8 +108,193 @@ class UiTab extends React.Component {
   }
 
   componentWillUnmount() {
+    this.mounted = false
     ipc.removeListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.removeListener('APP_SETTING_ERROR', this.handleSettingError)
+  }
+
+  // 拒否の理由をそのまま出しても伝わらないので、何が起きたかを1行で言う
+  describeCSSRefusal(reasons) {
+    const known = {
+      empty: 'The model returned nothing.',
+      'too-long': 'The generated CSS was too long to accept.',
+      'at-import':
+        'The generated CSS used @import, which loads a remote stylesheet.',
+      'remote-url': 'The generated CSS referenced a remote URL.',
+      'javascript-url': 'The generated CSS contained a javascript: URL.',
+      expression: 'The generated CSS contained expression(), which runs code.',
+      binding: 'The generated CSS tried to bind behaviour to an element.',
+      markup: 'The answer contained HTML, not CSS.',
+      'not-css': 'The answer was not CSS.',
+      unbalanced: 'The generated CSS had unbalanced braces.'
+    }
+    const lines = (reasons || [])
+      .map(reason => known[reason])
+      .filter(line => line !== undefined)
+      .map(line => i18n.__(line))
+    if (lines.length === 0) lines.push(i18n.__('The answer was not usable.'))
+    lines.push(i18n.__('Nothing was changed.'))
+    return lines.join(' ')
+  }
+
+  renderAiCustomCSS() {
+    const {
+      aiKeyStatus,
+      config,
+      cssPrompt,
+      cssGenerating,
+      cssPreview,
+      cssError,
+      cssUndo
+    } = this.state
+    // キーの状態が分かるまでは何も出さない。設定済みでなければ出さない
+    const ai = config.ai || {}
+    const provider = ai.provider || 'openai'
+    if (aiKeyStatus === null || !isProviderUsable(aiKeyStatus, provider, ai)) {
+      return null
+    }
+    return (
+      <div styleName='ai-css'>
+        <div styleName='template-picker'>
+          <label htmlFor='customCSSPrompt'>{i18n.__('Ask AI')}</label>
+          <input
+            id='customCSSPrompt'
+            type='text'
+            styleName='ai-css-input'
+            value={cssPrompt}
+            placeholder={i18n.__('e.g. tighten up the headings')}
+            onChange={e => this.setState({ cssPrompt: e.target.value })}
+            onKeyDown={e => this.handleAiPromptKeyDown(e)}
+          />
+          <button
+            type='button'
+            styleName='template-picker-button'
+            disabled={cssGenerating || cssPrompt.trim() === ''}
+            onClick={() => this.handleGenerateCustomCSS()}
+          >
+            {cssGenerating ? i18n.__('Generating…') : i18n.__('Generate')}
+          </button>
+        </div>
+        {cssError === null ? null : (
+          <div styleName='ai-css-error'>{cssError}</div>
+        )}
+        {cssPreview === null
+          ? null
+          : this.renderGeneratedCSSPreview(cssPreview)}
+        {cssUndo === null ? null : (
+          <div styleName='template-picker'>
+            <button
+              type='button'
+              styleName='template-picker-button'
+              onClick={() => this.handleUndoGeneratedCSS()}
+            >
+              {i18n.__('Undo the last AI change')}
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  renderGeneratedCSSPreview(preview) {
+    const warnsAboutImportant = preview.notes.indexOf('uses-important') !== -1
+    return (
+      <div styleName='ai-css-preview'>
+        <p>
+          {i18n.__(
+            'Check the result before applying. It is added below what is already in the box.'
+          )}
+        </p>
+        {warnsAboutImportant ? (
+          <p styleName='ai-css-note'>
+            {i18n.__(
+              'This uses !important. Custom CSS is applied last, so it is rarely needed and will beat rules you write later.'
+            )}
+          </p>
+        ) : null}
+        <pre styleName='ai-css-code'>{preview.css}</pre>
+        <div styleName='template-picker'>
+          <button
+            type='button'
+            styleName='template-picker-button'
+            onClick={() => this.handleApplyGeneratedCSS()}
+          >
+            {i18n.__('Apply')}
+          </button>
+          <button
+            type='button'
+            styleName='template-picker-button'
+            onClick={() => this.setState({ cssPreview: null })}
+          >
+            {i18n.__('Discard')}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  handleAiPromptKeyDown(e) {
+    // 日本語 IME の確定 Enter で送信しない
+    if (e.nativeEvent && e.nativeEvent.isComposing) return
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      this.handleGenerateCustomCSS()
+    }
+  }
+
+  handleGenerateCustomCSS() {
+    const instruction = this.state.cssPrompt.trim()
+    if (instruction === '' || this.state.cssGenerating) return
+    const currentCSS = this.customCSSCM.getCodeMirror().getValue()
+    const themeName = (this.state.config.ui || {}).theme
+    this.setState({ cssGenerating: true, cssError: null, cssPreview: null })
+    runAiPrompt({
+      system: CUSTOM_CSS_SYSTEM_PROMPT,
+      prompt: buildCustomCSSPrompt({ instruction, currentCSS, themeName })
+    }).then(
+      raw => {
+        if (!this.mounted) return
+        const verdict = validateGeneratedCSS(raw)
+        if (!verdict.ok) {
+          this.setState({
+            cssGenerating: false,
+            cssError: this.describeCSSRefusal(verdict.reasons)
+          })
+          return
+        }
+        // 検証を通っても、まだエディタには入れない。反映は利用者が決める
+        this.setState({ cssGenerating: false, cssPreview: verdict })
+      },
+      err => {
+        if (!this.mounted) return
+        this.setState({
+          cssGenerating: false,
+          cssError:
+            (err && err.message) || i18n.__('The answer was not usable.')
+        })
+      }
+    )
+  }
+
+  handleApplyGeneratedCSS() {
+    const preview = this.state.cssPreview
+    if (preview === null) return
+    const editor = this.customCSSCM.getCodeMirror()
+    const before = editor.getValue()
+    const header =
+      i18n.__('Generated by AI') + ': ' + this.state.cssPrompt.trim()
+    editor.setValue(appendGeneratedCSS(before, preview.css, header))
+    editor.setCursor(editor.lineCount(), 0)
+    // 直前の内容を持っておく。生成物が気に入らなくても1手で戻せる
+    this.setState({ cssPreview: null, cssUndo: before })
+    this.handleUIChange()
+  }
+
+  handleUndoGeneratedCSS() {
+    if (this.state.cssUndo === null) return
+    this.customCSSCM.getCodeMirror().setValue(this.state.cssUndo)
+    this.setState({ cssUndo: null })
+    this.handleUIChange()
   }
 
   renderCustomCSSTemplateNotes(template) {
@@ -1418,6 +1624,7 @@ class UiTab extends React.Component {
                 </p>
                 <ul>{customCSSTemplateNotes}</ul>
               </div>
+              {this.renderAiCustomCSS()}
               <div style={{ fontFamily }}>
                 <ReactCodeMirror
                   width='400px'

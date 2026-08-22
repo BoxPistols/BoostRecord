@@ -470,6 +470,11 @@ pre.fence
 a.bookmarkCard
   display flex
   flex-direction column
+  // The shared `a` rule sets padding 5px / margin -5px; a card needs its
+  // declared width to be the real border-box width.
+  box-sizing border-box
+  margin 0
+  padding 0
   border 1px solid rgba(128, 128, 128, 0.35)
   border-radius 6px
   overflow hidden

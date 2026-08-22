@@ -1,0 +1,84 @@
+// 起動時に最後のページへ戻す保存・復元。
+// 本題は「壊れた/消えた対象を指す経路で起動を壊さないこと」。
+const {
+  isRestorableRoute,
+  saveLastRoute,
+  readLastRoute,
+  FALLBACK_ROUTE
+} = require('browser/main/lib/lastRoute')
+
+beforeEach(() => {
+  window.localStorage.clear()
+})
+
+describe('isRestorableRoute', () => {
+  it('Switch にある形は復元できる', () => {
+    ;[
+      '/home',
+      '/starred',
+      '/bookmarked',
+      '/trashed',
+      '/alltags',
+      '/tags/work',
+      '/searched',
+      '/searched/foo',
+      '/storages/abc123',
+      '/storages/abc123/folders/def456'
+    ].forEach(r => expect(isRestorableRoute(r)).toBe(true))
+  })
+
+  it('クエリ付き・URL エンコード済みの検索経路も通す', () => {
+    expect(isRestorableRoute('/storages/abc/folders/def?key=xyz')).toBe(true)
+    expect(isRestorableRoute('/searched/foo%20bar')).toBe(true)
+    expect(isRestorableRoute('/searched/a+b')).toBe(true)
+  })
+
+  it('未知の形は復元しない', () => {
+    ;['/nope', '/', '', 'home', null, undefined, 42].forEach(r =>
+      expect(isRestorableRoute(r)).toBe(false)
+    )
+  })
+
+  it('空白・制御文字が混じった値は壊れているとみなす', () => {
+    expect(isRestorableRoute('/home\n/evil')).toBe(false)
+    expect(isRestorableRoute('/home evil')).toBe(false)
+    expect(isRestorableRoute('/home\u0000')).toBe(false)
+  })
+
+  it('極端に長い値は弾く', () => {
+    expect(isRestorableRoute('/tags/' + 'a'.repeat(3000))).toBe(false)
+  })
+})
+
+describe('保存と復元', () => {
+  it('保存した経路を次の起動で返す', () => {
+    saveLastRoute({ pathname: '/storages/abc', search: '?key=n1' })
+    expect(readLastRoute()).toBe('/storages/abc?key=n1')
+  })
+
+  it('search が無くても保存できる', () => {
+    saveLastRoute({ pathname: '/starred' })
+    expect(readLastRoute()).toBe('/starred')
+  })
+
+  it('復元できない形は保存しない（次回に持ち越さない）', () => {
+    saveLastRoute({ pathname: '/starred' })
+    saveLastRoute({ pathname: '/nope' })
+    expect(readLastRoute()).toBe('/starred')
+  })
+
+  it('未保存なら /home', () => {
+    expect(readLastRoute()).toBe(FALLBACK_ROUTE)
+    expect(FALLBACK_ROUTE).toBe('/home')
+  })
+
+  it('保存済みの値が壊れていても /home へ倒す（起動を止めない）', () => {
+    window.localStorage.setItem('lastRoute', 'javascript:alert(1)')
+    expect(readLastRoute()).toBe(FALLBACK_ROUTE)
+  })
+
+  it('location が無くても投げない', () => {
+    expect(() => saveLastRoute(undefined)).not.toThrow()
+    expect(() => saveLastRoute({})).not.toThrow()
+  })
+})

@@ -3,6 +3,7 @@
 exports[`NoteItemSimple renders a markdown note 1`] = `
 <div
   className="item-simple"
+  data-note-item=""
   draggable="true"
   onClick={[Function]}
   onContextMenu={[Function]}

@@ -248,6 +248,87 @@ test.serial('isBookmarked is persisted', function(t) {
     })
 })
 
+// mode: null は「Auto Detect」(構文未選択)の正規状態。フィルタが
+// これを不正扱いすると、初回自動保存で snippets: [] が書き込まれ、
+// 次回起動時にそのノートを開いた瞬間クラッシュする(v0.16.10 で退行)
+test.serial('Update a snippet note keeps snippets whose mode is null', t => {
+  const storageKey = t.context.storage.cache.key
+  const folderKey = t.context.storage.json.folders[0].key
+
+  const createInput = {
+    type: 'SNIPPET_NOTE',
+    description: 'auto detect note',
+    title: 'auto detect note',
+    snippets: [
+      { name: '', mode: null, content: 'keep me', linesHighlighted: [] }
+    ],
+    tags: [],
+    folder: folderKey
+  }
+
+  return createNote(storageKey, createInput)
+    .then(function update(note) {
+      return updateNote(note.storage, note.key, {
+        type: 'SNIPPET_NOTE',
+        description: 'auto detect note',
+        snippets: [
+          { name: '', mode: null, content: 'keep me', linesHighlighted: [] },
+          { name: '', mode: undefined, content: 'me too', linesHighlighted: [] }
+        ]
+      })
+    })
+    .then(function assert(updated) {
+      t.is(updated.snippets.length, 2)
+      t.is(updated.snippets[0].content, 'keep me')
+      t.is(updated.snippets[1].content, 'me too')
+      const notePath = path.join(
+        t.context.storage.cache.path,
+        'notes',
+        updated.key + '.cson'
+      )
+      t.is(CSON.readFileSync(notePath).snippets.length, 2)
+    })
+})
+
+test.serial(
+  'Update a snippet note never persists an empty snippets array',
+  t => {
+    const storageKey = t.context.storage.cache.key
+    const folderKey = t.context.storage.json.folders[0].key
+
+    const createInput = {
+      type: 'SNIPPET_NOTE',
+      description: 'invariant note',
+      title: 'invariant note',
+      snippets: [
+        { name: 'valid', mode: 'text', content: 'ok', linesHighlighted: [] }
+      ],
+      tags: [],
+      folder: folderKey
+    }
+
+    return createNote(storageKey, createInput)
+      .then(function updateWithAllInvalid(note) {
+        return updateNote(note.storage, note.key, {
+          type: 'SNIPPET_NOTE',
+          description: 'invariant note',
+          snippets: [{ name: 123, mode: 42, content: {} }]
+        })
+      })
+      .then(function assert(updated) {
+        t.true(updated.snippets.length >= 1)
+        const notePath = path.join(
+          t.context.storage.cache.path,
+          'notes',
+          updated.key + '.cson'
+        )
+        const onDisk = CSON.readFileSync(notePath)
+        t.true(Array.isArray(onDisk.snippets))
+        t.true(onDisk.snippets.length >= 1)
+      })
+  }
+)
+
 test.after(function after() {
   localStorage.clear()
   sander.rimrafSync(storagePath)

@@ -5,11 +5,13 @@ import styles from './ConfigTab.styl'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
+import { testAiConnection } from 'browser/main/lib/aiAssist'
+import { getKeyStatus, saveKey } from 'browser/main/lib/aiKeys'
 import {
   MODEL_OPTIONS,
   DEFAULT_MODELS,
-  testAiConnection
-} from 'browser/main/lib/aiAssist'
+  modelLabel
+} from 'browser/main/lib/aiModels'
 import uiThemes from 'browser/lib/ui-themes'
 
 const KEY_PATTERNS = {
@@ -50,8 +52,47 @@ class AITab extends React.Component {
       // provider -> true（テスト実行中）
       testing: {},
       // provider -> { ok: boolean, message: string }
-      testResult: {}
+      testResult: {},
+      // main プロセスから受け取る鍵の状態。available=false なら暗号化ストアが
+      // 使えないので、従来どおり config に平文で保存する
+      keyStatus: { available: false, configured: {} },
+      // 状態が届くまでは保存させない。届く前に保存すると available:false と
+      // 誤認して、暗号化できる環境でも config へ平文を書いてしまう
+      keyStatusLoaded: false,
+      // provider -> エラー文（保存に失敗したとき）
+      keyError: {}
     }
+  }
+
+  refreshKeyStatus() {
+    return getKeyStatus().then(keyStatus => {
+      if (this.mounted) this.setState({ keyStatus, keyStatusLoaded: true })
+      return keyStatus
+    })
+  }
+
+  /**
+   * 保存済みのキーを消す。空欄で保存＝削除にはしていない（空欄は「変更しない」
+   * の意味なので、取り違えると意図せず鍵が消える）
+   */
+  handleClearKey(provider) {
+    if (!window.confirm(i18n.__('Remove the saved API key for this provider?')))
+      return
+    saveKey(provider, '').then(res => {
+      if (!this.mounted) return
+      if (res && res.ok) {
+        this.setState(prev => ({
+          keyError: Object.assign({}, prev.keyError, { [provider]: null })
+        }))
+        this.refreshKeyStatus()
+      } else {
+        this.setState(prev => ({
+          keyError: Object.assign({}, prev.keyError, {
+            [provider]: (res && res.error) || 'FAILED'
+          })
+        }))
+      }
+    })
   }
 
   handleFormKeyDown(e) {
@@ -153,8 +194,85 @@ class AITab extends React.Component {
     )
   }
 
+  /**
+   * API キー欄の下に出す1行。「保存済みか」「削除」「暗号化が使えない警告」
+   * 「保存に失敗した理由」をまとめて扱う。
+   */
+  renderKeyStatus(provider, c) {
+    // 状態は IPC 越しに非同期で届く。届く前に available:false の初期値で描くと
+    // 「暗号化が使えません」が一瞬出て嘘になるので、届くまで何も出さない
+    if (!this.state.keyStatusLoaded) return null
+    const { available, configured } = this.state.keyStatus
+    const error = this.state.keyError[provider]
+    const rowStyle = {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginTop: 6,
+      fontSize: 12,
+      lineHeight: '1.5'
+    }
+
+    if (error) {
+      return (
+        <div style={rowStyle}>
+          <span style={{ color: c.danger }}>
+            {`${i18n.__('Could not save the API key')}: ${error}`}
+          </span>
+        </div>
+      )
+    }
+
+    if (!available) {
+      return (
+        <div style={rowStyle}>
+          <span style={{ color: c.muted }}>
+            {i18n.__(
+              'Encrypted storage is unavailable on this system. The key is saved unencrypted in the app config.'
+            )}
+          </span>
+        </div>
+      )
+    }
+
+    if (!configured[provider]) {
+      return (
+        <div style={rowStyle}>
+          <span style={{ color: c.muted }}>
+            {i18n.__('Not set. The key is stored in this OS credential store.')}
+          </span>
+        </div>
+      )
+    }
+
+    return (
+      <div style={rowStyle}>
+        <span style={{ color: c.success }}>
+          {i18n.__('Saved in this OS credential store')}
+        </span>
+        <button
+          type='button'
+          onClick={() => this.handleClearKey(provider)}
+          style={{
+            padding: '2px 8px',
+            background: 'transparent',
+            border: `1px solid ${c.inputBorder}`,
+            borderRadius: 5,
+            color: c.dim,
+            fontSize: 11,
+            fontFamily: 'inherit',
+            cursor: 'pointer'
+          }}
+        >
+          {i18n.__('Remove key')}
+        </button>
+      </div>
+    )
+  }
+
   componentDidMount() {
     this.mounted = true
+    this.refreshKeyStatus()
   }
 
   componentWillUnmount() {
@@ -173,10 +291,22 @@ class AITab extends React.Component {
     } = this.state
     if (validateKey('openai', openaiKey) || validateKey('gemini', geminiKey))
       return
+    // 鍵の保存先が確定する前に保存しない（下の secure 判定が嘘になる）
+    if (!this.state.keyStatusLoaded) return
+
+    // 暗号化ストアが使えるなら config には平文を残さない。使えない環境では
+    // 従来どおり config に保存する（ここで空文字にすると鍵を失う）
+    const secure = this.state.keyStatus.available
     const ai = {
       provider,
-      openai: { apiKey: openaiKey.trim(), model: openaiModel.trim() },
-      gemini: { apiKey: geminiKey.trim(), model: geminiModel.trim() }
+      openai: {
+        apiKey: secure ? '' : openaiKey.trim(),
+        model: openaiModel.trim()
+      },
+      gemini: {
+        apiKey: secure ? '' : geminiKey.trim(),
+        model: geminiModel.trim()
+      }
     }
     const tts = {
       port: parseInt(ttsPort, 10) || DEFAULT_TTS_PORT,
@@ -186,6 +316,41 @@ class AITab extends React.Component {
     store.dispatch({ type: 'SET_UI', config: { ai, tts } })
     this.setState({ saved: true })
     setTimeout(() => this.setState({ saved: false }), 2000)
+
+    if (secure) this.saveKeysToStore({ openai: openaiKey, gemini: geminiKey })
+  }
+
+  /**
+   * 入力のあった provider だけ資格情報ストアへ保存する。
+   * 空欄は「変更しない」。削除は handleClearKey（明示操作）に分けている。
+   */
+  saveKeysToStore(keys) {
+    const pending = Object.keys(keys).filter(
+      provider => !!keys[provider].trim()
+    )
+    if (!pending.length) return
+
+    Promise.all(
+      pending.map(provider =>
+        saveKey(provider, keys[provider]).then(res => ({ provider, res }))
+      )
+    ).then(results => {
+      if (!this.mounted) return
+      const keyError = Object.assign({}, this.state.keyError)
+      const clearedFields = {}
+      results.forEach(({ provider, res }) => {
+        if (res && res.ok) {
+          keyError[provider] = null
+          // 保存できたら入力欄は空にする。画面に残し続ける理由がなく、
+          // 次の保存で二重に書き込むのも避けたい
+          clearedFields[provider === 'openai' ? 'openaiKey' : 'geminiKey'] = ''
+        } else {
+          keyError[provider] = (res && res.error) || 'FAILED'
+        }
+      })
+      this.setState(Object.assign({ keyError }, clearedFields))
+      this.refreshKeyStatus()
+    })
   }
 
   render() {
@@ -202,7 +367,10 @@ class AITab extends React.Component {
 
     const openaiKeyError = validateKey('openai', openaiKey)
     const geminiKeyError = validateKey('gemini', geminiKey)
-    const hasError = !!(openaiKeyError || geminiKeyError)
+    // 鍵の保存先が確定するまでは押しても handleSave が降りるので、
+    // 「押したのに無反応」にならないよう見た目も無効にしておく
+    const hasError =
+      !!(openaiKeyError || geminiKeyError) || !this.state.keyStatusLoaded
 
     // Derive darkness from the theme metadata, not a hardcoded name list — the
     // old list omitted rockabilly/monokai/nord/vulcan, so those dark themes got
@@ -263,25 +431,57 @@ class AITab extends React.Component {
       letterSpacing: '-0.01em'
     }
 
-    const cardStyle = {
+    // 選択中の provider のカードは枠を accent にして「どちらが使われるか」を
+    // 画面上で分かるようにする。以前はセグメントを押しても下の表示が一切
+    // 変わらず、タブに見えるのに何も起きないコントロールになっていた
+    const cardStyle = (active = false) => ({
       background: c.cardBg,
-      border: `1px solid ${c.cardBorder}`,
+      border: `1px solid ${active ? c.accent : c.cardBorder}`,
       borderRadius: 8,
       padding: '16px 18px',
       marginBottom: 10
+    })
+
+    const cardTitleRowStyle = {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 8,
+      marginBottom: 14,
+      paddingBottom: 10,
+      borderBottom: `1px solid ${c.divider}`
     }
 
     const cardTitleStyle = {
-      display: 'block',
       fontSize: 12,
       fontWeight: 700,
       letterSpacing: '0.08em',
       textTransform: 'uppercase',
       color: c.muted,
-      marginBottom: 14,
-      paddingBottom: 10,
-      borderBottom: `1px solid ${c.divider}`
+      minWidth: 0,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
     }
+
+    const inUseBadgeStyle = {
+      flex: '0 0 auto',
+      padding: '2px 9px',
+      borderRadius: 999,
+      background: c.accent,
+      color: '#fff',
+      fontSize: 10,
+      fontWeight: 700,
+      letterSpacing: '0.04em'
+    }
+
+    // カード見出し。使用中の provider にはバッジを添える
+    const cardTitle = (label, active = false) => (
+      <div style={cardTitleRowStyle}>
+        <span style={cardTitleStyle}>{label}</span>
+        {active && <span style={inUseBadgeStyle}>{i18n.__('In use')}</span>}
+      </div>
+    )
 
     const fieldStyle = { marginBottom: 14 }
     const fieldLastStyle = { marginBottom: 0 }
@@ -342,15 +542,42 @@ class AITab extends React.Component {
       typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent)
     const saveShortcut = isMac ? '⌘ + Enter' : 'Ctrl + Enter'
 
+    // 保存済みのキーは読み戻せない（main プロセスから外へ出さない設計）。
+    // 空欄が「未設定」ではなく「変更しない」であることを placeholder で伝える
+    const { available, configured } = this.state.keyStatus
+    const keyPlaceholder = (provider, fallback) =>
+      available && configured[provider]
+        ? i18n.__('Saved — enter a new key only to replace it')
+        : fallback
+
     return (
       <div style={outerStyle} onKeyDown={e => this.handleFormKeyDown(e)}>
         <div style={innerStyle}>
-          <div style={pageTitleStyle}>AI Settings</div>
+          <div style={pageTitleStyle}>{i18n.__('AI Settings')}</div>
+
+          {/* BYOK 方針の明示。キーは同梱しないと決めたので、空欄のまま実行して
+              エラーで気づく状態にせず、設定画面の先頭で伝える */}
+          <div
+            style={{
+              fontSize: 12,
+              lineHeight: '1.6',
+              color: c.dim,
+              background: c.cardBg,
+              border: `1px solid ${c.cardBorder}`,
+              borderRadius: 8,
+              padding: '10px 14px',
+              marginBottom: 10
+            }}
+          >
+            {i18n.__(
+              "No API key is bundled — bring your own. Keys you enter are saved on this device only, and are sent to the provider's API when you use an AI action."
+            )}
+          </div>
 
           {/* Provider: どちらを使うかの設定。下の OpenAI / Gemini カードは
               常に両方出ているので、タブと誤読されないよう説明を添える */}
-          <div style={cardStyle}>
-            <span style={cardTitleStyle}>{i18n.__('Provider in use')}</span>
+          <div style={cardStyle()}>
+            {cardTitle(i18n.__('Provider in use'))}
             <div style={segWrapStyle}>
               {['openai', 'gemini'].map(p => (
                 <button
@@ -373,18 +600,19 @@ class AITab extends React.Component {
           </div>
 
           {/* OpenAI */}
-          <div style={cardStyle}>
-            <span style={cardTitleStyle}>OpenAI</span>
+          <div style={cardStyle(provider === 'openai')}>
+            {cardTitle('OpenAI', provider === 'openai')}
             <div style={fieldStyle}>
-              <label style={labelStyle}>API Key</label>
+              <label style={labelStyle}>{i18n.__('API Key')}</label>
               <input
                 type='password'
                 value={openaiKey}
                 onChange={e => this.setState({ openaiKey: e.target.value })}
-                placeholder='sk-...'
+                placeholder={keyPlaceholder('openai', 'sk-...')}
                 style={inputStyle(openaiKeyError)}
               />
               {openaiKeyError && <span style={errStyle}>{openaiKeyError}</span>}
+              {this.renderKeyStatus('openai', c)}
             </div>
             <div style={fieldLastStyle}>
               <label style={labelStyle}>{i18n.__('Model')}</label>
@@ -395,8 +623,7 @@ class AITab extends React.Component {
               >
                 {modelChoices('openai', openaiModel).map((m, i) => (
                   <option key={m} value={m}>
-                    {m}
-                    {i === 0 ? ' （既定）' : ''}
+                    {modelLabel(m, i === 0)}
                   </option>
                 ))}
               </select>
@@ -405,18 +632,19 @@ class AITab extends React.Component {
           </div>
 
           {/* Gemini */}
-          <div style={cardStyle}>
-            <span style={cardTitleStyle}>Gemini</span>
+          <div style={cardStyle(provider === 'gemini')}>
+            {cardTitle('Gemini', provider === 'gemini')}
             <div style={fieldStyle}>
-              <label style={labelStyle}>API Key</label>
+              <label style={labelStyle}>{i18n.__('API Key')}</label>
               <input
                 type='password'
                 value={geminiKey}
                 onChange={e => this.setState({ geminiKey: e.target.value })}
-                placeholder='AIza...'
+                placeholder={keyPlaceholder('gemini', 'AIza...')}
                 style={inputStyle(geminiKeyError)}
               />
               {geminiKeyError && <span style={errStyle}>{geminiKeyError}</span>}
+              {this.renderKeyStatus('gemini', c)}
             </div>
             <div style={fieldLastStyle}>
               <label style={labelStyle}>{i18n.__('Model')}</label>
@@ -427,8 +655,7 @@ class AITab extends React.Component {
               >
                 {modelChoices('gemini', geminiModel).map((m, i) => (
                   <option key={m} value={m}>
-                    {m}
-                    {i === 0 ? ' （既定）' : ''}
+                    {modelLabel(m, i === 0)}
                   </option>
                 ))}
               </select>
@@ -437,8 +664,8 @@ class AITab extends React.Component {
           </div>
 
           {/* VOICEVOX TTS */}
-          <div style={cardStyle}>
-            <span style={cardTitleStyle}>VOICEVOX TTS</span>
+          <div style={cardStyle()}>
+            {cardTitle('VOICEVOX TTS')}
             <div style={fieldStyle}>
               <label style={labelStyle}>{i18n.__('Port')}</label>
               <input

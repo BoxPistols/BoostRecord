@@ -51,7 +51,7 @@ class FolderColorPopover extends React.Component {
   }
 
   render() {
-    const { x, y, value, onSelect, onClose } = this.props
+    const { x, y, value, onSelect, onReset, onClose, resetLabel } = this.props
 
     // ウィンドウ外へはみ出さないよう寄せる。高さは 2 段 + 余白の実寸
     const height = 2 * 26 + 8 + PADDING * 2
@@ -69,6 +69,9 @@ class FolderColorPopover extends React.Component {
         ref={this.ref}
         role='dialog'
         aria-label={this.props.label}
+        // role="dialog" だけだと他のダイアログにも当たる。検証が別物を
+        // 掴んで緑になるのを防ぐため、固有の目印を持たせる
+        data-folder-color-popover=''
         style={{
           position: 'fixed',
           left,
@@ -88,6 +91,15 @@ class FolderColorPopover extends React.Component {
       >
         <FolderColorSwatches
           value={value}
+          resetLabel={resetLabel}
+          onReset={
+            onReset
+              ? () => {
+                  onReset()
+                  onClose()
+                }
+              : undefined
+          }
           onSelect={color => {
             onSelect(color)
             onClose()
@@ -105,6 +117,8 @@ FolderColorPopover.propTypes = {
   value: PropTypes.string,
   label: PropTypes.string,
   onSelect: PropTypes.func.isRequired,
+  onReset: PropTypes.func,
+  resetLabel: PropTypes.string,
   onClose: PropTypes.func.isRequired
 }
 

@@ -9,3 +9,18 @@ $snippet-note-detail-left-margin = 60px
 $snippet-note-detail-right-margin = 80px
 
 $note-detail-box-shadow = 2px 0 15px -8px #b1b1b1 inset
+
+// ノート詳細ヘッダーの縦位置。上段(フォルダ名 + 右のボタン群)の下に
+// タグ行が絶対配置でぶら下がり、その下から本文が始まる。
+//
+//   0 ─────────── .info (フォルダ名 / スター / ゴミ箱 / 情報)
+//   $tag-row-top ─ .TagSelect (.info の外へはみ出して置かれる)
+//   本文 ───────── top = $info-height + $info-margin-under-border
+//
+// 本文の開始位置はタグ行の下端から決まるので、$info-height を変えても
+// ここで逆算されるように書く（別々に持つと重なる）
+$info-height = 40px
+$tag-row-top = 38px
+$tag-row-height = 25px
+$tag-row-gap = 6px
+$info-margin-under-border = $tag-row-top + $tag-row-height + $tag-row-gap - $info-height

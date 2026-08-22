@@ -9,6 +9,13 @@ import i18n from 'browser/lib/i18n'
 import debounce from 'lodash/debounce'
 import CInput from 'react-composition-input'
 import { push } from 'connected-react-router'
+import ConfigManager from 'browser/main/lib/ConfigManager'
+import {
+  EXPANDED,
+  resolveSideNavMode,
+  resolveNoteListMode,
+  isHiddenFor
+} from 'browser/main/lib/sideNavMode'
 
 class TopBar extends React.Component {
   constructor(props) {
@@ -29,6 +36,8 @@ class TopBar extends React.Component {
     this.codeInitHandler = this.handleCodeInit.bind(this)
     this.handleKeyDown = this.handleKeyDown.bind(this)
     this.handleSearchFocus = this.handleSearchFocus.bind(this)
+    this.handleReopenSideNav = this.handleReopenSideNav.bind(this)
+    this.handleReopenNoteList = this.handleReopenNoteList.bind(this)
     this.handleSearchBlur = this.handleSearchBlur.bind(this)
     this.handleSearchChange = this.handleSearchChange.bind(this)
     this.handleSearchClearButton = this.handleSearchClearButton.bind(this)
@@ -136,7 +145,16 @@ class TopBar extends React.Component {
 
   handleOnSearchFocus() {
     const el = this.refs.search.childNodes[0]
-    if (this.state.isSearching) {
+    // **フラグではなく実際のフォーカスを見る。**
+    // componentDidMount は URL に searchword があると、フォーカスを当てずに
+    // isSearching: true をセットする。非フォーカス要素への blur() は blur
+    // イベントを発火しないので isSearching が true のまま張り付き、以後の
+    // Focus Search / Ctrl+L / 一覧の L キーが**永久に空振りする**。
+    // 起動時に最終閲覧ページを復元するようにしたことで、/searched で終了すると
+    // 次回起動から常にこの状態になる
+    const active =
+      typeof document !== 'undefined' ? document.activeElement : null
+    if (el === active) {
       el.blur()
     } else {
       el.select()
@@ -147,8 +165,29 @@ class TopBar extends React.Component {
     ee.emit('top:search', this.refs.searchInput.value || '')
   }
 
+  /**
+   * サイドバーを完全に隠すと、その中にあるトグルボタンごと消える。
+   * Cmd+B とメニューだけが導線では気づけないので、TopBar から戻せるようにする
+   */
+  handleReopenSideNav() {
+    const { dispatch } = this.props
+    ConfigManager.set({ sideNavMode: EXPANDED, isSideNavFolded: false })
+    dispatch({ type: 'SET_SIDE_NAV_MODE', mode: EXPANDED })
+  }
+
+  /** ノート一覧を完全に隠すと、その中にある折りたたみボタンも消える */
+  handleReopenNoteList() {
+    const { dispatch } = this.props
+    ConfigManager.set({ noteListMode: EXPANDED, isNoteListFolded: false })
+    dispatch({ type: 'SET_NOTE_LIST_MODE', mode: EXPANDED })
+  }
+
   render() {
     const { config, style, location } = this.props
+    const isSideNavHidden = isHiddenFor(resolveSideNavMode(config))
+    const isNoteListHidden = isHiddenFor(resolveNoteListMode(config))
+    const reopenLabel = i18n.__('Show Side Bar')
+    const reopenListLabel = i18n.__('Show Note List')
     return (
       <div
         className='TopBar'
@@ -156,6 +195,29 @@ class TopBar extends React.Component {
         style={style}
       >
         <div styleName='control'>
+          {isSideNavHidden && (
+            <button
+              styleName='sidenav-reopen'
+              onClick={this.handleReopenSideNav}
+              title={reopenLabel}
+              aria-label={reopenLabel}
+            >
+              <i
+                className='fa fa-fw fa-angle-double-right'
+                aria-hidden='true'
+              />
+            </button>
+          )}
+          {isNoteListHidden && (
+            <button
+              styleName='sidenav-reopen'
+              onClick={this.handleReopenNoteList}
+              title={reopenListLabel}
+              aria-label={reopenListLabel}
+            >
+              <i className='fa fa-fw fa-list' aria-hidden='true' />
+            </button>
+          )}
           <div styleName='control-search'>
             <div
               styleName='control-search-input'

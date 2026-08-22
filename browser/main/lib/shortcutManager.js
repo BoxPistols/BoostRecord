@@ -30,7 +30,14 @@ function applyShortcuts(shortcuts) {
     const toggler = formatShortcut(shortcuts[shortcut])
     // only bind if the function for that shortcut exists
     if (functions[shortcut]) {
-      Mousetrap.bindGlobal(toggler, functions[shortcut])
+      const fn = functions[shortcut]
+      // CodeMirror(vim/emacs keymap 等)が既に処理したキーには反応しない。
+      // 例: Win/Linux の Ctrl+E は vim ノーマルモードのスクロールと衝突する。
+      // エディタが preventDefault した押下はエディタの操作として完結させる
+      Mousetrap.bindGlobal(toggler, e => {
+        if (e && e.defaultPrevented) return
+        fn(e)
+      })
     }
   }
 }

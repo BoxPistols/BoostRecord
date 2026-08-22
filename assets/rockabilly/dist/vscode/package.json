@@ -1,0 +1,29 @@
+{
+  "name": "rockabilly-theme",
+  "displayName": "Rockabilly Theme",
+  "description": "真空管アンプの朱赤と琥珀を、ニュートラルなチャコールに載せた暗色スキーム。",
+  "version": "0.1.0",
+  "publisher": "the-boosters",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Themes"
+  ],
+  "keywords": [
+    "theme",
+    "dark",
+    "color-theme",
+    "rockabilly"
+  ],
+  "contributes": {
+    "themes": [
+      {
+        "label": "Rockabilly",
+        "uiTheme": "vs-dark",
+        "path": "./themes/rockabilly-color-theme.json"
+      }
+    ]
+  }
+}

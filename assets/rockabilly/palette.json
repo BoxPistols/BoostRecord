@@ -1,0 +1,119 @@
+{
+  "name": "Rockabilly",
+  "author": "The Boosters",
+  "description": "真空管アンプの朱赤と琥珀を、ニュートラルなチャコールに載せた暗色スキーム。",
+  "variant": "dark",
+  "source": "browser/styles/index.styl の $ui-rockabilly-* が出どころ。UI 側と同じ地・同じ朱赤を使う",
+  "ui": {
+    "bg": {
+      "value": "#1C1C1E",
+      "from": "$ui-rockabilly-backgroundColor"
+    },
+    "bgAlt": {
+      "value": "#242426",
+      "from": "$ui-rockabilly-noteList-backgroundColor"
+    },
+    "surface": {
+      "value": "#2A2A2D",
+      "from": "$ui-rockabilly-button-backgroundColor"
+    },
+    "border": {
+      "value": "#333336",
+      "from": "$ui-rockabilly-borderColor"
+    },
+    "fg": {
+      "value": "#EAEAEA",
+      "from": "$ui-rockabilly-text-color"
+    },
+    "muted": {
+      "value": "#9A9A9E",
+      "from": "$ui-rockabilly-inactive-text-color"
+    },
+    "accent": {
+      "value": "#D7263D",
+      "from": "$ui-rockabilly-active-color"
+    },
+    "accentAlt": {
+      "value": "#E8A33D",
+      "from": "$ui-rockabilly-button--hover-color"
+    }
+  },
+  "syntax": {
+    "red": {
+      "value": "#F0576B",
+      "role": "キーワード・削除・エラー"
+    },
+    "orange": {
+      "value": "#E8A33D",
+      "role": "定数・数値・属性"
+    },
+    "yellow": {
+      "value": "#E8C86A",
+      "role": "クラス・型・見出し"
+    },
+    "green": {
+      "value": "#93C572",
+      "role": "文字列・追加"
+    },
+    "teal": {
+      "value": "#63C5B5",
+      "role": "組み込み・エスケープ"
+    },
+    "blue": {
+      "value": "#7BB0DE",
+      "role": "関数・定義"
+    },
+    "purple": {
+      "value": "#C39BE0",
+      "role": "演算子・タグ・リンク"
+    },
+    "comment": {
+      "value": "#8A8A90",
+      "role": "コメント"
+    },
+    "brown": {
+      "value": "#C0865B",
+      "role": "非推奨・埋め込みタグ (base0F)"
+    }
+  },
+  "ansi": {
+    "black": "#1C1C1E",
+    "red": "#EA4A5E",
+    "green": "#7FB05C",
+    "yellow": "#E8A33D",
+    "blue": "#5B95C9",
+    "magenta": "#A87BCB",
+    "cyan": "#49AE9E",
+    "white": "#C8C8CC",
+    "brightBlack": "#7E7E84",
+    "brightRed": "#F0576B",
+    "brightGreen": "#93C572",
+    "brightYellow": "#E8C86A",
+    "brightBlue": "#7BB0DE",
+    "brightMagenta": "#C39BE0",
+    "brightCyan": "#63C5B5",
+    "brightWhite": "#F2F2F4"
+  },
+  "contrast": {
+    "background": "#1C1C1E",
+    "minimums": {
+      "text": 4.5,
+      "nonText": 3.0,
+      "dim": 3.0
+    },
+    "exempt": [
+      "ui.bg",
+      "ui.bgAlt",
+      "ui.surface",
+      "ui.border",
+      "ansi.black"
+    ],
+    "nonText": [
+      "ui.accent"
+    ],
+    "dim": [
+      "ansi.brightBlack"
+    ],
+    "note": "WCAG 2.1 の 1.4.3（本文 4.5:1）と 1.4.11（非テキスト 3:1）に合わせている。地の一部として使う色と、暗さ自体が役割の brightBlack は別枠"
+  }
+}

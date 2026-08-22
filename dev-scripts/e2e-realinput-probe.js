@@ -191,17 +191,23 @@ app.on('web-contents-created', (_e, wc) => {
             `(() => { const el=document.querySelector('[data-note-list]'); return el ? Math.round(el.getBoundingClientRect().width) : -1 })()`,
             true
           )
+        // 展開 → 細く → 完全に閉じる → 展開 の3サイクル。
+        // 2回で戻る前提のままだと一覧が閉じたまま以降の項目が全部落ちる
         const w0 = await listWidth()
         await pressKey(wc, 'B', [PRIMARY, 'shift'])
         const w1 = await listWidth()
         await pressKey(wc, 'B', [PRIMARY, 'shift'])
         const w2 = await listWidth()
+        await pressKey(wc, 'B', [PRIMARY, 'shift'])
+        const w3 = await listWidth()
         rep.hotkeyToggle = {
           before: w0,
           folded: w1,
-          restored: w2,
+          hidden: w2,
+          restored: w3,
           toggled: w0 !== w1,
-          restoredOk: w0 === w2
+          hiddenOk: w2 === 0,
+          restoredOk: w0 === w3
         }
 
         // --- 7. Cmd+数字 でノート一覧の N 番目へ飛ぶか ---
@@ -373,6 +379,7 @@ app.on('web-contents-created', (_e, wc) => {
             ? rep.tabInEditor.stillInEditor
             : false,
           'hotkey toggles the note list': rep.hotkeyToggle.toggled,
+          'hotkey closes the note list fully': rep.hotkeyToggle.hiddenOk,
           'hotkey restores the width': rep.hotkeyToggle.restoredOk,
           'Cmd+digit jumps to a note': rep.cmdDigitJump.moved,
           'slider drag resizes the pane': rep.sliderDrag.widened,

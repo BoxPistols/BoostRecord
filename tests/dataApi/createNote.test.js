@@ -110,6 +110,31 @@ it('Create a note', done => {
     })
 })
 
+// 空配列の snippets はディスクに書かせない(cloneNote 経由で壊れた
+// ノートを複製すると空配列がそのまま新規ファイルへ伝播していた)
+it('Create a snippet note with an empty snippets array falls back to the default snippet', done => {
+  const storageKey = storageContext.cache.key
+  const folderKey = storageContext.json.folders[0].key
+
+  createNote(storageKey, {
+    type: 'SNIPPET_NOTE',
+    description: 'empty snippets',
+    title: 'empty snippets',
+    snippets: [],
+    tags: [],
+    folder: folderKey
+  })
+    .then(note => {
+      expect(note.snippets.length).toBe(1)
+      const data = CSON.readFileSync(
+        path.join(storagePath, 'notes', note.key + '.cson')
+      )
+      expect(data.snippets.length).toBe(1)
+      done()
+    })
+    .catch(done.fail)
+})
+
 afterAll(function after() {
   localStorage.clear()
   sander.rimrafSync(storagePath)

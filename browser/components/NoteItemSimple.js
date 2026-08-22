@@ -29,6 +29,9 @@ const NoteItemSimple = ({
 }) => (
   <div
     styleName={isActive ? 'item-simple--active' : 'item-simple'}
+    // 自動スクロールがノート行だけを引けるようにする印。
+    // childNodes 添字だと、サブフォルダ見出しを挟んだ時にずれる
+    data-note-item=''
     key={note.key}
     onClick={e => handleNoteClick(e, note.key)}
     onContextMenu={e => handleNoteContextMenu(e, note.key)}
@@ -75,7 +78,7 @@ NoteItemSimple.propTypes = {
     storage: PropTypes.string.isRequired,
     key: PropTypes.string.isRequired,
     type: PropTypes.string.isRequired,
-    title: PropTypes.string.isrequired
+    title: PropTypes.string.isRequired
   }),
   handleNoteClick: PropTypes.func.isRequired,
   handleNoteContextMenu: PropTypes.func.isRequired,

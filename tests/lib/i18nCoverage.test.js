@@ -75,6 +75,23 @@ describe('日本語ロケール', () => {
     expect(missing).toEqual([])
   })
 
+  it('動的に渡しているキー（カスタム CSS のテンプレート）にも訳がある', () => {
+    // labelKey / noteKeys は i18n.__(template.labelKey) の形で渡すため、
+    // 上の走査では拾えない
+    const { CUSTOM_CSS_TEMPLATES } = require('browser/lib/customCSSTemplates')
+    const missing = CUSTOM_CSS_TEMPLATES.reduce(
+      (acc, template) =>
+        acc.concat(
+          [template.labelKey]
+            .concat(template.noteKeys)
+            .filter(key => !(key in ja))
+            .map(key => `${template.id}: ${key}`)
+        ),
+      []
+    )
+    expect(missing).toEqual([])
+  })
+
   it('エディタテーマの説明は英語で持つ（訳はロケール側）', () => {
     // 実装側に日本語を直接書くと、英語のロケールで日本語が出る
     const { CURATED_EDITOR_THEMES } = require('browser/lib/editorThemes')

@@ -349,3 +349,34 @@ for theme in 'solarized-dark' 'dracula'
 
 for theme in $themes
   apply-theme(theme)
+
+.template-picker
+  display flex
+  align-items center
+  gap 8px
+  margin 8px 0 6px
+  label
+    font-size 12px // A11y: 12px 未満を使わない
+    color $ui-inactive-text-color
+
+.template-picker-button
+  colorDefaultButton()
+  border none
+  border-radius 2px
+  font-size $tab--button-font-size
+  height 30px
+  padding 0 14px
+  cursor pointer
+
+.template-picker-note
+  font-size 12px // A11y: 12px 未満を使わない
+  line-height 1.6
+  color $ui-inactive-text-color
+  max-width 400px
+  margin-bottom 8px
+  p
+    margin 0 0 4px
+  ul
+    list-style disc
+    padding-left 1.3em
+    margin 0

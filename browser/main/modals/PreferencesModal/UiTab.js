@@ -26,6 +26,11 @@ import {
 } from 'browser/lib/editorThemes'
 const { curateEditorThemes } = require('browser/lib/editorThemeFiles')
 import { chooseTheme, applyTheme } from 'browser/main/lib/ThemeManager'
+import {
+  CUSTOM_CSS_TEMPLATES,
+  findCustomCSSTemplate,
+  appendCustomCSSTemplate
+} from 'browser/lib/customCSSTemplates'
 
 const OSX = global.process.platform === 'darwin'
 
@@ -39,7 +44,8 @@ class UiTab extends React.Component {
     super(props)
     this.state = {
       config: props.config,
-      codemirrorTheme: props.config.editor.theme
+      codemirrorTheme: props.config.editor.theme,
+      customCSSTemplateId: CUSTOM_CSS_TEMPLATES[0].id
     }
   }
 
@@ -83,6 +89,28 @@ class UiTab extends React.Component {
   componentWillUnmount() {
     ipc.removeListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.removeListener('APP_SETTING_ERROR', this.handleSettingError)
+  }
+
+  renderCustomCSSTemplateNotes(template) {
+    if (template === null) return null
+    return template.noteKeys.map(noteKey => (
+      <li key={noteKey}>{i18n.__(noteKey)}</li>
+    ))
+  }
+
+  handleInsertCustomCSSTemplate() {
+    const template = findCustomCSSTemplate(this.state.customCSSTemplateId)
+    if (template === null) return
+    const editor = this.customCSSCM.getCodeMirror()
+    const next = appendCustomCSSTemplate(editor.getValue(), template, key =>
+      i18n.__(key)
+    )
+    editor.setValue(next)
+    // 挿入された分が見えるところまで送る
+    editor.setCursor(editor.lineCount(), 0)
+    // react-codemirror は origin === 'setValue' の変更で onChange を呼ばない
+    // ので、ここで明示的に拾わないと設定に反映されない
+    this.handleUIChange()
   }
 
   handleUIChange(e) {
@@ -331,6 +359,12 @@ class UiTab extends React.Component {
       "  return amp.model + ' / ' + track.title",
       '}'
     ].join('\n')
+    const selectedCustomCSSTemplate = findCustomCSSTemplate(
+      this.state.customCSSTemplateId
+    )
+    const customCSSTemplateNotes = this.renderCustomCSSTemplateNotes(
+      selectedCustomCSSTemplate
+    )
     const enableEditRulersStyle = config.editor.enableRulers ? 'block' : 'none'
     const fontFamily = normalizeEditorFontFamily(config.editor.fontFamily)
     return (
@@ -1353,6 +1387,37 @@ class UiTab extends React.Component {
               />
               &nbsp;
               {i18n.__('Allow custom CSS for preview')}
+              <div styleName='template-picker'>
+                <label htmlFor='customCSSTemplate'>{i18n.__('Template')}</label>
+                <select
+                  id='customCSSTemplate'
+                  value={this.state.customCSSTemplateId}
+                  onChange={e =>
+                    this.setState({ customCSSTemplateId: e.target.value })
+                  }
+                >
+                  {CUSTOM_CSS_TEMPLATES.map(template => (
+                    <option key={template.id} value={template.id}>
+                      {i18n.__(template.labelKey)}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type='button'
+                  styleName='template-picker-button'
+                  onClick={() => this.handleInsertCustomCSSTemplate()}
+                >
+                  {i18n.__('Insert')}
+                </button>
+              </div>
+              <div styleName='template-picker-note'>
+                <p>
+                  {i18n.__(
+                    'Added below what is already in the box. Nothing is replaced.'
+                  )}
+                </p>
+                <ul>{customCSSTemplateNotes}</ul>
+              </div>
               <div style={{ fontFamily }}>
                 <ReactCodeMirror
                   width='400px'

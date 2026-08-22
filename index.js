@@ -77,6 +77,15 @@ function execMainApp() {
     return
   }
 
+  // 改名前の userData を引き継ぐ。electron-config など userData に触れる
+  // モジュールを読み込む前に実行する必要がある。
+  // 失敗してもアプリの起動は止めない。docs/RENAME-2026-BoostRecord.md 参照。
+  try {
+    require('./lib/migrate-userdata').migrateUserDataFromElectron()
+  } catch (err) {
+    console.error('[userdata-migration] skipped:', err && err.message)
+  }
+
   require('./lib/main-app')
 }
 

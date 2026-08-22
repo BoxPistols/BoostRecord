@@ -90,7 +90,7 @@ Runs: ESM/CJS → lint → AVA → Jest → Vite build → bundle size assert.
 
 ## Working rules
 
-- **PRs go ONLY to `BoxPistols/Boostnote`** (never upstream BoostIO). Verify
+- **PRs go ONLY to `BoxPistols/TheBoosters`** (never upstream BoostIO). Verify
   `isCrossRepository:false`. See the `pr-fork-only` memory.
 - **Legacy app** runs on Node 14 via `~/.volta/bin/volta run --node 14.21.3 …`;
   do NOT `cd` into the repo in Bash (a chpwd hook spams `ls`). Tests: `npm test`

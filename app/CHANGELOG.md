@@ -1,6 +1,6 @@
 # The Boosters — 変更履歴
 
-[Boostnote Legacy](https://github.com/BoxPistols/Boostnote) を母体とするモダン版ノートアプリ（Vite + React 19 + TypeScript + CodeMirror 6 / Electron 42）の変更履歴です。
+[Boostnote Legacy](https://github.com/BoxPistols/TheBoosters) を母体とするモダン版ノートアプリ（Vite + React 19 + TypeScript + CodeMirror 6 / Electron 42）の変更履歴です。
 
 ## 0.1.3
 

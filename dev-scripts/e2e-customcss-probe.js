@@ -196,6 +196,11 @@ function driver() {
       rep.afterSecond = cm.getValue()
       check('続けて挿入しても前の分が残る', rep.afterSecond.indexOf(trimEnd(rep.afterFirst)) === 0 && rep.afterSecond.length > rep.afterFirst.length)
 
+      // キー未設定のときに AI の導線を出さない。押しても必ず失敗する導線は
+      // 出さない、というのがこの機能の前提条件
+      rep.aiRowBeforeKey = !!document.getElementById('customCSSPrompt')
+      check('キーが無いときは AI の導線を出さない', rep.aiRowBeforeKey === false)
+
       const saveBtn = findButton(/^(save|保存)$/i)
       rep.saveFound = !!saveBtn
       if (saveBtn) { saveBtn.click(); await sleep(900) }
@@ -214,6 +219,57 @@ function driver() {
   })()`
 }
 
+// 環境変数だけでキーが揃った状態を作り、設定画面を開き直して導線が出ることを見る。
+// 実際の生成は呼ばない（CI から外部 API を叩かないため）
+function driverWithKey() {
+  return `(async () => {
+    const sleep = ms => new Promise(r => setTimeout(r, ms))
+    const rep = { checks: [] }
+    const check = (name, ok, extra) => { rep.checks.push(Object.assign({ name, ok: !!ok }, extra || {})); return !!ok }
+    const q = sel => Array.from(document.querySelectorAll(sel))
+    const findButton = re => q('button').find(b => re.test((b.textContent || '').trim()))
+    try {
+      // 設定画面を閉じて開き直す。UiTab が作り直され componentDidMount が走る
+      const closeBtn = q('button').find(b => /esc/i.test((b.textContent || '').trim()))
+      if (closeBtn) { closeBtn.click(); await sleep(500) }
+      const prefBtn = q('button').find(b => {
+        const img = b.querySelector('img'); return img && /setting/i.test(img.getAttribute('src') || '')
+      })
+      if (!prefBtn) return { ok: false, rep, error: 'preference button not found' }
+      prefBtn.click(); await sleep(700)
+      const uiTab = findButton(/interface|インターフェース/i)
+      if (!uiTab) return { ok: false, rep, error: 'interface tab not found' }
+      uiTab.click(); await sleep(900)
+
+      const input = document.getElementById('customCSSPrompt')
+      check('キーがあれば AI の導線が出る', !!input)
+      if (!input) return { ok: false, rep, step: 'ai-row' }
+
+      const row = input.closest('div')
+      const genBtn = Array.from(row.querySelectorAll('button')).find(b => /generate|生成/i.test((b.textContent || '').trim()))
+      check('生成ボタンがある', !!genBtn)
+      check('指示が空のうちは押せない', !!genBtn && genBtn.disabled === true)
+
+      // React の制御された input なので、ネイティブの setter 経由で値を入れる
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set
+      setter.call(input, '見出しを詰めたい')
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+      await sleep(300)
+      check('指示を入れると押せるようになる', !!genBtn && genBtn.disabled === false)
+
+      // 撮影のため、AI の行が画面に入るところまでスクロールする
+      input.scrollIntoView({ block: 'center' })
+      await sleep(400)
+
+      rep.errors = (window.__err || [])
+      check('例外が出ていない', rep.errors.length === 0, { errors: rep.errors })
+      return { ok: rep.checks.every(c => c.ok), rep }
+    } catch (err) {
+      return { ok: false, rep, error: String((err && (err.stack || err.message)) || err) }
+    }
+  })()`
+}
+
 app.on('web-contents-created', (_e, wc) => {
   wc.on('console-message', (_ev, level, message) =>
     consoleLogs.push({ level, message: String(message).slice(0, 300) })
@@ -225,6 +281,18 @@ app.on('web-contents-created', (_e, wc) => {
         if (!seeded || ran) return
         ran = true
         const r = await wc.executeJavaScript(driver(), true)
+        // ai:keys-status は呼ばれるたびに環境変数を見るので、ここで入れれば
+        // 開き直した設定画面には導線が出る
+        process.env.OPENAI_API_KEY = 'sk-e2e-not-a-real-key'
+        const r2 = await wc.executeJavaScript(driverWithKey(), true)
+        if (r && r.rep && r2 && r2.rep) {
+          r.rep.checks = r.rep.checks.concat(r2.rep.checks)
+          r.ok = r.ok && r2.ok
+          if (!r2.ok && r2.error) r.error = r2.error
+        } else if (r) {
+          r.ok = false
+          r.error = (r2 && r2.error) || 'second pass returned nothing'
+        }
         // 判定は DOM で取れるが、収まり（400px の枠に入っているか）は絵で見る
         if (process.env.TB_E2E_SHOT) {
           try {

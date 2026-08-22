@@ -9,7 +9,8 @@ export const KEY_PROVIDERS = ['openai', 'gemini']
 
 const UNAVAILABLE = {
   available: false,
-  configured: { openai: false, gemini: false }
+  configured: { openai: false, gemini: false },
+  fromEnv: { openai: false, gemini: false }
 }
 
 /**
@@ -20,6 +21,26 @@ export function getKeyStatus() {
     res => res || UNAVAILABLE,
     () => UNAVAILABLE
   )
+}
+
+/**
+ * その provider で実際に AI を呼べる見込みがあるか。
+ *
+ * 「押しても必ず失敗する導線を出さない」ための判定をここ1か所に置く。
+ * 資格情報ストア → 環境変数 → config に残っている平文、の順で見る。main 側の
+ * resolveKey と同じ優先順位だが、こちらが見るのは真偽値だけで値は見ない。
+ *
+ * @param {{configured?: Object, fromEnv?: Object}} status getKeyStatus() の結果
+ * @param {string} provider
+ * @param {object} [aiConfig] ConfigManager.get().ai
+ * @returns {boolean}
+ */
+export function isProviderUsable(status, provider, aiConfig) {
+  const s = status || UNAVAILABLE
+  if (s.configured && s.configured[provider]) return true
+  if (s.fromEnv && s.fromEnv[provider]) return true
+  const legacy = ((aiConfig || {})[provider] || {}).apiKey
+  return typeof legacy === 'string' && legacy.trim() !== ''
 }
 
 /**

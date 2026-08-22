@@ -109,6 +109,50 @@ export function testAiConnection({ provider, model, apiKey }) {
     )
 }
 
+/**
+ * AI_ACTIONS に無い用途で system / prompt を直接指定して1回だけ投げる。
+ * 生成物の検証は呼び出し側の責任（カスタム CSS なら customCSSGenerator）。
+ *
+ * @param {{system: string, prompt: string, onDelta?: function(string): void}} options
+ * @returns {Promise<string>} 応答の全文
+ */
+export function runAiPrompt({ system, prompt, onDelta }) {
+  const config = ConfigManager.get()
+  const ai = config.ai || {}
+  const provider = ai.provider || 'openai'
+  const providerCfg = ai[provider] || {}
+  const runId = `ai-${++runCounter}-${Date.now()}`
+  const input =
+    prompt.length > MAX_INPUT_CHARS ? prompt.slice(0, MAX_INPUT_CHARS) : prompt
+
+  const onChunk = (e, msg) => {
+    if (msg && msg.runId === runId && onDelta) onDelta(msg.delta)
+  }
+  ipcRenderer.on('ai:chunk', onChunk)
+  const cleanup = () => ipcRenderer.removeListener('ai:chunk', onChunk)
+
+  return ipcRenderer
+    .invoke('ai:run', {
+      runId,
+      provider,
+      model: providerCfg.model || DEFAULT_MODELS[provider],
+      apiKey: providerCfg.apiKey || '',
+      system,
+      prompt: input
+    })
+    .then(
+      full => {
+        cleanup()
+        return full
+      },
+      err => {
+        cleanup()
+        // Electron の包みを剥がしてから投げる。設定画面にそのまま出せるように
+        throw new Error(unwrapIpcError(err))
+      }
+    )
+}
+
 export function runAiAction(actionKey, text, onDelta) {
   const action = AI_ACTIONS[actionKey]
   if (!action)

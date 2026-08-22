@@ -28,6 +28,34 @@ fs.writeFileSync(
 app.setPath('userData', path.join(tmpRoot, 'userData'))
 app.setPath('home', tmpRoot)
 
+// ラベルの検査は「ASCII でないこと」では出来ない。英語ロケールでは正しい訳も
+// ASCII なので、同じ検査が別の意味で落ちる。実際に表示されている文字列を、
+// 実行中のロケールの locales/*.json と突き合わせる
+const templateSource = fs.readFileSync(
+  path.join(__dirname, '..', 'browser', 'lib', 'customCSSTemplates.js'),
+  'utf8'
+)
+const LABEL_KEY_BY_ID = {}
+const labelRe = /id:\s*'([^']+)',\s*labelKey:\s*'((?:[^'\\]|\\.)*)'/g
+let labelMatch
+while ((labelMatch = labelRe.exec(templateSource))) {
+  LABEL_KEY_BY_ID[labelMatch[1]] = labelMatch[2].replace(/\\'/g, "'")
+}
+const LOCALE_DICTS = {}
+for (const file of fs.readdirSync(path.join(__dirname, '..', 'locales'))) {
+  if (!file.endsWith('.json')) continue
+  try {
+    const dict = JSON.parse(
+      fs.readFileSync(path.join(__dirname, '..', 'locales', file), 'utf8')
+    )
+    const picked = {}
+    for (const key of Object.values(LABEL_KEY_BY_ID)) {
+      if (key in dict) picked[key] = dict[key]
+    }
+    LOCALE_DICTS[file.replace('.json', '')] = picked
+  } catch (e) {}
+}
+
 const consoleLogs = []
 let finished = false
 let ran = false
@@ -64,6 +92,8 @@ function seed() {
 
 function driver() {
   return `(async () => {
+    const LABEL_KEY_BY_ID = ${JSON.stringify(LABEL_KEY_BY_ID)}
+    const LOCALE_DICTS = ${JSON.stringify(LOCALE_DICTS)}
     const sleep = ms => new Promise(r => setTimeout(r, ms))
     const rep = { steps: [], checks: [] }
     const check = (name, ok, extra) => { rep.checks.push(Object.assign({ name, ok: !!ok }, extra || {})); return !!ok }
@@ -98,9 +128,29 @@ function driver() {
       rep.optionLabels = Array.from(sel.options).map(o => (o.textContent || '').trim())
       check('選択肢が 5 件以上ある', rep.optionValues.length >= 5, { count: rep.optionValues.length })
       check('id が一意', new Set(rep.optionValues).size === rep.optionValues.length)
-      // 訳が当たっていればラベルはキー（英語）と一致しない
-      rep.untranslated = rep.optionLabels.filter((label, i) => label === rep.optionValues[i] || /^[\\x00-\\x7F]+$/.test(label))
-      check('ラベルが訳されている', rep.untranslated.length === 0, { untranslated: rep.untranslated })
+      // 実行中のロケールの訳と突き合わせる。ASCII かどうかでは判定しない
+      // （英語ロケールでは正しい訳も ASCII で、別の意味で落ちる）
+      // ConfigManager は DEFAULT_CONFIG との merge 結果を localStorage へ書き戻さ
+      // ないので、保存値ではなく画面が実際に使っている値（言語の select）を見る
+      const langSelect = q('select').find(el => {
+        const values = Array.from(el.options).map(o => o.value)
+        // getLanguages() は en / ja だけを返す（locales/ に 21 ファイルあるが
+        // i18n-2 に渡しているのはこの 2 つだけ）。多い方に合わせて探さない
+        return values.indexOf('ja') !== -1 && values.indexOf('en') !== -1
+      })
+      rep.language = langSelect ? langSelect.value : null
+      const dict = LOCALE_DICTS[rep.language] || {}
+      rep.localeHasTranslations = Object.keys(dict).length
+      check('実行中のロケールが分かる', !!rep.language, { language: rep.language })
+      check('そのロケールにテンプレート名の訳がある', rep.localeHasTranslations >= rep.optionValues.length, { found: rep.localeHasTranslations })
+      const expectedLabel = id => {
+        const key = LABEL_KEY_BY_ID[id]
+        return key === undefined ? null : (dict[key] !== undefined ? dict[key] : key)
+      }
+      rep.labelMismatch = rep.optionValues
+        .map((id, i) => ({ id, shown: rep.optionLabels[i], expected: expectedLabel(id) }))
+        .filter(row => row.expected === null || row.shown !== row.expected)
+      check('ラベルが i18n を通っている', rep.labelMismatch.length === 0, { mismatch: rep.labelMismatch })
 
       // 注記の箇条書きが描かれているか（選択に追従することも見る）
       const notesOf = () => {
@@ -136,7 +186,9 @@ function driver() {
       rep.afterFirst = cm.getValue()
       check('挿入で内容が増える', rep.afterFirst.length > rep.before.length)
       check('先に書いてあった内容が残る', rep.afterFirst.indexOf(trimEnd(rep.before)) === 0)
-      check('挿入されたコメントも訳されている', /\\/\\* [^\\x00-\\x7F]/.test(rep.afterFirst), { head: rep.afterFirst.slice(0, 200) })
+      rep.insertedTemplateId = sel.value
+      const insertedLabel = expectedLabel(rep.insertedTemplateId)
+      check('挿入されたコメントも実行中のロケールの文面になる', insertedLabel !== null && rep.afterFirst.indexOf('/* ' + insertedLabel + ' */') !== -1, { insertedLabel: insertedLabel })
 
       // 2 件目を続けて挿入しても 1 件目が残る
       setSelect(rep.optionValues[2]); await sleep(250)

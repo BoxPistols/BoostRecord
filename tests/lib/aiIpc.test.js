@@ -1,6 +1,6 @@
 // Unit tests for API-key resolution: a Preferences override always wins, else
 // the provider's environment variable (in priority order), else null.
-const { resolveKey } = require('../../lib/ai/keys')
+const { resolveKey, hasEnvKey } = require('../../lib/ai/keys')
 
 const TOUCHED = [
   'OPENAI_API_KEY',
@@ -68,5 +68,49 @@ describe('resolveKey', () => {
     process.env.OPENAI_API_KEY = 'env-key'
     expect(resolveKey('openai', '', '')).toBe('env-key')
     expect(resolveKey('openai', '', null)).toBe('env-key')
+  })
+})
+
+// 「押しても必ず失敗する導線を出さない」ために renderer が見る真偽値。
+// キー本体は渡さない
+describe('hasEnvKey', () => {
+  let saved
+  beforeEach(() => {
+    saved = {}
+    for (const name of TOUCHED) {
+      saved[name] = process.env[name]
+      delete process.env[name]
+    }
+  })
+  afterEach(() => {
+    for (const name of TOUCHED) {
+      if (saved[name] === undefined) delete process.env[name]
+      else process.env[name] = saved[name]
+    }
+  })
+
+  it('環境変数が無ければ false', () => {
+    expect(hasEnvKey('openai')).toBe(false)
+    expect(hasEnvKey('gemini')).toBe(false)
+  })
+
+  it('環境変数があれば true', () => {
+    process.env.OPENAI_API_KEY = 'sk-test'
+    expect(hasEnvKey('openai')).toBe(true)
+    expect(hasEnvKey('gemini')).toBe(false)
+  })
+
+  it('別名の環境変数でも拾う', () => {
+    process.env.GOOGLE_GENAI_API_KEY = 'g-test'
+    expect(hasEnvKey('gemini')).toBe(true)
+  })
+
+  it('空白だけの値は未設定として扱う', () => {
+    process.env.OPENAI_API_KEY = '   '
+    expect(hasEnvKey('openai')).toBe(false)
+  })
+
+  it('知らない provider は false', () => {
+    expect(hasEnvKey('nope')).toBe(false)
   })
 })

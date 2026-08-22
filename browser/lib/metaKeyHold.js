@@ -87,3 +87,27 @@ export function getJumpNumber(e) {
 }
 
 export const MAX_JUMP_TARGETS = 9
+
+/**
+ * 修飾キー + Shift + [ / ] を「左へ(-1) / 右へ(+1) / 該当なし(0)」に落とす。
+ * @param {KeyboardEvent} e
+ * @returns {number}
+ */
+export function getBracketDirection(e) {
+  const isSuper = global.process.platform === 'darwin' ? e.metaKey : e.ctrlKey
+  if (!isSuper || !e.shiftKey || e.altKey) return 0
+  // まず e.key。配列に依らず「利用者が実際に打った文字」を返すので、これが
+  // 一番当てになる。Shift 中は '{' '}' になるだけなので、両方を受ける。
+  //
+  // e.code / keyCode を先に見てはいけない: どちらも **US 配列の物理位置**を
+  // 指すため、JIS 配列では取り違える（JIS の [ は US の ] の位置なので
+  // BracketRight / 221 になり、左へ行きたいのに右へ飛ぶ。JIS の ] は US の
+  // \ の位置＝Backslash / 220 でどちらにも当たらず無反応）。
+  // 「右へは動くが左へ動けない」という報告はこれで説明がつく
+  if (e.key === '{' || e.key === '[') return -1
+  if (e.key === '}' || e.key === ']') return 1
+  // e.key を持たない古い環境向けの保険（US 配列前提）
+  if (e.code === 'BracketLeft' || e.keyCode === 219) return -1
+  if (e.code === 'BracketRight' || e.keyCode === 221) return 1
+  return 0
+}

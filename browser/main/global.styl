@@ -114,8 +114,13 @@ modalBackColor = white
   background #B1D7FE
 .CodeMirror-line::-moz-selection, .CodeMirror-line > span::-moz-selection, .CodeMirror-line > span > span::-moz-selection
   background #B1D7FE
+// 選択ハイライト。**background だけ指定してはいけない。**
+// 文字色はテーマ側の設定が残るので、暗テーマで「薄い青地に薄い文字」になり
+// 読めなくなる（フォルダ名変更ダイアログで実際に発生）。
+// 背景と文字色を対にして、どのテーマでもコントラストを確保する
 ::selection
   background #B1D7FE
+  color #12283a
 
 body[data-theme="dark"],
 body[data-theme="solarized-dark"],
@@ -181,3 +186,47 @@ body[data-theme="default"]
     background-color rgba(255, 255, 255, 0.3)
 
 @import '../styles/Detail/TagSelect.styl'
+
+// Tab / Shift+Tab のペイン移動を見えるようにする。
+// 実測で、Tab はフォーカスを正しく動かしていたのに outline:none のままで、
+// 画面が一切変わらないため「Tab が効かない」と受け取られていた。
+// NoteList.styl の `.list:focus` と対になる、戻り先（サイドバー）側。
+// `.SideNav` / `.SideNav-active-folder` は CSS Modules ではない安定クラス。
+// ペイン全周を囲むと重いので、隣のペインとの境界だけを示す。
+// サイドバーは右エッジ（NoteList は左エッジ）でバーが向かい合う
+.SideNav:focus
+  outline none
+  box-shadow inset -2px 0 0 $ui-active-color
+
+// 選択中フォルダにフォーカスが入った時は行だけを示す（枠で括らない）
+.SideNav-active-folder:focus
+  outline none
+  box-shadow inset 2px 0 0 $ui-active-color
+
+// 暗いテーマの選択ハイライト。
+// **背景だけ変えると文字色がテーマ側の薄い色のまま残り、実測 1.50:1 で
+// 読めなくなる**（フォルダ名変更ダイアログで発生。WCAG の最低は 4.5:1）。
+// 背景と文字色を対で指定して 4.69:1 を確保する。
+// stylus 側で contrast() を計算する案は、active-color を持たないテーマが
+// あって落ちたのでやめた。値は python で実測して決めている。
+// 暗テーマの一覧は $themes だけだと 'dark' 等を漏らすので明示的に並べる
+$selection-dark-bg = #3f6fd8
+$selection-dark-fg = #ffffff
+
+body[data-theme="dark"],
+body[data-theme="solarized-dark"],
+body[data-theme="dracula"],
+body[data-theme="monokai"],
+body[data-theme="nord"],
+body[data-theme="vulcan"],
+body[data-theme="rockabilly"]
+  ::selection
+    background $selection-dark-bg
+    color $selection-dark-fg
+  .CodeMirror-line::selection,
+  .CodeMirror-line > span::selection,
+  .CodeMirror-line > span > span::selection
+    background $selection-dark-bg
+    color $selection-dark-fg
+  .CodeMirror-focused .CodeMirror-selected
+    background $selection-dark-bg

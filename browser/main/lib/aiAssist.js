@@ -5,19 +5,10 @@
 // falls back to the provider's env var when no key is set.
 const { ipcRenderer } = require('electron')
 import ConfigManager from 'browser/main/lib/ConfigManager'
+// モデル一覧は browser/main/lib/aiModels が単一の情報源
+import { DEFAULT_MODELS } from 'browser/main/lib/aiModels'
 
 let runCounter = 0
-
-// Selectable models = the two cheapest per provider (user decision 2026-07).
-// First entry is the default. Model IDs move fast — keep in sync with AITab.
-export const MODEL_OPTIONS = {
-  openai: ['gpt-5-nano', 'gpt-5-mini'],
-  gemini: ['gemini-2.5-flash-lite', 'gemini-2.5-flash']
-}
-export const DEFAULT_MODELS = {
-  openai: MODEL_OPTIONS.openai[0],
-  gemini: MODEL_OPTIONS.gemini[0]
-}
 
 // Whole-note actions can be huge; cap what we send to the API.
 const MAX_INPUT_CHARS = 20000

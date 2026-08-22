@@ -66,14 +66,18 @@ cd poc/collab-core && npm install && npm test
 **[📦 Releases ページ](https://github.com/BoxPistols/TheBoosters/releases/latest)** から最新版を入手します。
 **v0.16.4 以降を使用してください**（v0.16.2 / v0.16.3 のインストーラは起動しない致命バグがあります）。
 
+> ⚠️ 現在のビルドは未署名のため、初回起動時に OS のセキュリティ警告が出ます。警告の意味・OS バージョン別の開き方・ファイルの真正性確認までまとめた **[インストールガイド](docs/install.md)** を用意しています。
+
 ### macOS（Apple Silicon / Intel）
 
 1. Releases から dmg をダウンロード
    - Apple Silicon（M1〜）: `The-Boosters-<ver>-arm64.dmg`（ネイティブ arm64、Rosetta 不要）
    - Intel: `The-Boosters-<ver>-x64.dmg`
 2. dmg を開き、**The Boosters.app を `Applications` へドラッグ**
-3. **初回のみ**: アプリを**右クリック（Control+クリック）→「開く」→「開く」**
-   - Apple Developer 署名がない ad-hoc 署名ビルドのため、「開発元を確認できません」の警告が出ます。この右クリック起動で以後は普通に開けます
+3. **初回のみ**（Apple 公証がないビルドのため警告が出ます。詳細は[インストールガイド](docs/install.md)）
+   - **macOS 15（Sequoia）以降**: ダブルクリック → 警告は「完了」で閉じる → **システム設定 > プライバシーとセキュリティ** 下部の「ブロックされました」欄で **「このまま開く」→「開く」**（管理者認証）
+     - macOS 15 では従来の「右クリック → 開く」による回避は廃止されています
+   - **macOS 14（Sonoma）以前**: アプリを**右クリック（Control+クリック）→「開く」→「開く」**
 4. 2 回目以降は Dock / Launchpad から通常起動
 
 > それでも「壊れているため開けません」と出る場合（旧バージョン等）はターミナルで
@@ -82,7 +86,8 @@ cd poc/collab-core && npm install && npm test
 ### Windows（x64）
 
 1. Releases から `The-Boosters-Setup-<ver>.exe` をダウンロード
-2. 実行すると SmartScreen の警告が出るので **「詳細情報」→「実行」**
+   - ブラウザが「一般的にダウンロードされていません」と警告した場合は「保持する」を選択
+2. 実行すると SmartScreen の警告が出るので **「詳細情報」→「実行」**（詳細は[インストールガイド](docs/install.md)）
 3. インストーラの指示に従う（インストール先は変更可能）
 4. スタートメニュー / デスクトップから起動
 

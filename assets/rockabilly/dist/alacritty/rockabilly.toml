@@ -1,0 +1,34 @@
+# Rockabilly — 真空管アンプの朱赤と琥珀を、ニュートラルなチャコールに載せた暗色スキーム。
+# Generated from palette.json. Do not edit by hand.
+
+[colors.primary]
+background = "#1C1C1E"
+foreground = "#EAEAEA"
+
+[colors.cursor]
+text = "#1C1C1E"
+cursor = "#E8A33D"
+
+[colors.selection]
+text = "#EAEAEA"
+background = "#333336"
+
+[colors.normal]
+black = "#1C1C1E"
+red = "#EA4A5E"
+green = "#7FB05C"
+yellow = "#E8A33D"
+blue = "#5B95C9"
+magenta = "#A87BCB"
+cyan = "#49AE9E"
+white = "#C8C8CC"
+
+[colors.bright]
+black = "#7E7E84"
+red = "#F0576B"
+green = "#93C572"
+yellow = "#E8C86A"
+blue = "#7BB0DE"
+magenta = "#C39BE0"
+cyan = "#63C5B5"
+white = "#F2F2F4"

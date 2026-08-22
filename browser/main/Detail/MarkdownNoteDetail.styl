@@ -43,6 +43,46 @@
   top $info-height + $info-margin-under-border
   bottom $statusBar-height
   margin 0 30px
+
+// 目次は **.body の内側** に置く。兄弟として外に出すと、上のタグ行や
+// TODO 進捗バー（clear ボタンを含む）に見出しが食い込んだ（実機で確認）。
+// .body の中なら座標系が完全に一致するので構造的に被らない。
+//
+// 幅はドラッグで変えられるので JS 側から style で上書きする。ここの値は
+// 初期値ではなく「変数を持たない時の保険」
+.body-editor
+  absolute top bottom left right
+
+.body-editor--with-toc
+  @extend .body-editor
+  // right は JS 側で目次の実幅に合わせて上書きする
+  right 200px
+
+.body-toc
+  position absolute
+  top 0
+  bottom 0
+  right 0
+  width 200px
+  display flex
+
+// 目次の幅を変えるドラッグ用の境界。掴みやすいよう当たり判定を広げる
+.toc-slider
+  position absolute
+  top 0
+  bottom 0
+  width 1px
+  background-color $ui-borderColor
+  cursor col-resize
+  z-index 5
+
+.toc-slider-hitbox
+  position absolute
+  top 0
+  bottom 0
+  left -4px
+  width 9px
+
 .body-noteEditor
   absolute top bottom left right
 
@@ -77,3 +117,38 @@ for theme in 'solarized-dark' 'dracula'
 
 for theme in $themes
   apply-theme(theme)
+
+// 目次の表示切替。右端の Star / Trash / Info と同じ寸法にしないと
+// アイコン列の高さと間隔がばらついて見える（実機で指摘を受けた）。
+// 共通ミックスインをそのまま使って揃える
+.toc-toggle
+  top 10px
+  topBarButtonRight()
+  // クリックでも枠が残ると「押しっぱなし」に見えるので、キーボード操作の
+  // 時だけ出す
+  &:focus
+    outline none
+  &:focus-visible
+    outline none
+    box-shadow inset 0 0 0 2px $ui-active-color
+
+.toc-toggle--active
+  @extend .toc-toggle
+  color $ui-active-color
+
+// 近隣の Trash / Info と同じ暗テーマ用の色を当てる。
+// これが無いと暗テーマで自分だけ明テーマの色のまま残り、
+// アイコン列の中で1つだけ沈んで見える（実機で指摘を受けた）
+body[data-theme="dark"]
+  .toc-toggle
+    topBarButtonDark()
+  .toc-toggle--active
+    topBarButtonDark()
+    color $ui-active-color
+
+// ノート内検索のハイライト（エディタ側）。プレビュー側の
+// ::highlight(tb-find-all) と同じ色に揃える。markText は CSS Modules を
+// 通らないので :global で当てる
+:global(.tb-find-all)
+  background-color #ffeb3b
+  color #1a1a1a

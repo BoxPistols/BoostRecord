@@ -29,6 +29,15 @@ let ran = false
 function finish(code, result) {
   if (finished) return
   finished = true
+  // 判定は必ず stdout に出す。結果ファイルは CI から読めないので、
+  // 書くだけだと「exit 0 で無言」＝永久グリーンと区別が付かない
+  console.log('\n=== sidebar probe ===')
+  const rep = (result && result.rep) || {}
+  Object.keys(rep).forEach(k =>
+    console.log(`ROW   ${k} — ${JSON.stringify(rep[k])}`)
+  )
+  if (result && result.error) console.log(`ERROR: ${result.error}`)
+  console.log(`--- ${result && result.ok ? 'OK' : 'NG'} exit ${code}`)
   try {
     fs.writeFileSync(
       RESULT_FILE,
@@ -97,6 +106,10 @@ app.on('web-contents-created', (_e, wc) => {
 
         const win = BrowserWindow.getAllWindows()[0]
 
+        // Cmd+B は 2 状態ではなく 3 サイクル:
+        //   EXPANDED(可変幅) → FOLDED(アイコン列) → HIDDEN(display:none) → …
+        // HIDDEN では measureWidth() が -1（要素が見つからない）ではなく 0 を
+        // 返す点に注意（display:none でもノードは残る）
         const w0 = await wc.executeJavaScript(measureWidth(), true)
         rep.widthInitial = w0
 
@@ -104,18 +117,32 @@ app.on('web-contents-created', (_e, wc) => {
         item.click(item, win, {})
         await new Promise(resolve => setTimeout(resolve, 700))
         const w1 = await wc.executeJavaScript(measureWidth(), true)
-        rep.widthAfterToggle1 = w1
+        rep.widthFolded = w1
 
         item.click(item, win, {})
         await new Promise(resolve => setTimeout(resolve, 700))
         const w2 = await wc.executeJavaScript(measureWidth(), true)
-        rep.widthAfterToggle2 = w2
+        rep.widthHidden = w2
+        rep.reopenButton = await wc.executeJavaScript(
+          `(() => { const b = document.querySelector('.TopBar button i.fa-angle-double-right')
+             return !!(b && b.offsetParent !== null) })()`,
+          true
+        )
 
-        const toggled = w1 !== w0 && w1 > 0 && w0 > 0
-        const restored = w2 === w0
-        rep.toggledOnFirstClick = toggled
-        rep.restoredOnSecondClick = restored
-        const ok = toggled && restored
+        item.click(item, win, {})
+        await new Promise(resolve => setTimeout(resolve, 700))
+        const w3 = await wc.executeJavaScript(measureWidth(), true)
+        rep.widthRestored = w3
+
+        const folded = w1 !== w0 && w1 > 0 && w0 > 0
+        const hidden = w2 === 0
+        const restored = w3 === w0
+        rep.foldedOnFirstClick = folded
+        rep.hiddenOnSecondClick = hidden
+        rep.restoredOnThirdClick = restored
+        // 完全に隠すとサイドバー内のトグルが消えるので、戻る導線が要る
+        rep.reopenButtonShownWhileHidden = rep.reopenButton
+        const ok = folded && hidden && restored && rep.reopenButton
         finish(ok ? 0 : 1, { ok, rep })
       } catch (err) {
         finish(2, {

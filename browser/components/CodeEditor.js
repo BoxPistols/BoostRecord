@@ -2,6 +2,12 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import _ from 'lodash'
 import CodeMirror from 'codemirror'
+import {
+  UL,
+  OL,
+  TASK,
+  toggleListInEditor
+} from 'browser/lib/markdownListToggle'
 import hljs from 'highlight.js'
 import 'codemirror-mode-elixir'
 import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
@@ -46,6 +52,38 @@ function translateHotkey(hotkey) {
     .replace(/\s*\+\s*/g, '-')
     .replace(/Command/g, 'Cmd')
     .replace(/Control/g, 'Ctrl')
+}
+
+// 選択した複数行を一括でリスト化するキーバインド。
+// 数字キーは配列に依らず同じ keyCode なので、[ ] のような US/JIS の
+// 取り違えが起きない。Cmd+1..9 のタブ移動は Shift 無し限定なので衝突しない。
+// defaultKeyMap と editorKeyMap は別メソッドにあるのでモジュールスコープに置く
+// CodeMirror 内蔵の検索ダイアログを殺す。自前の FindBar に置き換えるため。
+// 内蔵ダイアログは addon/dialog/dialog.js が keyCode 13 だけを見て
+// isComposing を見ないので、**日本語変換の確定 Enter がダイアログを閉じて
+// 未確定の文字列で検索する**。件数もハイライトも無い。
+// defaultKeyMap と editorKeyMap の両方に入れること: テーブル記法上に
+// カーソルがある時だけ setOption('extraKeys') で入れ替わり、片方だけだと
+// そこで旧ダイアログが復活する
+const FIND_BINDINGS = {
+  'Cmd-F': false,
+  'Ctrl-F': false,
+  'Cmd-G': false,
+  'Ctrl-G': false,
+  'Shift-Cmd-G': false,
+  'Shift-Ctrl-G': false,
+  // pcDefault の 'Shift-Ctrl-F': 'replace' はホットキー設定の
+  // prettifyMarkdown(非 OSX で Ctrl+Shift+F) と衝突する
+  'Shift-Ctrl-F': false
+}
+
+const LIST_BINDINGS = {
+  'Shift-Cmd-8': cm => toggleListInEditor(cm, UL),
+  'Shift-Ctrl-8': cm => toggleListInEditor(cm, UL),
+  'Shift-Cmd-7': cm => toggleListInEditor(cm, OL),
+  'Shift-Ctrl-7': cm => toggleListInEditor(cm, OL),
+  'Shift-Cmd-9': cm => toggleListInEditor(cm, TASK),
+  'Shift-Ctrl-9': cm => toggleListInEditor(cm, TASK)
 }
 
 export default class CodeEditor extends React.Component {
@@ -175,6 +213,8 @@ export default class CodeEditor extends React.Component {
     const expandSnippet = snippetManager.expandSnippet
 
     this.defaultKeyMap = CodeMirror.normalizeKeyMap({
+      ...LIST_BINDINGS,
+      ...FIND_BINDINGS,
       // Free Cmd-Alt-F: CodeMirror's Mac default binds it to "replace", which
       // swallowed the app's Cmd+Opt+F hotkey (opened the Replace dialog instead
       // of firing the shortcut). `false` = handle-as-nothing (no fall-through to
@@ -403,6 +443,9 @@ export default class CodeEditor extends React.Component {
     })
 
     this.editorKeyMap = CodeMirror.normalizeKeyMap({
+      // テーブル編集モードでもリスト化は使えるようにする
+      ...LIST_BINDINGS,
+      ...FIND_BINDINGS,
       // Keep Cmd-Alt-F freed in table-editor mode too (see defaultKeyMap).
       'Cmd-Alt-F': false,
       Tab: () => {

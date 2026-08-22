@@ -8,14 +8,24 @@ import consts from 'browser/lib/consts'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import AwsMobileAnalyticsConfig from 'browser/main/lib/AwsMobileAnalyticsConfig'
 import i18n from 'browser/lib/i18n'
+import { childPath, splitPath } from 'browser/lib/folderTree'
 
 class CreateFolderModal extends React.Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      name: ''
+      name: '',
+      error: null
     }
+  }
+
+  // 親フォルダから作る時は、その配下に入るようパスを前置する。
+  // 利用者が 'PR-1281' と打てば 'KSD/onboarding/PR-1281' になる
+  buildName() {
+    const typed = this.state.name.trim()
+    const parent = this.props.parentPath || ''
+    return parent ? childPath(parent, typed) : typed
   }
 
   componentDidMount() {
@@ -52,26 +62,40 @@ class CreateFolderModal extends React.Component {
 
   confirm() {
     AwsMobileAnalyticsConfig.recordDynamicCustomEvent('ADD_FOLDER')
-    if (this.state.name.trim().length > 0) {
-      const { storage } = this.props
-      const input = {
-        name: this.state.name.trim(),
-        color: consts.FOLDER_COLORS[Math.floor(Math.random() * 7) % 7]
-      }
-
-      dataApi
-        .createFolder(storage.key, input)
-        .then(data => {
-          store.dispatch({
-            type: 'UPDATE_FOLDER',
-            storage: data.storage
-          })
-          this.props.close()
-        })
-        .catch(err => {
-          console.error(err)
-        })
+    // 入力そのものが空の時に親パスだけで作ろうとすると、dataApi が
+    // 「同じパスが既にある」で拒否し、名前未入力だと伝わらない。先に止める
+    if (splitPath(this.state.name).length === 0) {
+      this.setState({ error: i18n.__('Please enter a folder name') })
+      return
     }
+    const name = this.buildName()
+    if (splitPath(name).length === 0) {
+      this.setState({ error: i18n.__('Please enter a folder name') })
+      return
+    }
+    const { storage } = this.props
+    const input = {
+      name,
+      color: consts.FOLDER_COLORS[Math.floor(Math.random() * 7) % 7]
+    }
+
+    dataApi
+      .createFolder(storage.key, input)
+      .then(data => {
+        store.dispatch({
+          type: 'UPDATE_FOLDER',
+          storage: data.storage
+        })
+        this.props.close()
+      })
+      .catch(err => {
+        // console.error だけだと、拒否された時にモーダルが開いたまま
+        // 無言で固まる（同じパスが既にある場合など）
+        console.error(err)
+        this.setState({
+          error: (err && err.message) || i18n.__('Could not create the folder')
+        })
+      })
   }
 
   render() {
@@ -83,6 +107,13 @@ class CreateFolderModal extends React.Component {
       >
         <div styleName='header'>
           <div styleName='title'>{i18n.__('Create new folder')}</div>
+          {this.props.parentPath && (
+            // どこに作られるのかを見せる。前置は暗黙なので、出さないと
+            // 「打った名前と違うフォルダができた」ように見える
+            <div styleName='parent-path' title={this.props.parentPath}>
+              {`${this.props.parentPath}/`}
+            </div>
+          )}
         </div>
         <ModalEscButton
           handleEscButtonClick={e => this.handleCloseButtonClick(e)}
@@ -97,6 +128,12 @@ class CreateFolderModal extends React.Component {
               onChange={e => this.handleChange(e)}
               onKeyDown={e => this.handleInputKeyDown(e)}
             />
+            <div styleName='control-folder-hint'>
+              {i18n.__('Use / to nest folders (e.g. KSD/onboarding)')}
+            </div>
+            {this.state.error && (
+              <div styleName='control-folder-error'>{this.state.error}</div>
+            )}
           </div>
           <button
             styleName='control-confirmButton'
@@ -111,6 +148,7 @@ class CreateFolderModal extends React.Component {
 }
 
 CreateFolderModal.propTypes = {
+  parentPath: PropTypes.string,
   storage: PropTypes.shape({
     key: PropTypes.string
   })

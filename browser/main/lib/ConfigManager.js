@@ -2,6 +2,18 @@ import _ from 'lodash'
 import RcParser from 'browser/lib/RcParser'
 import i18n from 'browser/lib/i18n'
 import ee from 'browser/main/lib/eventEmitter'
+import { DEFAULT_MODELS, normalizeAiModels } from 'browser/main/lib/aiModels'
+import uiThemes from 'browser/lib/ui-themes'
+import {
+  migrateUntouchedEditorTheme,
+  resolveEditorTheme
+} from 'browser/lib/editorThemes'
+import {
+  EXPANDED,
+  resolveSideNavMode,
+  resolveNoteListMode,
+  isFoldedFor
+} from 'browser/main/lib/sideNavMode'
 
 const OSX = global.process.platform === 'darwin'
 const win = global.process.platform === 'win32'
@@ -34,11 +46,20 @@ const DEFAULT_CSS_CONFIG = `
 
 export const DEFAULT_CONFIG = {
   zoom: 1,
+  // 旧 boolean。sideNavMode から導出した値を必ず同時に入れる
+  // （まだ boolean を見ている参照が残っているため）
   isSideNavFolded: false,
+  // サイドバーの表示モード: EXPANDED | FOLDED | HIDDEN。
+  // Cmd+B がこの順で巡回する。validate() には足さない
+  // （既存の設定ファイルに無いキーを必須にすると全部無効判定になる）
+  sideNavMode: EXPANDED,
   // ノート一覧ペインの折りたたみ。既存の設定ファイルにはこのキーが無いので
   // validate() では必須にしない（必須にすると既存ユーザーの設定が全て無効に
   // 判定され、初期値へ巻き戻る）
   isNoteListFolded: false,
+  // ノート一覧の表示モード: EXPANDED | FOLDED | HIDDEN。
+  // Cmd+Shift+B がこの順で巡回する（サイドバーと同じ）
+  noteListMode: EXPANDED,
   // 折りたたみ時の幅。0 にせず残すのは何のペインか分かるようにするため。
   // 畳んだ状態でもドラッグで微調整できるので、その結果をここに保存する
   foldedListWidth: 100,
@@ -80,7 +101,9 @@ export const DEFAULT_CONFIG = {
     // （バインドはされるが keydown と一致せず発火しない）。
     // Shift + L は「表示／非表示」と重なるので C = Copy を使う
     // （HTMLで貼り付け = Shift + V と対になる）
-    focusNoteLink: OSX ? 'Command + Shift + C' : 'Ctrl + Shift + C'
+    focusNoteLink: OSX ? 'Command + Shift + C' : 'Ctrl + Shift + C',
+    // 目次ペインの表示切替。Command + Shift + O（Outline）
+    toggleToc: OSX ? 'Command + Shift + O' : 'Ctrl + Shift + O'
   },
   ui: {
     language: 'ja',
@@ -117,6 +140,9 @@ export const DEFAULT_CONFIG = {
     codeBlockMatchingTriples: '',
     codeBlockExplodingPairs: '[]{}``',
     switchPreview: 'BLUR', // 'BLUR', 'DBL_CLICK', 'RIGHTCLICK'
+    // 未設定だと新規スニペットの mode が undefined になり、null(Auto Detect)
+    // と挙動がずれる。既定を明示して揃える
+    snippetDefaultLanguage: 'Auto Detect',
     delfaultStatus: 'PREVIEW', // 'PREVIEW', 'CODE'
     scrollPastEnd: false,
     type: 'SPLIT', // 'SPLIT', 'EDITOR_PREVIEW'
@@ -148,7 +174,6 @@ export const DEFAULT_CONFIG = {
     latexInlineClose: '$',
     latexBlockOpen: '$$',
     latexBlockClose: '$$',
-    plantUMLServerAddress: 'http://www.plantuml.com/plantuml',
     scrollPastEnd: false,
     scrollSync: true,
     smartQuotes: true,
@@ -159,7 +184,14 @@ export const DEFAULT_CONFIG = {
     sanitize: 'STRICT', // 'STRICT', 'ALLOW_STYLES', 'NONE'
     mermaidHTMLLabel: false,
     lineThroughCheckbox: true,
-    urlPreview: true
+    urlPreview: true,
+    // 目次（ページ内リンク）ペイン。validate() には足さない
+    // （既存の設定ファイルに無いキーを必須にすると初期値へ巻き戻る）
+    showToc: true,
+    tocMinLevel: 1,
+    tocMaxLevel: 3,
+    // 目次ペインの幅（ドラッグで変更 → ここに保存）
+    tocWidth: 200
   },
   export: {
     metadata: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'
@@ -167,10 +199,23 @@ export const DEFAULT_CONFIG = {
     prefixAttachmentFolder: false
   },
   coloredTags: {},
+  // 既定モデルは aiModels の一覧から取る。ここに ID を直書きすると
+  // モデル更新のたびに片方だけ古いまま残る
   ai: {
     provider: 'openai', // 'openai' | 'gemini'
-    openai: { apiKey: '', model: 'gpt-5-mini' },
-    gemini: { apiKey: '', model: 'gemini-2.5-flash' }
+    openai: { apiKey: '', model: DEFAULT_MODELS.openai },
+    gemini: { apiKey: '', model: DEFAULT_MODELS.gemini }
+  }
+}
+
+// エディタテーマの stylesheet を張り替える。
+// default は cm-s-default（lib/codemirror.css）で足りるので path を持たない。
+// その時に href を空や null で埋めると存在しない URL を取りに行くので、属性ごと外す
+function applyEditorThemeLink(link, theme) {
+  if (theme && theme.path) {
+    link.setAttribute('href', theme.path)
+  } else {
+    link.removeAttribute('href')
   }
 }
 
@@ -221,9 +266,52 @@ function fillEmptyHotkeys(config) {
 
 function get() {
   const rawStoredConfig = window.localStorage.getItem('config')
-  const storedConfig = fillEmptyHotkeys(
-    mergeWithDefaults(DEFAULT_CONFIG, JSON.parse(rawStoredConfig))
+  const parsed = JSON.parse(rawStoredConfig)
+  let storedConfig = fillEmptyHotkeys(mergeWithDefaults(DEFAULT_CONFIG, parsed))
+
+  // sideNavMode を持たない古い設定は旧 boolean から導く。merge 後だと既定の
+  // EXPANDED で埋まってしまい、畳んで使っていた人の状態が毎回戻るので、
+  // マージ前の生データを見る。isSideNavFolded は常に導出値で揃える
+  // （まだ boolean を見ている参照が残っている）
+  const sideNavMode = resolveSideNavMode(parsed)
+  const noteListMode = resolveNoteListMode(parsed)
+  storedConfig = Object.assign({}, storedConfig, {
+    sideNavMode,
+    isSideNavFolded: isFoldedFor(sideNavMode),
+    noteListMode,
+    isNoteListFolded: isFoldedFor(noteListMode)
+  })
+
+  // 明暗の連動は環境設定を保存した時にしか走らないので、それ以前に
+  // ダークへ切り替えた利用者はエディタだけが白い柱のまま残る。
+  // 既定値のままの人だけ揃える（選び直した人の設定は触らない）
+  const uiIsDark = uiThemes.some(
+    t => t.name === storedConfig.ui.theme && t.isDark
   )
+  const coupledEditorTheme = migrateUntouchedEditorTheme(
+    uiIsDark,
+    storedConfig.editor.theme
+  )
+  if (coupledEditorTheme !== storedConfig.editor.theme) {
+    storedConfig = Object.assign({}, storedConfig, {
+      editor: Object.assign({}, storedConfig.editor, {
+        theme: coupledEditorTheme
+      })
+    })
+    _save(storedConfig)
+  }
+
+  // 廃止したモデル ID（gpt-5-mini 等）が保存されたままだと API 呼び出しが
+  // 失敗し続けるので、提供中の一覧に無い ID は既定へ寄せて保存し直す。
+  // 一度書き戻せば以降は一致するので、実質「起動時に1回」で終わる。
+  // .boostnoterc 由来の値は下の assignConfigValues で後から重なるため
+  // ここでは触らない（明示指定の逃げ道を潰さない）
+  const migratedAi = normalizeAiModels(storedConfig.ai)
+  if (migratedAi !== storedConfig.ai) {
+    storedConfig = Object.assign({}, storedConfig, { ai: migratedAi })
+    _save(storedConfig)
+  }
+
   let config = storedConfig
 
   try {
@@ -252,15 +340,12 @@ function get() {
       document.head.appendChild(editorTheme)
     }
 
+    // 保存値は書き換えない。一覧から外したテーマは使う時だけ代表へ寄せる
     const theme = consts.THEMES.find(
-      theme => theme.name === config.editor.theme
+      theme => theme.name === resolveEditorTheme(config.editor.theme)
     )
 
-    if (theme) {
-      editorTheme.setAttribute('href', theme.path)
-    } else {
-      config.editor.theme = 'default'
-    }
+    applyEditorThemeLink(editorTheme, theme)
   }
 
   return config
@@ -292,12 +377,10 @@ function set(updates) {
   }
 
   const newTheme = consts.THEMES.find(
-    theme => theme.name === newConfig.editor.theme
+    theme => theme.name === resolveEditorTheme(newConfig.editor.theme)
   )
 
-  if (newTheme) {
-    editorTheme.setAttribute('href', newTheme.path)
-  }
+  applyEditorThemeLink(editorTheme, newTheme)
 
   electronConfig.set('autoUpdateEnabled', newConfig.autoUpdateEnabled)
 

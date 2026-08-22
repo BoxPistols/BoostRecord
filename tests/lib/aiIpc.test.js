@@ -52,4 +52,21 @@ describe('resolveKey', () => {
     expect(resolveKey('anthropic', '')).toBeNull()
     expect(resolveKey('openai', '')).toBeNull()
   })
+
+  // 資格情報ストアの鍵は「設定画面でいま打った鍵」より弱く、環境変数より強い。
+  // 打った鍵が勝たないと、保存前の接続テストが古い鍵で走ってしまう
+  it('prefers the credential-store key over the env var', () => {
+    process.env.OPENAI_API_KEY = 'env-key'
+    expect(resolveKey('openai', '', 'stored-key')).toBe('stored-key')
+  })
+
+  it('still lets the typed override win over the stored key', () => {
+    expect(resolveKey('openai', 'typed-key', 'stored-key')).toBe('typed-key')
+  })
+
+  it('falls back to the env var when the stored key is empty', () => {
+    process.env.OPENAI_API_KEY = 'env-key'
+    expect(resolveKey('openai', '', '')).toBe('env-key')
+    expect(resolveKey('openai', '', null)).toBe('env-key')
+  })
 })

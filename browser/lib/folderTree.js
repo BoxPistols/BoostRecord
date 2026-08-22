@@ -1,0 +1,328 @@
+// フォルダ名のパス表記（`KSD/onboarding/PR-1281`）を多階層ツリーとして解釈する。
+//
+// データモデルは一切変えない。boostnote.json は今までどおり
+// `[{key, name, color}]` の平坦な配列で、ここは**描画のための導出**だけを行う。
+// そうすることで他ツールとの互換が保て、親削除時の孤児処理や循環参照のような
+// 「データを失いうる分岐」を増やさずに済む。
+//
+// CodeMirror も React も持ち込まない純粋関数。境界条件（中間ノードの補完、
+// 区切りの連続、前後の空白、同名衝突）をテストで固めたいため。
+
+export const SEPARATOR = '/'
+
+/**
+ * 名前をパスの配列にする。空要素は捨てる。
+ * `a//b` `/a/b/` `a / b` はすべて ['a','b']。
+ *
+ * @param {string} name
+ * @returns {string[]}
+ */
+export function splitPath(name) {
+  if (typeof name !== 'string') return []
+  return name
+    .split(SEPARATOR)
+    .map(part => part.trim())
+    .filter(part => part !== '')
+}
+
+/**
+ * パス配列を正規化した名前へ戻す（保存する値はこれに揃える）。
+ * @param {string[]} parts
+ * @returns {string}
+ */
+export function joinPath(parts) {
+  return (parts || []).join(SEPARATOR)
+}
+
+/**
+ * 表示名（パスの最後の要素）。
+ * @param {string} name
+ * @returns {string}
+ */
+export function leafName(name) {
+  const parts = splitPath(name)
+  return parts.length ? parts[parts.length - 1] : ''
+}
+
+/**
+ * フォルダ配列からツリーを作る。
+ *
+ * 実体のない中間ノードも補う。`KSD/spec` だけが存在する時、`KSD` は
+ * boostnote.json に無くてもツリーには要る（無いと spec が根に浮いて、
+ * 利用者から見て階層が壊れて見える）。中間ノードは folder: null を持つ。
+ *
+ * @param {Array<{key: string, name: string, color?: string}>} folders
+ * @returns {Array<object>} 各ノード: { path, name, folder, children, depth }
+ */
+export function buildFolderTree(folders) {
+  const roots = []
+  const byPath = {}
+
+  const ensure = (parts, depth) => {
+    const path = joinPath(parts)
+    if (byPath[path]) return byPath[path]
+    const node = {
+      path,
+      name: parts[parts.length - 1],
+      folder: null,
+      children: [],
+      depth
+    }
+    byPath[path] = node
+    if (depth === 0) {
+      roots.push(node)
+    } else {
+      ensure(parts.slice(0, -1), depth - 1).children.push(node)
+    }
+    return node
+  }
+
+  ;(Array.isArray(folders) ? folders : []).forEach(folder => {
+    const parts = splitPath(folder && folder.name)
+    // 名前が空、あるいは区切りだけのフォルダはツリーに置けない。
+    // 捨てずに「名前なし」の根として出す（消えると利用者が中身へ辿れない）
+    if (!parts.length) {
+      const node = {
+        // 生の NUL を書くと git がファイルをバイナリ判定して diff も grep も
+        // 沈黙する。エスケープ表記なら同じ文字列で挙動は変わらない
+        path: folder && folder.key ? `\u0000${folder.key}` : '\u0000',
+        name: '',
+        folder,
+        children: [],
+        depth: 0
+      }
+      roots.push(node)
+      return
+    }
+    const node = ensure(parts, parts.length - 1)
+    // 同じパスのフォルダが2つある場合は先勝ち。後勝ちにすると、
+    // 表示上どちらが選ばれているのか分からないまま実体が入れ替わる
+    if (!node.folder) node.folder = folder
+  })
+
+  return roots
+}
+
+/**
+ * 指定パスの祖先パスを浅い順に返す（自分自身は含まない）。
+ * 選択中フォルダの祖先を自動展開するのに使う。
+ *
+ * @param {string} path
+ * @returns {string[]}
+ */
+export function ancestorPaths(path) {
+  const parts = splitPath(path)
+  const out = []
+  for (let i = 1; i < parts.length; i++) {
+    out.push(joinPath(parts.slice(0, i)))
+  }
+  return out
+}
+
+/**
+ * path が ancestor の子孫か（自分自身も真とする）。
+ * ノート数の集計と、親フォルダ選択時の子孫ノート抽出に使う。
+ *
+ * 前方一致だけで判定してはいけない: `KSD` は `KSDX` に前方一致するが
+ * 子孫ではない。区切りまで含めて見る。
+ *
+ * @param {string} path
+ * @param {string} ancestor
+ * @returns {boolean}
+ */
+export function isDescendantPath(path, ancestor) {
+  const a = joinPath(splitPath(ancestor))
+  const p = joinPath(splitPath(path))
+  // 正規化して空になる祖先（'/' '///' ' / ' などの名前を持つフォルダ。
+  // CreateFolderModal の trim().length > 0 を素通りするので実際に作れる）に
+  // 対しては **必ず false**。ここで true を返すと「ストレージ内の全パスが
+  // その子孫」になり、子孫カスケード削除を載せた瞬間に全ノートが消える。
+  // ストレージ根の集約が要るなら、この関数ではなく専用の分岐で扱うこと
+  if (a === '') return false
+  if (p === a) return true
+  return p.indexOf(a + SEPARATOR) === 0
+}
+
+/**
+ * ノードとその子孫が持つ実フォルダの key を集める。
+ * ノート数の集計に使う（中間ノード自身は実体を持たないことがある）。
+ *
+ * @param {object} node
+ * @returns {string[]}
+ */
+export function collectFolderKeys(node) {
+  const keys = []
+  const walk = n => {
+    if (n.folder && n.folder.key) keys.push(n.folder.key)
+    n.children.forEach(walk)
+  }
+  if (node) walk(node)
+  return keys
+}
+
+/**
+ * 子フォルダを作る時の既定名。親のパスを前置する。
+ * @param {string} parentPath
+ * @param {string} childName
+ * @returns {string}
+ */
+export function childPath(parentPath, childName) {
+  const parts = splitPath(parentPath).concat(splitPath(childName))
+  return joinPath(parts)
+}
+
+/**
+ * その場改名の入力値から新しいフルパスを決める。
+ *
+ * 入力は**葉の名前**（`a/b` のように区切りを含めればその場で深くもできる）。
+ * 取り消し（null）にする条件を1箇所に集める:
+ * - 正規化して空になる入力（全選択→Delete→Enter は「取り消し」であって
+ *   「親パスへの改名」ではない。`newPath === ''` だけで判定すると、
+ *   ネストしたフォルダで親パスが残ってガードを素通りする）
+ * - 変更が無い（no-op）
+ *
+ * @param {string} currentName 現在のフルパス
+ * @param {string} value 入力された葉の名前
+ * @returns {string|null} 新しいフルパス。取り消しなら null
+ */
+export function resolveRenamedPath(currentName, value) {
+  if (splitPath(value).length === 0) return null
+  const parent = splitPath(currentName).slice(0, -1)
+  const newPath = joinPath(parent.concat(splitPath(value)))
+  if (newPath === joinPath(splitPath(currentName))) return null
+  return newPath
+}
+
+/**
+ * 折りたたみ集合を改名へ追随させる。
+ *
+ * 集合は path 文字列で永続化されるため、改名すると畳んだ状態が失われ、
+ * 旧 path が幽霊エントリとして残る（後で同じ path のフォルダを作った瞬間、
+ * 身に覚えなく畳まれて見える）。
+ *
+ * @param {Set<string>|Array<string>} paths
+ * @param {string} oldPath
+ * @param {string} newPath
+ * @returns {Set<string>}
+ */
+export function migrateCollapsedPaths(paths, oldPath, newPath) {
+  const next = new Set()
+  ;(paths ? Array.from(paths) : []).forEach(p => {
+    if (p === oldPath) next.add(newPath)
+    else if (oldPath !== '' && p.indexOf(oldPath + SEPARATOR) === 0) {
+      next.add(newPath + p.slice(oldPath.length))
+    } else next.add(p)
+  })
+  return next
+}
+
+/**
+ * フォルダ改名のカスケード計算。
+ *
+ * パス表記のネストでは、親フォルダの name を変えると**子孫の name も
+ * 同じ接頭辞を持ち続ける**ため、親だけ改名すると子孫が旧パスの下へ
+ * 取り残される（旧名の中間ノードが復活して階層が割れる）。
+ * 変更対象を1回で計算し、呼び出し側が boostnote.json へ**1回の書き込み**で
+ * 反映できる形で返す（フォルダごとに書くと read-modify-write が競合する）。
+ *
+ * @param {Array<{key: string, name: string}>} folders
+ * @param {string} folderKey 改名対象
+ * @param {string} newName 新しいフルパス（正規化前でよい）
+ * @returns {{ok: boolean, error?: string, changes?: Array<{key: string, name: string}>}}
+ *   changes は変更が必要なフォルダのみ（no-op なら空配列）
+ */
+export function renameFolderPaths(folders, folderKey, newName) {
+  const list = Array.isArray(folders) ? folders : []
+  const target = list.find(f => f && f.key === folderKey)
+  if (!target) return { ok: false, error: 'TARGET_NOT_FOUND' }
+
+  const oldPath = joinPath(splitPath(target.name))
+  const newPath = joinPath(splitPath(newName))
+  if (newPath === '') return { ok: false, error: 'EMPTY_NAME' }
+  if (newPath === oldPath) return { ok: true, changes: [] }
+
+  const changes = [{ key: folderKey, name: newPath }]
+  list.forEach(f => {
+    if (!f || f.key === folderKey) return
+    const p = joinPath(splitPath(f.name))
+    // 厳密な子孫だけ。同じパスの重複フォルダ（先勝ちで隠れている実体）を
+    // 巻き込むと、改名のたびに重複が「合流」して見分けられなくなる
+    if (oldPath !== '' && p.indexOf(oldPath + SEPARATOR) === 0) {
+      changes.push({ key: f.key, name: newPath + p.slice(oldPath.length) })
+    }
+  })
+
+  // 変更後のパスが他のフォルダと衝突しないか。通すとツリー導出の先勝ちで
+  // どちらかが画面から消える
+  const finalByKey = new Map(
+    list.map(f => [f.key, joinPath(splitPath(f.name))])
+  )
+  changes.forEach(c => finalByKey.set(c.key, c.name))
+  const seen = new Map()
+  for (const [key, p] of finalByKey) {
+    if (
+      seen.has(p) &&
+      changes.some(c => c.key === key || c.key === seen.get(p))
+    ) {
+      return { ok: false, error: 'PATH_CLASH', clashPath: p }
+    }
+    if (!seen.has(p)) seen.set(p, key)
+  }
+
+  return { ok: true, changes }
+}
+
+// --- 折りたたみ状態 ---
+// localStorage に置く。config に混ぜると、壊れた値が設定全体の検証を巻き込む。
+// **閉じた方**を覚えるので、新しく作った子フォルダが勝手に隠れることはない。
+// SideNav（番号ジャンプの採番）と StorageItem（描画）の両方が同じ値を読むので、
+// ここに集約する（別々に持つと採番と画面がずれる）
+const COLLAPSED_KEY = storageKey => `folderTree.collapsed.${storageKey}`
+
+export function readCollapsedPaths(storageKey) {
+  try {
+    const parsed = JSON.parse(
+      window.localStorage.getItem(COLLAPSED_KEY(storageKey))
+    )
+    return new Set(
+      Array.isArray(parsed) ? parsed.filter(p => typeof p === 'string') : []
+    )
+  } catch (e) {
+    return new Set()
+  }
+}
+
+export function writeCollapsedPaths(storageKey, paths) {
+  try {
+    window.localStorage.setItem(
+      COLLAPSED_KEY(storageKey),
+      JSON.stringify(Array.from(paths))
+    )
+  } catch (e) {
+    // 保存に失敗しても開閉自体は動かす（永続化は付加価値）
+  }
+}
+
+/**
+ * 実際に描画される行数。番号ジャンプの採番に使う。
+ *
+ * storage.folders.length で数えてはいけない: 中間ノードが行を増やし、
+ * 折りたたみが行を減らすので、次のストレージの採番がずれる。
+ *
+ * @param {Array} folders
+ * @param {Set<string>} collapsedPaths
+ * @param {Set<string>} [forcedOpen] 祖先の自動展開など、畳んでいても開く経路
+ * @returns {number}
+ */
+export function countVisibleRows(folders, collapsedPaths, forcedOpen) {
+  const collapsed = collapsedPaths || new Set()
+  const forced = forcedOpen || new Set()
+  let count = 0
+  const walk = node => {
+    count += 1
+    const expanded = !collapsed.has(node.path) || forced.has(node.path)
+    if (expanded) node.children.forEach(walk)
+  }
+  buildFolderTree(folders).forEach(walk)
+  return count
+}

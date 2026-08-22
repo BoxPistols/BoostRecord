@@ -11,7 +11,14 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import consts from 'browser/lib/consts'
 
-const FolderColorSwatches = ({ value, onSelect, size = 26, columns = 6 }) => (
+const FolderColorSwatches = ({
+  value,
+  onSelect,
+  onReset,
+  resetLabel = 'No color',
+  size = 26,
+  columns = 6
+}) => (
   <div
     style={{
       display: 'grid',
@@ -20,6 +27,36 @@ const FolderColorSwatches = ({ value, onSelect, size = 26, columns = 6 }) => (
       justifyContent: 'center'
     }}
   >
+    {onReset && (
+      // 「色を外す」は色そのものでは表せないので斜線で示す。
+      // これが無いと一度付けた色を戻す手段が無くなる
+      <button
+        type='button'
+        title={resetLabel}
+        aria-label={resetLabel}
+        aria-pressed={!value}
+        data-folder-swatch='none'
+        onClick={e => {
+          e.preventDefault()
+          e.stopPropagation()
+          onReset()
+        }}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          background:
+            'linear-gradient(135deg, transparent 44%, #d9534f 44%, ' +
+            '#d9534f 56%, transparent 56%)',
+          border: '2px solid transparent',
+          boxShadow: !value
+            ? '0 0 0 2px #fff, 0 0 0 4px rgba(128,128,128,0.6)'
+            : '0 0 0 1px rgba(128,128,128,0.5)',
+          cursor: 'pointer',
+          padding: 0
+        }}
+      />
+    )}
     {consts.FOLDER_COLORS.map((color, i) => (
       <button
         key={color}
@@ -58,6 +95,9 @@ const FolderColorSwatches = ({ value, onSelect, size = 26, columns = 6 }) => (
 FolderColorSwatches.propTypes = {
   value: PropTypes.string,
   onSelect: PropTypes.func.isRequired,
+  // 渡された時だけ「色なし」を先頭に出す（フォルダ側は既定色があるので不要）
+  onReset: PropTypes.func,
+  resetLabel: PropTypes.string,
   size: PropTypes.number,
   columns: PropTypes.number
 }

@@ -156,16 +156,19 @@ class StoragesTab extends React.Component {
         </div>
         <div styleName='header'>{i18n.__('Attachment storage')}</div>
         <p styleName='list-attachment-label'>
-          Unused attachments size: {humanFileSize(totalUnusedAttachmentsSize)} (
-          {totalUnusedAttachments} items)
+          {i18n.__('Unused attachments size')}:{' '}
+          {humanFileSize(totalUnusedAttachmentsSize)} ({totalUnusedAttachments}{' '}
+          {i18n.__('items')})
         </p>
         <p styleName='list-attachment-label'>
-          In use attachments size: {humanFileSize(totalInuseAttachmentsSize)} (
-          {totalInuseAttachments} items)
+          {i18n.__('In use attachments size')}:{' '}
+          {humanFileSize(totalInuseAttachmentsSize)} ({totalInuseAttachments}{' '}
+          {i18n.__('items')})
         </p>
         <p styleName='list-attachment-label'>
-          Total attachments size: {humanFileSize(totalAttachmentsSize)} (
-          {totalAttachments} items)
+          {i18n.__('Total attachments size')}:{' '}
+          {humanFileSize(totalAttachmentsSize)} ({totalAttachments}{' '}
+          {i18n.__('items')})
         </p>
         <button
           styleName='list-attachement-clear-button'

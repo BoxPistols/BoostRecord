@@ -93,6 +93,7 @@ class HotkeyTab extends React.Component {
       toggleNoteList: this.refs.toggleNoteList.value,
       toggleInfo: this.refs.toggleInfo.value,
       focusNoteLink: this.refs.focusNoteLink.value,
+      toggleToc: this.refs.toggleToc.value,
       toggleMode: this.refs.toggleMode.value,
       togglePreview: this.refs.togglePreview.value,
       deleteNote: this.refs.deleteNote.value,
@@ -219,6 +220,20 @@ class HotkeyTab extends React.Component {
                 onChange={e => this.handleHotkeyChange(e)}
                 ref='focusNoteLink'
                 value={config.hotkey.focusNoteLink || ''}
+                type='text'
+              />
+            </div>
+          </div>
+          <div styleName='group-section'>
+            <div styleName='group-section-label'>
+              {i18n.__('Toggle Outline')}
+            </div>
+            <div styleName='group-section-control'>
+              <input
+                styleName='group-section-control-input'
+                onChange={e => this.handleHotkeyChange(e)}
+                ref='toggleToc'
+                value={config.hotkey.toggleToc || ''}
                 type='text'
               />
             </div>
@@ -358,14 +373,16 @@ class HotkeyTab extends React.Component {
               <p>
                 {isMac ? (
                   <span>
-                    <strong>Mac キー名:</strong> <code>Command</code> (⌘) &nbsp;
+                    <strong>{i18n.__('Mac key names:')}</strong>{' '}
+                    <code>Command</code> (⌘) &nbsp;
                     <code>Alt</code> = Option (⌥) &nbsp;
                     <code>Ctrl</code> = Control (⌃) &nbsp;
                     <code>Shift</code> (⇧)
                   </span>
                 ) : (
                   <span>
-                    <strong>Windows キー名:</strong> <code>Ctrl</code> &nbsp;
+                    <strong>{i18n.__('Windows key names:')}</strong>{' '}
+                    <code>Ctrl</code> &nbsp;
                     <code>Alt</code> &nbsp;
                     <code>Shift</code> &nbsp;
                     <code>Super</code> (Win キー)

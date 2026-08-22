@@ -1,6 +1,6 @@
 const path = require('path')
-const fs = require('sander')
 const remote = require('@electron/remote')
+const { buildEditorThemes } = require('./editorThemeFiles')
 const { app } = remote
 
 const CODEMIRROR_THEME_PATH = 'node_modules/codemirror/theme'
@@ -8,6 +8,8 @@ const CODEMIRROR_EXTRA_THEME_PATH = 'extra_scripts/codemirror/theme'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
+// 先に書いた方が優先。同梱テーマを extra 側の同名ファイルで上書きしない
+// （古くなった手元のコピーが本家版を黙って隠すため。nord がそうなっていた）
 const paths = [
   isProduction
     ? path.join(app.getAppPath(), CODEMIRROR_THEME_PATH)
@@ -17,40 +19,10 @@ const paths = [
     : path.resolve(CODEMIRROR_EXTRA_THEME_PATH)
 ]
 
-const themes = paths
-  .map(directory =>
-    fs.readdirSync(directory).map(file => {
-      const name = file.substring(0, file.lastIndexOf('.'))
-
-      return {
-        name,
-        path: path.join(directory, file),
-        className: `cm-s-${name}`
-      }
-    })
-  )
-  .reduce((accumulator, value) => accumulator.concat(value), [])
-  .sort((a, b) => a.name.localeCompare(b.name))
-
-themes.splice(
-  themes.findIndex(({ name }) => name === 'solarized'),
-  1,
-  {
-    name: 'solarized dark',
-    path: path.join(paths[0], 'solarized.css'),
-    className: `cm-s-solarized cm-s-dark`
-  },
-  {
-    name: 'solarized light',
-    path: path.join(paths[0], 'solarized.css'),
-    className: `cm-s-solarized cm-s-light`
-  }
-)
-themes.splice(0, 0, {
-  name: 'default',
-  path: path.join(paths[0], 'elegant.css'),
-  className: `cm-s-default`
-})
+// 一覧の組み立ては editorThemeFiles.js（electron 非依存・単体テストあり）。
+// 同名の重複を畳み、専用クラスを持たない補助ファイルを外し、default には
+// 読み込むファイルを持たせない
+const themes = buildEditorThemes({ dirs: paths })
 
 const snippetFile =
   process.env.NODE_ENV !== 'test'

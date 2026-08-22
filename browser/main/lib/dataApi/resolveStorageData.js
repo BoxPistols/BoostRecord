@@ -24,7 +24,19 @@ function resolveStorageData(storageCache) {
       console.warn("boostnote.json file doesn't exist the given path")
       CSON.writeFileSync(boostnoteJSONPath, { folders: [], version: '1.0' })
     } else {
+      // ファイルはあるのに読めない/形が違う = **壊れている**。
+      // ここで folders: [] のまま先へ進めると、次のフォルダ操作が
+      // `_.pick(storage, ['folders','version'])` で空配列を書き戻し、
+      // 全フォルダレコードが1操作で消える（v0.18.1 の「弾くだけの検証が
+      // データを消す」と同型）。救済は init.js の Unknown N 再生成だけで、
+      // 名前・色・階層は戻らない。
+      //
+      // ただし reject はできない。init.js:37 は
+      // `Promise.all(rawStorages.map(resolveStorageData))` なので、
+      // 1つ壊れただけで**全ストレージが読み込めなくなる**。
+      // そこで「読み込みは通すが、書き戻しは禁じる」印を付ける
       console.error(err)
+      storage.foldersUnreadable = true
     }
     storage.folders = []
     storage.version = '1.0'

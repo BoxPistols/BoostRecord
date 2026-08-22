@@ -34,6 +34,52 @@ import markdownToc from 'browser/lib/markdown-toc-generator'
 import queryString from 'query-string'
 import { replace } from 'connected-react-router'
 import ToggleDirectionButton from 'browser/main/Detail/ToggleDirectionButton'
+import TocPane from 'browser/main/Detail/TocPane'
+const { ipcRenderer } = require('electron')
+import FindBar from 'browser/main/Detail/FindBar'
+import { findMatches, stepIndex } from 'browser/lib/findInText'
+import * as previewFind from 'browser/lib/findInPreview'
+import i18n from 'browser/lib/i18n'
+
+// Preview-only は「今の見え方」であってノート単位の属性ではないので、
+// コンポーネント state だけに置いてはいけない。Detail/index.js はノート種別で
+// 別コンポーネント（SnippetNoteDetail）を描くため、スニペットノートを1件挟むと
+// MarkdownNoteDetail が unmount され、戻った時に false で作り直される。
+// 上下キーでノートを送っていると、スニペットを通過した瞬間に全面 Preview が
+// 勝手 に Split へ落ちていた。config には持たない（新規ノートの開き方は
+// 変えたくない）ので、セッション内だけ保持する。
+// 目次ペインの幅。狭すぎると見出しが読めず、広すぎると本文が潰れる
+// TodoListPercentage は position:absolute / top:72px / height:17px / z-index:100 で
+// 全幅を覆い、.body（上端 69px）へ 20px ぶん食い込む。目次だけ下げても
+// エディタの1行目とプレビューの先頭がバーの下に隠れる（実機スクショで確認）
+// ので、バーがある時は .body 全体を食い込み分だけ下げる。
+// 高さ 17 ではなく「バー下端 89 − body 上端 69」が必要な値（実測で確定）
+const TODO_BAR_OFFSET = 20
+// .body の styl 上の top ($info-height + $info-margin-under-border)。
+// バー表示時に inline style で top を上書きする際の基準値
+const BODY_TOP = 69
+
+const DEFAULT_TOC_WIDTH = 200
+const MIN_TOC_WIDTH = 140
+const MAX_TOC_WIDTH = 480
+// 目次幅は px で永続化されるが、px 単独ではペイン幅と無関係に効いてしまう。
+// 480px を保存した状態で窓を狭めると、実測で本文が 164px → 0px まで潰れた。
+// 「.body 幅の TOC_MAX_PERCENT% を超えない」を CSS の min() で表現すると、
+// JS の再計測・resize 購読なしにウィンドウ幅へ追従できる
+const TOC_MAX_PERCENT = 40
+const TOC_MAX_RATIO = TOC_MAX_PERCENT / 100
+// .body の左右マージン（MarkdownNoteDetail.styl の `margin 0 30px`）
+const BODY_MARGIN = 30
+// FindBar と目次の間隔 + 目次の外側に足す余白
+const FIND_BAR_GAP = 48
+const FIND_BAR_EDGE = 18
+
+let sessionPreviewOnly = false
+
+// テスト用。実アプリからは呼ばない
+export function __resetSessionPreviewOnly() {
+  sessionPreviewOnly = false
+}
 
 class MarkdownNoteDetail extends React.Component {
   constructor(props) {
@@ -59,7 +105,13 @@ class MarkdownNoteDetail extends React.Component {
       switchPreview: props.config.editor.switchPreview,
       // Transient preview-only view (editor hidden). Not persisted to config, so
       // it never changes how new notes open — it's a per-session view toggle.
-      previewOnly: false,
+      // 直前の見え方を引き継ぐ（unmount を挟んでも Preview のまま）
+      previewOnly: sessionPreviewOnly,
+      // ドラッグ中だけ使う一時値。離した時に config へ書く
+      tocWidth: null,
+      // ノート内検索。query は入力そのもの、index は現在地（-1 で未選択）。
+      // **入力は探すだけで index を動かさない**（IME 変換中に飛ばないため）
+      find: null,
       RTL: false
     }
 
@@ -80,15 +132,19 @@ class MarkdownNoteDetail extends React.Component {
     // viewMode is derived from (editorType, previewOnly) so no new persisted
     // state is needed: SPLIT/EDITOR persist via editor.type, PREVIEW is the
     // transient previewOnly override.
+    // previewOnly の変更は必ずここを通す。state と一緒にセッション値も更新して
+    // おかないと、unmount 後に戻した時に古い値へ巻き戻る
+    this.setPreviewOnly = (value, callback) => {
+      sessionPreviewOnly = value
+      this.setState({ previewOnly: value }, callback)
+    }
     this.handleSetViewMode = mode => {
       if (mode === 'PREVIEW') {
-        this.setState({ previewOnly: true })
+        this.setPreviewOnly(true)
       } else if (mode === 'SPLIT') {
-        this.setState({ previewOnly: false }, () =>
-          this.handleSwitchMode('SPLIT')
-        )
+        this.setPreviewOnly(false, () => this.handleSwitchMode('SPLIT'))
       } else {
-        this.setState({ previewOnly: false }, () => {
+        this.setPreviewOnly(false, () => {
           this.handleSwitchMode('EDITOR_PREVIEW')
           this.focus()
         })
@@ -100,16 +156,226 @@ class MarkdownNoteDetail extends React.Component {
       const next = order[(order.indexOf(this.getViewMode()) + 1) % order.length]
       this.handleSetViewMode(next)
     }
-    // Cmd/Ctrl+Alt+P toggles Preview on/off.
+    // hotkey.togglePreview(既定 Cmd/Ctrl+E): Editor+Preview(SPLIT) ↔
+    // 全面 Preview のトグル。全面 Editor は使用頻度が低いので、Preview
+    // 解除時は元のモードに関係なく常に SPLIT へ戻す(全面 Editor へは
+    // Cmd+Shift+E のサイクルか ModeSwitcher で行ける)
     this.handleTogglePreview = () => {
       if (this.state.previewOnly) {
-        this.handleSetViewMode(
-          this.state.editorType === 'SPLIT' ? 'SPLIT' : 'EDITOR'
-        )
+        this.handleSetViewMode('SPLIT')
       } else {
         this.handleSetViewMode('PREVIEW')
       }
     }
+  }
+
+  /**
+   * 目次の幅をドラッグで変える。mousemove / mouseup は window で受ける
+   * （ポインタがペインの外へ出ても追従させるため）。確定時にだけ config へ
+   * 書くので、ドラッグ中に保存が走り続けることはない
+   */
+  handleTocSliderMouseDown(e) {
+    e.preventDefault()
+    const startX = e.clientX
+    // 起点は config の保存値ではなく**画面に出ている実寸**。保存値は
+    // ペイン幅で頭打ちされていることがあり、そこから始めると掴んだ瞬間に飛ぶ
+    const tocEl = e.currentTarget.parentElement
+    const bodyEl = tocEl && tocEl.parentElement
+    const bodyWidth = bodyEl ? bodyEl.getBoundingClientRect().width : 0
+    const startWidth = tocEl
+      ? Math.round(tocEl.getBoundingClientRect().width)
+      : (this.props.config.preview || {}).tocWidth || DEFAULT_TOC_WIDTH
+    // 広げられる上限もペイン幅に従わせる。こうしないと「見えている幅」と
+    // 「保存される値」がずれる（描画側は min() で頭打ちにしているため）
+    const maxWidth = bodyWidth
+      ? Math.min(MAX_TOC_WIDTH, Math.round(bodyWidth * TOC_MAX_RATIO))
+      : MAX_TOC_WIDTH
+
+    const onMove = ev => {
+      // プレビュー(iframe)の上で mouseup を取り逃すと、ボタンを離した後も
+      // 掴んだままになり、マウスを動かすだけで幅が変わり続ける。押されて
+      // いないことを見たら自分で終う
+      if (ev.buttons === 0) {
+        onUp()
+        return
+      }
+      // 右へ動かすほど目次は狭くなる（境界は目次の左端）
+      const next = Math.min(
+        maxWidth,
+        Math.max(MIN_TOC_WIDTH, startWidth - (ev.clientX - startX))
+      )
+      this.setState({ tocWidth: next })
+    }
+    const onUp = () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+      const width = this.state.tocWidth
+      this.setState({ tocWidth: null })
+      if (width == null) return
+      const { config, dispatch } = this.props
+      const preview = Object.assign({}, config.preview, { tocWidth: width })
+      ConfigManager.set({ preview })
+      dispatch({ type: 'SET_UI', config: { preview } })
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+  }
+
+  // ---- ノート内検索 ----
+
+  /** いまどのペインを探すか。表示されていないペインは探さない */
+  getFindTarget() {
+    // EDITOR モードでもプレビュー iframe は生きている（.hide は
+    // opacity:0 / pointer-events:none で display:none ではない）。
+    // モードで決めないと「件数だけ出て画面には何も起きない」状態になる
+    return this.getViewMode() === 'PREVIEW' ? 'PREVIEW' : 'EDITOR'
+  }
+
+  getPreviewDoc() {
+    const content = this.refs.content
+    if (!content) return null
+    const preview =
+      (content.previewRef && content.previewRef.current) ||
+      (content.refs && content.refs.preview)
+    const root = preview && preview.refs && preview.refs.root
+    return root && root.contentWindow ? root.contentWindow.document : null
+  }
+
+  getEditorCm() {
+    const content = this.refs.content
+    const code = content && content.refs && content.refs.code
+    return (code && code.editor) || null
+  }
+
+  handleFindOpen() {
+    // 既に開いていれば入力欄を選び直すだけ（打ち直せる）
+    this.setState(prev => ({
+      find: Object.assign(
+        { query: '', index: -1, count: 0, focusToken: 0 },
+        prev.find,
+        { focusToken: ((prev.find && prev.find.focusToken) || 0) + 1 }
+      )
+    }))
+  }
+
+  handleFindClose() {
+    const doc = this.getPreviewDoc()
+    if (doc) previewFind.clear(doc)
+    this.clearEditorMarks()
+    this.setState({ find: null })
+    // 閉じたら本文へ戻す。閉じてもフォーカスが宙に浮くと次の操作が効かない
+    if (this.refs.content && this.refs.content.focus) this.refs.content.focus()
+  }
+
+  clearEditorMarks() {
+    const cm = this.getEditorCm()
+    if (!cm || !this.editorMarks) return
+    this.editorMarks.forEach(mark => mark.clear())
+    this.editorMarks = null
+  }
+
+  /** 探すだけ。**現在地は動かさない** */
+  runFind(query) {
+    const target = this.getFindTarget()
+    let count = 0
+    if (target === 'PREVIEW') {
+      const doc = this.getPreviewDoc()
+      this.clearEditorMarks()
+      if (doc) {
+        const result = previewFind.search(doc, query)
+        this.previewRanges = result.ranges
+        count = result.count
+      }
+    } else {
+      const doc = this.getPreviewDoc()
+      if (doc) previewFind.clear(doc)
+      this.previewRanges = null
+      count = this.markEditorMatches(query)
+    }
+    this.setState(prev => ({
+      find: Object.assign({}, prev.find, {
+        query,
+        count,
+        // 件数が変わったら現在地は無効。ただし勝手に進めない
+        index:
+          count === 0
+            ? -1
+            : Math.min(prev.find ? prev.find.index : -1, count - 1)
+      })
+    }))
+  }
+
+  markEditorMatches(query) {
+    const cm = this.getEditorCm()
+    this.clearEditorMarks()
+    if (!cm || !query) return 0
+    const value = cm.getValue()
+    const hits = findMatches(value, query)
+    this.editorHits = hits
+    this.editorMarks = hits.map(hit =>
+      cm.markText(cm.posFromIndex(hit.start), cm.posFromIndex(hit.end), {
+        className: 'tb-find-all'
+      })
+    )
+    return hits.length
+  }
+
+  /** 現在地を動かす。**Enter / ボタンからしか呼ばない** */
+  handleFindStep(direction) {
+    const find = this.state.find
+    if (!find || !find.count) return
+    const next = stepIndex(find.index, find.count, direction)
+    const target = this.getFindTarget()
+
+    if (target === 'PREVIEW') {
+      const doc = this.getPreviewDoc()
+      if (doc) previewFind.setActive(doc, this.previewRanges, next)
+    } else {
+      const cm = this.getEditorCm()
+      const hit = this.editorHits && this.editorHits[next]
+      if (cm && hit) {
+        const from = cm.posFromIndex(hit.start)
+        const to = cm.posFromIndex(hit.end)
+        cm.setSelection(from, to)
+        cm.scrollIntoView({ from, to }, 120)
+      }
+    }
+    this.setState(prev => ({
+      find: Object.assign({}, prev.find, { index: next })
+    }))
+  }
+
+  /**
+   * 目次から見出しへ飛ぶ。slug ではなく行番号で引く（プレビューは data-line を
+   * 持っている）。エディタとプレビューのどちらが出ていても効くよう、両方に
+   * 当てる。参照が取れない構成では黙って何もしない
+   */
+  handleTocJump(line) {
+    const content = this.refs.content
+    if (!content) return
+    const preview =
+      (content.previewRef && content.previewRef.current) ||
+      (content.refs && content.refs.preview)
+    if (preview && typeof preview.scrollToLine === 'function') {
+      preview.scrollToLine(line)
+    }
+    const code = content.refs && content.refs.code
+    const cm = code && code.editor
+    if (cm && typeof cm.setCursor === 'function') {
+      cm.setCursor({ line, ch: 0 })
+      cm.scrollIntoView({ line, ch: 0 }, 200)
+    }
+  }
+
+  /**
+   * 目次の表示切替。閉じると再表示の導線がペインごと消えるので、
+   * ツールバーのボタンから戻せるようにしてある
+   */
+  handleToggleToc(next) {
+    const { config, dispatch } = this.props
+    const preview = Object.assign({}, config.preview, { showToc: !!next })
+    ConfigManager.set({ preview })
+    dispatch({ type: 'SET_UI', config: { preview } })
   }
 
   // Current view as one of the 3 switcher values.
@@ -142,6 +408,17 @@ class MarkdownNoteDetail extends React.Component {
     this.focusNoteLinkHandler = () => this.focusNoteLink()
     ee.on('detail:toggleinfo', this.toggleInfoHandler)
     ee.on('detail:focusnotelink', this.focusNoteLinkHandler)
+    // 目次の表示切替（config.hotkey.toggleToc / 既定 Cmd+Shift+O）
+    this.toggleTocHandler = () =>
+      this.handleToggleToc(
+        !((this.props.config.preview || {}).showToc !== false)
+      )
+    ee.on('detail:toggletoc', this.toggleTocHandler)
+    // ノート内検索。main プロセスの before-input-event から来る
+    // （accelerator だと、プレビューにフォーカスがある時にキーが iframe へ
+    //  吸われて届かない。実測で keySeenInRenderer: 0）
+    this.findOpenHandler = () => this.handleFindOpen()
+    ipcRenderer.on('detail:find', this.findOpenHandler)
   }
 
   /**
@@ -214,6 +491,8 @@ class MarkdownNoteDetail extends React.Component {
     ee.off('code:generate-toc', this.generateToc)
     ee.off('detail:toggleinfo', this.toggleInfoHandler)
     ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
+    ee.off('detail:toggletoc', this.toggleTocHandler)
+    ipcRenderer.removeListener('detail:find', this.findOpenHandler)
     if (this.saveQueue != null) this.saveNow()
   }
 
@@ -590,6 +869,25 @@ class MarkdownNoteDetail extends React.Component {
   render() {
     const { data, dispatch, location, config } = this.props
     const { note } = this.state
+    // 目次は Markdown ノートだけ。設定で消せる
+    const showToc = (config.preview || {}).showToc !== false
+    // TODO が無ければバーは display:none なので下げない（無駄な余白を作らない）
+    const hasTodoBar = !isNaN(getTodoPercentageOfCompleted(note.content))
+    // ドラッグ中は state を見る（config へ書くのは離した時）
+    const tocWidth =
+      this.state.tocWidth != null
+        ? this.state.tocWidth
+        : (config.preview || {}).tocWidth || DEFAULT_TOC_WIDTH
+    // 目次と本文の境界。px 単独だと窓を狭めた時に本文が 0px まで潰れるので、
+    // .body 幅に対する比率で頭打ちにする。同じ包含ブロック（.body）に対する
+    // 指定なので、本文の right と目次の width は常に一致する
+    const tocSize = `min(${tocWidth}px, ${TOC_MAX_PERCENT}%)`
+    // FindBar の基準は .body ではなく detail のルート。.body の左右マージンを
+    // 引いてから比率を掛けないと、上の tocSize と食い違って目次に潜り込む
+    const findRight = showToc
+      ? `calc(min(${tocWidth}px, (100% - ${BODY_MARGIN *
+          2}px) * ${TOC_MAX_RATIO}) + ${FIND_BAR_GAP}px)`
+      : `${FIND_BAR_EDGE}px`
     const storageKey = note.storage
     const folderKey = note.folder
 
@@ -689,6 +987,18 @@ class MarkdownNoteDetail extends React.Component {
 
           <InfoButton onClick={e => this.handleInfoButtonClick(e)} />
 
+          {/* 目次の表示切替はアイコン列の一番右。閉じるとペインごと導線が
+              消えるため、戻す手段としてもここが要る */}
+          <button
+            styleName={showToc ? 'toc-toggle--active' : 'toc-toggle'}
+            onClick={() => this.handleToggleToc(!showToc)}
+            title={i18n.__(showToc ? 'Hide Outline' : 'Show Outline')}
+            aria-label={i18n.__(showToc ? 'Hide Outline' : 'Show Outline')}
+            aria-pressed={showToc}
+          >
+            <i className='fa fa-list-ul' aria-hidden='true' />
+          </button>
+
           <InfoPanel
             isOpen={this.state.isInfoPanelOpen}
             ref={c => {
@@ -724,7 +1034,63 @@ class MarkdownNoteDetail extends React.Component {
       >
         {location.pathname === '/trashed' ? trashTopBar : detailTopBar}
 
-        <div styleName='body'>{this.renderEditor()}</div>
+        {this.state.find && (
+          <FindBar
+            // ツールバー(〜69px)と TODO バー(72-89px)の下、目次ペインの左に
+            // 置く。固定値にするとどれかに必ず被る（top:6px はツールバーを
+            // 覆っていた）
+            style={{
+              top: hasTodoBar ? TODO_BAR_OFFSET + 74 : 76,
+              // 目次は .body の内側にあり、.body 自体が右に 30px の margin を
+              // 持つ。tocWidth だけ引くと 30px ぶん食い込む
+              right: findRight,
+              // max-width は right の分を引かないと意味が無い。
+              // 引かないと、右へ寄せた分だけ左端からはみ出して
+              // 虫眼鏡と入力欄の頭が画面外へ出る
+              maxWidth: `calc(100% - ${findRight} - ${FIND_BAR_EDGE}px)`
+            }}
+            query={this.state.find.query}
+            index={this.state.find.index}
+            count={this.state.find.count}
+            focusToken={this.state.find.focusToken}
+            target={
+              this.getFindTarget() === 'PREVIEW'
+                ? i18n.__('Preview')
+                : i18n.__('Editor')
+            }
+            onChange={q => this.runFind(q)}
+            onStep={d => this.handleFindStep(d)}
+            onClose={() => this.handleFindClose()}
+          />
+        )}
+        <div
+          styleName='body'
+          style={hasTodoBar ? { top: BODY_TOP + TODO_BAR_OFFSET } : undefined}
+        >
+          <div
+            styleName={showToc ? 'body-editor--with-toc' : 'body-editor'}
+            style={showToc ? { right: tocSize } : undefined}
+          >
+            {this.renderEditor()}
+          </div>
+          {showToc && (
+            <div styleName='body-toc' style={{ width: tocSize }}>
+              <div
+                styleName='toc-slider'
+                onMouseDown={e => this.handleTocSliderMouseDown(e)}
+                draggable='false'
+              >
+                <div styleName='toc-slider-hitbox' />
+              </div>
+              <TocPane
+                content={note.content}
+                config={config}
+                onJump={line => this.handleTocJump(line)}
+                onClose={() => this.handleToggleToc(false)}
+              />
+            </div>
+          )}
+        </div>
 
         <StatusBar
           {..._.pick(this.props, ['config', 'location', 'dispatch'])}

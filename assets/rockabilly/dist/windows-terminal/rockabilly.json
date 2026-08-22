@@ -1,0 +1,23 @@
+{
+  "name": "Rockabilly",
+  "background": "#1C1C1E",
+  "foreground": "#EAEAEA",
+  "cursorColor": "#E8A33D",
+  "selectionBackground": "#333336",
+  "black": "#1C1C1E",
+  "red": "#EA4A5E",
+  "green": "#7FB05C",
+  "yellow": "#E8A33D",
+  "blue": "#5B95C9",
+  "purple": "#A87BCB",
+  "cyan": "#49AE9E",
+  "white": "#C8C8CC",
+  "brightBlack": "#7E7E84",
+  "brightRed": "#F0576B",
+  "brightGreen": "#93C572",
+  "brightYellow": "#E8C86A",
+  "brightBlue": "#7BB0DE",
+  "brightPurple": "#C39BE0",
+  "brightCyan": "#63C5B5",
+  "brightWhite": "#F2F2F4"
+}

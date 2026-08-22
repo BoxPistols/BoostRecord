@@ -24,5 +24,8 @@ export default {
   },
   focusNoteLink: () => {
     ee.emit('detail:focusnotelink')
+  },
+  toggleToc: () => {
+    ee.emit('detail:toggletoc')
   }
 }

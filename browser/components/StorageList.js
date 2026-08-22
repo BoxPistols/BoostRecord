@@ -3,6 +3,7 @@
  */
 import PropTypes from 'prop-types'
 import React from 'react'
+import i18n from 'browser/lib/i18n'
 import styles from './StorageList.styl'
 import CSSModules from 'browser/lib/CSSModules'
 
@@ -15,7 +16,7 @@ const StorageList = ({ storageList, isFolded }) => (
     {storageList.length > 0 ? (
       storageList
     ) : (
-      <div styleName='storageList-empty'>No storage mount.</div>
+      <div styleName='storageList-empty'>{i18n.__('No storage mount.')}</div>
     )}
   </div>
 )

@@ -9,6 +9,7 @@ import _ from 'lodash'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import katex from 'katex'
 import { escapeHtmlCharacters, lastFindInArray } from './utils'
+import i18n from 'browser/lib/i18n'
 
 function createGutter(str, firstLineNumber) {
   if (Number.isNaN(firstLineNumber)) firstLineNumber = 1
@@ -358,57 +359,58 @@ class Markdown {
       }
     )
 
-    const deflate = require('markdown-it-plantuml/lib/deflate')
-    const plantuml = require('markdown-it-plantuml')
-    const plantUmlStripTrailingSlash = url =>
-      url.endsWith('/') ? url.slice(0, -1) : url
-    const plantUmlServerAddress = plantUmlStripTrailingSlash(
-      config.preview.plantUMLServerAddress
+    // PlantUML の描画は廃止した。図をローカルで描かず、図のソースを deflate して
+    // URL に埋め、外部サーバーに描かせる仕組みだったため（既定は公開サーバーで、
+    // しかも平文 HTTP）。同じ用途は Mermaid がローカルで完結している。
+    //
+    // 既存のノートに残っている @start... ブロックが素の段落として崩れないよう、
+    // コードブロックとして出したうえで移行先を 1 行添える。ノートの中身は変えない。
+    this.md.block.ruler.before(
+      'fence',
+      'retired_plantuml',
+      function(state, startLine, endLine, silent) {
+        const from = state.bMarks[startLine] + state.tShift[startLine]
+        const to = state.eMarks[startLine]
+        const opening = /^@start([a-zA-Z]+)\s*$/.exec(state.src.slice(from, to))
+        if (!opening) return false
+
+        const closing = '@end' + opening[1].toLowerCase()
+        let line = startLine
+        let closed = false
+        while (line + 1 < endLine) {
+          line++
+          const lineFrom = state.bMarks[line] + state.tShift[line]
+          const lineTo = state.eMarks[line]
+          if (
+            state.src
+              .slice(lineFrom, lineTo)
+              .trim()
+              .toLowerCase() === closing
+          ) {
+            closed = true
+            break
+          }
+        }
+        if (!closed) return false
+        if (silent) return true
+
+        const token = state.push('retired_plantuml', '', 0)
+        token.content = state.getLines(startLine, line + 1, 0, false)
+        token.map = [startLine, line + 1]
+        state.line = line + 1
+        return true
+      },
+      { alt: [] }
     )
-    const parsePlantUml = function(umlCode, openMarker, closeMarker, type) {
-      const s = unescape(encodeURIComponent(umlCode))
-      const zippedCode = deflate.encode64(
-        deflate.zip_deflate(`${openMarker}\n${s}\n${closeMarker}`, 9)
-      )
-      return `${plantUmlServerAddress}/${type}/${zippedCode}`
-    }
-
-    this.md.use(plantuml, {
-      generateSource: umlCode =>
-        parsePlantUml(umlCode, '@startuml', '@enduml', 'svg')
-    })
-
-    // Ditaa support. PlantUML server doesn't support Ditaa in SVG, so we set the format as PNG at the moment.
-    this.md.use(plantuml, {
-      openMarker: '@startditaa',
-      closeMarker: '@endditaa',
-      generateSource: umlCode =>
-        parsePlantUml(umlCode, '@startditaa', '@endditaa', 'png')
-    })
-
-    // Mindmap support
-    this.md.use(plantuml, {
-      openMarker: '@startmindmap',
-      closeMarker: '@endmindmap',
-      generateSource: umlCode =>
-        parsePlantUml(umlCode, '@startmindmap', '@endmindmap', 'svg')
-    })
-
-    // WBS support
-    this.md.use(plantuml, {
-      openMarker: '@startwbs',
-      closeMarker: '@endwbs',
-      generateSource: umlCode =>
-        parsePlantUml(umlCode, '@startwbs', '@endwbs', 'svg')
-    })
-
-    // Gantt support
-    this.md.use(plantuml, {
-      openMarker: '@startgantt',
-      closeMarker: '@endgantt',
-      generateSource: umlCode =>
-        parsePlantUml(umlCode, '@startgantt', '@endgantt', 'svg')
-    })
+    this.md.renderer.rules.retired_plantuml = (tokens, idx) =>
+      `<pre class="retired-diagram"><code>${this.md.utils.escapeHtml(
+        tokens[idx].content
+      )}</code></pre>` +
+      `<p class="retired-diagram-note">${this.md.utils.escapeHtml(
+        i18n.__(
+          'This diagram is not rendered. PlantUML sent the diagram source to an external server, so it was removed. Mermaid renders locally and can be used instead.'
+        )
+      )}</p>`
 
     // Override task item
     this.md.block.ruler.at('paragraph', function(

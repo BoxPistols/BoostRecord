@@ -4,11 +4,11 @@
 <h5 align="center">※ Boostnote はサービス終了済みのため、敬意を込めて「The Boosters」へ改名（GPL-3.0 継承）。</h5>
 
 <p align="center">
-  <a href="https://github.com/BoxPistols/Boostnote/actions/workflows/ci.yml">
-    <img src="https://github.com/BoxPistols/Boostnote/actions/workflows/ci.yml/badge.svg" alt="Legacy CI" />
+  <a href="https://github.com/BoxPistols/TheBoosters/actions/workflows/ci.yml">
+    <img src="https://github.com/BoxPistols/TheBoosters/actions/workflows/ci.yml/badge.svg" alt="Legacy CI" />
   </a>
-  <a href="https://github.com/BoxPistols/Boostnote/actions/workflows/modern.yml">
-    <img src="https://github.com/BoxPistols/Boostnote/actions/workflows/modern.yml/badge.svg" alt="Modern CI" />
+  <a href="https://github.com/BoxPistols/TheBoosters/actions/workflows/modern.yml">
+    <img src="https://github.com/BoxPistols/TheBoosters/actions/workflows/modern.yml/badge.svg" alt="Modern CI" />
   </a>
 </p>
 

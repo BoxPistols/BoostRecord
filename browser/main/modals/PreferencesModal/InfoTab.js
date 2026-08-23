@@ -55,7 +55,7 @@ class InfoTab extends React.Component {
               height='92'
             />
             <div styleName='icon-right'>
-              <div styleName='appId'>The Boosters {appVersion}</div>
+              <div styleName='appId'>BoostRecord {appVersion}</div>
               <div styleName='description'>
                 {i18n.__(
                   'An open source note-taking app made for programmers just like you.'
@@ -68,10 +68,10 @@ class InfoTab extends React.Component {
         <ul styleName='list'>
           <li>
             <a
-              href='https://github.com/BoxPistols/TheBoosters'
+              href='https://github.com/BoxPistols/BoostRecord'
               onClick={e => this.handleLinkClick(e)}
             >
-              GitHub (BoxPistols/TheBoosters)
+              GitHub (BoxPistols/BoostRecord)
             </a>
           </li>
           <li styleName='cc'>

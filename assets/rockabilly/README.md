@@ -1,7 +1,7 @@
 # Rockabilly
 
 真空管アンプの朱赤と琥珀を、ニュートラルなチャコールに載せた暗色スキーム。
-The Boosters の UI テーマとして生まれたものを、エディタ・ターミナル向けに
+BoostRecord の UI テーマとして生まれたものを、エディタ・ターミナル向けに
 配布できる形へ切り出したもの。
 
 ## 中身
@@ -57,6 +57,6 @@ npx jest tests/lib/rockabillyPalette.test.js
 
 ## ライセンス
 
-The Boosters 本体は GPL-3.0 だが、配色そのものは他ツールへ持ち出せるよう
+BoostRecord 本体は GPL-3.0 だが、配色そのものは他ツールへ持ち出せるよう
 **MIT** で配布する想定（`dist/vscode/package.json` の `license` も MIT）。
 リポジトリを分ける際に LICENSE ファイルを添える。

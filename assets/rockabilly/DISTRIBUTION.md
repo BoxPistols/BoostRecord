@@ -12,8 +12,8 @@
   見つからなかった。ただし**検索エンジンは Marketplace を網羅していない**ので、
   根拠としては弱い。公開前に Marketplace の検索窓、npm、
   tinted-theming の schemes 一覧で直接確認する
-- 衝突していた場合の逃げ道は、発行元付きの表示名（`Rockabilly (The Boosters)`）
-  か、識別子だけ変える（`boosters-rockabilly`）
+- 衝突していた場合の逃げ道は、発行元付きの表示名（`Rockabilly (BoostRecord)`）
+  か、識別子だけ変える（`boostrecord-rockabilly`）
 
 ### ライセンス
 
@@ -24,7 +24,7 @@
 ### 置き場所
 
 - 配布物をこのリポジトリに置いたままにすると、GPL のアプリと MIT の配色が
-  同居して説明が要る。**独立リポジトリ（例 `boosters/rockabilly`）へ切り出す**のが素直
+  同居して説明が要る。**独立リポジトリ（例 `boostrecord/rockabilly`）へ切り出す**のが素直
 - 切り出す時は `palette.json` / `build.mjs` / `check-contrast.mjs` / `dist/` を
   そのまま持っていける。このリポジトリ側は生成済みの
   `extra_scripts/codemirror/theme/rockabilly.css` だけ残せば動く
@@ -51,7 +51,7 @@ npx @vscode/vsce publish
 - `repository` フィールド（無いと信頼度が下がる）
 - `.vscodeignore`
 
-`package.json` の `publisher` は現在 `the-boosters` を仮置きしている。
+`package.json` の `publisher` は現在 `boostrecord` を仮置きしている。
 **実在の publisher id と一致していないと publish が失敗する。**
 
 ### iTerm2 / ターミナル各種（優先度 高・手間は最小）
@@ -85,8 +85,8 @@ i3, Firefox ほか）。Rockabilly を「Monokai のように行き渡らせた�
 
 ### npm パッケージ（優先度 低）
 
-`@boosters/rockabilly` として `palette.json` と各形式を配ると、
-他のツールから `import palette from '@boosters/rockabilly'` で参照できる。
+`@boostrecord/rockabilly` として `palette.json` と各形式を配ると、
+他のツールから `import palette from '@boostrecord/rockabilly'` で参照できる。
 Web の配色に使いたい人向け。
 
 ## 2. 公開前に必ず通すもの

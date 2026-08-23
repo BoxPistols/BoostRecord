@@ -1,9 +1,9 @@
 ---
 name: boostnote-feature
-description: Feature development workflow for The Boosters legacy app. Load before implementing any new capability. Covers legacy constraints, file placement rules, ESM/CJS discipline, and pre-commit checklist.
+description: Feature development workflow for BoostRecord legacy app. Load before implementing any new capability. Covers legacy constraints, file placement rules, ESM/CJS discipline, and pre-commit checklist.
 ---
 
-# The Boosters — Feature Development Workflow
+# BoostRecord — Feature Development Workflow
 
 ## When to load this skill
 Any new user-facing feature, UI change, new `browser/` module, or non-trivial

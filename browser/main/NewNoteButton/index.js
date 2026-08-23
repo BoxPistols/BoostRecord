@@ -77,7 +77,7 @@ class NewNoteButton extends React.Component {
 
   handleExampleNoteClick() {
     const { dispatch, location, data } = this.props
-    const EXAMPLE_TITLE = 'The Boosters — Feature Example'
+    const EXAMPLE_TITLE = 'BoostRecord — Feature Example'
 
     // data.noteMap is a MutableMap (browser/lib/Mutable.js), which has no
     // .find(); materialize values first, per the NoteList/Detail convention.
@@ -97,7 +97,7 @@ class NewNoteButton extends React.Component {
 
     const { storage, folder } = this.resolveTargetFolder()
     const content = [
-      '# The Boosters — Feature Example',
+      '# BoostRecord — Feature Example',
       '',
       '## YAML Front Matter',
       'Export this note with **File › Export as › .md** and choose',
@@ -125,7 +125,7 @@ class NewNoteButton extends React.Component {
       '## Markdown Syntax',
       '',
       '- **Bold**, *italic*, ~~strikethrough~~, `inline code`',
-      '- [The Boosters on GitHub](https://github.com/BoxPistols/TheBoosters)',
+      '- [BoostRecord on GitHub](https://github.com/BoxPistols/BoostRecord)',
       '',
       '> Blockquote: export as .md with Mermaid blocks and the diagrams',
       '> render on GitHub, GitLab, Notion, and Obsidian automatically.',

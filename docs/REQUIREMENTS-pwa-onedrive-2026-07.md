@@ -1,6 +1,6 @@
 # 要件定義 / 詳細定義 — 最新 Win/Mac + PWA(iPhone) + OneDrive ストレージ（2026-07-03）
 
-対象: The Boosters（Boostnote Legacy を in-place モダナイズしたプロダクト）
+対象: BoostRecord（Boostnote Legacy を in-place モダナイズしたプロダクト）
 決定: iPhone は 軽量 PWA コンパニオン方式（Option C） で進める。
 
 ---

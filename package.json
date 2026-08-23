@@ -1,9 +1,9 @@
 {
-  "name": "the-boosters",
-  "productName": "The Boosters",
+  "name": "boostrecord",
+  "productName": "BoostRecord",
   "version": "0.25.0",
   "main": "index.js",
-  "description": "The Boosters — a modernized, independent successor to Boostnote (originally © BoostIO, GPL-3.0)",
+  "description": "BoostRecord — a modernized, independent successor to Boostnote (originally © BoostIO, GPL-3.0)",
   "license": "GPL-3.0",
   "packageManager": "pnpm@10.14.0",
   "scripts": {
@@ -56,8 +56,8 @@
     "electron-version": "28.3.3"
   },
   "build": {
-    "appId": "io.boxpistols.theboosters",
-    "productName": "The Boosters",
+    "appId": "io.boxpistols.boostrecord",
+    "productName": "BoostRecord",
     "copyright": "GPL-3.0, inherited from BoostIO (Boostnote)",
     "asar": false,
     "afterPack": "scripts/after-pack-adhoc-sign.js",
@@ -78,14 +78,14 @@
     "publish": {
       "provider": "github",
       "owner": "BoxPistols",
-      "repo": "TheBoosters",
+      "repo": "BoostRecord",
       "releaseType": "release"
     },
     "mac": {
       "icon": "resources/app.icns",
       "category": "public.app-category.productivity",
       "identity": null,
-      "artifactName": "The-Boosters-${version}-${arch}.${ext}",
+      "artifactName": "BoostRecord-${version}-${arch}.${ext}",
       "target": [
         {
           "target": "dmg",
@@ -105,7 +105,7 @@
     },
     "win": {
       "icon": "resources/app.ico",
-      "artifactName": "The-Boosters-Setup-${version}.${ext}",
+      "artifactName": "BoostRecord-Setup-${version}.${ext}",
       "target": [
         "nsis"
       ]
@@ -121,10 +121,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/BoxPistols/TheBoosters.git"
+    "url": "git+https://github.com/BoxPistols/BoostRecord.git"
   },
   "keywords": [
-    "the-boosters",
+    "boostrecord",
     "note",
     "markdown",
     "snippet",
@@ -145,9 +145,9 @@
     "Milo Todt (https://github.com/MiloTodt)"
   ],
   "bugs": {
-    "url": "https://github.com/BoxPistols/TheBoosters/issues"
+    "url": "https://github.com/BoxPistols/BoostRecord/issues"
   },
-  "homepage": "https://github.com/BoxPistols/TheBoosters",
+  "homepage": "https://github.com/BoxPistols/BoostRecord",
   "dependencies": {
     "@electron/remote": "^2.1.3",
     "@enyaxu/markdown-it-anchor": "^5.0.2",

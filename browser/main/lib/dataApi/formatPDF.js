@@ -14,7 +14,7 @@ export default function formatPDF(props) {
     const html = formatHTML(props)(note, targetPath, exportTasks)
     const tmpFile = path.join(
       os.tmpdir(),
-      `the-boosters-pdf-${crypto.randomBytes(6).toString('hex')}.html`
+      `boostrecord-pdf-${crypto.randomBytes(6).toString('hex')}.html`
     )
     fs.writeFileSync(tmpFile, html, 'utf8')
 

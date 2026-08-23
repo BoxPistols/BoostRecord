@@ -106,8 +106,8 @@ function notify(...args) {
 function updateApp() {
   const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
     type: 'warning',
-    message: i18n.__('Update The Boosters'),
-    detail: i18n.__('New The Boosters is ready to be installed.'),
+    message: i18n.__('Update BoostRecord'),
+    detail: i18n.__('New BoostRecord is ready to be installed.'),
     buttons: [i18n.__('Restart & Install'), i18n.__('Not Now')]
   })
 
@@ -119,8 +119,8 @@ function updateApp() {
 function downloadUpdate() {
   const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
     type: 'warning',
-    message: i18n.__('Update The Boosters'),
-    detail: i18n.__('New The Boosters is ready to be downloaded.'),
+    message: i18n.__('Update BoostRecord'),
+    detail: i18n.__('New BoostRecord is ready to be downloaded.'),
     buttons: [i18n.__('Download now'), i18n.__('Ignore updates')]
   })
 
@@ -183,7 +183,7 @@ ReactDOM.render(
         type: 'UPDATE_AVAILABLE'
       })
       notify('Update ready!', {
-        body: 'New The Boosters is ready to be installed.'
+        body: 'New BoostRecord is ready to be installed.'
       })
       updateApp()
     })

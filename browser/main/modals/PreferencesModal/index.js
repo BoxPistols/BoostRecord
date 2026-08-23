@@ -162,7 +162,7 @@ class Preferences extends React.Component {
         onKeyDown={e => this.handleKeyDown(e)}
       >
         <div styleName='top-bar'>
-          <p>{i18n.__('Your preferences for The Boosters')}</p>
+          <p>{i18n.__('Your preferences for BoostRecord')}</p>
         </div>
         <ModalEscButton
           handleEscButtonClick={e => this.handleEscButtonClick(e)}

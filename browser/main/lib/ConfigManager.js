@@ -318,7 +318,7 @@ function get() {
 
     if (!validate(config)) throw new Error('INVALID CONFIG')
   } catch (err) {
-    console.warn('The Boosters resets the invalid configuration.')
+    console.warn('BoostRecord resets the invalid configuration.')
     config = DEFAULT_CONFIG
     _save(config)
   }

@@ -24,23 +24,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release download $env:RELEASE_TAG --repo ${{ github.repository }} --pattern "The-Boosters-Setup-*.exe" --dir .
-          Get-ChildItem "The-Boosters-Setup-*.exe"
+          gh release download $env:RELEASE_TAG --repo ${{ github.repository }} --pattern "BoostRecord-Setup-*.exe" --dir .
+          Get-ChildItem "BoostRecord-Setup-*.exe"
 
       - name: Silent install (NSIS /S)
         shell: pwsh
         run: |
-          $setup = Get-ChildItem "The-Boosters-Setup-*.exe" | Select-Object -First 1
+          $setup = Get-ChildItem "BoostRecord-Setup-*.exe" | Select-Object -First 1
           Start-Process -FilePath $setup.FullName -ArgumentList "/S" -Wait
 
           # 固定待ちだと足りない。インストーラは 100MB 超で、assisted NSIS は
           # 子プロセスへ処理を渡すため Start-Process -Wait が先に返る。
           # 展開先が現れるまで待つ
           $candidates = @(
-            (Join-Path $env:LOCALAPPDATA "Programs\the-boosters"),
-            (Join-Path $env:LOCALAPPDATA "Programs\The Boosters"),
-            (Join-Path ${env:ProgramFiles} "The Boosters"),
-            (Join-Path ${env:ProgramFiles(x86)} "The Boosters")
+            (Join-Path $env:LOCALAPPDATA "Programs\BoostRecord"),
+            (Join-Path ${env:ProgramFiles} "BoostRecord"),
+            (Join-Path ${env:ProgramFiles(x86)} "BoostRecord")
           )
           $deadline = (Get-Date).AddMinutes(4)
           while ((Get-Date) -lt $deadline) {
@@ -55,10 +54,9 @@ jobs:
           # 展開先はインストーラの設定（perMachine / oneClick）で変わるので
           # 候補を広く見る。resources\app\index.js の有無で「展開済み」を判定する
           $candidates = @(
-            (Join-Path $env:LOCALAPPDATA "Programs\the-boosters"),
-            (Join-Path $env:LOCALAPPDATA "Programs\The Boosters"),
-            (Join-Path ${env:ProgramFiles} "The Boosters"),
-            (Join-Path ${env:ProgramFiles(x86)} "The Boosters")
+            (Join-Path $env:LOCALAPPDATA "Programs\BoostRecord"),
+            (Join-Path ${env:ProgramFiles} "BoostRecord"),
+            (Join-Path ${env:ProgramFiles(x86)} "BoostRecord")
           )
           $appDir = $candidates |
             Where-Object { Test-Path (Join-Path $_ "resources\app\index.js") } |
@@ -98,14 +96,14 @@ jobs:
       - name: Launch app and assert main UI reached
         shell: pwsh
         run: |
-          $exe = Join-Path $env:APPDIR "The Boosters.exe"
+          $exe = Join-Path $env:APPDIR "BoostRecord.exe"
           $proc = Start-Process -FilePath $exe -PassThru
           $result = Join-Path $env:TEMP "tb-verify-result.json"
           $deadline = (Get-Date).AddSeconds(90)
           while (-not (Test-Path $result) -and (Get-Date) -lt $deadline) {
             Start-Sleep -Seconds 3
           }
-          Get-Process -Name "The Boosters" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+          Get-Process -Name "BoostRecord" -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 
           if (-not (Test-Path $result)) {
             throw "probe result not produced — app never reached did-finish-load"

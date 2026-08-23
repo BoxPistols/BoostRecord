@@ -153,7 +153,7 @@ class HotkeyTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Hotkeys')}</div>
           <div styleName='group-section'>
             <div styleName='group-section-label'>
-              {i18n.__('Show/Hide The Boosters')}
+              {i18n.__('Show/Hide BoostRecord')}
             </div>
             <div styleName='group-section-control'>
               <input

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Pre-release gate for The Boosters.
+ * Pre-release gate for BoostRecord.
  * Runs all CI checks locally in sequence, fast-failing on first error.
  *
  * Usage: npm run pre-release   (or: node scripts/pre-release-check.mjs)
@@ -29,7 +29,7 @@ function run(label, cmd, args) {
 }
 
 console.log('\n╔══════════════════════════════════════╗')
-console.log('║  The Boosters — pre-release checks   ║')
+console.log('║  BoostRecord — pre-release checks   ║')
 console.log('╚══════════════════════════════════════╝')
 
 const steps = [

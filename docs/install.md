@@ -1,8 +1,8 @@
 # インストールガイド — セキュリティ警告の対処を含む
 
-The Boosters のインストーラは現在**コード署名されていません**（Windows）/ **Apple の公証を受けていません**（macOS）。そのため初回起動時に OS が「発行元を確認できない」趣旨の警告を出します。このページは、その警告が**何であるか**と、OS・バージョン別の**正しい開き方**をまとめたものです。
+BoostRecord のインストーラは現在**コード署名されていません**（Windows）/ **Apple の公証を受けていません**（macOS）。そのため初回起動時に OS が「発行元を確認できない」趣旨の警告を出します。このページは、その警告が**何であるか**と、OS・バージョン別の**正しい開き方**をまとめたものです。
 
-> レガシー版（`v*` リリース）・The Boosters Next（`app-v*` リリース）とも警告と対処は同じです。
+> レガシー版（`v*` リリース）・BoostRecord Next（`app-v*` リリース）とも警告と対処は同じです。
 
 ## この警告は何か（先に読んでください）
 
@@ -11,17 +11,17 @@ The Boosters のインストーラは現在**コード署名されていませ�
   - ソースコードは本リポジトリで全公開（GPL-3.0）
   - リリースはタグ push を起点に [GitHub Actions](../.github/workflows/release-legacy.yml) がビルド・公開
   - Windows インストーラは CI 実機でサイレントインストール → 起動 → メイン UI 到達まで機械検証（[win-smoke](../.github/workflows/win-smoke.yml)）
-- **ダウンロードは必ず公式 Releases から**: <https://github.com/BoxPistols/TheBoosters/releases>
-  - URL が `github.com/BoxPistols/TheBoosters` であることを確認してください。他サイトで再配布されたバイナリは検証していません
+- **ダウンロードは必ず公式 Releases から**: <https://github.com/BoxPistols/BoostRecord/releases>
+  - URL が `github.com/BoxPistols/BoostRecord` であることを確認してください。他サイトで再配布されたバイナリは検証していません
 - 署名対応の計画: Windows は SignPath Foundation（OSS 向け無料署名）、macOS は Apple Developer Program による署名 + 公証への対応を進めています。対応後のリリースからこのページの手順は不要になります
 
 ## ダウンロード
 
 | 環境 | ファイル |
 |---|---|
-| macOS Apple Silicon（M1〜） | `The-Boosters-<ver>-arm64.dmg` |
-| macOS Intel | `The-Boosters-<ver>-x64.dmg` |
-| Windows x64 | `The-Boosters-Setup-<ver>.exe` |
+| macOS Apple Silicon（M1〜） | `BoostRecord-<ver>-arm64.dmg` |
+| macOS Intel | `BoostRecord-<ver>-x64.dmg` |
+| Windows x64 | `BoostRecord-Setup-<ver>.exe` |
 
 **v0.16.4 以降を使用してください**（v0.16.2 / v0.16.3 のインストーラには起動しない致命バグがあります）。
 
@@ -29,15 +29,15 @@ The Boosters のインストーラは現在**コード署名されていませ�
 
 ## macOS での開き方
 
-1. dmg を開き、**The Boosters.app を `Applications` へドラッグ**
+1. dmg を開き、**BoostRecord.app を `Applications` へドラッグ**
 2. 初回のみ、お使いの macOS バージョンに応じて以下の手順で起動します（2 回目以降は Dock / Launchpad から通常起動）
 
 ### macOS 15（Sequoia）以降
 
 macOS 15 で「右クリック → 開く」による回避手順は**廃止されました**。次の手順で開きます。
 
-1. アプリをダブルクリック → 「**"The Boosters" は開かれませんでした**」（Apple はマルウェアが含まれていないことを検証できませんでした）と出るので **「完了」** を押す（**「ゴミ箱に入れる」を押さない**）
-2. **システム設定 → プライバシーとセキュリティ** を開き、下部の「セキュリティ」欄に出ている「"The Boosters" は、Mac を保護するためにブロックされました」の **「このまま開く」** をクリック
+1. アプリをダブルクリック → 「**"BoostRecord" は開かれませんでした**」（Apple はマルウェアが含まれていないことを検証できませんでした）と出るので **「完了」** を押す（**「ゴミ箱に入れる」を押さない**）
+2. **システム設定 → プライバシーとセキュリティ** を開き、下部の「セキュリティ」欄に出ている「"BoostRecord" は、Mac を保護するためにブロックされました」の **「このまま開く」** をクリック
 3. 確認ダイアログで **「開く」** → 管理者パスワード / Touch ID で承認
 
 ### macOS 14（Sonoma）以前
@@ -50,14 +50,14 @@ macOS 15 で「右クリック → 開く」による回避手順は**廃止さ�
 古いバージョンのビルドで出ることがあります（最近のビルドは整合性シール = ad-hoc 署名付きのため通常出ません）。ターミナルで次を実行してから開いてください。
 
 ```bash
-xattr -cr "/Applications/The Boosters.app"
+xattr -cr "/Applications/BoostRecord.app"
 ```
 
 > ダイアログの文言は macOS のバージョンにより多少異なります。
 
 ## Windows での開き方
 
-1. `The-Boosters-Setup-<ver>.exe` を実行
+1. `BoostRecord-Setup-<ver>.exe` を実行
 2. 「**Windows によって PC が保護されました**」（Microsoft Defender SmartScreen）が出たら **「詳細情報」→「実行」**
 3. インストーラの指示に従う（インストール先は変更可能）
 4. スタートメニュー / デスクトップから起動
@@ -73,13 +73,13 @@ SmartScreen は「このファイルのダウンロード実績が少ない」�
 macOS:
 
 ```bash
-openssl dgst -sha512 -binary The-Boosters-<ver>-arm64.dmg | openssl base64 -A
+openssl dgst -sha512 -binary BoostRecord-<ver>-arm64.dmg | openssl base64 -A
 ```
 
 Windows（PowerShell）:
 
 ```powershell
-$f = Resolve-Path .\The-Boosters-Setup-<ver>.exe
+$f = Resolve-Path .\BoostRecord-Setup-<ver>.exe
 [Convert]::ToBase64String([System.Security.Cryptography.SHA512]::Create().ComputeHash([System.IO.File]::ReadAllBytes($f)))
 ```
 

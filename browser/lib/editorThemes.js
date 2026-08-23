@@ -148,7 +148,7 @@ export const CURATED_EDITOR_THEMES = [
     name: 'rockabilly',
     label: 'Rockabilly',
     group: 'dark',
-    note: 'Charcoal + vermilion (The Boosters original)'
+    note: 'Charcoal + vermilion (BoostRecord original)'
   },
   {
     name: 'monokai',

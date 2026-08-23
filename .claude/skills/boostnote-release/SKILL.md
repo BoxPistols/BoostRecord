@@ -1,9 +1,9 @@
 ---
 name: boostnote-release
-description: Step-by-step release process for The Boosters legacy app (v0.x.y tags → mac + windows installers). Load before bumping version or pushing a release tag.
+description: Step-by-step release process for BoostRecord legacy app (v0.x.y tags → mac + windows installers). Load before bumping version or pushing a release tag.
 ---
 
-# The Boosters — Release Process
+# BoostRecord — Release Process
 
 ## Prerequisites
 
@@ -99,9 +99,9 @@ gh release view v0.X.Y
 ```
 
 Expected asset list:
-- `The.Boosters-0.X.Y-mac.zip` (universal mac, for quarantine-bypass)
-- `The.Boosters-0.X.Y.dmg` (mac installer, arm64 + x64 universal)
-- `The-Boosters-Setup-0.X.Y.exe` (windows nsis installer)
+- `BoostRecord-0.X.Y-mac.zip` (universal mac, for quarantine-bypass)
+- `BoostRecord-0.X.Y.dmg` (mac installer, arm64 + x64 universal)
+- `BoostRecord-Setup-0.X.Y.exe` (windows nsis installer)
 - `latest-mac.yml`, `latest.yml` (electron-updater manifests)
 
 If assets are missing: check the Release workflow logs.
@@ -137,8 +137,8 @@ gh release edit v0.X.Y --notes "$(cat <<'EOF'
 
 ## Install
 
-**macOS**: Download `The.Boosters-0.X.Y.dmg`. First launch: right-click → Open (unsigned build).
-**Windows**: Download `The-Boosters-Setup-0.X.Y.exe`. SmartScreen → More info → Run anyway.
+**macOS**: Download `BoostRecord-0.X.Y.dmg`. First launch: right-click → Open (unsigned build).
+**Windows**: Download `BoostRecord-Setup-0.X.Y.exe`. SmartScreen → More info → Run anyway.
 EOF
 )"
 ```

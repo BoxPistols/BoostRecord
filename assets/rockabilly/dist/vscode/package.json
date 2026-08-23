@@ -3,7 +3,7 @@
   "displayName": "Rockabilly Theme",
   "description": "真空管アンプの朱赤と琥珀を、ニュートラルなチャコールに載せた暗色スキーム。",
   "version": "0.1.0",
-  "publisher": "the-boosters",
+  "publisher": "boostrecord",
   "license": "MIT",
   "engines": {
     "vscode": "^1.75.0"

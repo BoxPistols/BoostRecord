@@ -1,6 +1,6 @@
 'use strict'
 
-// Secure Electron shell for The Boosters. Loads the Vite-built renderer and
+// Secure Electron shell for BoostRecord. Loads the Vite-built renderer and
 // bridges two IPC channels:
 //   notes:load        -> read the configured + env .cson storages
 //   notes:pickStorage -> let the user pick a storage folder (persisted)

@@ -1,4 +1,4 @@
-# The Boosters — モダンアプリ As-Built アーキテクチャ
+# BoostRecord — モダンアプリ As-Built アーキテクチャ
 
 > 対象: `app/`（モダンアプリ本体、リリース v0.1.2 時点）
 > 関連: [スタック選定](MODERNIZATION-2026-stack-selection.md) / [共同編集リビジョン](MODERNIZATION-2026-collab-revision.md)

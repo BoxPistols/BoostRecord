@@ -1,6 +1,6 @@
-# The Boosters — modern app (foundation)
+# BoostRecord — modern app (foundation)
 
-**The Boosters** is the renamed successor to the discontinued Boostnote. This is
+**BoostRecord** is the renamed successor to the discontinued Boostnote. This is
 its modern app foundation: **Vite + React 19 + TypeScript + CodeMirror 6**,
 reproducing Boostnote's UI/UX (3-pane: sidebar / note list / split editor + live
 preview, dark theme) on a fast, stable, extensible base.

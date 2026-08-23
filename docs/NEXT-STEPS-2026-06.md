@@ -1,9 +1,9 @@
-# The Boosters — 残タスク / 次の一手（2026-06-30 時点）
+# BoostRecord — 残タスク / 次の一手（2026-06-30 時点）
 
 直近（OS App化 → AI 連携）を踏まえた未完了事項。各項目は独立着手可能。
 
 ## 完了済み（参考）
-- **OS App化**: 本体を electron-builder 化（"The Boosters" / `io.boxpistols.theboosters` / `asar:false` / mac dmg+zip arm64+x64 / win nsis / 未署名）。arm64 dmg は実機動作確認済み。**PR #83**（main ← `modernize/electron-42`、CI 緑）。`app/` は "The Boosters Next"（別 appId / タグ `app-v*`）。
+- **OS App化**: 本体を electron-builder 化（"BoostRecord" / `io.boxpistols.boostrecord` / `asar:false` / mac dmg+zip arm64+x64 / win nsis / 未署名）。arm64 dmg は実機動作確認済み。**PR #83**（main ← `modernize/electron-42`、CI 緑）。`app/` は "BoostRecord Next"（別 appId / タグ `app-v*`）。
 - **CI**: `ci.yml` を pnpm + Node 22 化。`release-legacy.yml`（タグ `v*` で mac+win ビルド・Release 公開）。
 - **AI 執筆支援の土台**: 右クリック「AI」サブメニュー（要約/書き換え/翻訳/続き/コード説明）。**OpenAI + Gemini** マルチプロバイダ（Claude 不使用）。main プロセス service + IPC ストリーム。コミット `ca4a01f6`。
 - **PDF 改善（v0.16.5）**: 見出し下スペース調整（`@media print` margin 縮小）+ PDF Preview ボタン（A4プレビュー窓 + `@media print` ルールをスクリーンに昇格して Custom CSS も反映）。
@@ -34,7 +34,7 @@
 - **アプリ内アップデート通知（v0.16.4 実装済み）**: 起動時に GitHub API で最新タグを取得、現行バージョンより新しければダイアログ表示 → Releases ページをブラウザで開く。手動 DL フロー。
 
 ### 残タスク
-- [x] **公開前スモーク**: `pnpm run dist:dir` 完走確認。`release/mac-arm64/The Boosters.app/Contents/Resources/app/node_modules/` に `openai` / `@google` の両フォルダが存在。2026-07-06 実施。
+- [x] **公開前スモーク**: `pnpm run dist:dir` 完走確認。`release/mac-arm64/BoostRecord.app/Contents/Resources/app/node_modules/` に `openai` / `@google` の両フォルダが存在。2026-07-06 実施。
 - [ ] **コード署名 / notarize → ワンクリック自動インストール化**:
   - 現状: 未署名の ad-hoc ビルド。通知はあるが自動インストール不可
   - 目標: Apple Developer ID（$99/年）+ Windows 証明書を取得し、GitHub Secrets に登録

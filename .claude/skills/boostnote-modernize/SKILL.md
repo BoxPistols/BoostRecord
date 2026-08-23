@@ -61,7 +61,7 @@ The CodeMirror 5→6 port is the only essential spike.
 - レンダラー console を全採取 → サイレント失敗（`Cannot save note` 等）も出る。
 - exit code: 0 pass / 1 flow fail / 2 probe error / 3 watchdog(90s)。
 - packaged 検証: `pnpm run dist:dir` 後に
-  `TB_E2E_PROBE="$PWD/dev-scripts/e2e-probe.js" "release/mac-arm64/The Boosters.app/Contents/MacOS/The Boosters"`
+  `TB_E2E_PROBE="$PWD/dev-scripts/e2e-probe.js" "release/mac-arm64/BoostRecord.app/Contents/MacOS/BoostRecord"`
 
 ### Test layers
 | Layer | Tool | What it covers |
@@ -90,7 +90,7 @@ Runs: ESM/CJS → lint → AVA → Jest → Vite build → bundle size assert.
 
 ## Working rules
 
-- **PRs go ONLY to `BoxPistols/TheBoosters`** (never upstream BoostIO). Verify
+- **PRs go ONLY to `BoxPistols/BoostRecord`** (never upstream BoostIO). Verify
   `isCrossRepository:false`. See the `pr-fork-only` memory.
 - **Legacy app** runs on Node 14 via `~/.volta/bin/volta run --node 14.21.3 …`;
   do NOT `cd` into the repo in Bash (a chpwd hook spams `ls`). Tests: `npm test`

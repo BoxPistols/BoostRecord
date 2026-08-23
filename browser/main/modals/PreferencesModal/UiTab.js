@@ -938,7 +938,7 @@ class UiTab extends React.Component {
               </select>
               <p styleName='note-for-keymap'>
                 {i18n.__(
-                  '⚠️ Please restart The Boosters after you change the keymap'
+                  '⚠️ Please restart BoostRecord after you change the keymap'
                 )}
               </p>
               {/* vim はノーマルモードで始まるため、知らないと「文字が

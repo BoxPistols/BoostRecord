@@ -106,8 +106,8 @@ function notify(...args) {
 function updateApp() {
   const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
     type: 'warning',
-    message: i18n.__('Update The Boosters'),
-    detail: i18n.__('New The Boosters is ready to be installed.'),
+    message: i18n.__('Update BoostRecord'),
+    detail: i18n.__('New BoostRecord is ready to be installed.'),
     buttons: [i18n.__('Restart & Install'), i18n.__('Not Now')]
   })
 
@@ -119,14 +119,28 @@ function updateApp() {
 function downloadUpdate() {
   const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
     type: 'warning',
-    message: i18n.__('Update The Boosters'),
-    detail: i18n.__('New The Boosters is ready to be downloaded.'),
-    buttons: [i18n.__('Download now'), i18n.__('Ignore updates')]
+    message: i18n.__('Update BoostRecord'),
+    detail: i18n.__('New BoostRecord is ready to be downloaded.'),
+    // 「今回は見送る」と「今後いっさい通知しない」を分ける。以前は選択肢が
+    // 2 つしかなく、後者しか無かったため、一度スキップしたユーザーは二度と
+    // 更新通知を受け取れなかった
+    buttons: [
+      i18n.__('Download now'),
+      i18n.__('Not Now'),
+      i18n.__('Stop notifying me')
+    ],
+    defaultId: 0,
+    // Esc は「今回は見送る」に倒す。cancelId を指定しないと 0 が返り、
+    // 閉じたつもりでダウンロードが始まる
+    cancelId: 1
   })
 
   if (index === 0) {
     ipcRenderer.send('update-download-confirm')
   } else if (index === 1) {
+    // updateFound がリセットされるので、次回の起動時にまた通知される
+    ipcRenderer.send('update-cancel')
+  } else if (index === 2) {
     ipcRenderer.send('update-cancel')
     ConfigManager.set({ autoUpdateEnabled: false })
   }
@@ -183,7 +197,7 @@ ReactDOM.render(
         type: 'UPDATE_AVAILABLE'
       })
       notify('Update ready!', {
-        body: 'New The Boosters is ready to be installed.'
+        body: 'New BoostRecord is ready to be installed.'
       })
       updateApp()
     })

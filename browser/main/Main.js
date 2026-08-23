@@ -329,7 +329,7 @@ class Main extends React.Component {
                 name: 'example.html',
                 mode: 'html',
                 content:
-                  "<html>\n<body>\n<h1 id='hello'>Enjoy The Boosters!</h1>\n</body>\n</html>",
+                  "<html>\n<body>\n<h1 id='hello'>Enjoy BoostRecord!</h1>\n</body>\n</html>",
                 linesHighlighted: []
               },
               {
@@ -351,9 +351,9 @@ class Main extends React.Component {
           .createNote(data.storage.key, {
             type: 'MARKDOWN_NOTE',
             folder: data.storage.folders[0].key,
-            title: 'Welcome to The Boosters!',
+            title: 'Welcome to BoostRecord!',
             content:
-              '# Welcome to The Boosters! :guitar:\n## Click here to edit markdown :wave:\n\nThe Boosters is a local-first note-taking app for programmers.\n\n## Quick start :memo:\n- Press `Cmd/Ctrl + N` to create a new note\n- Press `Cmd/Ctrl + P` to jump to any note\n- Link notes with `[Title](:note:<note-key>)` — copy a note link from the note list context menu\n- Store code as **Snippet notes**, prose as **Markdown notes**\n\n## Docs :books:\n- [GitHub (BoxPistols/TheBoosters)](https://github.com/BoxPistols/TheBoosters)\n- [Cloud syncing via OneDrive](https://github.com/BoxPistols/TheBoosters/blob/main/docs/ONEDRIVE-DESKTOP-SETUP.md)'
+              '# Welcome to BoostRecord! :guitar:\n## Click here to edit markdown :wave:\n\nBoostRecord is a local-first note-taking app for programmers.\n\n## Quick start :memo:\n- Press `Cmd/Ctrl + N` to create a new note\n- Press `Cmd/Ctrl + P` to jump to any note\n- Link notes with `[Title](:note:<note-key>)` — copy a note link from the note list context menu\n- Store code as **Snippet notes**, prose as **Markdown notes**\n\n## Docs :books:\n- [GitHub (BoxPistols/BoostRecord)](https://github.com/BoxPistols/BoostRecord)\n- [Cloud syncing via OneDrive](https://github.com/BoxPistols/BoostRecord/blob/main/docs/ONEDRIVE-DESKTOP-SETUP.md)'
           })
           .then(note => {
             store.dispatch({

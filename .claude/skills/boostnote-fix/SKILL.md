@@ -1,9 +1,9 @@
 ---
 name: boostnote-fix
-description: Bug fix workflow for The Boosters legacy app. Load before diagnosing any runtime crash, CI failure, or UI regression. Contains symptom-by-symptom diagnosis checklist, known failure patterns, and commit protocol.
+description: Bug fix workflow for BoostRecord legacy app. Load before diagnosing any runtime crash, CI failure, or UI regression. Contains symptom-by-symptom diagnosis checklist, known failure patterns, and commit protocol.
 ---
 
-# The Boosters — Bug Fix Workflow
+# BoostRecord — Bug Fix Workflow
 
 ## When to load this skill
 Any bug report, runtime crash, CI failure, or unexpected behavior in the legacy

@@ -3,7 +3,7 @@ import type { Note } from '../types'
 import { sortNotes, SORT_LABELS } from '../data/sort'
 import type { SortKey, SortDir } from '../data/sort'
 
-const SORT_STORE = 'theboosters_sort'
+const SORT_STORE = 'boostrecord_sort'
 
 function loadSort(): { key: SortKey; dir: SortDir } {
   try {

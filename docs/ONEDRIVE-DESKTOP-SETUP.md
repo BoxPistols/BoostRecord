@@ -1,6 +1,6 @@
 # OneDrive でノートを同期する（デスクトップ / Win・Mac）
 
-The Boosters（Boostnote Legacy）のノートは 1 ノート = 1 ファイル（.cson） の
+BoostRecord（Boostnote Legacy）のノートは 1 ノート = 1 ファイル（.cson） の
 プレーンなファイル集合です。ストレージの保存先フォルダを OneDrive の同期フォルダ配下に
 置くだけで、OneDrive クライアントが自動的に複数 PC 間で同期します（アプリ側の追加設定は不要）。
 

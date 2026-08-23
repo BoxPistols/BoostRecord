@@ -235,6 +235,82 @@ Phase 1 の置換で `TheBoosters` → `BoostRecord` に追随します。
       リリースを跨いだ `appId` 変更のタイミングを設計する
 - [ ] `.github/FUNDING.yml` の記載を確認
 
+### Phase 4 の実施手順: 改名リリース
+
+#### 前提: この app に自動インストール型の更新機構は無い
+
+`lib/main-app.js:38-80` の実装は electron-updater ではなく、**GitHub API の latest release を見て通知し、クリックされたらブラウザでリリースページを開くだけ**の仕組みです。署名なし mac アプリに Squirrel が使えないため置き換えた経緯がコメントに残っています。
+
+```js
+const UPDATE_REPO = 'BoxPistols/BoostRecord'
+fetch(`https://api.github.com/repos/${UPDATE_REPO}/releases/latest`)
+  // tag_name と app.getVersion() を比較し、新しければ renderer へ 'update-found'
+ipc.on('update-app-confirm', () => { shell.openExternal(latestReleaseUrl) })
+```
+
+したがって **`build.appId` の変更で壊れる自動更新は存在しません**。appId 変更の実影響は、OS 上のアプリ識別・インストール先・userData パス（移行処理が吸収）と、**新旧2つのアプリが並存すること**です。
+
+#### 旧アプリへ通知は届く
+
+旧インストールには `UPDATE_REPO = 'BoxPistols/TheBoosters'` がビルド時に焼き込まれています。
+[GitHub のドキュメント](https://docs.github.com/en/repositories/creating-and-managing-repositories/renaming-a-repository)によれば、リポジトリ改名後は REST API の **GET に 301 が返り**、`fetch` はデフォルトでリダイレクトを追従します。
+
+**よって「旧 appId のままの最終リリースを1本出す」という工程は不要です。** リポジトリを改名したうえで新しいリリースを公開すれば、旧アプリの更新チェックがそれを検出します。
+
+#### ⚠️ 絶対に守るルール
+
+**`BoxPistols/TheBoosters` という名前で新しいリポジトリを作らないこと。**
+
+GitHub は「改名前の名前で新しいリポジトリが作られると、リダイレクトは機能しなくなる」と明記しています。作った瞬間に旧アプリの更新チェックが恒久的に壊れ、ユーザーは取り残されます。
+
+#### 手順
+
+1. **リポジトリ改名（Phase 3）を先に完了させる**
+2. **リダイレクトを実測で確認する**
+   ```bash
+   curl -sSL -o /dev/null -w "%{http_code} %{url_effective}\n" \
+     -H "accept: application/vnd.github+json" -H "user-agent: check" \
+     https://api.github.com/repos/BoxPistols/TheBoosters/releases/latest
+   ```
+   `BoostRecord` に解決していれば OK
+3. **バージョンを上げる**（`0.25.0` → `0.26.0`）。旧アプリの `isNewerVersion` 比較に引っかかる必要がある
+4. **タグを打ってリリースを公開**
+5. **旧アプリを起動し、更新通知が出てリリースページが開くことを確認**
+6. 新アプリを入れ、userData の引き継ぎを確認したうえで旧アプリをアンインストール
+
+#### リリースノートのテンプレート
+
+```markdown
+## The Boosters は BoostRecord になりました
+
+同名のメディア番組との混同を避けるため、アプリ名を変更しました。
+Boostnote の系譜を示す `Boost` は残し、`Note` を `Record`（記録する／レコード盤）
+に置き換えています。
+
+### 移行について
+
+**これは別アプリとしてインストールされます。** 旧 The Boosters は自動では
+置き換わりません。
+
+- **ノート本体は影響を受けません。** `.cson` はこれまでどおり、設定した
+  ストレージパス（既定 `~/Boostnote`）にあります
+- **初回起動時に以下を自動で引き継ぎます**
+  - AI プロバイダの API キー
+  - スニペット
+  - 添付ファイルのバックアップ
+  - アプリ設定
+- 引き継ぎは**コピー**です。旧データはそのまま残るので、問題があれば
+  旧アプリに戻れます
+
+### 手順
+
+1. BoostRecord をインストールして起動する
+2. ノート・設定・API キーが揃っていることを確認する
+3. 確認できたら The Boosters をアンインストールする
+```
+
+---
+
 ### Phase 5: 検証
 
 ```bash

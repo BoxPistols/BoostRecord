@@ -256,7 +256,7 @@ emit('vscode/package.json', JSON.stringify({
   displayName: `${NAME} Theme`,
   description: P.description,
   version: '0.1.0',
-  publisher: 'the-boosters',
+  publisher: 'boostrecord',
   license: 'MIT',
   engines: { vscode: '^1.75.0' },
   categories: ['Themes'],

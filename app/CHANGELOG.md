@@ -1,6 +1,16 @@
-# The Boosters — 変更履歴
+# BoostRecord — 変更履歴
 
-[Boostnote Legacy](https://github.com/BoxPistols/TheBoosters) を母体とするモダン版ノートアプリ（Vite + React 19 + TypeScript + CodeMirror 6 / Electron 42）の変更履歴です。
+[Boostnote Legacy](https://github.com/BoxPistols/BoostRecord) を母体とするモダン版ノートアプリ（Vite + React 19 + TypeScript + CodeMirror 6 / Electron 42）の変更履歴です。
+
+## Unreleased
+
+- アプリ名を **The Boosters** から **BoostRecord** へ変更。NewsPicks Studios の
+  同名番組「THE BOOSTERS」との衝突を回避するため。`Boost` を綴りに残して
+  Boostnote の系譜を継承し、`Note` を `Record`（記録する／レコード盤）に置き換えた。
+- 改名にともない userData のパスが変わるため、旧ディレクトリから
+  `ai-keys.json` / `snippets.json` / `media-backups/` / `config.json` を
+  引き継ぐ移行処理を追加（`lib/migrate-userdata.js`）。
+- 手順の詳細は `docs/RENAME-2026-BoostRecord.md` を参照。
 
 ## 0.1.3
 

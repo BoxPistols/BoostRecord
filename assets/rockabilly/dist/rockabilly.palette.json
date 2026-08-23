@@ -1,6 +1,6 @@
 {
   "name": "Rockabilly",
-  "author": "The Boosters",
+  "author": "BoostRecord",
   "description": "真空管アンプの朱赤と琥珀を、ニュートラルなチャコールに載せた暗色スキーム。",
   "variant": "dark",
   "source": "browser/styles/index.styl の $ui-rockabilly-* が出どころ。UI 側と同じ地・同じ朱赤を使う",

@@ -19,8 +19,8 @@ const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 const candidates = process.argv.slice(2).length
   ? process.argv.slice(2)
   : [
-      `${root}/release/mac-arm64/The Boosters.app/Contents/Resources/app`,
-      `${root}/release/mac/The Boosters.app/Contents/Resources/app`,
+      `${root}/release/mac-arm64/BoostRecord.app/Contents/Resources/app`,
+      `${root}/release/mac/BoostRecord.app/Contents/Resources/app`,
       `${root}/release/win-unpacked/resources/app`
     ]
 

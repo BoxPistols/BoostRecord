@@ -1,9 +1,9 @@
-name: Release (The Boosters — full/legacy app)
+name: Release (BoostRecord — full/legacy app)
 
 # Builds the full-featured app (browser/ + lib/, Electron 28) into installers on
 # macOS (dmg/zip arm64+x64) and Windows (nsis) and publishes them to a GitHub
-# Release. This is the primary "The Boosters" product (io.boxpistols.theboosters).
-# The modern app/ shell ("The Boosters Next", io.boxpistols.theboosters.next)
+# Release. This is the primary "BoostRecord" product (io.boxpistols.boostrecord).
+# The modern app/ shell ("BoostRecord Next", io.boxpistols.boostrecord.next)
 # ships separately via release.yml on `app-v*` tags.
 #
 # Trigger by pushing a tag like `v0.16.1` (the `v*` glob does NOT match `app-v*`):
@@ -81,12 +81,12 @@ jobs:
         # Boots the actual packaged .app and drives the real UI: create note →
         # type → save → note-list title. Publishing is gated on this passing.
         run: |
-          APP="$(find release -maxdepth 2 -name 'The Boosters.app' -print -quit)"
+          APP="$(find release -maxdepth 2 -name 'BoostRecord.app' -print -quit)"
           test -n "$APP" || { echo "packaged app not found"; exit 1; }
           set +e
           TB_E2E_PROBE="$PWD/dev-scripts/e2e-probe.js" \
           TB_E2E_RESULT="$RUNNER_TEMP/tb-e2e.json" \
-            "$APP/Contents/MacOS/The Boosters"
+            "$APP/Contents/MacOS/BoostRecord"
           CODE=$?
           set -e
           cat "$RUNNER_TEMP/tb-e2e.json" || true
@@ -96,7 +96,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          $exe = "release\win-unpacked\The Boosters.exe"
+          $exe = "release\win-unpacked\BoostRecord.exe"
           if (-not (Test-Path $exe)) { throw "packaged app not found" }
           $env:TB_E2E_PROBE = "$PWD\dev-scripts\e2e-probe.js"
           $env:TB_E2E_RESULT = "$env:RUNNER_TEMP\tb-e2e.json"

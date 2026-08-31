@@ -108,6 +108,49 @@ div[id^="firstRow"]
   padding 15px
   margin-bottom 30px
 
+// 設定のまとまりを切り替える横並びのタブ。1 画面に全部を縦積みすると、
+// 目的の項目に辿り着くまでスクロールし続けることになる
+.section-nav
+  display flex
+  flex-wrap wrap
+  gap 6px
+  margin-bottom 20px
+  border-bottom $ui-border
+  padding-bottom 10px
+
+.section-nav-item
+  border none
+  background transparent
+  border-radius 4px
+  padding 6px 14px
+  font-size 14px
+  font-family inherit
+  color $ui-inactive-text-color
+  cursor pointer
+  &:hover
+    background-color rgba(128, 128, 128, 0.14)
+
+.section-nav-item--active
+  @extend .section-nav-item
+  color inherit
+  font-weight 600
+  background-color rgba(128, 128, 128, 0.22)
+
+// 項目名だけでは何が変わるか伝わらないので、1 行の説明を下に添える
+.group-section-hint
+  margin 2px 0 0 210px
+  font-size 12px // A11y: 12px 未満を使わない
+  line-height 1.6
+  color $ui-inactive-text-color
+  max-width 520px
+
+.group-checkBoxSection-hint
+  margin 0 0 12px 34px
+  font-size 12px // A11y: 12px 未満を使わない
+  line-height 1.6
+  color $ui-inactive-text-color
+  max-width 520px
+
 .group
   margin-bottom 45px
 
@@ -389,14 +432,38 @@ for theme in $themes
   max-width 400px
   margin-bottom 10px
 
+.ai-css-prompt
+  margin 8px 0 10px
+
+.ai-css-prompt-label
+  display block
+  font-size 12px // A11y: 12px 未満を使わない
+  color $ui-inactive-text-color
+  margin-bottom 4px
+
+.ai-css-prompt-control
+  display flex
+  align-items center
+  justify-content space-between
+  gap 8px
+  margin-top 6px
+
+.ai-css-prompt-hint
+  font-size 12px // A11y: 12px 未満を使わない
+  color $ui-inactive-text-color
+
 .ai-css-input
-  flex 1
-  min-width 0
-  height 30px
+  display block
+  width 100%
+  box-sizing border-box
+  min-height 84px
+  resize vertical
+  font-family inherit
   font-size $tab--button-font-size
+  line-height 1.6
   border solid 1px $border-color
   border-radius 2px
-  padding 0 8px
+  padding 6px 8px
   outline none
   background-color transparent
   // 色はテーマ別に .root へ当たっているものを継承する。ここで固定すると

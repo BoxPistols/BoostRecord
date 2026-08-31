@@ -206,6 +206,14 @@ div[id^="firstRow"]
   margin-bottom 5px
   background-color transparent
 
+// 短い選択肢が 2 つ並ぶ行。既定の min-width のままだと折り返す。
+// react-css-modules のこの版は styleName に複数クラスを渡せないので、
+// 併用ではなく継承で 1 クラスにする
+.group-section-control--narrow
+  @extend .group-section-control
+  select
+    min-width 110px
+
 .group-section-control-input
   height 30px
   vertical-align middle

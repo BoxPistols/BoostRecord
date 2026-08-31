@@ -1772,7 +1772,7 @@ class UiTab extends React.Component {
               <div styleName='group-section-label'>
                 {i18n.__('Heading levels in the outline')}
               </div>
-              <div styleName='group-section-control'>
+              <div styleName='group-section-control--narrow'>
                 <select
                   value={this.state.config.preview.tocMinLevel || 1}
                   onChange={e => this.handleUIChange(e)}

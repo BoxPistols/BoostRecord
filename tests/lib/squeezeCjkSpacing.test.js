@@ -1,6 +1,9 @@
 // prettier の markdown 整形は日本語と英数字の境目に半角スペースを差し込む。
 // 整形するたびに書いていない空白が増えるので、出力を通してから詰める。
-const { squeezeCjkSpacing } = require('browser/lib/squeezeCjkSpacing')
+const {
+  squeezeCjkSpacing,
+  squeezeCjkSpacingWithCursor
+} = require('browser/lib/squeezeCjkSpacing')
 
 describe('squeezeCjkSpacing', () => {
   it('日本語と数字の間の空白を詰める', () => {
@@ -87,8 +90,90 @@ describe('squeezeCjkSpacing', () => {
     expect(squeezeCjkSpacing(src)).toBe(src)
   })
 
+  it('コードフェンスの中の表は組み直さない', () => {
+    // 表の書き方を説明したノートや、パイプを含む CLI の出力が書き換わる
+    const src = [
+      '```',
+      '| 区間 | 所要 |',
+      '| --- | --- |',
+      '| a | b |',
+      '```'
+    ].join('\n')
+    expect(squeezeCjkSpacing(src)).toBe(src)
+  })
+
+  it('インデント 4 桁のコードブロックの表は組み直さない', () => {
+    // 組み直すとコードブロックが本物の表に変わり、意味が変わる
+    const src = ['文章', '', '    | a | b |', '    | - | - |'].join('\n')
+    expect(squeezeCjkSpacing(src)).toBe(src)
+  })
+
+  it('表の字下げを保つ（リストの中の表が左端に寄らない）', () => {
+    const src = [
+      '- 項目',
+      '',
+      '  | 区間 | 所要 |',
+      '  | --- | --- |',
+      '  | 東京 | 5 分 |'
+    ].join('\n')
+    expect(squeezeCjkSpacing(src)).toBe(
+      [
+        '- 項目',
+        '',
+        '  | 区間 | 所要 |',
+        '  | ---- | ---- |',
+        '  | 東京 | 5分  |'
+      ].join('\n')
+    )
+  })
+
+  it('寄せ指定のある区切り行も他の列と同じ幅にする', () => {
+    const src = ['| a | b |', '| :-: | --: |', '| c | d |'].join('\n')
+    expect(squeezeCjkSpacing(src)).toBe(
+      ['| a   | b   |', '| :-: | --: |', '| c   | d   |'].join('\n')
+    )
+  })
+
+  it('閉じていないバッククォートで、行の残りが詰まらなくならない', () => {
+    // code span として扱うと、その行の以降がずっと詰まらず、整形のたびに
+    // 空白が増え続ける
+    expect(squeezeCjkSpacing('値段は 100 円 ` で 200 円')).toBe(
+      '値段は100円 ` で200円'
+    )
+  })
+
   it('空文字と非文字列はそのまま返す', () => {
     expect(squeezeCjkSpacing('')).toBe('')
     expect(squeezeCjkSpacing(undefined)).toBe(undefined)
+  })
+})
+
+describe('squeezeCjkSpacingWithCursor', () => {
+  it('詰めただけの行はカーソルを同じ文字の位置に置く', () => {
+    const src = '西新井から 9 月 7 日に出発します。'
+    const r = squeezeCjkSpacingWithCursor(src, src.length)
+    expect(r.text).toBe('西新井から9月7日に出発します。')
+    expect(r.cursorOffset).toBe(r.text.length)
+  })
+
+  it('表を組み直してもカーソルが本文の外へ出ない', () => {
+    // カーソルより下の行が列幅を決めるので、カーソルより前だけを詰めて
+    // 長さを測る方法では位置がずれる
+    const src = [
+      '| 区間 | 所要 |',
+      '| ---- | ---- |',
+      '| 東京 | 5 分 |',
+      '| とても長いセル | 10 分 |'
+    ].join('\n')
+    const r = squeezeCjkSpacingWithCursor(src, 5)
+    expect(r.cursorOffset).toBeGreaterThanOrEqual(0)
+    expect(r.cursorOffset).toBeLessThanOrEqual(r.text.length)
+  })
+
+  it('先頭と末尾を渡しても範囲から出ない', () => {
+    const src = '9 月 7 日\n次の行 1 行目'
+    expect(squeezeCjkSpacingWithCursor(src, 0).cursorOffset).toBe(0)
+    const last = squeezeCjkSpacingWithCursor(src, src.length)
+    expect(last.cursorOffset).toBe(last.text.length)
   })
 })

@@ -20,9 +20,9 @@ const ALNUM_THEN_JP = new RegExp(`([${ALNUM}])${SPACE}([${JP}])`, 'g')
 
 // 「9 月 7 日」のように境目が連続すると 1 回の置換では拾いきれない
 // （置換後の文字が次の境目の左側になるため）。変化が止まるまで回す
-function squeezeLine(line) {
+function squeezeRun(text) {
   let prev
-  let out = line
+  let out = text
   do {
     prev = out
     out = out.replace(JP_THEN_ALNUM, '$1$2').replace(ALNUM_THEN_JP, '$1$2')
@@ -31,11 +31,17 @@ function squeezeLine(line) {
 }
 
 // インラインコード（`...`）は素通しする。1 行を ` で分割すると
-// 奇数番目が code span になる
-function squeezeOutsideInlineCode(line) {
-  return line
-    .split('`')
-    .map((part, i) => (i % 2 === 0 ? squeezeLine(part) : part))
+// 奇数番目が code span になる。
+//
+// バッククォートの数が奇数の行は code span が閉じていない。markdown では
+// 閉じていないバッククォートはただの文字なので、行全体を文章として扱う
+// （ここで code span 扱いにすると、その行の以降がずっと詰められず、
+// 整形のたびに空白が増え続ける）
+function squeezeLine(line) {
+  const parts = line.split('`')
+  if (parts.length % 2 === 0) return squeezeRun(line)
+  return parts
+    .map((part, i) => (i % 2 === 0 ? squeezeRun(part) : part))
     .join('`')
 }
 
@@ -85,29 +91,45 @@ function padCell(cell, width) {
   return cell + ' '.repeat(Math.max(0, width - displayWidth(cell)))
 }
 
+// 区切り行も他の列と同じ幅にする。`:-:` のような寄せ指定は残す
 function buildDelimiterCell(cell, width) {
   const left = cell.startsWith(':')
   const right = cell.endsWith(':')
-  const dashes = Math.max(3, width - (left ? 1 : 0) - (right ? 1 : 0))
+  const dashes = Math.max(1, width - (left ? 1 : 0) - (right ? 1 : 0))
   return (left ? ':' : '') + '-'.repeat(dashes) + (right ? ':' : '')
+}
+
+function leadingIndent(line) {
+  const m = line.match(/^[ \t]*/)
+  return m ? m[0] : ''
 }
 
 /**
  * 空白を詰めると、prettier が入れた表の桁揃えがずれる。詰めた後の幅で組み直す。
  *
+ * 対象は文章として扱った行だけ。コードブロックの中に書かれた表や、パイプを含む
+ * CLI の出力を組み直してはいけない。行頭の字下げも保つ（リストの中の表を
+ * 左端に寄せると、リストから外れる）。
+ *
  * 行ごとのセル数が揃っている表だけを対象にする。揃っていないものは、こちらの
  * 読み違いの可能性があるので触らない。
  */
-function realignTables(lines) {
+function realignTables(lines, isProse) {
   const out = lines.slice()
   let i = 0
   while (i < out.length) {
-    if (!isTableRow(out[i])) {
+    if (!isProse[i] || !isTableRow(out[i])) {
       i++
       continue
     }
     let end = i
-    while (end + 1 < out.length && isTableRow(out[end + 1])) end++
+    while (
+      end + 1 < out.length &&
+      isProse[end + 1] &&
+      isTableRow(out[end + 1])
+    ) {
+      end++
+    }
 
     const rows = out.slice(i, end + 1).map(splitRow)
     const sameShape =
@@ -130,12 +152,47 @@ function realignTables(lines) {
             ? buildDelimiterCell(cell, widths[col])
             : padCell(cell, widths[col])
         )
-        out[i + r] = '| ' + cells.join(' | ') + ' |'
+        out[i + r] = leadingIndent(out[i + r]) + '| ' + cells.join(' | ') + ' |'
       }
     }
     i = end + 1
   }
   return out
+}
+
+// 行ごとに「文章か、コードか」を決めて、文章の行だけ詰める
+function squeezeLines(text) {
+  const lines = text.split('\n')
+  const isProse = []
+  const squeezed = []
+  let inFence = false
+  let fenceMarker = null
+
+  lines.forEach(line => {
+    const fence = line.match(/^\s*(```+|~~~+)/)
+    if (fence) {
+      if (!inFence) {
+        inFence = true
+        fenceMarker = fence[1][0]
+      } else if (fence[1][0] === fenceMarker) {
+        inFence = false
+        fenceMarker = null
+      }
+      isProse.push(false)
+      squeezed.push(line)
+      return
+    }
+    // インデント 4 桁以上はコードブロック
+    if (inFence || /^(\t| {4})/.test(line)) {
+      isProse.push(false)
+      squeezed.push(line)
+      return
+    }
+    isProse.push(true)
+    squeezed.push(squeezeLine(line))
+  })
+
+  return { lines, isProse, squeezed }
 }
 
 /**
@@ -144,31 +201,55 @@ function realignTables(lines) {
  */
 function squeezeCjkSpacing(text) {
   if (typeof text !== 'string' || text === '') return text
-
-  let inFence = false
-  let fenceMarker = null
-
-  const squeezed = text.split('\n').map(line => {
-    const fence = line.match(/^\s*(```+|~~~+)/)
-    if (fence) {
-      if (!inFence) {
-        inFence = true
-        fenceMarker = fence[1][0]
-        return line
-      }
-      if (fence[1][0] === fenceMarker) {
-        inFence = false
-        fenceMarker = null
-      }
-      return line
-    }
-    if (inFence) return line
-    // インデント 4 桁以上はコードブロック
-    if (/^(\t| {4})/.test(line)) return line
-    return squeezeOutsideInlineCode(line)
-  })
-
-  return realignTables(squeezed).join('\n')
+  const { isProse, squeezed } = squeezeLines(text)
+  return realignTables(squeezed, isProse).join('\n')
 }
 
-module.exports = { squeezeCjkSpacing }
+/**
+ * 詰めた本文と、詰めた後のカーソル位置を返す。
+ *
+ * カーソルより前だけを別に詰めて長さを測る方法は、表を組み直す時に誤る
+ * （列幅はカーソルより下の行にも左右されるため）。1 回の変換の結果から、
+ * 行と桁で位置を引き直す。
+ *
+ * @param {string} text
+ * @param {number} cursorOffset 変換前の文字位置
+ * @returns {{text: string, cursorOffset: number}}
+ */
+function squeezeCjkSpacingWithCursor(text, cursorOffset) {
+  if (typeof text !== 'string' || text === '') {
+    return { text, cursorOffset: cursorOffset || 0 }
+  }
+  const { lines, isProse, squeezed } = squeezeLines(text)
+  const finalLines = realignTables(squeezed, isProse)
+
+  const offset = Math.max(0, Math.min(cursorOffset || 0, text.length))
+  let consumed = 0
+  let lineIndex = 0
+  while (
+    lineIndex < lines.length - 1 &&
+    consumed + lines[lineIndex].length < offset
+  ) {
+    consumed += lines[lineIndex].length + 1
+    lineIndex++
+  }
+  const column = offset - consumed
+
+  let newOffset = 0
+  for (let i = 0; i < lineIndex; i++) newOffset += finalLines[i].length + 1
+
+  const sameLine = finalLines[lineIndex] === lines[lineIndex]
+  if (sameLine) {
+    newOffset += column
+  } else if (squeezed[lineIndex] === finalLines[lineIndex]) {
+    // 詰めただけの行は、同じ規則で行頭からの分を測り直せる
+    newOffset += squeezeLine(lines[lineIndex].slice(0, column)).length
+  } else {
+    // 組み直した表の行。桁の対応は取れないので、行の長さに収める
+    newOffset += Math.min(column, finalLines[lineIndex].length)
+  }
+
+  return { text: finalLines.join('\n'), cursorOffset: newOffset }
+}
+
+module.exports = { squeezeCjkSpacing, squeezeCjkSpacingWithCursor }

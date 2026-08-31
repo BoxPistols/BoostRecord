@@ -2,6 +2,7 @@ import i18n from 'browser/lib/i18n'
 import fs from 'fs'
 import spellcheck from './spellcheck'
 import { speakText, stopSpeech } from 'browser/main/lib/ttsAssist'
+import AiChatModal from 'browser/main/modals/AiChatModal'
 
 const remote = require('@electron/remote')
 const { Menu } = remote.require('electron')
@@ -31,6 +32,31 @@ const NOTE_AI_MENU_ITEMS = [
 // and one exists) or the entire note, appends the action's heading at the end
 // of the document, and streams the result under it. If the request fails
 // before any text arrived, the inserted heading is rolled back.
+/**
+ * AI に自由に質問するモーダルを開く。
+ *
+ * default しか持たないモジュールを require() すると、vite の本番ビルドで
+ * .default が undefined になる（scripts/check-esm-cjs-compat.mjs が検出する）。
+ * import で受ける。
+ */
+function openAiChat(editor) {
+  // modal.js は store（と ConfigManager）を読み込む。単体テストで electron を
+  // 触りに行かせないよう、押された時だけ読む。名前付き export なので
+  // require でも .default の取り違えは起きない
+  const { openModal } = require('browser/main/lib/modal')
+  const noteContent = editor != null ? editor.getValue() : ''
+  openModal(AiChatModal, {
+    noteContent,
+    onInsert:
+      editor == null
+        ? undefined
+        : function(text) {
+            editor.replaceSelection(text)
+            editor.focus()
+          }
+  })
+}
+
 function runNoteAiAction(editor, actionKey) {
   if (editor == null) return
   const aiAssist = require('browser/main/lib/aiAssist')
@@ -255,14 +281,25 @@ const buildEditorContextMenu = function(editor, event) {
     { type: 'separator' },
     {
       label: 'AI',
-      submenu: AI_MENU_ITEMS.map(function(item) {
-        return {
-          label: item.label,
+      submenu: [
+        {
+          // 決まった型の操作（要約・翻訳等）に当てはまらない用途。
+          // 「聞きたいことを聞く」導線がこれまで無かった
+          label: 'AI に質問する…',
           click: function() {
-            runEditorAiAction(editor, item.key)
+            openAiChat(editor)
           }
-        }
-      }).concat(
+        },
+        { type: 'separator' }
+      ].concat(
+        AI_MENU_ITEMS.map(function(item) {
+          return {
+            label: item.label,
+            click: function() {
+              runEditorAiAction(editor, item.key)
+            }
+          }
+        }),
         [{ type: 'separator' }],
         NOTE_AI_MENU_ITEMS.map(function(item) {
           return {
@@ -275,7 +312,9 @@ const buildEditorContextMenu = function(editor, event) {
       )
     },
     {
-      label: '読み上げ (VOICEVOX)',
+      // エンジンは設定で選ぶ（OS 内蔵の音声 / VOICEVOX）。
+      // ラベルに片方だけ書くと、選んでいない方の人に嘘になる
+      label: '読み上げ',
       click: function() {
         const text =
           editor.getSelection() || editor.getLine(editor.getCursor().line)

@@ -37,6 +37,7 @@ import Jsonlint from 'jsonlint-mod'
 import ConfigManager, { DEFAULT_CONFIG } from '../main/lib/ConfigManager'
 import i18n from 'browser/lib/i18n'
 import prettier from 'prettier'
+import { squeezeCjkSpacingWithCursor } from 'browser/lib/squeezeCjkSpacing'
 
 CodeMirror.modeURL = '../node_modules/codemirror/mode/%N/%N.js'
 
@@ -308,8 +309,15 @@ export default class CodeEditor extends React.Component {
           currentConfig
         )
 
-        const formattedText = formattedTextDetails.formatted
-        const formattedCursorPos = formattedTextDetails.cursorOffset
+        // prettier は日本語と英数字の境目に半角スペースを差し込む
+        // （「9 月 7 日」「妻と 2 人」）。書いていない空白が整形のたびに
+        // 増えるので、出力を通してから詰める。カーソル位置も同じ変換から引く
+        const squeezed = squeezeCjkSpacingWithCursor(
+          formattedTextDetails.formatted,
+          formattedTextDetails.cursorOffset
+        )
+        const formattedText = squeezed.text
+        const formattedCursorPos = squeezed.cursorOffset
         cm.doc.setValue(formattedText)
 
         // Reset Cursor position to be at the same markdown as was before prettifying

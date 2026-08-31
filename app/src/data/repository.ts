@@ -1,6 +1,10 @@
 import type { Note, Storage } from '../types'
 import { sampleNotes, sampleStorages } from './sampleNotes'
 import { exportFilename } from './exportMarkdown'
+import {
+  createFileSystemAccessRepository,
+  isFileSystemAccessSupported
+} from './fileSystemAccess'
 
 /**
  * The data-layer seam. The renderer only ever talks to a NotesRepository;
@@ -113,13 +117,18 @@ export function createElectronRepository(): NotesRepository {
 }
 
 /**
- * Pick the repository for the current runtime: real `.cson` files when running
- * inside Electron (the preload exposed `window.boostnote`), otherwise the
- * in-memory sample data for the browser foundation.
+ * Pick the repository for the current runtime.
+ *
+ * 1. Electron — real `.cson` files over the preload bridge
+ * 2. File System Access が使えるブラウザ — 利用者が選んだフォルダを直読み
+ * 3. それ以外 — 見本データ（読むだけ）
  */
 export function createRepository(): NotesRepository {
   if (typeof window !== 'undefined' && window.boostnote) {
     return createElectronRepository()
+  }
+  if (isFileSystemAccessSupported()) {
+    return createFileSystemAccessRepository()
   }
   return createInMemoryRepository()
 }

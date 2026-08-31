@@ -44,6 +44,71 @@ function collectKeys() {
   return found
 }
 
+// 読み込まれないロケールファイルは、置いてあっても翻訳されない。upstream から
+// 引き継いだ 19 言語がこの状態で、言語欄にも出てこなかった（#141）。
+// 「ファイルはあるが対応言語に入っていない」も「対応言語なのにファイルが無い」も
+// どちらも黙って壊れるので、両方向で突き合わせる。
+// 訳さないもの。固有名詞・拡張子・キー名
+const NOT_TRANSLATED = [
+  'Ctrl',
+  '.md',
+  '.txt',
+  '.html',
+  '.pdf',
+  'vim',
+  'emacs',
+  'GitHub',
+  'Twitter',
+  'BoostRecord',
+  'Copyright (C) 2017 - 2019 BoostIO',
+  'JWT'
+]
+
+// 対応は ja / en の 2 つだけなので、en に足したキーは ja にも要る。
+// i18n-2 は訳が無いキーをそのまま返すので、抜けても赤にならず、その画面を
+// 開いた人しか気づけない
+describe('ja と en の対応', () => {
+  const en = JSON.parse(
+    fs.readFileSync(path.join(root, 'locales/en.json'), 'utf8')
+  )
+
+  it('走査自体が空回りしていない', () => {
+    expect(Object.keys(en).length).toBeGreaterThan(300)
+  })
+
+  it('en のキーはすべて ja にある', () => {
+    const missing = Object.keys(en).filter(key => !(key in ja))
+    expect(missing).toEqual([])
+  })
+
+  it('ja に英語のまま残った訳が無い', () => {
+    const untranslated = Object.keys(en).filter(
+      key => ja[key] === key && NOT_TRANSLATED.indexOf(key) === -1
+    )
+    expect(untranslated).toEqual([])
+  })
+})
+
+describe('対応言語とロケールファイルの対応', () => {
+  const { getLocales } = require('browser/lib/Languages')
+  const declared = getLocales()
+    .slice()
+    .sort()
+  const onDisk = fs
+    .readdirSync(path.join(root, 'locales'))
+    .filter(name => name.endsWith('.json'))
+    .map(name => name.replace(/\.json$/, ''))
+    .sort()
+
+  it('対応言語のファイルがすべてある', () => {
+    expect(declared.filter(locale => onDisk.indexOf(locale) === -1)).toEqual([])
+  })
+
+  it('読み込まれないロケールファイルが残っていない', () => {
+    expect(onDisk.filter(locale => declared.indexOf(locale) === -1)).toEqual([])
+  })
+})
+
 describe('日本語ロケール', () => {
   const keys = collectKeys()
 

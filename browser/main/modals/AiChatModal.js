@@ -9,6 +9,9 @@ import { runAiPrompt } from 'browser/main/lib/aiAssist'
 // 会話をそのまま渡せる IPC が無いので、履歴は 1 本のプロンプトに畳んで送る。
 // 長いノートを毎回丸ごと送らないよう、文脈にする本文には上限を設ける
 const MAX_CONTEXT_CHARS = 6000
+// 会話が長くなると、runAiPrompt 側の全体の上限で「後ろ」が落ちる。落ちるのは
+// 直近の質問なので、こちらで先に古い順に捨てておく
+const MAX_HISTORY_CHARS = 8000
 
 const SYSTEM = [
   'You are a writing assistant inside a Markdown note app.',
@@ -16,6 +19,21 @@ const SYSTEM = [
   'Be concrete and brief. Do not pad the answer with restatements of the question.',
   'When the user asks for text to put in their note, return just that text.'
 ].join(' ')
+
+// 直近から詰めて、上限に収まるところまでを新しい順に採る。
+// 最後の 1 件（いま送った質問）は上限を超えても必ず残す
+function recentTurns(messages) {
+  const lines = []
+  let total = 0
+  for (let i = messages.length - 1; i >= 0; i--) {
+    const m = messages[i]
+    const line = (m.role === 'user' ? 'User: ' : 'Assistant: ') + m.content
+    if (lines.length > 0 && total + line.length > MAX_HISTORY_CHARS) break
+    lines.unshift(line)
+    total += line.length
+  }
+  return lines
+}
 
 function buildPrompt(messages, context) {
   const parts = []
@@ -25,9 +43,7 @@ function buildPrompt(messages, context) {
     parts.push('')
   }
   parts.push('# Conversation')
-  messages.forEach(m => {
-    parts.push((m.role === 'user' ? 'User: ' : 'Assistant: ') + m.content)
-  })
+  parts.push(...recentTurns(messages))
   parts.push('Assistant:')
   return parts.join('\n')
 }
@@ -119,12 +135,15 @@ class AiChatModal extends React.Component {
       })
       .catch(err => {
         if (!this.mounted) return
-        this.setState(prev => ({
-          // 応答が無いまま残る空の吹き出しは消す
-          messages: prev.messages.slice(0, -1),
-          sending: false,
-          error: err.message
-        }))
+        this.setState(prev => {
+          const last = prev.messages[prev.messages.length - 1]
+          // 空の吹き出しだけ消す。途中まで届いていた応答は残す
+          const messages =
+            last && last.role === 'assistant' && !last.content
+              ? prev.messages.slice(0, -1)
+              : prev.messages
+          return { messages, sending: false, error: err.message }
+        })
       })
   }
 

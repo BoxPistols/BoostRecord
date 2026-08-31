@@ -163,7 +163,9 @@ body[data-theme="dark"]
   .send
     colorDarkPrimaryButton()
 
-for theme in 'white' 'solarized-dark' 'dracula'
+// 'white' はモーダル用の変数を持たないので入れない（空の宣言が出る）。
+// 'dark' は上の明示ブロックで扱う
+for theme in 'solarized-dark' 'dracula'
   apply-theme(theme)
 
 for theme in $themes

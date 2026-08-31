@@ -67,14 +67,20 @@ function speakWithBrowser(text, cfg) {
   }
   return new Promise((resolve, reject) => {
     const utterance = new window.SpeechSynthesisUtterance(text)
-    utterance.lang = 'ja-JP'
     utterance.rate = cfg.rate
 
     const voices = synth.getVoices() || []
     const chosen =
       voices.find(v => v.voiceURI === cfg.voiceURI) ||
       voices.find(v => /^ja/i.test(v.lang))
-    if (chosen) utterance.voice = chosen
+    if (chosen) {
+      utterance.voice = chosen
+      // 選んだ声と違う言語を指定すると、実装によっては指定言語の声に
+      // 差し替えられて選択が効かない
+      utterance.lang = chosen.lang
+    } else {
+      utterance.lang = 'ja-JP'
+    }
 
     utterance.onend = () => resolve()
     utterance.onerror = e => {
@@ -116,11 +122,22 @@ async function speakWithVoicevox(text, cfg) {
   await audio.play()
 }
 
-export async function speakText(text) {
+/**
+ * 設定を明示して読み上げる。設定画面の試聴は保存前の値で試せる必要があるので、
+ * 保存済みの設定を読む speakText() とは別に用意する。
+ *
+ * @param {string} text
+ * @param {object} overrides getTtsConfig() の戻りに重ねる値
+ */
+export async function speakTextWith(text, overrides) {
   stopSpeech()
-  const cfg = getTtsConfig()
+  const cfg = Object.assign({}, getTtsConfig(), overrides || {})
   if (cfg.engine === ENGINE_VOICEVOX) return speakWithVoicevox(text, cfg)
   return speakWithBrowser(text, cfg)
+}
+
+export async function speakText(text) {
+  return speakTextWith(text, null)
 }
 
 /**
@@ -130,6 +147,7 @@ export async function speakText(text) {
 export function testVoicevox(port) {
   return ipcRenderer
     .invoke('tts:ping', { port: port || DEFAULT_TTS_PORT })
+    .catch(err => ({ ok: false, reason: (err && err.message) || 'IPC_FAILED' }))
     .then(res => {
       if (res && res.ok) {
         return { ok: true, message: `VOICEVOX ${res.version} に接続しました` }

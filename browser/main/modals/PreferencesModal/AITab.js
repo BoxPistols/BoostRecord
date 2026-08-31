@@ -10,7 +10,7 @@ import {
   ENGINE_BROWSER,
   ENGINE_VOICEVOX,
   listBrowserVoices,
-  speakText,
+  speakTextWith,
   stopSpeech,
   testVoicevox
 } from 'browser/main/lib/ttsAssist'
@@ -321,14 +321,29 @@ class AITab extends React.Component {
     this.setState({ ttsTesting: true, ttsTestResult: null })
 
     if (ttsEngine === ENGINE_VOICEVOX) {
-      testVoicevox(parseInt(ttsPort, 10) || DEFAULT_TTS_PORT).then(result => {
-        if (!this.mounted) return
-        this.setState({ ttsTesting: false, ttsTestResult: result })
-      })
+      testVoicevox(parseInt(ttsPort, 10) || DEFAULT_TTS_PORT).then(
+        result => {
+          if (!this.mounted) return
+          this.setState({ ttsTesting: false, ttsTestResult: result })
+        },
+        err => {
+          // ここで握らないと、押しっぱなしの「テスト中…」で固まる
+          if (!this.mounted) return
+          this.setState({
+            ttsTesting: false,
+            ttsTestResult: { ok: false, message: (err && err.message) || '' }
+          })
+        }
+      )
       return
     }
 
-    speakText(i18n.__('This is a test of the reading voice.'))
+    // 保存前の値で試す。保存済みの設定を読むと、選び直した直後に
+    // 前の設定で再生してしまう
+    speakTextWith(i18n.__('This is a test of the reading voice.'), {
+      engine: ENGINE_BROWSER,
+      voiceURI: this.state.ttsVoiceURI
+    })
       .then(() => {
         if (!this.mounted) return
         this.setState({

@@ -49,7 +49,9 @@
   font-size 14px
   cursor pointer
   &:hover
-    color $ui-text-color
+    // 明暗どちらの地でも読める中間色。$ui-text-color (#333) を固定すると
+    // ダークテーマの hover で文字が消える
+    color inherit
     background-color alpha($ui-button--active-backgroundColor, 40%)
   &:focus-visible
     outline none

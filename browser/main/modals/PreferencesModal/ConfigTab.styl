@@ -153,9 +153,13 @@ div[id^="firstRow"]
 .group-section-control select
   outline none
   border 1px solid $ui-borderColor
-  font-size 16px
-  height 30px
-  width 250px
+  // 幅を固定すると「エディタがフォーカスを失った時」のような長い選択肢が
+  // 途中で切れる。中身に合わせて伸びるようにして、下限だけ揃える
+  font-size 14px
+  height 32px
+  min-width 250px
+  max-width 100%
+  padding 0 6px
   margin-bottom 5px
   background-color transparent
 
@@ -395,7 +399,9 @@ for theme in $themes
   padding 0 8px
   outline none
   background-color transparent
-  color $ui-text-color
+  // 色はテーマ別に .root へ当たっているものを継承する。ここで固定すると
+  // ダークテーマで文字が背景と同化する（実際にそうなっていた）
+  color inherit
 
 .ai-css-error
   font-size 12px // A11y: 12px 未満を使わない
@@ -405,14 +411,16 @@ for theme in $themes
   padding 8px 10px
   margin-bottom 8px
   background-color rgba(191, 54, 12, 0.08)
-  color $ui-text-color
+  color inherit
 
 .ai-css-preview
   border $ui-border
   border-radius 2px
   padding 10px
   margin-bottom 8px
-  background-color $ui-backgroundColor
+  // テーマに依らず地の色に薄く乗せる。$ui-backgroundColor は白固定なので
+  // ダークテーマで白い箱が出ていた
+  background-color rgba(128, 128, 128, 0.08)
   p
     font-size 12px // A11y: 12px 未満を使わない
     line-height 1.6
@@ -420,7 +428,7 @@ for theme in $themes
     color $ui-inactive-text-color
 
 .ai-css-note
-  color $ui-text-color
+  color inherit
 
 .ai-css-code
   font-family SFMono-Regular, Consolas, monospace
@@ -430,7 +438,7 @@ for theme in $themes
   margin 0 0 8px
   border-radius 2px
   background-color rgba(128, 128, 128, 0.12)
-  color $ui-text-color
+  color inherit
   white-space pre
   overflow auto
   max-height 220px

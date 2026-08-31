@@ -347,6 +347,14 @@ class UiTab extends React.Component {
       resolveEditorTheme(this.state.config.editor.theme)
     )
 
+    // プレビューのコードブロックも同じ規則で揃える。エディタだけ連動させて
+    // いたので、ダークにするとプレビューのコードブロックだけが白く残っていた
+    const coupledCodeBlockTheme = applyEditorThemeChoice(
+      uiIsDark,
+      this.refs.previewCodeBlockTheme.value,
+      resolveEditorTheme(this.state.config.preview.codeBlockTheme)
+    )
+
     const newConfig = {
       ui: {
         theme: selectedTheme,
@@ -419,7 +427,7 @@ class UiTab extends React.Component {
       preview: {
         fontSize: this.refs.previewFontSize.value,
         fontFamily: this.refs.previewFontFamily.value,
-        codeBlockTheme: this.refs.previewCodeBlockTheme.value,
+        codeBlockTheme: coupledCodeBlockTheme,
         lineNumber: this.refs.previewLineNumber.checked,
         showToc: this.refs.previewShowToc.checked,
         tocMinLevel: parseInt(this.refs.previewTocMinLevel.value, 10),

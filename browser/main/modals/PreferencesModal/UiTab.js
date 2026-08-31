@@ -52,7 +52,10 @@ class UiTab extends React.Component {
     super(props)
     this.state = {
       config: props.config,
+      // 表示中のまとまり。中身は常に描かれていて、display だけ切り替える
+      activeSection: 'theme',
       codemirrorTheme: props.config.editor.theme,
+      codeBlockTheme: resolveEditorTheme(props.config.preview.codeBlockTheme),
       customCSSTemplateId: CUSTOM_CSS_TEMPLATES[0].id,
       // AI 生成の導線。キーが無いときは出さないので、状態が分かるまで null
       aiKeyStatus: null,
@@ -64,9 +67,137 @@ class UiTab extends React.Component {
     }
   }
 
+  sectionStyle(name) {
+    return { display: this.state.activeSection === name ? 'block' : 'none' }
+  }
+
+  /**
+   * 表示中でないまとまりの中で作られた CodeMirror は、寸法を測れないので
+   * 空の箱として描かれる。表示に切り替わった時点で測り直させる。
+   *
+   * どれがどのまとまりに属するかを持つと、項目を動かすたびに合わせ直す
+   * ことになるので、全部まとめて refresh する（数は多くない）
+   */
+  refreshCodeMirrors() {
+    const instances = [
+      this.codeMirrorInstance,
+      this.codeBlockSampleInstance,
+      this.customCSSCM,
+      this.prettierConfigCM,
+      this.customMarkdownLintConfigCM
+    ]
+    instances.forEach(instance => {
+      if (instance && instance.getCodeMirror) instance.getCodeMirror().refresh()
+    })
+  }
+
+  handleSectionChange(key) {
+    this.setState({ activeSection: key }, () => this.refreshCodeMirrors())
+  }
+
+  renderSectionNav() {
+    const sections = [
+      { key: 'theme', label: i18n.__('Theme') },
+      { key: 'general', label: i18n.__('General') },
+      { key: 'editor', label: i18n.__('Editor') },
+      { key: 'preview', label: i18n.__('Preview') }
+    ]
+    return sections.map(section => (
+      <button
+        key={section.key}
+        type='button'
+        role='tab'
+        aria-selected={this.state.activeSection === section.key}
+        styleName={
+          this.state.activeSection === section.key
+            ? 'section-nav-item--active'
+            : 'section-nav-item'
+        }
+        onClick={() => this.handleSectionChange(section.key)}
+      >
+        {section.label}
+      </button>
+    ))
+  }
+
+  /**
+   * コードブロックのテーマの見本。
+   *
+   * エディタの見本と並べて置く。テーマを選んでも、実際に何が変わるかが
+   * 見えないと選びようがない。読み込む CSS はエディタの見本とは別の link に
+   * する（2 つのテーマが同時に必要なため）
+   */
+  renderCodeBlockSample() {
+    // 見本の中身はエディタ側と揃える。同じコードが 2 つのテーマで
+    // 並ぶので、どこが変わるかが分かる
+    const sample = [
+      '// プレビューのコードブロック',
+      "const amp = { model: 'Bassman', gain: 7.5 }",
+      'export function play (track) {',
+      '  if (!track) return null',
+      '}'
+    ].join('\n')
+    return (
+      <div styleName='group-section'>
+        <div styleName='group-section-label'>
+          {i18n.__('Code block sample')}
+        </div>
+        <div styleName='group-section-control'>
+          <div styleName='code-mirror'>
+            <ReactCodeMirror
+              ref={e => (this.codeBlockSampleInstance = e)}
+              value={sample}
+              options={{
+                lineNumbers: true,
+                readOnly: true,
+                mode: 'javascript',
+                theme: this.state.codeBlockTheme
+              }}
+            />
+          </div>
+        </div>
+        <div styleName='group-section-hint'>
+          {i18n.__(
+            'The same code shown with the code block theme above, so the two themes can be compared side by side.'
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  /**
+   * 見本用のテーマ CSS を <head> に足す。id ごとに 1 枚。
+   */
+  applySampleThemeLink(id, themeName) {
+    let link = document.getElementById(id)
+    if (link === null) {
+      link = document.createElement('link')
+      link.setAttribute('id', id)
+      link.setAttribute('rel', 'stylesheet')
+      document.head.appendChild(link)
+    }
+    const theme = consts.THEMES.find(t => t.name === themeName)
+    if (theme && theme.path) {
+      link.setAttribute('href', theme.path)
+    } else {
+      // default は追加の CSS を持たない。href を空にすると存在しない URL を
+      // 取りに行くので属性ごと外す
+      link.removeAttribute('href')
+    }
+  }
+
   componentDidMount() {
+    // コードブロックの見本は、エディタとは別のテーマになりうる。
+    // 開いた時点の分をここで読み込む
+    this.applySampleThemeLink('codeBlockHighLight', this.state.codeBlockTheme)
     CodeMirror.autoLoadMode(
       this.codeMirrorInstance.getCodeMirror(),
+      'javascript'
+    )
+    // autoLoadMode は渡した instance にしか読み込み後のモードを当て直さない。
+    // コードブロックの見本も渡さないと、色の付かない素の文字のままになる
+    CodeMirror.autoLoadMode(
+      this.codeBlockSampleInstance.getCodeMirror(),
       'javascript'
     )
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
@@ -111,6 +242,10 @@ class UiTab extends React.Component {
     this.mounted = false
     ipc.removeListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.removeListener('APP_SETTING_ERROR', this.handleSettingError)
+    // 見本のために足した stylesheet を残さない。保存せずに閉じた時、
+    // 選んでいないテーマの CSS が読み込まれたままになる
+    const link = document.getElementById('codeBlockHighLight')
+    if (link && link.parentNode) link.parentNode.removeChild(link)
   }
 
   // 拒否の理由をそのまま出しても伝わらないので、何が起きたかを1行で言う
@@ -155,25 +290,39 @@ class UiTab extends React.Component {
     }
     return (
       <div styleName='ai-css'>
-        <div styleName='template-picker'>
-          <label htmlFor='customCSSPrompt'>{i18n.__('Ask AI')}</label>
-          <input
+        {/* 自由記述なので 1 行の input では書ききれない。複数行で書けて、
+            改行は改行として入り、送信は Cmd/Ctrl + Enter に分ける */}
+        <div styleName='ai-css-prompt'>
+          <label htmlFor='customCSSPrompt' styleName='ai-css-prompt-label'>
+            {i18n.__('Ask AI')}
+          </label>
+          <textarea
             id='customCSSPrompt'
-            type='text'
             styleName='ai-css-input'
+            rows={4}
             value={cssPrompt}
-            placeholder={i18n.__('e.g. tighten up the headings')}
+            placeholder={i18n.__(
+              'e.g. tighten up the headings, and make block quotes stand out more'
+            )}
             onChange={e => this.setState({ cssPrompt: e.target.value })}
             onKeyDown={e => this.handleAiPromptKeyDown(e)}
           />
-          <button
-            type='button'
-            styleName='template-picker-button'
-            disabled={cssGenerating || cssPrompt.trim() === ''}
-            onClick={() => this.handleGenerateCustomCSS()}
-          >
-            {cssGenerating ? i18n.__('Generating…') : i18n.__('Generate')}
-          </button>
+          <div styleName='ai-css-prompt-control'>
+            <span styleName='ai-css-prompt-hint'>
+              {i18n.__(
+                'Enter for a new line, %s to generate',
+                this.generateShortcutLabel()
+              )}
+            </span>
+            <button
+              type='button'
+              styleName='template-picker-button'
+              disabled={cssGenerating || cssPrompt.trim() === ''}
+              onClick={() => this.handleGenerateCustomCSS()}
+            >
+              {cssGenerating ? i18n.__('Generating…') : i18n.__('Generate')}
+            </button>
+          </div>
         </div>
         {cssError === null ? null : (
           <div styleName='ai-css-error'>{cssError}</div>
@@ -233,10 +382,18 @@ class UiTab extends React.Component {
     )
   }
 
+  generateShortcutLabel() {
+    const isMac = /Mac|iPhone|iPad|iPod/.test(
+      typeof navigator !== 'undefined' ? navigator.userAgent : ''
+    )
+    return isMac ? '\u2318 + Enter' : 'Ctrl + Enter'
+  }
+
   handleAiPromptKeyDown(e) {
     // 日本語 IME の確定 Enter で送信しない
     if (e.nativeEvent && e.nativeEvent.isComposing) return
-    if (e.key === 'Enter') {
+    // textarea になったので Enter は改行。送信は Cmd/Ctrl + Enter に分ける
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
       e.preventDefault()
       this.handleGenerateCustomCSS()
     }
@@ -462,8 +619,18 @@ class UiTab extends React.Component {
       }
     }
 
+    // コードブロックの見本も、選び直したその場で切り替える
+    const newCodeBlockTheme = resolveEditorTheme(coupledCodeBlockTheme)
+    if (newCodeBlockTheme !== this.state.codeBlockTheme) {
+      this.applySampleThemeLink('codeBlockHighLight', newCodeBlockTheme)
+    }
+
     this.setState(
-      { config: newConfig, codemirrorTheme: newCodemirrorTheme },
+      {
+        config: newConfig,
+        codemirrorTheme: newCodemirrorTheme,
+        codeBlockTheme: newCodeBlockTheme
+      },
       () => {
         const { ui, editor, preview } = this.props.config
         this.currentConfig = { ui, editor, preview }
@@ -583,1092 +750,1311 @@ class UiTab extends React.Component {
     const fontFamily = normalizeEditorFontFamily(config.editor.fontFamily)
     return (
       <div styleName='root'>
+        {/* 縦に一続きだと目的の設定に辿り着けないので、意味の
+            まとまりごとに切り替える。テーマは UI・エディタ・
+            コードブロックの 3 つが離れていると違いが分からないので
+            1 箇所にまとめる。**表示を切り替えるだけで、外しては
+            いけない**。保存は this.refs で全項目をまとめて読むため、
+            アンマウントすると保存が丸ごと失敗する */}
+        <div styleName='section-nav' role='tablist'>
+          {this.renderSectionNav()}
+        </div>
         <div styleName='group'>
-          <div styleName='group-header'>{i18n.__('Interface')}</div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Interface Theme')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.ui.defaultTheme}
-                onChange={e => this.handleUIChange(e)}
-                ref='uiTheme'
-              >
-                <optgroup label='Light Themes'>
-                  {uiThemes
-                    .filter(theme => !theme.isDark)
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                    .map(theme => {
-                      return (
-                        <option value={theme.name} key={theme.name}>
-                          {theme.label}
-                        </option>
-                      )
-                    })}
-                </optgroup>
-                <optgroup label='Dark Themes'>
-                  {uiThemes
-                    .filter(theme => theme.isDark)
-                    .sort((a, b) => a.label.localeCompare(b.label))
-                    .map(theme => {
-                      return (
-                        <option value={theme.name} key={theme.name}>
-                          {theme.label}
-                        </option>
-                      )
-                    })}
-                </optgroup>
-              </select>
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Language')}</div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.ui.language}
-                onChange={e => this.handleUIChange(e)}
-                ref='uiLanguage'
-              >
-                {getLanguages().map(language => (
-                  <option value={language.locale} key={language.locale}>
-                    {i18n.__(language.name)}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Default New Note')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.ui.defaultNote}
-                onChange={e => this.handleUIChange(e)}
-                ref='defaultNote'
-              >
-                <option value='ALWAYS_ASK'>{i18n.__('Always Ask')}</option>
-                <option value='MARKDOWN_NOTE'>
-                  {i18n.__('Markdown Note')}
-                </option>
-                <option value='SNIPPET_NOTE'>{i18n.__('Snippet Note')}</option>
-              </select>
-            </div>
-          </div>
-
-          {/* macOS のメニューバーはシステム側のもので、
-              BrowserWindow.setMenuBarVisibility() が効かない。
-              押しても何も起きないので出さない（ホットキー側も同じ理由で
-              Mac では隠している。HotkeyTab の showMenuBarHotkey 参照） */}
-          {!OSX && (
-            <div styleName='group-checkBoxSection'>
-              <label>
-                <input
-                  onChange={e => this.handleUIChange(e)}
-                  checked={this.state.config.ui.showMenuBar}
-                  ref='showMenuBar'
-                  type='checkbox'
-                />
-                &nbsp;
-                {i18n.__('Show menu bar')}
-              </label>
-            </div>
-          )}
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.showCopyNotification}
-                ref='showCopyNotification'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Show "Saved to Clipboard" notification when copying')}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.confirmDeletion}
-                ref='confirmDeletion'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Show a confirmation dialog when deleting notes')}
-            </label>
-          </div>
-          {global.process.platform === 'win32' ? (
-            <div styleName='group-checkBoxSection'>
-              <label>
-                <input
-                  onChange={e => this.handleUIChange(e)}
-                  checked={this.state.config.ui.disableDirectWrite}
-                  ref='uiD2w'
-                  disabled={OSX}
-                  type='checkbox'
-                />
-                &nbsp;
+          <div style={this.sectionStyle('theme')}>
+            <div styleName='group-header'>{i18n.__('Theme')}</div>
+            <div styleName='group-hint'>
+              <p>
                 {i18n.__(
-                  'Disable Direct Write (It will be applied after restarting)'
-                )}
-              </label>
-            </div>
-          ) : null}
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.showScrollBar}
-                ref='showScrollBar'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__(
-                'Show the scroll bars in the editor and in the markdown preview (It will be applied after restarting)'
-              )}
-            </label>
-          </div>
-          <div styleName='group-header2'>{i18n.__('Tags')}</div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.saveTagsAlphabetically}
-                ref='saveTagsAlphabetically'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Save tags of a note in alphabetical order')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.showTagsAlphabetically}
-                ref='showTagsAlphabetically'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Show tags of a note in alphabetical order')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.showOnlyRelatedTags}
-                ref='showOnlyRelatedTags'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Show only related tags')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.enableLiveNoteCounts}
-                ref='enableLiveNoteCounts'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Enable live count of notes')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.ui.tagNewNoteWithFilteringTags}
-                ref='tagNewNoteWithFilteringTags'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('New notes are tagged with the filtering tags')}
-            </label>
-          </div>
-
-          <div styleName='group-header2'>{i18n.__('Editor')}</div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Editor Theme')}</div>
-            <div styleName='group-section-control'>
-              <select
-                value={resolveEditorTheme(config.editor.theme)}
-                ref='editorTheme'
-                onChange={e => this.handleUIChange(e)}
-              >
-                {this.renderEditorThemeOptions(themes)}
-              </select>
-              <div
-                styleName='code-mirror'
-                style={{
-                  fontFamily,
-                  fontSize: `${parseInt(config.editor.fontSize, 10) || 14}px`
-                }}
-              >
-                <ReactCodeMirror
-                  ref={e => (this.codeMirrorInstance = e)}
-                  value={codemirrorSampleCode}
-                  options={{
-                    lineNumbers: true,
-                    readOnly: true,
-                    mode: 'javascript',
-                    theme: codemirrorTheme
-                  }}
-                />
-              </div>
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Editor Font Size')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='editorFontSize'
-                value={config.editor.fontSize}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Editor Font Family')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='editorFontFamily'
-                value={config.editor.fontFamily}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Editor Indent Style')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.editor.indentSize}
-                ref='editorIndentSize'
-                onChange={e => this.handleUIChange(e)}
-              >
-                <option value='1'>1</option>
-                <option value='2'>2</option>
-                <option value='4'>4</option>
-                <option value='8'>8</option>
-              </select>
-              &nbsp;
-              <select
-                value={config.editor.indentType}
-                ref='editorIndentType'
-                onChange={e => this.handleUIChange(e)}
-              >
-                <option value='space'>{i18n.__('Spaces')}</option>
-                <option value='tab'>{i18n.__('Tabs')}</option>
-              </select>
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Editor Rulers')}
-            </div>
-            <div styleName='group-section-control'>
-              <div>
-                <select
-                  value={config.editor.enableRulers}
-                  ref='enableEditorRulers'
-                  onChange={e => this.handleUIChange(e)}
-                >
-                  <option value='true'>{i18n.__('Enable')}</option>
-                  <option value='false'>{i18n.__('Disable')}</option>
-                </select>
-              </div>
-              <input
-                styleName='group-section-control-input'
-                style={{ display: enableEditRulersStyle }}
-                ref='editorRulers'
-                value={config.editor.rulers}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Switch to Preview')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.editor.switchPreview}
-                ref='editorSwitchPreview'
-                onChange={e => this.handleUIChange(e)}
-              >
-                <option value='BLUR'>{i18n.__('When Editor Blurred')}</option>
-                <option value='DBL_CLICK'>
-                  {i18n.__('When Editor Blurred, Edit On Double Click')}
-                </option>
-                <option value='RIGHTCLICK'>{i18n.__('On Right Click')}</option>
-              </select>
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Editor Keymap')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.editor.keyMap}
-                ref='editorKeyMap'
-                onChange={e => this.handleUIChange(e)}
-              >
-                <option value='sublime'>{i18n.__('default')}</option>
-                <option value='vim'>{i18n.__('vim')}</option>
-                <option value='emacs'>{i18n.__('emacs')}</option>
-              </select>
-              <p styleName='note-for-keymap'>
-                {i18n.__(
-                  '⚠️ Please restart BoostRecord after you change the keymap'
+                  'Three surfaces are themed separately. They are set together here so the differences are visible side by side.'
                 )}
               </p>
-              {/* vim はノーマルモードで始まるため、知らないと「文字が
-                  打てない」と受け取られる。選んだその場で要点を示す */}
-              {config.editor.keyMap === 'vim' && (
-                <div styleName='note-for-keymap'>
-                  <VimKeyReference compact />
-                </div>
-              )}
+              <ul>
+                <li>
+                  {i18n.__(
+                    'Interface — the window itself: sidebar, note list, dialogs'
+                  )}
+                </li>
+                <li>{i18n.__('Editor — the pane you type Markdown into')}</li>
+                <li>
+                  {i18n.__('Code blocks — fenced code inside the preview pane')}
+                </li>
+              </ul>
             </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Snippet Default Language')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.editor.snippetDefaultLanguage}
-                ref='editorSnippetDefaultLanguage'
-                onChange={e => this.handleUIChange(e)}
-              >
-                <option key='Auto Detect' value='Auto Detect'>
-                  {i18n.__('Auto Detect')}
-                </option>
-                {_.sortBy(CodeMirror.modeInfo.map(mode => mode.name)).map(
-                  name => (
-                    <option key={name} value={name}>
-                      {name}
-                    </option>
-                  )
-                )}
-              </select>
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Front matter title field')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='frontMatterTitleField'
-                value={config.editor.frontMatterTitleField}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Matching character pairs')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.matchingPairs}
-                ref='matchingPairs'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label-right'>
-              {i18n.__('in code blocks')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.codeBlockMatchingPairs}
-                ref='codeBlockMatchingPairs'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Close pairs before')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.matchingCloseBefore}
-                ref='matchingCloseBefore'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label-right'>
-              {i18n.__('in code blocks')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.codeBlockMatchingCloseBefore}
-                ref='codeBlockMatchingCloseBefore'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Matching character triples')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.matchingTriples}
-                ref='matchingTriples'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label-right'>
-              {i18n.__('in code blocks')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.codeBlockMatchingTriples}
-                ref='codeBlockMatchingTriples'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Exploding character pairs')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.explodingPairs}
-                ref='explodingPairs'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label-right'>
-              {i18n.__('in code blocks')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={this.state.config.editor.codeBlockExplodingPairs}
-                ref='codeBlockExplodingPairs'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.enableFrontMatterTitle}
-                ref='enableFrontMatterTitle'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Extract title from front matter')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.displayLineNumbers}
-                ref='editorDisplayLineNumbers'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Show line numbers in the editor')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.lineWrapping}
-                ref='editorLineWrapping'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Wrap line in Snippet Note')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.scrollPastEnd}
-                ref='scrollPastEnd'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Allow editor to scroll past the last line')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.fetchUrlTitle}
-                ref='editorFetchUrlTitle'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Bring in web page title when pasting URL on editor')}
-            </label>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('When pasting URL')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={this.state.config.editor.pasteUrlAction}
-                ref='editorPasteUrlAction'
-                onChange={e => this.handleUIChange(e)}
-              >
-                <option value='LINK'>{i18n.__('Link with title')}</option>
-                <option value='BOOKMARK'>{i18n.__('Bookmark card')}</option>
-                <option value='ASK'>{i18n.__('Ask every time')}</option>
-              </select>
-            </div>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.enableTableEditor}
-                ref='enableTableEditor'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Enable smart table editor')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.enableSmartPaste}
-                ref='enableSmartPaste'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Enable HTML paste')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.spellcheck}
-                ref='spellcheck'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Enable spellcheck - Experimental feature!! :)')}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.deleteUnusedAttachments}
-                ref='deleteUnusedAttachments'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__(
-                'Delete attachments, that are not referenced in the text anymore'
-              )}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.rtlEnabled}
-                ref='rtlEnabled'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Enable right to left direction(RTL)')}
-            </label>
-          </div>
-
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.dateFormatISO8601}
-                ref='dateFormatISO8601'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Date shortcut use iso 8601 format')}
-            </label>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Custom MarkdownLint Rules')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.editor.enableMarkdownLint}
-                ref='enableMarkdownLint'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Enable MarkdownLint')}
-              <div
-                style={{
-                  fontFamily,
-                  display: this.state.config.editor.enableMarkdownLint
-                    ? 'block'
-                    : 'none'
-                }}
-              >
-                <ReactCodeMirror
-                  width='400px'
-                  height='200px'
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Interface Theme')}
+              </div>
+              <div styleName='group-section-control'>
+                <select
+                  value={config.ui.defaultTheme}
                   onChange={e => this.handleUIChange(e)}
-                  ref={e => (this.customMarkdownLintConfigCM = e)}
-                  value={config.editor.customMarkdownLintConfig}
-                  options={{
-                    lineNumbers: true,
-                    mode: 'application/json',
-                    theme: codemirrorTheme,
-                    lint: true,
-                    gutters: [
-                      'CodeMirror-linenumbers',
-                      'CodeMirror-foldgutter',
-                      'CodeMirror-lint-markers'
-                    ]
-                  }}
-                />
+                  ref='uiTheme'
+                >
+                  <optgroup label='Light Themes'>
+                    {uiThemes
+                      .filter(theme => !theme.isDark)
+                      .sort((a, b) => a.label.localeCompare(b.label))
+                      .map(theme => {
+                        return (
+                          <option value={theme.name} key={theme.name}>
+                            {theme.label}
+                          </option>
+                        )
+                      })}
+                  </optgroup>
+                  <optgroup label='Dark Themes'>
+                    {uiThemes
+                      .filter(theme => theme.isDark)
+                      .sort((a, b) => a.label.localeCompare(b.label))
+                      .map(theme => {
+                        return (
+                          <option value={theme.name} key={theme.name}>
+                            {theme.label}
+                          </option>
+                        )
+                      })}
+                  </optgroup>
+                </select>
               </div>
             </div>
-          </div>
-
-          <div styleName='group-header2'>{i18n.__('Preview')}</div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Preview Font Size')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                value={config.preview.fontSize}
-                ref='previewFontSize'
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Preview Font Family')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewFontFamily'
-                value={config.preview.fontFamily}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Code Block Theme')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={resolveEditorTheme(config.preview.codeBlockTheme)}
-                ref='previewCodeBlockTheme'
-                onChange={e => this.handleUIChange(e)}
-              >
-                {this.renderEditorThemeOptions(themes)}
-              </select>
-            </div>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.lineThroughCheckbox}
-                ref='lineThroughCheckbox'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Allow line through checkbox')}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.scrollPastEnd}
-                ref='previewScrollPastEnd'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Allow preview to scroll past the last line')}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.scrollSync}
-                ref='previewScrollSync'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('When scrolling, synchronize preview with editor')}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.lineNumber}
-                ref='previewLineNumber'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Show line numbers for preview code blocks')}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.showToc !== false}
-                ref='previewShowToc'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Show the outline pane')}
-            </label>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Heading levels in the outline')}
-            </div>
-            <div styleName='group-section-control'>
-              <select
-                value={this.state.config.preview.tocMinLevel || 1}
-                onChange={e => this.handleUIChange(e)}
-                ref='previewTocMinLevel'
-              >
-                {[1, 2, 3, 4, 5, 6].map(level => (
-                  <option key={level} value={level}>{`H${level}`}</option>
-                ))}
-              </select>
-              &nbsp;-&nbsp;
-              <select
-                value={this.state.config.preview.tocMaxLevel || 3}
-                onChange={e => this.handleUIChange(e)}
-                ref='previewTocMaxLevel'
-              >
-                {[1, 2, 3, 4, 5, 6].map(level => (
-                  <option key={level} value={level}>{`H${level}`}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.smartQuotes}
-                ref='previewSmartQuotes'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Enable smart quotes')}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.urlPreview}
-                ref='previewUrlPreview'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Show page preview popup when hovering links')}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.breaks}
-                ref='previewBreaks'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Render newlines in Markdown paragraphs as <br>')}
-            </label>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.smartArrows}
-                ref='previewSmartArrows'
-                type='checkbox'
-              />
-              &nbsp;
+            <div styleName='group-section-hint'>
               {i18n.__(
-                'Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.'
+                'Colors of the window itself: sidebar, note list and dialogs.'
               )}
-            </label>
-          </div>
-
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Sanitization')}</div>
-            <div styleName='group-section-control'>
-              <select
-                value={config.preview.sanitize}
-                ref='previewSanitize'
-                onChange={e => this.handleUIChange(e)}
-              >
-                <option value='STRICT'>
-                  ✅ {i18n.__('Only allow secure html tags (recommended)')}
-                </option>
-                <option value='ALLOW_STYLES'>
-                  ⚠️ {i18n.__('Allow styles')}
-                </option>
-                <option value='NONE'>
-                  ❌ {i18n.__('Allow dangerous html tags')}
-                </option>
-              </select>
             </div>
-          </div>
-          <div styleName='group-checkBoxSection'>
-            <label>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={this.state.config.preview.mermaidHTMLLabel}
-                ref='previewMermaidHTMLLabel'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Enable HTML label in mermaid flowcharts')}
-            </label>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('LaTeX Inline Open Delimiter')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewLatexInlineOpen'
-                value={config.preview.latexInlineOpen}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('LaTeX Inline Close Delimiter')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewLatexInlineClose'
-                value={config.preview.latexInlineClose}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('LaTeX Block Open Delimiter')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewLatexBlockOpen'
-                value={config.preview.latexBlockOpen}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('LaTeX Block Close Delimiter')}
-            </div>
-            <div styleName='group-section-control'>
-              <input
-                styleName='group-section-control-input'
-                ref='previewLatexBlockClose'
-                value={config.preview.latexBlockClose}
-                onChange={e => this.handleUIChange(e)}
-                type='text'
-              />
-            </div>
-          </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>{i18n.__('Custom CSS')}</div>
-            <div styleName='group-section-control'>
-              <input
-                onChange={e => this.handleUIChange(e)}
-                checked={config.preview.allowCustomCSS}
-                ref='previewAllowCustomCSS'
-                type='checkbox'
-              />
-              &nbsp;
-              {i18n.__('Allow custom CSS for preview')}
-              <div styleName='template-picker'>
-                <label htmlFor='customCSSTemplate'>{i18n.__('Template')}</label>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Editor Theme')}
+              </div>
+              <div styleName='group-section-control'>
                 <select
-                  id='customCSSTemplate'
-                  value={this.state.customCSSTemplateId}
-                  onChange={e =>
-                    this.setState({ customCSSTemplateId: e.target.value })
-                  }
+                  value={resolveEditorTheme(config.editor.theme)}
+                  ref='editorTheme'
+                  onChange={e => this.handleUIChange(e)}
                 >
-                  {CUSTOM_CSS_TEMPLATES.map(template => (
-                    <option key={template.id} value={template.id}>
-                      {i18n.__(template.labelKey)}
+                  {this.renderEditorThemeOptions(themes)}
+                </select>
+                <div
+                  styleName='code-mirror'
+                  style={{
+                    fontFamily,
+                    fontSize: `${parseInt(config.editor.fontSize, 10) || 14}px`
+                  }}
+                >
+                  <ReactCodeMirror
+                    ref={e => (this.codeMirrorInstance = e)}
+                    value={codemirrorSampleCode}
+                    options={{
+                      lineNumbers: true,
+                      readOnly: true,
+                      mode: 'javascript',
+                      theme: codemirrorTheme
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Colors of the pane you type in. It is set apart from the interface theme, so a dark window can hold a light editor.'
+              )}
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Code Block Theme')}
+              </div>
+              <div styleName='group-section-control'>
+                <select
+                  value={resolveEditorTheme(config.preview.codeBlockTheme)}
+                  ref='previewCodeBlockTheme'
+                  onChange={e => this.handleUIChange(e)}
+                >
+                  {this.renderEditorThemeOptions(themes)}
+                </select>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__('Colors of fenced code shown in the preview pane.')}
+            </div>
+            {this.renderCodeBlockSample()}
+          </div>
+          <div style={this.sectionStyle('general')}>
+            <div styleName='group-header'>{i18n.__('General')}</div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>{i18n.__('Language')}</div>
+              <div styleName='group-section-control'>
+                <select
+                  value={config.ui.language}
+                  onChange={e => this.handleUIChange(e)}
+                  ref='uiLanguage'
+                >
+                  {getLanguages().map(language => (
+                    <option value={language.locale} key={language.locale}>
+                      {i18n.__(language.name)}
                     </option>
                   ))}
                 </select>
-                <button
-                  type='button'
-                  styleName='template-picker-button'
-                  onClick={() => this.handleInsertCustomCSSTemplate()}
-                >
-                  {i18n.__('Insert')}
-                </button>
               </div>
-              <div styleName='template-picker-note'>
-                <p>
-                  {i18n.__(
-                    'Added below what is already in the box. Nothing is replaced.'
-                  )}
-                </p>
-                <ul>{customCSSTemplateNotes}</ul>
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Default New Note')}
               </div>
-              {this.renderAiCustomCSS()}
-              <div style={{ fontFamily }}>
-                <ReactCodeMirror
-                  width='400px'
-                  height='400px'
+              <div styleName='group-section-control'>
+                <select
+                  value={config.ui.defaultNote}
                   onChange={e => this.handleUIChange(e)}
-                  ref={e => (this.customCSSCM = e)}
-                  value={config.preview.customCSS}
-                  options={{
-                    lineNumbers: true,
-                    mode: 'css',
-                    theme: codemirrorTheme
-                  }}
-                />
+                  ref='defaultNote'
+                >
+                  <option value='ALWAYS_ASK'>{i18n.__('Always Ask')}</option>
+                  <option value='MARKDOWN_NOTE'>
+                    {i18n.__('Markdown Note')}
+                  </option>
+                  <option value='SNIPPET_NOTE'>
+                    {i18n.__('Snippet Note')}
+                  </option>
+                </select>
               </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Which kind of note the new-note button creates. "Ask every time" shows a chooser instead.'
+              )}
+            </div>
+
+            {/* macOS のメニューバーはシステム側のもので、
+                BrowserWindow.setMenuBarVisibility() が効かない。
+                押しても何も起きないので出さない（ホットキー側も同じ理由で
+                Mac では隠している。HotkeyTab の showMenuBarHotkey 参照） */}
+            {!OSX && (
+              <div styleName='group-checkBoxSection'>
+                <label>
+                  <input
+                    onChange={e => this.handleUIChange(e)}
+                    checked={this.state.config.ui.showMenuBar}
+                    ref='showMenuBar'
+                    type='checkbox'
+                  />
+                  &nbsp;
+                  {i18n.__('Show menu bar')}
+                </label>
+              </div>
+            )}
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.ui.showCopyNotification}
+                  ref='showCopyNotification'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show "Saved to Clipboard" notification when copying')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.ui.confirmDeletion}
+                  ref='confirmDeletion'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show a confirmation dialog when deleting notes')}
+              </label>
+            </div>
+            {global.process.platform === 'win32' ? (
+              <div styleName='group-checkBoxSection'>
+                <label>
+                  <input
+                    onChange={e => this.handleUIChange(e)}
+                    checked={this.state.config.ui.disableDirectWrite}
+                    ref='uiD2w'
+                    disabled={OSX}
+                    type='checkbox'
+                  />
+                  &nbsp;
+                  {i18n.__(
+                    'Disable Direct Write (It will be applied after restarting)'
+                  )}
+                </label>
+              </div>
+            ) : null}
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.ui.showScrollBar}
+                  ref='showScrollBar'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__(
+                  'Show the scroll bars in the editor and in the markdown preview (It will be applied after restarting)'
+                )}
+              </label>
+            </div>
+            <div styleName='group-header2'>{i18n.__('Tags')}</div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.ui.saveTagsAlphabetically}
+                  ref='saveTagsAlphabetically'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Save tags of a note in alphabetical order')}
+              </label>
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.ui.showTagsAlphabetically}
+                  ref='showTagsAlphabetically'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show tags of a note in alphabetical order')}
+              </label>
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.ui.showOnlyRelatedTags}
+                  ref='showOnlyRelatedTags'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show only related tags')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'The tag list only shows tags that appear on the notes currently listed.'
+              )}
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.ui.enableLiveNoteCounts}
+                  ref='enableLiveNoteCounts'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Enable live count of notes')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Recounts the number of notes per folder and tag as you edit. Turn it off if the list feels slow with many notes.'
+              )}
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.ui.tagNewNoteWithFilteringTags}
+                  ref='tagNewNoteWithFilteringTags'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('New notes are tagged with the filtering tags')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'A note created while filtering by tags starts with those tags attached.'
+              )}
             </div>
           </div>
-          <div styleName='group-section'>
-            <div styleName='group-section-label'>
-              {i18n.__('Prettier Config')}
-            </div>
-            <div styleName='group-section-control'>
-              <div style={{ fontFamily }}>
-                <ReactCodeMirror
-                  width='400px'
-                  height='400px'
+          <div style={this.sectionStyle('editor')}>
+            <div styleName='group-header'>{i18n.__('Editor')}</div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Editor Font Size')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='editorFontSize'
+                  value={config.editor.fontSize}
                   onChange={e => this.handleUIChange(e)}
-                  ref={e => (this.prettierConfigCM = e)}
-                  value={config.editor.prettierConfig}
-                  options={{
-                    lineNumbers: true,
-                    mode: 'application/json',
-                    lint: true,
-                    theme: codemirrorTheme
-                  }}
+                  type='text'
                 />
               </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Editor Font Family')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='editorFontFamily'
+                  value={config.editor.fontFamily}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Editor Indent Style')}
+              </div>
+              <div styleName='group-section-control'>
+                <select
+                  value={config.editor.indentSize}
+                  ref='editorIndentSize'
+                  onChange={e => this.handleUIChange(e)}
+                >
+                  <option value='1'>1</option>
+                  <option value='2'>2</option>
+                  <option value='4'>4</option>
+                  <option value='8'>8</option>
+                </select>
+                &nbsp;
+                <select
+                  value={config.editor.indentType}
+                  ref='editorIndentType'
+                  onChange={e => this.handleUIChange(e)}
+                >
+                  <option value='space'>{i18n.__('Spaces')}</option>
+                  <option value='tab'>{i18n.__('Tabs')}</option>
+                </select>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Whether Tab inserts spaces or a tab character, and how wide one level is.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Editor Rulers')}
+              </div>
+              <div styleName='group-section-control'>
+                <div>
+                  <select
+                    value={config.editor.enableRulers}
+                    ref='enableEditorRulers'
+                    onChange={e => this.handleUIChange(e)}
+                  >
+                    <option value='true'>{i18n.__('Enable')}</option>
+                    <option value='false'>{i18n.__('Disable')}</option>
+                  </select>
+                </div>
+                <input
+                  styleName='group-section-control-input'
+                  style={{ display: enableEditRulersStyle }}
+                  ref='editorRulers'
+                  value={config.editor.rulers}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Vertical guide lines drawn at the given columns. Separate the numbers with commas.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Switch to Preview')}
+              </div>
+              <div styleName='group-section-control'>
+                <select
+                  value={config.editor.switchPreview}
+                  ref='editorSwitchPreview'
+                  onChange={e => this.handleUIChange(e)}
+                >
+                  <option value='BLUR'>{i18n.__('When Editor Blurred')}</option>
+                  <option value='DBL_CLICK'>
+                    {i18n.__('When Editor Blurred, Edit On Double Click')}
+                  </option>
+                  <option value='RIGHTCLICK'>
+                    {i18n.__('On Right Click')}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'When the editor pane hands over to the rendered preview.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Editor Keymap')}
+              </div>
+              <div styleName='group-section-control'>
+                <select
+                  value={config.editor.keyMap}
+                  ref='editorKeyMap'
+                  onChange={e => this.handleUIChange(e)}
+                >
+                  <option value='sublime'>{i18n.__('default')}</option>
+                  <option value='vim'>{i18n.__('vim')}</option>
+                  <option value='emacs'>{i18n.__('emacs')}</option>
+                </select>
+                <p styleName='note-for-keymap'>
+                  {i18n.__(
+                    '⚠️ Please restart BoostRecord after you change the keymap'
+                  )}
+                </p>
+                {/* vim はノーマルモードで始まるため、知らないと「文字が
+                    打てない」と受け取られる。選んだその場で要点を示す */}
+                {config.editor.keyMap === 'vim' && (
+                  <div styleName='note-for-keymap'>
+                    <VimKeyReference compact />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Key bindings inside the editor. Vim and Emacs change most keys, so the shortcuts listed elsewhere may not apply.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Snippet Default Language')}
+              </div>
+              <div styleName='group-section-control'>
+                <select
+                  value={config.editor.snippetDefaultLanguage}
+                  ref='editorSnippetDefaultLanguage'
+                  onChange={e => this.handleUIChange(e)}
+                >
+                  <option key='Auto Detect' value='Auto Detect'>
+                    {i18n.__('Auto Detect')}
+                  </option>
+                  {_.sortBy(CodeMirror.modeInfo.map(mode => mode.name)).map(
+                    name => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'The language a new snippet starts in. "Auto detect" guesses from the content.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Front matter title field')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='frontMatterTitleField'
+                  value={config.editor.frontMatterTitleField}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'The YAML key read as the note title when a note starts with front matter.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Matching character pairs')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.matchingPairs}
+                  ref='matchingPairs'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Typing the left character inserts the right one as well. Written as pairs, in order.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label-right'>
+                {i18n.__('in code blocks')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.codeBlockMatchingPairs}
+                  ref='codeBlockMatchingPairs'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Close pairs before')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.matchingCloseBefore}
+                  ref='matchingCloseBefore'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Auto-closing happens only when the character after the cursor is one of these.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label-right'>
+                {i18n.__('in code blocks')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.codeBlockMatchingCloseBefore}
+                  ref='codeBlockMatchingCloseBefore'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Matching character triples')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.matchingTriples}
+                  ref='matchingTriples'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Same as pairs, for characters that come in threes, such as code fences.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label-right'>
+                {i18n.__('in code blocks')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.codeBlockMatchingTriples}
+                  ref='codeBlockMatchingTriples'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Exploding character pairs')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.explodingPairs}
+                  ref='explodingPairs'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Pressing Enter between these leaves a blank line and puts the cursor on it.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label-right'>
+                {i18n.__('in code blocks')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={this.state.config.editor.codeBlockExplodingPairs}
+                  ref='codeBlockExplodingPairs'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.enableFrontMatterTitle}
+                  ref='enableFrontMatterTitle'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Extract title from front matter')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'When a note starts with YAML front matter, the title comes from the field above instead of the first heading.'
+              )}
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.displayLineNumbers}
+                  ref='editorDisplayLineNumbers'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show line numbers in the editor')}
+              </label>
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.lineWrapping}
+                  ref='editorLineWrapping'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Wrap line in Snippet Note')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Long lines fold at the right edge instead of scrolling sideways. Snippet notes only.'
+              )}
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.scrollPastEnd}
+                  ref='scrollPastEnd'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Allow editor to scroll past the last line')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Lets the last line scroll up to the middle of the pane, so writing does not sit at the bottom edge.'
+              )}
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.fetchUrlTitle}
+                  ref='editorFetchUrlTitle'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Bring in web page title when pasting URL on editor')}
+              </label>
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('When pasting URL')}
+              </div>
+              <div styleName='group-section-control'>
+                <select
+                  value={this.state.config.editor.pasteUrlAction}
+                  ref='editorPasteUrlAction'
+                  onChange={e => this.handleUIChange(e)}
+                >
+                  <option value='LINK'>{i18n.__('Link with title')}</option>
+                  <option value='BOOKMARK'>{i18n.__('Bookmark card')}</option>
+                  <option value='ASK'>{i18n.__('Ask every time')}</option>
+                </select>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'What a pasted URL turns into: a plain link, a bookmark card, or a question each time.'
+              )}
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.enableTableEditor}
+                  ref='enableTableEditor'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Enable smart table editor')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Tab and Enter move between table cells, and the column widths are kept aligned as you type.'
+              )}
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.enableSmartPaste}
+                  ref='enableSmartPaste'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Enable HTML paste')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Pasted rich text is converted to Markdown. Off means the plain text is pasted as-is.'
+              )}
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.spellcheck}
+                  ref='spellcheck'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Enable spellcheck - Experimental feature!! :)')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.deleteUnusedAttachments}
+                  ref='deleteUnusedAttachments'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__(
+                  'Delete attachments, that are not referenced in the text anymore'
+                )}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.rtlEnabled}
+                  ref='rtlEnabled'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Enable right to left direction(RTL)')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'For languages written right to left, such as Arabic and Hebrew.'
+              )}
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.dateFormatISO8601}
+                  ref='dateFormatISO8601'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Date shortcut use iso 8601 format')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'The date shortcut inserts 2026-08-31T12:00:00.000Z instead of the format used in your region.'
+              )}
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Custom MarkdownLint Rules')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.editor.enableMarkdownLint}
+                  ref='enableMarkdownLint'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Enable MarkdownLint')}
+                <div
+                  style={{
+                    fontFamily,
+                    display: this.state.config.editor.enableMarkdownLint
+                      ? 'block'
+                      : 'none'
+                  }}
+                >
+                  <ReactCodeMirror
+                    width='400px'
+                    height='200px'
+                    onChange={e => this.handleUIChange(e)}
+                    ref={e => (this.customMarkdownLintConfigCM = e)}
+                    value={config.editor.customMarkdownLintConfig}
+                    options={{
+                      lineNumbers: true,
+                      mode: 'application/json',
+                      theme: codemirrorTheme,
+                      lint: true,
+                      gutters: [
+                        'CodeMirror-linenumbers',
+                        'CodeMirror-foldgutter',
+                        'CodeMirror-lint-markers'
+                      ]
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'markdownlint rules written as JSON. Applies only while the checkbox above is on.'
+              )}
+            </div>
+          </div>
+          <div style={this.sectionStyle('preview')}>
+            <div styleName='group-header'>{i18n.__('Preview')}</div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Preview Font Size')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  value={config.preview.fontSize}
+                  ref='previewFontSize'
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Preview Font Family')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewFontFamily'
+                  value={config.preview.fontFamily}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.lineThroughCheckbox}
+                  ref='lineThroughCheckbox'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Allow line through checkbox')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Text of a checked task is struck through in the preview.'
+              )}
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.scrollPastEnd}
+                  ref='previewScrollPastEnd'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Allow preview to scroll past the last line')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.scrollSync}
+                  ref='previewScrollSync'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('When scrolling, synchronize preview with editor')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Scrolling one pane moves the other to the matching place.'
+              )}
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.lineNumber}
+                  ref='previewLineNumber'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show line numbers for preview code blocks')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.showToc !== false}
+                  ref='previewShowToc'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show the outline pane')}
+              </label>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Heading levels in the outline')}
+              </div>
+              <div styleName='group-section-control'>
+                <select
+                  value={this.state.config.preview.tocMinLevel || 1}
+                  onChange={e => this.handleUIChange(e)}
+                  ref='previewTocMinLevel'
+                >
+                  {[1, 2, 3, 4, 5, 6].map(level => (
+                    <option key={level} value={level}>{`H${level}`}</option>
+                  ))}
+                </select>
+                &nbsp;-&nbsp;
+                <select
+                  value={this.state.config.preview.tocMaxLevel || 3}
+                  onChange={e => this.handleUIChange(e)}
+                  ref='previewTocMaxLevel'
+                >
+                  {[1, 2, 3, 4, 5, 6].map(level => (
+                    <option key={level} value={level}>{`H${level}`}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__('Which heading levels the outline pane lists.')}
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.smartQuotes}
+                  ref='previewSmartQuotes'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Enable smart quotes')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Straight quotes become typographic quotes in the preview.'
+              )}
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.urlPreview}
+                  ref='previewUrlPreview'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show page preview popup when hovering links')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Hovering an external link fetches that page and shows its title and summary. It reaches the network.'
+              )}
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.breaks}
+                  ref='previewBreaks'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Render newlines in Markdown paragraphs as <br>')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'A single line break becomes a line break in the preview. Standard Markdown would join the lines instead.'
+              )}
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.smartArrows}
+                  ref='previewSmartArrows'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__(
+                  'Convert textual arrows to beautiful signs. ⚠ This will interfere with using HTML comments in your Markdown.'
+                )}
+              </label>
+            </div>
+
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Sanitization')}
+              </div>
+              <div styleName='group-section-control'>
+                <select
+                  value={config.preview.sanitize}
+                  ref='previewSanitize'
+                  onChange={e => this.handleUIChange(e)}
+                >
+                  <option value='STRICT'>
+                    ✅ {i18n.__('Only allow secure html tags (recommended)')}
+                  </option>
+                  <option value='ALLOW_STYLES'>
+                    ⚠️ {i18n.__('Allow styles')}
+                  </option>
+                  <option value='NONE'>
+                    ❌ {i18n.__('Allow dangerous html tags')}
+                  </option>
+                </select>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'How much raw HTML the preview is allowed to render. "Strict" removes it entirely.'
+              )}
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.mermaidHTMLLabel}
+                  ref='previewMermaidHTMLLabel'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Enable HTML label in mermaid flowcharts')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'Lets mermaid node labels contain HTML. Off renders them as plain text.'
+              )}
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('LaTeX Inline Open Delimiter')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewLatexInlineOpen'
+                  value={config.preview.latexInlineOpen}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('LaTeX Inline Close Delimiter')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewLatexInlineClose'
+                  value={config.preview.latexInlineClose}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('LaTeX Block Open Delimiter')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewLatexBlockOpen'
+                  value={config.preview.latexBlockOpen}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('LaTeX Block Close Delimiter')}
+              </div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  ref='previewLatexBlockClose'
+                  value={config.preview.latexBlockClose}
+                  onChange={e => this.handleUIChange(e)}
+                  type='text'
+                />
+              </div>
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>{i18n.__('Custom CSS')}</div>
+              <div styleName='group-section-control'>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={config.preview.allowCustomCSS}
+                  ref='previewAllowCustomCSS'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Allow custom CSS for preview')}
+                <div styleName='template-picker'>
+                  <label htmlFor='customCSSTemplate'>
+                    {i18n.__('Template')}
+                  </label>
+                  <select
+                    id='customCSSTemplate'
+                    value={this.state.customCSSTemplateId}
+                    onChange={e =>
+                      this.setState({ customCSSTemplateId: e.target.value })
+                    }
+                  >
+                    {CUSTOM_CSS_TEMPLATES.map(template => (
+                      <option key={template.id} value={template.id}>
+                        {i18n.__(template.labelKey)}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type='button'
+                    styleName='template-picker-button'
+                    onClick={() => this.handleInsertCustomCSSTemplate()}
+                  >
+                    {i18n.__('Insert')}
+                  </button>
+                </div>
+                <div styleName='template-picker-note'>
+                  <p>
+                    {i18n.__(
+                      'Added below what is already in the box. Nothing is replaced.'
+                    )}
+                  </p>
+                  <ul>{customCSSTemplateNotes}</ul>
+                </div>
+                {this.renderAiCustomCSS()}
+                <div style={{ fontFamily }}>
+                  <ReactCodeMirror
+                    width='400px'
+                    height='400px'
+                    onChange={e => this.handleUIChange(e)}
+                    ref={e => (this.customCSSCM = e)}
+                    value={config.preview.customCSS}
+                    options={{
+                      lineNumbers: true,
+                      mode: 'css',
+                      theme: codemirrorTheme
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Extra CSS applied to the preview pane. Applies only while the checkbox above is on.'
+              )}
+            </div>
+            <div styleName='group-section'>
+              <div styleName='group-section-label'>
+                {i18n.__('Prettier Config')}
+              </div>
+              <div styleName='group-section-control'>
+                <div style={{ fontFamily }}>
+                  <ReactCodeMirror
+                    width='400px'
+                    height='400px'
+                    onChange={e => this.handleUIChange(e)}
+                    ref={e => (this.prettierConfigCM = e)}
+                    value={config.editor.prettierConfig}
+                    options={{
+                      lineNumbers: true,
+                      mode: 'application/json',
+                      lint: true,
+                      theme: codemirrorTheme
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            <div styleName='group-section-hint'>
+              {i18n.__(
+                'Options for the Markdown formatter. Used by the "Prettify Markdown" shortcut.'
+              )}
             </div>
           </div>
           <div styleName='group-control'>

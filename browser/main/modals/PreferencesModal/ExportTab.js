@@ -120,6 +120,36 @@ class ExportTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Export')}</div>
 
           <div styleName='group-hint'>
+            {/* 「何のための機能か」を先に置く。手順だけ並べても、使う場面が
+                分からないと読み飛ばされる */}
+            <p>
+              {i18n.__(
+                'Exporting turns a note into a file outside this app. Use it when:'
+              )}
+            </p>
+            <ul>
+              <li>
+                {i18n.__(
+                  'Handing a note to someone who does not use this app (.md / .html / .pdf)'
+                )}
+              </li>
+              <li>
+                {i18n.__(
+                  'Moving notes into another tool that reads Markdown, such as Obsidian or a Git repository'
+                )}
+              </li>
+              <li>
+                {i18n.__(
+                  'Keeping a copy as a plain file, independent of this app'
+                )}
+              </li>
+            </ul>
+            <p>
+              {i18n.__(
+                'This tab sets the defaults for those files. Exporting itself is started from the places below.'
+              )}
+            </p>
+
             <p>{i18n.__('Where export happens:')}</p>
             <ul>
               <li>{i18n.__('Menu: File > Export as')}</li>

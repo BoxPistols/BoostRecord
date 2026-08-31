@@ -23,7 +23,7 @@
   border-bottom $ui-border
 
 .title
-  font-size 11px
+  font-size 12px // A11y: 12px 未満を使わない
   font-weight 700
   letter-spacing 0.06em
   text-transform uppercase
@@ -99,6 +99,10 @@ apply-theme(theme)
       color get-theme-var(theme, 'text-color')
     .empty
       color get-theme-var(theme, 'inactive-text-color')
+    // hover の色を $ui-text-color (#333) のままにすると、暗い地の上で
+    // 読めなくなる
+    .close:hover
+      color get-theme-var(theme, 'text-color')
 
 for theme in 'white' 'dark' 'solarized-dark' 'dracula'
   apply-theme(theme)

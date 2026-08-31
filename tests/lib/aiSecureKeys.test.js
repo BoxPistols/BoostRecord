@@ -178,3 +178,37 @@ describe('壊れた保存ファイル', () => {
     })
   })
 })
+
+describe('保存が無いときはキーチェーンに触らない', () => {
+  // macOS では isEncryptionAvailable() がキーチェーンを読むので、許可ダイアログ
+  // の対象になる。何も預けていない利用者にまで出ていた
+  it('get() は保存が無ければ isEncryptionAvailable を呼ばない', () => {
+    const safeStorage = fakeSafeStorage()
+    const spy = jest.spyOn(safeStorage, 'isEncryptionAvailable')
+    const store = makeStore(safeStorage)
+    expect(store.get('openai')).toBeNull()
+    expect(spy).not.toHaveBeenCalled()
+  })
+
+  it('保存があるときは復号のために呼ぶ', () => {
+    const safeStorage = fakeSafeStorage()
+    const store = makeStore(safeStorage)
+    store.set('openai', 'sk-test')
+    const spy = jest.spyOn(safeStorage, 'isEncryptionAvailable')
+    expect(store.get('openai')).toBe('sk-test')
+    expect(spy).toHaveBeenCalled()
+  })
+
+  it('has() と listConfigured() は呼ばない（ファイルを見るだけ）', () => {
+    const safeStorage = fakeSafeStorage()
+    const store = makeStore(safeStorage)
+    store.set('openai', 'sk-test')
+    const spy = jest.spyOn(safeStorage, 'isEncryptionAvailable')
+    expect(store.has('openai')).toBe(true)
+    expect(store.listConfigured(['openai', 'gemini'])).toEqual({
+      openai: true,
+      gemini: false
+    })
+    expect(spy).not.toHaveBeenCalled()
+  })
+})

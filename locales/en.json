@@ -464,5 +464,6 @@
   "Which heading levels the outline pane lists.": "Which heading levels the outline pane lists.",
   "Which kind of note the new-note button creates. \"Ask every time\" shows a chooser instead.": "Which kind of note the new-note button creates. \"Ask every time\" shows a chooser instead.",
   "e.g. tighten up the headings, and make block quotes stand out more": "e.g. tighten up the headings, and make block quotes stand out more",
-  "markdownlint rules written as JSON. Applies only while the checkbox above is on.": "markdownlint rules written as JSON. Applies only while the checkbox above is on."
+  "markdownlint rules written as JSON. Applies only while the checkbox above is on.": "markdownlint rules written as JSON. Applies only while the checkbox above is on.",
+  "Encrypted storage is unavailable on this system. Save the API key unencrypted in the app config?": "Encrypted storage is unavailable on this system. Save the API key unencrypted in the app config?"
 }

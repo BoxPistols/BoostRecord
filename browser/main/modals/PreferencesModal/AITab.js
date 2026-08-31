@@ -14,7 +14,12 @@ import {
   stopSpeech,
   testVoicevox
 } from 'browser/main/lib/ttsAssist'
-import { getKeyStatus, saveKey } from 'browser/main/lib/aiKeys'
+import {
+  getEncryptionAvailable,
+  getKeyStatus,
+  migratePlaintextKeys,
+  saveKey
+} from 'browser/main/lib/aiKeys'
 import {
   MODEL_OPTIONS,
   DEFAULT_MODELS,
@@ -68,12 +73,16 @@ class AITab extends React.Component {
       testing: {},
       // provider -> { ok: boolean, message: string }
       testResult: {},
-      // main プロセスから受け取る鍵の状態。available=false なら暗号化ストアが
-      // 使えないので、従来どおり config に平文で保存する
-      keyStatus: { available: false, configured: {} },
-      // 状態が届くまでは保存させない。届く前に保存すると available:false と
-      // 誤認して、暗号化できる環境でも config へ平文を書いてしまう
+      // main プロセスから受け取る鍵の状態。暗号化の可否は含まない
+      // （調べるとキーチェーンの許可ダイアログが出るため、保存の直前まで
+      // 遅らせている）
+      keyStatus: { configured: {}, fromEnv: {} },
+      // 状態が届くまでは保存させない
       keyStatusLoaded: false,
+      // 暗号化の可否。保存を試みるまでは分からないので null
+      encryptionAvailable: null,
+      // 可否の問い合わせ中。この間の二度押しを弾く
+      saving: false,
       // provider -> エラー文（保存に失敗したとき）
       keyError: {}
     }
@@ -214,10 +223,10 @@ class AITab extends React.Component {
    * 「保存に失敗した理由」をまとめて扱う。
    */
   renderKeyStatus(provider, c) {
-    // 状態は IPC 越しに非同期で届く。届く前に available:false の初期値で描くと
-    // 「暗号化が使えません」が一瞬出て嘘になるので、届くまで何も出さない
+    // 状態は IPC 越しに非同期で届く。届く前に描くと嘘になるので待つ
     if (!this.state.keyStatusLoaded) return null
-    const { available, configured } = this.state.keyStatus
+    const { configured } = this.state.keyStatus
+    const available = this.state.encryptionAvailable
     const error = this.state.keyError[provider]
     const rowStyle = {
       display: 'flex',
@@ -238,8 +247,11 @@ class AITab extends React.Component {
       )
     }
 
-    if (!available) {
-      return (
+    // available が null の間は、まだ調べていない（調べるとダイアログが出る）。
+    // 使えないと分かった時だけ伝える。**保存済みの行の代わりに出さない**
+    // （出し分けにすると、預けてある鍵の「削除」ボタンが消える）
+    const unavailableNotice =
+      available === false ? (
         <div style={rowStyle}>
           <span style={{ color: c.muted }}>
             {i18n.__(
@@ -247,47 +259,65 @@ class AITab extends React.Component {
             )}
           </span>
         </div>
-      )
-    }
+      ) : null
 
     if (!configured[provider]) {
       return (
-        <div style={rowStyle}>
-          <span style={{ color: c.muted }}>
-            {i18n.__('Not set. The key is stored in this OS credential store.')}
-          </span>
+        <div>
+          {unavailableNotice}
+          <div style={rowStyle}>
+            <span style={{ color: c.muted }}>
+              {i18n.__(
+                'Not set. The key is stored in this OS credential store.'
+              )}
+            </span>
+          </div>
         </div>
       )
     }
 
     return (
-      <div style={rowStyle}>
-        <span style={{ color: c.success }}>
-          {i18n.__('Saved in this OS credential store')}
-        </span>
-        <button
-          type='button'
-          onClick={() => this.handleClearKey(provider)}
-          style={{
-            padding: '2px 8px',
-            background: 'transparent',
-            border: `1px solid ${c.inputBorder}`,
-            borderRadius: 5,
-            color: c.dim,
-            // A11y: 12px 未満を使わない
-            fontSize: 12,
-            fontFamily: 'inherit',
-            cursor: 'pointer'
-          }}
-        >
-          {i18n.__('Remove key')}
-        </button>
+      <div>
+        {unavailableNotice}
+        <div style={rowStyle}>
+          <span style={{ color: c.success }}>
+            {i18n.__('Saved in this OS credential store')}
+          </span>
+          <button
+            type='button'
+            onClick={() => this.handleClearKey(provider)}
+            style={{
+              padding: '2px 8px',
+              background: 'transparent',
+              border: `1px solid ${c.inputBorder}`,
+              borderRadius: 5,
+              color: c.dim,
+              // A11y: 12px 未満を使わない
+              fontSize: 12,
+              fontFamily: 'inherit',
+              cursor: 'pointer'
+            }}
+          >
+            {i18n.__('Remove key')}
+          </button>
+        </div>
       </div>
     )
   }
 
   componentDidMount() {
     this.mounted = true
+    // config に平文で残っているキーを資格情報ストアへ移す。**起動時ではなく
+    // ここで**行う。移送は暗号化の可否を調べるのでキーチェーンの許可
+    // ダイアログが出るが、起動のたびに出るのと、AI の設定を開いた時に出るのでは
+    // 意味が違う。開いていない人には平文が残り続けるが、それは元からの状態
+    migratePlaintextKeys()
+      .then(() => {
+        if (this.mounted) this.refreshKeyStatus()
+      })
+      .catch(err => {
+        console.warn('AI key migration skipped:', err)
+      })
     this.refreshKeyStatus()
     this.loadBrowserVoices()
     // 声の一覧は非同期に届く。onvoiceschanged が来るまでは空
@@ -361,31 +391,79 @@ class AITab extends React.Component {
   }
 
   handleSave() {
+    const { openaiKey, geminiKey } = this.state
+    if (validateKey('openai', openaiKey) || validateKey('gemini', geminiKey))
+      return
+    // 鍵の状態が届く前に保存しない
+    if (!this.state.keyStatusLoaded) return
+
+    // 暗号化の可否を調べる間に二度押しできると、同じキーを 2 回書きに行く
+    if (this.state.saving) return
+
+    // キーを預ける時だけ、暗号化が使えるかを調べる。この判定はキーチェーンに
+    // 触るので、キーを入力していない保存（モデルや読み上げの設定だけ）で
+    // 許可ダイアログを出さない
+    const hasNewKey = !!(openaiKey.trim() || geminiKey.trim())
+    if (!hasNewKey) {
+      this.persist({ securedProviders: [], openaiKey: '', geminiKey: '' })
+      return
+    }
+
+    this.setState({ saving: true })
+    getEncryptionAvailable().then(available => {
+      if (!this.mounted) return
+      this.setState({ encryptionAvailable: available })
+
+      if (!available) {
+        // 平文で config に書くことになる。書いてから知らせるのでは遅いので、
+        // 書く前に伝えて選んでもらう
+        const proceed = window.confirm(
+          i18n.__(
+            'Encrypted storage is unavailable on this system. Save the API key unencrypted in the app config?'
+          )
+        )
+        this.setState({ saving: false })
+        if (!proceed) return
+        this.persist({ securedProviders: [], openaiKey, geminiKey })
+        return
+      }
+
+      // **先に預けてから** config の平文を落とす。順序を逆にすると、預けるのに
+      // 失敗した時にキーがどこにも残らない（migratePlaintextKeys と同じ規則）
+      this.saveKeysToStore({ openai: openaiKey, gemini: geminiKey }).then(
+        securedProviders => {
+          if (!this.mounted) return
+          this.setState({ saving: false })
+          this.persist({ securedProviders, openaiKey, geminiKey })
+        }
+      )
+    })
+  }
+
+  /**
+   * 設定を書き込む。資格情報ストアへ預けられた provider だけ config の平文を
+   * 落とす。預けられなかったものは今までどおり config に残す（空文字にすると
+   * 鍵を失う）。
+   *
+   * @param {{securedProviders: string[], openaiKey: string, geminiKey: string}} args
+   */
+  persist({ securedProviders, openaiKey, geminiKey }) {
     const {
       provider,
-      openaiKey,
       openaiModel,
-      geminiKey,
       geminiModel,
       ttsPort,
       ttsSpeakerId
     } = this.state
-    if (validateKey('openai', openaiKey) || validateKey('gemini', geminiKey))
-      return
-    // 鍵の保存先が確定する前に保存しない（下の secure 判定が嘘になる）
-    if (!this.state.keyStatusLoaded) return
-
-    // 暗号化ストアが使えるなら config には平文を残さない。使えない環境では
-    // 従来どおり config に保存する（ここで空文字にすると鍵を失う）
-    const secure = this.state.keyStatus.available
+    const secured = securedProviders || []
     const ai = {
       provider,
       openai: {
-        apiKey: secure ? '' : openaiKey.trim(),
+        apiKey: secured.indexOf('openai') !== -1 ? '' : openaiKey.trim(),
         model: openaiModel.trim()
       },
       gemini: {
-        apiKey: secure ? '' : geminiKey.trim(),
+        apiKey: secured.indexOf('gemini') !== -1 ? '' : geminiKey.trim(),
         model: geminiModel.trim()
       }
     }
@@ -399,8 +477,6 @@ class AITab extends React.Component {
     store.dispatch({ type: 'SET_UI', config: { ai, tts } })
     this.setState({ saved: true })
     setTimeout(() => this.setState({ saved: false }), 2000)
-
-    if (secure) this.saveKeysToStore({ openai: openaiKey, gemini: geminiKey })
   }
 
   /**
@@ -411,19 +487,21 @@ class AITab extends React.Component {
     const pending = Object.keys(keys).filter(
       provider => !!keys[provider].trim()
     )
-    if (!pending.length) return
+    if (!pending.length) return Promise.resolve([])
 
-    Promise.all(
+    return Promise.all(
       pending.map(provider =>
         saveKey(provider, keys[provider]).then(res => ({ provider, res }))
       )
     ).then(results => {
-      if (!this.mounted) return
+      if (!this.mounted) return []
       const keyError = Object.assign({}, this.state.keyError)
       const clearedFields = {}
+      const secured = []
       results.forEach(({ provider, res }) => {
         if (res && res.ok) {
           keyError[provider] = null
+          secured.push(provider)
           // 保存できたら入力欄は空にする。画面に残し続ける理由がなく、
           // 次の保存で二重に書き込むのも避けたい
           clearedFields[provider === 'openai' ? 'openaiKey' : 'geminiKey'] = ''
@@ -433,6 +511,7 @@ class AITab extends React.Component {
       })
       this.setState(Object.assign({ keyError }, clearedFields))
       this.refreshKeyStatus()
+      return secured
     })
   }
 
@@ -678,9 +757,9 @@ class AITab extends React.Component {
 
     // 保存済みのキーは読み戻せない（main プロセスから外へ出さない設計）。
     // 空欄が「未設定」ではなく「変更しない」であることを placeholder で伝える
-    const { available, configured } = this.state.keyStatus
+    const { configured } = this.state.keyStatus
     const keyPlaceholder = (provider, fallback) =>
-      available && configured[provider]
+      configured[provider]
         ? i18n.__('Saved — enter a new key only to replace it')
         : fallback
 

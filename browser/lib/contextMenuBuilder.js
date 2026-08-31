@@ -285,7 +285,7 @@ const buildEditorContextMenu = function(editor, event) {
         {
           // 決まった型の操作（要約・翻訳等）に当てはまらない用途。
           // 「聞きたいことを聞く」導線がこれまで無かった
-          label: 'AI に質問する…',
+          label: 'AIに質問する…',
           click: function() {
             openAiChat(editor)
           }

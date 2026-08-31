@@ -31,6 +31,31 @@ const NOTE_AI_MENU_ITEMS = [
 // and one exists) or the entire note, appends the action's heading at the end
 // of the document, and streams the result under it. If the request fails
 // before any text arrived, the inserted heading is rolled back.
+/**
+ * AI に自由に質問するモーダルを開く。
+ *
+ * 読み込みは click された時だけ（modal.js は store と ReactDOM を引き込むので、
+ * このモジュールの単体テストが重くなる）。
+ */
+function openAiChat(editor) {
+  const { openModal } = require('browser/main/lib/modal')
+  // babel（テスト・webpack）は add-module-exports が入っていて default が
+  // 畳まれることがある。vite/esbuild 側と挙動が違うので両方を受ける
+  const modal = require('browser/main/modals/AiChatModal')
+  const AiChatModal = modal.default || modal
+  const noteContent = editor != null ? editor.getValue() : ''
+  openModal(AiChatModal, {
+    noteContent,
+    onInsert:
+      editor == null
+        ? undefined
+        : function(text) {
+            editor.replaceSelection(text)
+            editor.focus()
+          }
+  })
+}
+
 function runNoteAiAction(editor, actionKey) {
   if (editor == null) return
   const aiAssist = require('browser/main/lib/aiAssist')
@@ -255,14 +280,25 @@ const buildEditorContextMenu = function(editor, event) {
     { type: 'separator' },
     {
       label: 'AI',
-      submenu: AI_MENU_ITEMS.map(function(item) {
-        return {
-          label: item.label,
+      submenu: [
+        {
+          // 決まった型の操作（要約・翻訳等）に当てはまらない用途。
+          // 「聞きたいことを聞く」導線がこれまで無かった
+          label: 'AI に質問する…',
           click: function() {
-            runEditorAiAction(editor, item.key)
+            openAiChat(editor)
           }
-        }
-      }).concat(
+        },
+        { type: 'separator' }
+      ].concat(
+        AI_MENU_ITEMS.map(function(item) {
+          return {
+            label: item.label,
+            click: function() {
+              runEditorAiAction(editor, item.key)
+            }
+          }
+        }),
         [{ type: 'separator' }],
         NOTE_AI_MENU_ITEMS.map(function(item) {
           return {
@@ -275,7 +311,9 @@ const buildEditorContextMenu = function(editor, event) {
       )
     },
     {
-      label: '読み上げ (VOICEVOX)',
+      // エンジンは設定で選ぶ（OS 内蔵の音声 / VOICEVOX）。
+      // ラベルに片方だけ書くと、選んでいない方の人に嘘になる
+      label: '読み上げ',
       click: function() {
         const text =
           editor.getSelection() || editor.getLine(editor.getCursor().line)

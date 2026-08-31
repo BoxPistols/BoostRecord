@@ -639,5 +639,6 @@
   "Which heading levels the outline pane lists.": "目次ペインに並べる見出しのレベルです。",
   "Which kind of note the new-note button creates. \"Ask every time\" shows a chooser instead.": "新規ノートのボタンで作られる種類です。「作成時に聞く」にすると毎回選べます。",
   "e.g. tighten up the headings, and make block quotes stand out more": "例: 見出しをもう少し詰めて、引用ブロックを目立たせたい",
-  "markdownlint rules written as JSON. Applies only while the checkbox above is on.": "markdownlintのルールをJSONで書きます。上のチェックが入っているときだけ効きます。"
+  "markdownlint rules written as JSON. Applies only while the checkbox above is on.": "markdownlintのルールをJSONで書きます。上のチェックが入っているときだけ効きます。",
+  "Encrypted storage is unavailable on this system. Save the API key unencrypted in the app config?": "この環境では暗号化した保存ができません。APIキーを設定ファイルに平文で保存しますか。"
 }

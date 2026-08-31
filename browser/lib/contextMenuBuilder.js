@@ -2,6 +2,7 @@ import i18n from 'browser/lib/i18n'
 import fs from 'fs'
 import spellcheck from './spellcheck'
 import { speakText, stopSpeech } from 'browser/main/lib/ttsAssist'
+import AiChatModal from 'browser/main/modals/AiChatModal'
 
 const remote = require('@electron/remote')
 const { Menu } = remote.require('electron')
@@ -34,15 +35,15 @@ const NOTE_AI_MENU_ITEMS = [
 /**
  * AI に自由に質問するモーダルを開く。
  *
- * 読み込みは click された時だけ（modal.js は store と ReactDOM を引き込むので、
- * このモジュールの単体テストが重くなる）。
+ * default しか持たないモジュールを require() すると、vite の本番ビルドで
+ * .default が undefined になる（scripts/check-esm-cjs-compat.mjs が検出する）。
+ * import で受ける。
  */
 function openAiChat(editor) {
+  // modal.js は store（と ConfigManager）を読み込む。単体テストで electron を
+  // 触りに行かせないよう、押された時だけ読む。名前付き export なので
+  // require でも .default の取り違えは起きない
   const { openModal } = require('browser/main/lib/modal')
-  // babel（テスト・webpack）は add-module-exports が入っていて default が
-  // 畳まれることがある。vite/esbuild 側と挙動が違うので両方を受ける
-  const modal = require('browser/main/modals/AiChatModal')
-  const AiChatModal = modal.default || modal
   const noteContent = editor != null ? editor.getValue() : ''
   openModal(AiChatModal, {
     noteContent,

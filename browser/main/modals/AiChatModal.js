@@ -4,7 +4,6 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './AiChatModal.styl'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import i18n from 'browser/lib/i18n'
-import { runAiPrompt } from 'browser/main/lib/aiAssist'
 
 // 会話をそのまま渡せる IPC が無いので、履歴は 1 本のプロンプトに畳んで送る。
 // 長いノートを毎回丸ごと送らないよう、文脈にする本文には上限を設ける
@@ -117,6 +116,9 @@ class AiChatModal extends React.Component {
       })
     }
 
+    // aiAssist は ConfigManager 経由で electron を読む。このモジュールを
+    // import しただけで electron に触らせないよう、送る時に読む
+    const { runAiPrompt } = require('browser/main/lib/aiAssist')
     runAiPrompt({
       system: SYSTEM,
       prompt: buildPrompt(history, context),

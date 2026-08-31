@@ -1,0 +1,104 @@
+{
+  "name": "Rockabilly",
+  "author": "BoostRecord",
+  "variables": {
+    "ui_bg": "#1C1C1E",
+    "ui_bgAlt": "#242426",
+    "ui_surface": "#2A2A2D",
+    "ui_border": "#333336",
+    "ui_fg": "#EAEAEA",
+    "ui_muted": "#9A9A9E",
+    "ui_accent": "#D7263D",
+    "ui_accentAlt": "#E8A33D",
+    "syntax_red": "#F0576B",
+    "syntax_orange": "#E8A33D",
+    "syntax_yellow": "#E8C86A",
+    "syntax_green": "#93C572",
+    "syntax_teal": "#63C5B5",
+    "syntax_blue": "#7BB0DE",
+    "syntax_purple": "#C39BE0",
+    "syntax_comment": "#8A8A90",
+    "syntax_brown": "#C0865B"
+  },
+  "globals": {
+    "background": "#1C1C1E",
+    "foreground": "#EAEAEA",
+    "caret": "#D7263D",
+    "line_highlight": "#242426",
+    "selection": "#333336",
+    "selection_border": "#D7263D",
+    "gutter": "#1C1C1E",
+    "gutter_foreground": "#9A9A9E",
+    "invisibles": "#333336",
+    "find_highlight": "#E8A33D",
+    "find_highlight_foreground": "#1C1C1E"
+  },
+  "rules": [
+    {
+      "name": "Comment",
+      "scope": "comment",
+      "foreground": "#8A8A90",
+      "font_style": "italic"
+    },
+    {
+      "name": "String",
+      "scope": "string",
+      "foreground": "#93C572"
+    },
+    {
+      "name": "Number",
+      "scope": "constant.numeric",
+      "foreground": "#E8A33D"
+    },
+    {
+      "name": "Constant",
+      "scope": "constant.language, constant.character",
+      "foreground": "#E8A33D"
+    },
+    {
+      "name": "Keyword",
+      "scope": "keyword, storage.type, storage.modifier",
+      "foreground": "#F0576B"
+    },
+    {
+      "name": "Operator",
+      "scope": "keyword.operator",
+      "foreground": "#63C5B5"
+    },
+    {
+      "name": "Function",
+      "scope": "entity.name.function, support.function",
+      "foreground": "#7BB0DE"
+    },
+    {
+      "name": "Class",
+      "scope": "entity.name.class, entity.name.type, support.class",
+      "foreground": "#E8C86A"
+    },
+    {
+      "name": "Tag",
+      "scope": "entity.name.tag",
+      "foreground": "#F0576B"
+    },
+    {
+      "name": "Attribute",
+      "scope": "entity.other.attribute-name",
+      "foreground": "#E8C86A"
+    },
+    {
+      "name": "Variable",
+      "scope": "variable",
+      "foreground": "#EAEAEA"
+    },
+    {
+      "name": "Parameter",
+      "scope": "variable.parameter",
+      "foreground": "#C39BE0"
+    },
+    {
+      "name": "Invalid",
+      "scope": "invalid",
+      "foreground": "#F0576B"
+    }
+  ]
+}

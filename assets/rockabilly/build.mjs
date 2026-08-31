@@ -411,7 +411,117 @@ ${cssVars.map(([k, v]) => `  ${k}: ${v};`).join('\n')}
 }
 `)
 
-/* ── 10. 生パレット ──────────────────────────────────────────────────── */
+/* ── 10. Sublime Text (.sublime-color-scheme) ────────────────────────── */
+// JSON 形式。scope は TextMate の記法で、VS Code 側と同じ考え方で割り当てる
+const sublimeRule = (name, scope, foreground, fontStyle) => {
+  const rule = { name, scope, foreground }
+  if (fontStyle) rule.font_style = fontStyle
+  return rule
+}
+emit(
+  'sublime/' + NAME + '.sublime-color-scheme',
+  JSON.stringify(
+    {
+      name: NAME,
+      author: P.author,
+      variables: Object.fromEntries([
+        ...Object.entries(ui).map(([k, v]) => ['ui_' + k, v]),
+        ...Object.entries(sx).map(([k, v]) => ['syntax_' + k, v])
+      ]),
+      globals: {
+        background: ui.bg,
+        foreground: ui.fg,
+        caret: ui.accent,
+        line_highlight: ui.bgAlt,
+        selection: ui.border,
+        selection_border: ui.accent,
+        gutter: ui.bg,
+        gutter_foreground: ui.muted,
+        invisibles: ui.border,
+        find_highlight: ui.accentAlt,
+        find_highlight_foreground: ui.bg
+      },
+      rules: [
+        sublimeRule('Comment', 'comment', sx.comment, 'italic'),
+        sublimeRule('String', 'string', sx.green),
+        sublimeRule('Number', 'constant.numeric', sx.orange),
+        sublimeRule('Constant', 'constant.language, constant.character', sx.orange),
+        sublimeRule('Keyword', 'keyword, storage.type, storage.modifier', sx.red),
+        sublimeRule('Operator', 'keyword.operator', sx.teal),
+        sublimeRule('Function', 'entity.name.function, support.function', sx.blue),
+        sublimeRule('Class', 'entity.name.class, entity.name.type, support.class', sx.yellow),
+        sublimeRule('Tag', 'entity.name.tag', sx.red),
+        sublimeRule('Attribute', 'entity.other.attribute-name', sx.yellow),
+        sublimeRule('Variable', 'variable', ui.fg),
+        sublimeRule('Parameter', 'variable.parameter', sx.purple),
+        sublimeRule('Invalid', 'invalid', sx.red)
+      ]
+    },
+    null,
+    2
+  )
+)
+
+/* ── 11. JetBrains (.icls) ───────────────────────────────────────────── */
+// IntelliJ 系のカラースキーム。色は # を外した 6 桁で書く
+const hx = hex => hex.replace('#', '').toLowerCase()
+const jbOption = (name, value) => `      <option name="${name}" value="${hx(value)}" />`
+const jbAttr = (name, foreground, fontType) => `    <option name="${name}">
+      <value>
+${foreground ? `        <option name="FOREGROUND" value="${hx(foreground)}" />` : ''}${
+  fontType ? `\n        <option name="FONT_TYPE" value="${fontType}" />` : ''
+}
+      </value>
+    </option>`
+
+emit(
+  'jetbrains/' + NAME + '.icls',
+  `<?xml version="1.0" encoding="UTF-8"?>
+<!-- ${HEADER.replace(/\n/g, ' ')} -->
+<scheme name="${NAME}" version="142" parent_scheme="Darcula">
+  <colors>
+${[
+  ['CARET_COLOR', ui.accent],
+  ['CARET_ROW_COLOR', ui.bgAlt],
+  ['GUTTER_BACKGROUND', ui.bg],
+  ['INDENT_GUIDE', ui.border],
+  ['LINE_NUMBERS_COLOR', ui.muted],
+  ['SELECTION_BACKGROUND', ui.border],
+  ['SELECTION_FOREGROUND', ui.fg]
+]
+  .map(([k, v]) => jbOption(k, v))
+  .join('\n')}
+  </colors>
+  <attributes>
+${[
+  ['TEXT', ui.fg, null],
+  ['DEFAULT_BLOCK_COMMENT', sx.comment, '2'],
+  ['DEFAULT_LINE_COMMENT', sx.comment, '2'],
+  ['DEFAULT_DOC_COMMENT', sx.comment, '2'],
+  ['DEFAULT_KEYWORD', sx.red, null],
+  ['DEFAULT_STRING', sx.green, null],
+  ['DEFAULT_NUMBER', sx.orange, null],
+  ['DEFAULT_CONSTANT', sx.orange, null],
+  ['DEFAULT_FUNCTION_DECLARATION', sx.blue, null],
+  ['DEFAULT_FUNCTION_CALL', sx.blue, null],
+  ['DEFAULT_CLASS_NAME', sx.yellow, null],
+  ['DEFAULT_INTERFACE_NAME', sx.yellow, null],
+  ['DEFAULT_PARAMETER', sx.purple, null],
+  ['DEFAULT_INSTANCE_FIELD', sx.teal, null],
+  ['DEFAULT_OPERATION_SIGN', sx.teal, null],
+  ['DEFAULT_BRACES', ui.fg, null],
+  ['DEFAULT_TAG', sx.red, null],
+  ['DEFAULT_ATTRIBUTE', sx.yellow, null],
+  ['DEFAULT_INVALID_STRING_ESCAPE', sx.red, null]
+]
+  .map(([k, fg, ft]) => jbAttr(k, fg, ft))
+  .join('\n')}
+  </attributes>
+</scheme>
+`
+)
+
+/* ── 12. 生パレット ──────────────────────────────────────────────────── */
 emit('rockabilly.palette.json', JSON.stringify(P, null, 2))
 
 console.log(`生成 ${written.length} 件`)

@@ -8,18 +8,36 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 export const KEY_PROVIDERS = ['openai', 'gemini']
 
 const UNAVAILABLE = {
-  available: false,
   configured: { openai: false, gemini: false },
   fromEnv: { openai: false, gemini: false }
 }
 
 /**
- * @returns {Promise<{available: boolean, configured: Object<string, boolean>}>}
+ * provider ごとに「設定済みか」「環境変数で動くか」だけを返す。
+ *
+ * 暗号化の可否はここでは分からない（調べるとキーチェーンの許可ダイアログが
+ * 出るため、実際に預ける直前まで遅らせている）。可否が要る時は
+ * getEncryptionAvailable() を使う。
+ *
+ * @returns {Promise<{configured: Object<string, boolean>, fromEnv: Object<string, boolean>}>}
  */
 export function getKeyStatus() {
   return ipcRenderer.invoke('ai:keys-status').then(
     res => res || UNAVAILABLE,
     () => UNAVAILABLE
+  )
+}
+
+/**
+ * 暗号化して預けられるか。**キーチェーンの許可ダイアログが出うる**ので、
+ * キーを保存する直前にだけ呼ぶ。
+ *
+ * @returns {Promise<boolean>}
+ */
+export function getEncryptionAvailable() {
+  return ipcRenderer.invoke('ai:keys-encryption').then(
+    res => !!(res && res.available),
+    () => false
   )
 }
 

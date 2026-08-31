@@ -582,7 +582,7 @@
   "Thinking…": "考えています…",
   "This is a test of the reading voice.": "読み上げのテストです。",
   "VOICEVOX (requires the local engine)": "VOICEVOX（この端末でエンジンの起動が必要）",
-  "VOICEVOX is a separate free app that synthesizes Japanese speech on this machine. Install it from voicevox.hiroshiba.jp, start it, and leave it running. Nothing is sent outside this machine.": "VOICEVOXは日本語の音声をこの端末で合成する無料の別アプリです。voicevox.hiroshiba.jp から入れて起動したままにしてください。音声の合成は端末内で完結し、外部には送信されません。",
+  "VOICEVOX is a separate free app that synthesizes Japanese speech on this machine. Install it from voicevox.hiroshiba.jp, start it, and leave it running. Nothing is sent outside this machine.": "VOICEVOXは日本語の音声をこの端末で合成する無料の別アプリです。voicevox.hiroshiba.jpから入れて起動したままにしてください。音声の合成は端末内で完結し、外部には送信されません。",
   "Voice": "声",
   "Voice engine": "読み上げエンジン",
   "Which VOICEVOX character speaks. The numbers are listed in the VOICEVOX app.": "どのキャラクターが話すかの番号です。番号はVOICEVOXのアプリ側に一覧があります。",

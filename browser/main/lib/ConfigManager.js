@@ -194,6 +194,15 @@ export const DEFAULT_CONFIG = {
     // 目次ペインの幅（ドラッグで変更 → ここに保存）
     tocWidth: 200
   },
+  // 読み上げ。既定は OS 内蔵の音声（追加インストール無しで動く）。
+  // VOICEVOX は別途エンジンを起動している人向け
+  tts: {
+    engine: 'browser', // 'browser' | 'voicevox'
+    port: 50021,
+    speakerId: 1,
+    rate: 1,
+    voiceURI: ''
+  },
   export: {
     metadata: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'
     variable: 'boostnote',

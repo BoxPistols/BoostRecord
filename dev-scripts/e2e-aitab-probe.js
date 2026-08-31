@@ -121,17 +121,24 @@ function readAiTab() {
       Array.from(s.options).some(o => /gpt-|gemini-/.test(o.text)))
     const selected = selects.map(s => (s.options[s.selectedIndex] || {}).text || '')
     const options = selects.map(s => Array.from(s.options).map(o => o.text))
-    // 「使用中」バッジを持つカード（見出しテキストで識別）
-    const badges = Array.from(document.querySelectorAll('span'))
-      .filter(s => (s.textContent || '').trim() === '使用中')
-    const badgeOwners = badges.map(b => {
-      const card = b.closest('div').parentNode
-      const head = card.querySelector('span')
-      return (head && head.textContent || '').trim()
-    })
+    // どちらを使うかはカードの中のボタンで選ぶ（以前は上に帯があった）。
+    // 「使用中」と出ている方が選択中で、もう片方は「このプロバイダを使う」
+    const radios = Array.from(document.querySelectorAll('button[role="radio"]'))
+    const inUse = radios.filter(b => (b.textContent || '').trim() === '使用中')
+    const ownerOf = b => {
+      const row = b.parentNode
+      const head = row && row.querySelector('span')
+      return ((head && head.textContent) || '').trim()
+    }
     return {
       hasByokNotice: text.indexOf('API キーは同梱していません') !== -1,
-      selected, options, badgeCount: badges.length, badgeOwners
+      selected,
+      options,
+      radioCount: radios.length,
+      badgeCount: inUse.length,
+      badgeOwners: inUse.map(ownerOf),
+      // radiogroup にまとまっているか（読み上げで 1 組として扱われる）
+      inRadioGroup: radios.every(b => !!b.closest('[role="radiogroup"]'))
     }
   })()`
 }
@@ -196,15 +203,22 @@ app.on('web-contents-created', (_e, wc) => {
         )
         await shoot(win, 'ai-tab-openai.png')
 
-        // セグメントを押したら表示が変わることの確認（ここが今回の指摘）
+        check(
+          '選択ボタンが 2 つあり radiogroup にまとまっている',
+          view.radioCount === 2 && view.inRadioGroup === true,
+          { count: view.radioCount, grouped: view.inRadioGroup }
+        )
+
+        // 選択が実際に移ることの確認。Gemini 側は未選択なので
+        // 「このプロバイダを使う」と出ている
         const switched = await wc.executeJavaScript(
-          clickProvider('Gemini'),
+          clickProvider('このプロバイダを使う'),
           true
         )
-        check('Gemini セグメントを押せる', switched)
+        check('Gemini カードの選択ボタンを押せる', switched)
         const after = await wc.executeJavaScript(readAiTab(), true)
         check(
-          '押すとバッジが Gemini へ移る',
+          '押すと「使用中」が Gemini へ移る',
           after.badgeOwners[0] === 'Gemini',
           {
             owners: after.badgeOwners

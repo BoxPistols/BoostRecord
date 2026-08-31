@@ -14,7 +14,11 @@ import {
   stopSpeech,
   testVoicevox
 } from 'browser/main/lib/ttsAssist'
-import { getKeyStatus, saveKey } from 'browser/main/lib/aiKeys'
+import {
+  getEncryptionAvailable,
+  getKeyStatus,
+  saveKey
+} from 'browser/main/lib/aiKeys'
 import {
   MODEL_OPTIONS,
   DEFAULT_MODELS,
@@ -68,12 +72,14 @@ class AITab extends React.Component {
       testing: {},
       // provider -> { ok: boolean, message: string }
       testResult: {},
-      // main プロセスから受け取る鍵の状態。available=false なら暗号化ストアが
-      // 使えないので、従来どおり config に平文で保存する
-      keyStatus: { available: false, configured: {} },
-      // 状態が届くまでは保存させない。届く前に保存すると available:false と
-      // 誤認して、暗号化できる環境でも config へ平文を書いてしまう
+      // main プロセスから受け取る鍵の状態。暗号化の可否は含まない
+      // （調べるとキーチェーンの許可ダイアログが出るため、保存の直前まで
+      // 遅らせている）
+      keyStatus: { configured: {}, fromEnv: {} },
+      // 状態が届くまでは保存させない
       keyStatusLoaded: false,
+      // 暗号化の可否。保存を試みるまでは分からないので null
+      encryptionAvailable: null,
       // provider -> エラー文（保存に失敗したとき）
       keyError: {}
     }
@@ -214,10 +220,10 @@ class AITab extends React.Component {
    * 「保存に失敗した理由」をまとめて扱う。
    */
   renderKeyStatus(provider, c) {
-    // 状態は IPC 越しに非同期で届く。届く前に available:false の初期値で描くと
-    // 「暗号化が使えません」が一瞬出て嘘になるので、届くまで何も出さない
+    // 状態は IPC 越しに非同期で届く。届く前に描くと嘘になるので待つ
     if (!this.state.keyStatusLoaded) return null
-    const { available, configured } = this.state.keyStatus
+    const { configured } = this.state.keyStatus
+    const available = this.state.encryptionAvailable
     const error = this.state.keyError[provider]
     const rowStyle = {
       display: 'flex',
@@ -238,7 +244,9 @@ class AITab extends React.Component {
       )
     }
 
-    if (!available) {
+    // available が null の間は、まだ調べていない（調べるとダイアログが出る）。
+    // 使えないと分かった時だけ伝える
+    if (available === false) {
       return (
         <div style={rowStyle}>
           <span style={{ color: c.muted }}>
@@ -361,23 +369,39 @@ class AITab extends React.Component {
   }
 
   handleSave() {
+    const { openaiKey, geminiKey } = this.state
+    if (validateKey('openai', openaiKey) || validateKey('gemini', geminiKey))
+      return
+    // 鍵の状態が届く前に保存しない
+    if (!this.state.keyStatusLoaded) return
+
+    // キーを預ける時だけ、暗号化が使えるかを調べる。この判定はキーチェーンに
+    // 触るので、キーを入力していない保存（モデルや読み上げの設定だけ）で
+    // 許可ダイアログを出さない
+    const hasNewKey = !!(openaiKey.trim() || geminiKey.trim())
+    if (!hasNewKey) {
+      this.persist({ secure: false, openaiKey: '', geminiKey: '' })
+      return
+    }
+    getEncryptionAvailable().then(available => {
+      if (!this.mounted) return
+      this.setState({ encryptionAvailable: available })
+      this.persist({ secure: available, openaiKey, geminiKey })
+    })
+  }
+
+  /**
+   * 設定を書き込む。secure なら config に平文を残さず、資格情報ストアへ預ける。
+   * 使えない環境では従来どおり config に保存する（空文字にすると鍵を失う）。
+   */
+  persist({ secure, openaiKey, geminiKey }) {
     const {
       provider,
-      openaiKey,
       openaiModel,
-      geminiKey,
       geminiModel,
       ttsPort,
       ttsSpeakerId
     } = this.state
-    if (validateKey('openai', openaiKey) || validateKey('gemini', geminiKey))
-      return
-    // 鍵の保存先が確定する前に保存しない（下の secure 判定が嘘になる）
-    if (!this.state.keyStatusLoaded) return
-
-    // 暗号化ストアが使えるなら config には平文を残さない。使えない環境では
-    // 従来どおり config に保存する（ここで空文字にすると鍵を失う）
-    const secure = this.state.keyStatus.available
     const ai = {
       provider,
       openai: {
@@ -678,9 +702,9 @@ class AITab extends React.Component {
 
     // 保存済みのキーは読み戻せない（main プロセスから外へ出さない設計）。
     // 空欄が「未設定」ではなく「変更しない」であることを placeholder で伝える
-    const { available, configured } = this.state.keyStatus
+    const { configured } = this.state.keyStatus
     const keyPlaceholder = (provider, fallback) =>
-      available && configured[provider]
+      configured[provider]
         ? i18n.__('Saved — enter a new key only to replace it')
         : fallback
 

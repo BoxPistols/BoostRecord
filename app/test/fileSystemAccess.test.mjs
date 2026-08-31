@@ -225,3 +225,22 @@ test('パス片を含むキーは読み書きしない', async () => {
     /キーが不正/
   )
 })
+
+test('壊れた .cson が 1 つあってもストレージ全体は開ける', async () => {
+  const root = makeStorage({ n1: sampleRaw })
+  root.dirs.notes.files['broken.cson'] = makeFile('これは cson ではない { [')
+  const { notes } = await readStorage(root)
+  // 壊れた方は落とし、読めた方は返す
+  assert.equal(notes.length, 1)
+  assert.equal(notes[0].key, 'n1')
+})
+
+test('すでに開いている時のフォルダ選択は前回の復帰に吸われない', async () => {
+  // 開いた後にもう一度押したら、別のフォルダを選べる必要がある。
+  // showDirectoryPicker はこの環境に無いので、そこへ進めば null が返る
+  const root = makeStorage({ n1: sampleRaw })
+  const repo = createFileSystemAccessRepository(root)
+  await repo.load()
+  const res = await repo.pickStorage()
+  assert.equal(res, null)
+})

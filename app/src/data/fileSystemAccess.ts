@@ -3,11 +3,12 @@
 //
 // ディレクトリの構成は Electron 版と同じ。ストレージのルートに
 // `boostnote.json`（フォルダ一覧）があり、`notes/<key>.cson` が並ぶ。
-// 解釈と直列化は `cson-parser` をそのまま使う。自前の簡易パーサにすると、
-// 保存時に「こちらが知らないフィールド」を落として利用者のノートを壊す。
-// バンドルは 47 kB (gzip) 増えるが、データを壊さない方を採る。
-import CSON from 'cson-parser'
+// 解釈と直列化は `./cson.ts`。`cson-parser` は文字列リテラルごとに Node の
+// `vm.runInThisContext` を呼ぶので、ブラウザ向けのビルドでは空のスタブに
+// 置き換わって読み込んだ瞬間に落ちる。保存は「読んで書き直す」ではなく
+// 「その行だけ差し替える」ので、解釈できない値も元のまま残る。
 import type { Note, Storage } from '../types'
+import { parseNoteCson, stringifyNoteCson, updateNoteCson } from './cson.ts'
 import { exportFilename } from './exportMarkdown.ts'
 
 const DB_NAME = 'boostrecord-web'
@@ -49,9 +50,14 @@ function withStore<T>(
       new Promise<T>((resolve, reject) => {
         const tx = db.transaction(STORE, mode)
         const req = run(tx.objectStore(STORE))
+        // 失敗した時も閉じる。開いたままだと、次に DB_VERSION を上げた時の
+        // open が versionchange で止まる
+        const close = () => db.close()
         req.onsuccess = () => resolve(req.result)
         req.onerror = () => reject(req.error)
-        tx.oncomplete = () => db.close()
+        tx.oncomplete = close
+        tx.onerror = close
+        tx.onabort = close
       })
   )
 }
@@ -182,9 +188,17 @@ export async function readStorage(
     for await (const [name, handle] of notesDir.entries()) {
       if (handle.kind !== 'file' || !name.endsWith('.cson')) continue
       const noteKey = name.replace(/\.cson$/, '')
-      const { text, lastModified } = await readText(notesDir, name)
-      notes.push(toNote(CSON.parse(text) as RawNote, noteKey, key))
-      mtimes.set(noteKey, lastModified)
+      try {
+        const { text, lastModified } = await readText(notesDir, name)
+        const raw = parseNoteCson(text) as RawNote
+        // 1 つも読めなかったファイルは、空のノートとして並べるより外す。
+        // 書き込み途中のファイルに当たることがある
+        if (Object.keys(raw).length === 0) continue
+        notes.push(toNote(raw, noteKey, key))
+        mtimes.set(noteKey, lastModified)
+      } catch {
+        // 読み取り自体が失敗しても、ストレージ全体を開けなくはしない
+      }
     }
   }
   return { storage, notes, mtimes }
@@ -252,17 +266,25 @@ export function createFileSystemAccessRepository(
      * 空を返し、画面の「ストレージを開く」から復帰させる。
      */
     async load() {
-      if (root) return adopt(root)
-      const saved = await loadStoredHandle()
-      if (!saved) return { storages: [], notes: [] }
-      if (!(await ensurePermission(saved, false))) {
-        return { storages: [], notes: [] }
-      }
       try {
-        return await adopt(saved)
+        if (root) return await adopt(root)
+        const saved = await loadStoredHandle()
+        if (!saved) return { storages: [], notes: [] }
+        if (!(await ensurePermission(saved, false))) {
+          return { storages: [], notes: [] }
+        }
+        try {
+          return await adopt(saved)
+        } catch (e) {
+          // フォルダが消えている時だけ忘れる。読み取りが一時的に失敗した
+          // だけで覚えたフォルダを捨てると、1 クリックで戻る道が消える
+          if (e instanceof DOMException && e.name === 'NotFoundError') {
+            await clearStoredHandle()
+          }
+          return { storages: [], notes: [] }
+        }
       } catch {
-        // フォルダが移動・削除された等。次はフォルダ選択から始める
-        await clearStoredHandle()
+        // 起動時に投げると、呼び出し側に受け口が無く画面が空のまま止まる
         return { storages: [], notes: [] }
       }
     },
@@ -273,12 +295,17 @@ export function createFileSystemAccessRepository(
      * 保存が無い、または断られた時だけフォルダ選択を出す。
      */
     async pickStorage() {
-      const saved = await loadStoredHandle()
-      if (saved && (await ensurePermission(saved, true))) {
-        try {
-          return await adopt(saved)
-        } catch {
-          await clearStoredHandle()
+      // **まだ何も開いていない時だけ**、前回のフォルダの許可を求める。
+      // これが「前回のフォルダを開く」の導線になる。すでに開いている時に
+      // ここを通すと、別のフォルダを選べなくなる
+      if (!root) {
+        const saved = await loadStoredHandle()
+        if (saved && (await ensurePermission(saved, true))) {
+          try {
+            return await adopt(saved)
+          } catch {
+            await clearStoredHandle()
+          }
         }
       }
 
@@ -314,13 +341,12 @@ export function createFileSystemAccessRepository(
         )
       }
 
-      const raw = CSON.parse(text) as RawNote
-      const merged: RawNote = { ...raw }
+      const updates: Record<string, unknown> = {}
       for (const field of EDITABLE) {
         const value = note[field]
-        if (value !== undefined) merged[field] = value
+        if (value !== undefined) updates[field] = value
       }
-      const written = await writeText(dir, name, CSON.stringify(merged, null, 2))
+      const written = await writeText(dir, name, updateNoteCson(text, updates))
       mtimes.set(note.key, written)
     },
 
@@ -340,11 +366,7 @@ export function createFileSystemAccessRepository(
         createdAt: now,
         updatedAt: now
       }
-      const written = await writeText(
-        dir,
-        `${key}.cson`,
-        CSON.stringify(raw, null, 2)
-      )
+      const written = await writeText(dir, `${key}.cson`, stringifyNoteCson(raw))
       mtimes.set(key, written)
       return toNote(raw, key, root.name)
     },
@@ -368,8 +390,10 @@ export function createFileSystemAccessRepository(
             }
           ]
         })
-      } catch {
-        return false // 利用者が閉じた
+      } catch (e) {
+        // 閉じただけなら false。それ以外は黙って何も起きないのを避ける
+        if (e instanceof DOMException && e.name === 'AbortError') return false
+        throw e
       }
       const writable = await handle.createWritable()
       await writable.write(note.content)

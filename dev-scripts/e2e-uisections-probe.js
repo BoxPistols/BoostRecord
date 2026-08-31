@@ -68,6 +68,23 @@ function finish(code, result) {
 
 setTimeout(() => finish(3, { error: 'watchdog' }), 80000)
 
+// 例外の収集は did-finish-load の直後に仕掛ける。driver() の中で登録すると、
+// 起動中や seed 後のリロード中に出た例外を取りこぼす
+function installErrorCollector() {
+  return `(() => {
+    if (window.__probeErrors) return true
+    window.__probeErrors = []
+    window.addEventListener('error', e => {
+      window.__probeErrors.push(String((e.error && (e.error.stack || e.error.message)) || e.message))
+    })
+    window.addEventListener('unhandledrejection', e => {
+      const r = e.reason
+      window.__probeErrors.push('unhandledrejection: ' + String((r && (r.stack || r.message)) || r))
+    })
+    return true
+  })()`
+}
+
 function seed() {
   return `(() => { let l=[]; try{l=JSON.parse(localStorage.getItem('storages'))||[]}catch(e){}
     if(!Array.isArray(l)||!l.length){
@@ -91,7 +108,8 @@ function driver() {
     const qm = s => Array.from(modal().querySelectorAll(s))
     const rep = { steps: [], errors: [] }
     try {
-      window.addEventListener('error', e => rep.errors.push(String((e.error && (e.error.stack || e.error.message)) || e.message)))
+      // installErrorCollector() が仕掛けた分を引き継ぐ
+      rep.errors = (window.__probeErrors || []).slice()
       for (let i = 0; i < 40; i++) {
         if (!document.getElementById('loadingCover') && document.getElementById('content') && document.getElementById('content').children.length > 0) break
         await sleep(250)
@@ -186,6 +204,7 @@ app.on('web-contents-created', (_e, wc) => {
     consoleLogs.push({ level, message: String(message).slice(0, 300) })
   )
   wc.on('did-finish-load', () => {
+    wc.executeJavaScript(installErrorCollector(), true).catch(() => {})
     setTimeout(async () => {
       try {
         const seeded = await wc.executeJavaScript(seed(), true)
@@ -239,6 +258,27 @@ app.on('web-contents-created', (_e, wc) => {
           'ダークテーマに切り替わっている',
           rep.bodyTheme === 'rockabilly',
           rep.bodyTheme
+        )
+        // console 側のエラーも失敗にする。ただし常に出るものは除く。
+        // - React の非推奨警告と Electron の CSP 警告
+        // - 空のプロファイルで起動するため出るもの（キャッシュ無し・
+        //   storage 登録前の boostnote.json 探索）。probe の作り方に由来する
+        //   もので、変更の良し悪しとは関係しない
+        const IGNORED = [
+          /^Warning:/,
+          /Electron Security Warning/,
+          /Failed to parse cached data from localStorage/,
+          /boostnote\.json file doesn't exist/,
+          /notes\s+doesn't exist\./,
+          /The vm module of Node\.js is deprecated/
+        ]
+        const consoleErrors = consoleLogs
+          .filter(l => l.level >= 2)
+          .filter(l => !IGNORED.some(re => re.test(l.message)))
+        check(
+          'renderer の console にエラーが出ていない',
+          consoleErrors.length === 0,
+          consoleErrors.map(l => l.message.slice(0, 120))
         )
         check(
           'renderer で例外が出ていない',

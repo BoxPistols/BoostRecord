@@ -71,6 +71,30 @@ class UiTab extends React.Component {
     return { display: this.state.activeSection === name ? 'block' : 'none' }
   }
 
+  /**
+   * 表示中でないまとまりの中で作られた CodeMirror は、寸法を測れないので
+   * 空の箱として描かれる。表示に切り替わった時点で測り直させる。
+   *
+   * どれがどのまとまりに属するかを持つと、項目を動かすたびに合わせ直す
+   * ことになるので、全部まとめて refresh する（数は多くない）
+   */
+  refreshCodeMirrors() {
+    const instances = [
+      this.codeMirrorInstance,
+      this.codeBlockSampleInstance,
+      this.customCSSCM,
+      this.prettierConfigCM,
+      this.customMarkdownLintConfigCM
+    ]
+    instances.forEach(instance => {
+      if (instance && instance.getCodeMirror) instance.getCodeMirror().refresh()
+    })
+  }
+
+  handleSectionChange(key) {
+    this.setState({ activeSection: key }, () => this.refreshCodeMirrors())
+  }
+
   renderSectionNav() {
     const sections = [
       { key: 'theme', label: i18n.__('Theme') },
@@ -89,7 +113,7 @@ class UiTab extends React.Component {
             ? 'section-nav-item--active'
             : 'section-nav-item'
         }
-        onClick={() => this.setState({ activeSection: section.key })}
+        onClick={() => this.handleSectionChange(section.key)}
       >
         {section.label}
       </button>
@@ -170,6 +194,12 @@ class UiTab extends React.Component {
       this.codeMirrorInstance.getCodeMirror(),
       'javascript'
     )
+    // autoLoadMode は渡した instance にしか読み込み後のモードを当て直さない。
+    // コードブロックの見本も渡さないと、色の付かない素の文字のままになる
+    CodeMirror.autoLoadMode(
+      this.codeBlockSampleInstance.getCodeMirror(),
+      'javascript'
+    )
     CodeMirror.autoLoadMode(this.customCSSCM.getCodeMirror(), 'css')
     // 「押しても必ず失敗する導線を出さない」ため、キーの有無を実行時に見る。
     // アンマウント後の setState を避けるため生存フラグを持つ
@@ -212,6 +242,10 @@ class UiTab extends React.Component {
     this.mounted = false
     ipc.removeListener('APP_SETTING_DONE', this.handleSettingDone)
     ipc.removeListener('APP_SETTING_ERROR', this.handleSettingError)
+    // 見本のために足した stylesheet を残さない。保存せずに閉じた時、
+    // 選んでいないテーマの CSS が読み込まれたままになる
+    const link = document.getElementById('codeBlockHighLight')
+    if (link && link.parentNode) link.parentNode.removeChild(link)
   }
 
   // 拒否の理由をそのまま出しても伝わらないので、何が起きたかを1行で言う

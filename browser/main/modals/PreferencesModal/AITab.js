@@ -711,7 +711,11 @@ class AITab extends React.Component {
           {/* OpenAI と Gemini は同じ役割なので左右に並べ、「どちらを使うか」も
               カードの中で選ぶ。上に選択用の帯を置くと、押しても下の表示が
               変わらないタブに見えていた */}
-          <div style={cardRowStyle}>
+          <div
+            style={cardRowStyle}
+            role='radiogroup'
+            aria-label={i18n.__('Provider in use')}
+          >
             <div style={cardColStyle}>
               <div style={cardStyle(provider === 'openai')}>
                 {cardTitle('OpenAI', useRadio('openai'))}

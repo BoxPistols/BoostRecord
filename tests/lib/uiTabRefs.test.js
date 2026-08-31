@@ -56,3 +56,30 @@ describe('UiTab の ref', () => {
     expect(source).toMatch(/display:\s*this\.state\.activeSection === name/)
   })
 })
+
+describe('UiTab のまとまり切り替え', () => {
+  it('切り替えたら CodeMirror を測り直す', () => {
+    // display:none の中で作られた CodeMirror は寸法を測れず、空の箱として
+    // 描かれる。カスタム CSS と Prettier 設定と MarkdownLint 設定がこれに当たる
+    expect(source).toContain('refreshCodeMirrors()')
+    expect(source).toMatch(
+      /handleSectionChange\(key\)[\s\S]*refreshCodeMirrors\(\)/
+    )
+    // ナビは setState を直に呼ばず、測り直しを伴う方を通す
+    expect(source).toContain('onClick={() => this.handleSectionChange(')
+    expect(source).not.toMatch(
+      /onClick=\{\(\) => this\.setState\(\{ activeSection/
+    )
+  })
+
+  it('見本のモードを両方の CodeMirror に読み込む', () => {
+    // autoLoadMode は渡した instance にしかモードを当て直さないので、
+    // 片方だけだと色が付かない
+    expect(source).toContain('this.codeMirrorInstance.getCodeMirror()')
+    expect(source).toContain('this.codeBlockSampleInstance.getCodeMirror()')
+  })
+
+  it('見本のために足した stylesheet を閉じる時に片付ける', () => {
+    expect(source).toMatch(/componentWillUnmount\(\)[\s\S]*codeBlockHighLight/)
+  })
+})

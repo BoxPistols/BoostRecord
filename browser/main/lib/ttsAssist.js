@@ -1,13 +1,28 @@
-// Renderer-side wrapper for VOICEVOX text-to-speech.
+// 読み上げ（TTS）の renderer 側ラッパー。
 //
-// speakText(text)  – plays the text via VOICEVOX; reads port/speakerId from config.
-// stopSpeech()     – stops any currently playing audio.
+// speakText(text)  – 設定のエンジンで読み上げる
+// stopSpeech()     – 再生中の音声を止める
 //
-// Requires the VOICEVOX engine to be running locally.
+// エンジンは 2 つ。
+//   browser  : OS 内蔵の音声合成（Web Speech API）。追加インストール不要で、
+//              既定はこちら。何も用意しなくても読み上げが動く状態にする
+//   voicevox : ローカルで VOICEVOX エンジンを起動しておく必要がある。
+//              起動していなければその旨を返す
 const { ipcRenderer } = require('electron')
+
+export const ENGINE_BROWSER = 'browser'
+export const ENGINE_VOICEVOX = 'voicevox'
+export const DEFAULT_TTS_PORT = 50021
+export const DEFAULT_TTS_SPEAKER = 1
 
 let currentAudio = null
 let currentObjectUrl = null
+
+function getSynth() {
+  return typeof window !== 'undefined' && window.speechSynthesis
+    ? window.speechSynthesis
+    : null
+}
 
 export function stopSpeech() {
   if (currentAudio) {
@@ -18,29 +33,74 @@ export function stopSpeech() {
     URL.revokeObjectURL(currentObjectUrl)
     currentObjectUrl = null
   }
+  const synth = getSynth()
+  if (synth) synth.cancel()
 }
 
-export async function speakText(text) {
-  stopSpeech()
-
+/**
+ * 設定から読み上げの設定を取り出す。既定値はここ 1 箇所に置く。
+ */
+export function getTtsConfig() {
   // Lazy require avoids loading electron-config at module init (breaks Jest).
   const ConfigManager = require('browser/main/lib/ConfigManager').default
-  const ttsCfg =
-    (ConfigManager.getConfig() && ConfigManager.getConfig().tts) || {}
-  const speakerId = ttsCfg.speakerId != null ? ttsCfg.speakerId : 1
-  const port = ttsCfg.port || 50021
+  // ConfigManager が公開しているのは get()。以前は存在しない getConfig() を
+  // 呼んでいたので、エンジンの有無に関係なく読み上げは毎回 TypeError で
+  // 落ちていた
+  const config = ConfigManager.get()
+  const tts = (config && config.tts) || {}
+  return {
+    engine: tts.engine === ENGINE_VOICEVOX ? ENGINE_VOICEVOX : ENGINE_BROWSER,
+    port: tts.port || DEFAULT_TTS_PORT,
+    speakerId: tts.speakerId != null ? tts.speakerId : DEFAULT_TTS_SPEAKER,
+    rate: tts.rate || 1,
+    voiceURI: tts.voiceURI || ''
+  }
+}
 
+/**
+ * OS 内蔵の音声合成で読み上げる。声は日本語のものを優先して選ぶ。
+ */
+function speakWithBrowser(text, cfg) {
+  const synth = getSynth()
+  if (!synth) {
+    return Promise.reject(new Error('この環境では OS の音声合成が使えません。'))
+  }
+  return new Promise((resolve, reject) => {
+    const utterance = new window.SpeechSynthesisUtterance(text)
+    utterance.lang = 'ja-JP'
+    utterance.rate = cfg.rate
+
+    const voices = synth.getVoices() || []
+    const chosen =
+      voices.find(v => v.voiceURI === cfg.voiceURI) ||
+      voices.find(v => /^ja/i.test(v.lang))
+    if (chosen) utterance.voice = chosen
+
+    utterance.onend = () => resolve()
+    utterance.onerror = e => {
+      // 停止操作による中断はエラーとして出さない
+      if (e && (e.error === 'canceled' || e.error === 'interrupted')) {
+        resolve()
+        return
+      }
+      reject(new Error('読み上げに失敗しました。'))
+    }
+    synth.speak(utterance)
+  })
+}
+
+async function speakWithVoicevox(text, cfg) {
   const result = await ipcRenderer.invoke('tts:speak', {
     text,
-    speakerId,
-    port
+    speakerId: cfg.speakerId,
+    port: cfg.port
   })
   if (!result.ok) {
     const isOffline = /ECONNREFUSED|ECONNRESET/.test(result.reason || '')
     throw new Error(
       isOffline
-        ? `VOICEVOX エンジンが起動していません。\nhttp://localhost:${port} で起動してください。`
-        : result.reason || 'TTS failed'
+        ? `VOICEVOX エンジンが起動していません。\nVOICEVOX を起動してから、もう一度お試しください（http://localhost:${cfg.port}）。\nOS 内蔵の音声で読み上げる場合は、設定 > AI で読み上げエンジンを「OS 内蔵の音声」に変えてください。`
+        : result.reason || '読み上げに失敗しました。'
     )
   }
 
@@ -54,4 +114,44 @@ export async function speakText(text) {
     stopSpeech()
   }
   await audio.play()
+}
+
+export async function speakText(text) {
+  stopSpeech()
+  const cfg = getTtsConfig()
+  if (cfg.engine === ENGINE_VOICEVOX) return speakWithVoicevox(text, cfg)
+  return speakWithBrowser(text, cfg)
+}
+
+/**
+ * VOICEVOX エンジンに繋がるかを確かめる。設定画面の「接続テスト」から呼ぶ。
+ * 保存前の値で試せるよう、port は引数で受ける。
+ */
+export function testVoicevox(port) {
+  return ipcRenderer
+    .invoke('tts:ping', { port: port || DEFAULT_TTS_PORT })
+    .then(res => {
+      if (res && res.ok) {
+        return { ok: true, message: `VOICEVOX ${res.version} に接続しました` }
+      }
+      const reason = (res && res.reason) || ''
+      return {
+        ok: false,
+        message: /ECONNREFUSED|ECONNRESET/.test(reason)
+          ? 'VOICEVOX エンジンに繋がりません。VOICEVOX を起動してください。'
+          : reason || '接続できませんでした'
+      }
+    })
+}
+
+/**
+ * OS 内蔵の音声一覧。日本語の声を先に並べる。
+ */
+export function listBrowserVoices() {
+  const synth = getSynth()
+  if (!synth) return []
+  const voices = synth.getVoices() || []
+  const ja = voices.filter(v => /^ja/i.test(v.lang))
+  const rest = voices.filter(v => !/^ja/i.test(v.lang))
+  return ja.concat(rest)
 }

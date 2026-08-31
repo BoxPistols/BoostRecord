@@ -6,6 +6,14 @@ import ConfigManager from 'browser/main/lib/ConfigManager'
 import { store } from 'browser/main/store'
 import i18n from 'browser/lib/i18n'
 import { testAiConnection } from 'browser/main/lib/aiAssist'
+import {
+  ENGINE_BROWSER,
+  ENGINE_VOICEVOX,
+  listBrowserVoices,
+  speakText,
+  stopSpeech,
+  testVoicevox
+} from 'browser/main/lib/ttsAssist'
 import { getKeyStatus, saveKey } from 'browser/main/lib/aiKeys'
 import {
   MODEL_OPTIONS,
@@ -42,6 +50,13 @@ class AITab extends React.Component {
     const tts = (props.config && props.config.tts) || {}
     this.state = {
       provider: ai.provider || 'openai',
+      ttsEngine:
+        tts.engine === ENGINE_VOICEVOX ? ENGINE_VOICEVOX : ENGINE_BROWSER,
+      ttsVoiceURI: tts.voiceURI || '',
+      // OS 内蔵の音声は非同期で読み込まれる（初回は空配列が返る）
+      browserVoices: [],
+      ttsTesting: false,
+      ttsTestResult: null,
       openaiKey: (ai.openai && ai.openai.apiKey) || '',
       openaiModel: (ai.openai && ai.openai.model) || DEFAULT_MODELS.openai,
       geminiKey: (ai.gemini && ai.gemini.apiKey) || '',
@@ -274,10 +289,60 @@ class AITab extends React.Component {
   componentDidMount() {
     this.mounted = true
     this.refreshKeyStatus()
+    this.loadBrowserVoices()
+    // 声の一覧は非同期に届く。onvoiceschanged が来るまでは空
+    const synth = typeof window !== 'undefined' && window.speechSynthesis
+    if (synth) {
+      this.handleVoicesChanged = () => this.loadBrowserVoices()
+      synth.addEventListener('voiceschanged', this.handleVoicesChanged)
+    }
   }
 
   componentWillUnmount() {
     this.mounted = false
+    const synth = typeof window !== 'undefined' && window.speechSynthesis
+    if (synth && this.handleVoicesChanged) {
+      synth.removeEventListener('voiceschanged', this.handleVoicesChanged)
+    }
+    stopSpeech()
+  }
+
+  loadBrowserVoices() {
+    const voices = listBrowserVoices()
+    if (this.mounted) this.setState({ browserVoices: voices })
+  }
+
+  /**
+   * 保存前の値でそのまま試す。VOICEVOX は起動していないと使えないので、
+   * 「設定したのに何も起きない」で終わらせないために置く。
+   */
+  handleTestTts() {
+    const { ttsEngine, ttsPort } = this.state
+    this.setState({ ttsTesting: true, ttsTestResult: null })
+
+    if (ttsEngine === ENGINE_VOICEVOX) {
+      testVoicevox(parseInt(ttsPort, 10) || DEFAULT_TTS_PORT).then(result => {
+        if (!this.mounted) return
+        this.setState({ ttsTesting: false, ttsTestResult: result })
+      })
+      return
+    }
+
+    speakText(i18n.__('This is a test of the reading voice.'))
+      .then(() => {
+        if (!this.mounted) return
+        this.setState({
+          ttsTesting: false,
+          ttsTestResult: { ok: true, message: i18n.__('Played the test voice') }
+        })
+      })
+      .catch(err => {
+        if (!this.mounted) return
+        this.setState({
+          ttsTesting: false,
+          ttsTestResult: { ok: false, message: err.message }
+        })
+      })
   }
 
   handleSave() {
@@ -310,6 +375,8 @@ class AITab extends React.Component {
       }
     }
     const tts = {
+      engine: this.state.ttsEngine,
+      voiceURI: this.state.ttsVoiceURI,
       port: parseInt(ttsPort, 10) || DEFAULT_TTS_PORT,
       speakerId: parseInt(ttsSpeakerId, 10) || DEFAULT_TTS_SPEAKER
     }
@@ -361,8 +428,13 @@ class AITab extends React.Component {
       openaiModel,
       geminiKey,
       geminiModel,
+      ttsEngine,
+      ttsVoiceURI,
       ttsPort,
       ttsSpeakerId,
+      ttsTesting,
+      ttsTestResult,
+      browserVoices,
       saved
     } = this.state
 
@@ -540,6 +612,36 @@ class AITab extends React.Component {
       fontFamily: 'inherit'
     })
 
+    // 項目の意味を 1 行で添える。設定名だけでは何が変わるか伝わらない
+    const helpStyle = {
+      fontSize: 12,
+      lineHeight: '1.6',
+      color: c.dim,
+      marginBottom: 14
+    }
+
+    const testRowStyle = {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginTop: 12,
+      paddingTop: 12,
+      borderTop: `1px solid ${c.divider}`
+    }
+
+    const testButtonStyle = {
+      flex: '0 0 auto',
+      padding: '6px 12px',
+      background: 'transparent',
+      border: `1px solid ${c.inputBorder}`,
+      borderRadius: 6,
+      color: c.text,
+      fontSize: 12,
+      fontFamily: 'inherit',
+      cursor: ttsTesting ? 'default' : 'pointer',
+      opacity: ttsTesting ? 0.6 : 1
+    }
+
     const isMac =
       typeof navigator !== 'undefined' && /Mac/.test(navigator.userAgent)
     const saveShortcut = isMac ? '⌘ + Enter' : 'Ctrl + Enter'
@@ -665,31 +767,128 @@ class AITab extends React.Component {
             {this.renderConnectionTest('gemini', c)}
           </div>
 
-          {/* VOICEVOX TTS */}
+          {/* 読み上げ */}
           <div style={cardStyle()}>
-            {cardTitle('VOICEVOX TTS')}
-            <div style={fieldStyle}>
-              <label style={labelStyle}>{i18n.__('Port')}</label>
-              <input
-                type='number'
-                value={ttsPort}
-                min={1}
-                max={65535}
-                onChange={e => this.setState({ ttsPort: e.target.value })}
-                onWheel={e => e.currentTarget.blur()}
-                style={inputStyle(false)}
-              />
+            {cardTitle(i18n.__('Read aloud'))}
+            <div style={helpStyle}>
+              {i18n.__(
+                'Select text in a note, right-click, and choose "Read aloud". This setting decides which voice is used.'
+              )}
             </div>
-            <div style={fieldLastStyle}>
-              <label style={labelStyle}>{i18n.__('Speaker ID')}</label>
-              <input
-                type='number'
-                value={ttsSpeakerId}
-                min={0}
-                onChange={e => this.setState({ ttsSpeakerId: e.target.value })}
-                onWheel={e => e.currentTarget.blur()}
+            <div style={fieldStyle}>
+              <label style={labelStyle}>{i18n.__('Voice engine')}</label>
+              <select
+                value={ttsEngine}
+                onChange={e =>
+                  this.setState({
+                    ttsEngine: e.target.value,
+                    ttsTestResult: null
+                  })
+                }
                 style={inputStyle(false)}
-              />
+              >
+                <option value={ENGINE_BROWSER}>
+                  {i18n.__('Built-in system voice (no setup needed)')}
+                </option>
+                <option value={ENGINE_VOICEVOX}>
+                  {i18n.__('VOICEVOX (requires the local engine)')}
+                </option>
+              </select>
+            </div>
+
+            {ttsEngine === ENGINE_BROWSER ? (
+              <div style={fieldLastStyle}>
+                <label style={labelStyle}>{i18n.__('Voice')}</label>
+                <select
+                  value={ttsVoiceURI}
+                  onChange={e => this.setState({ ttsVoiceURI: e.target.value })}
+                  style={inputStyle(false)}
+                >
+                  <option value=''>
+                    {i18n.__('Auto (first Japanese voice)')}
+                  </option>
+                  {browserVoices.map(v => (
+                    <option key={v.voiceURI} value={v.voiceURI}>
+                      {`${v.name} (${v.lang})`}
+                    </option>
+                  ))}
+                </select>
+                {browserVoices.length === 0 && (
+                  <span style={Object.assign({}, errStyle, { color: c.muted })}>
+                    {i18n.__(
+                      'No system voices found. macOS: System Settings > Accessibility > Spoken Content.'
+                    )}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div>
+                <div style={helpStyle}>
+                  {i18n.__(
+                    'VOICEVOX is a separate free app that synthesizes Japanese speech on this machine. Install it from voicevox.hiroshiba.jp, start it, and leave it running. Nothing is sent outside this machine.'
+                  )}
+                </div>
+                <div style={fieldStyle}>
+                  <label style={labelStyle}>{i18n.__('Port')}</label>
+                  <input
+                    type='number'
+                    value={ttsPort}
+                    min={1}
+                    max={65535}
+                    onChange={e => this.setState({ ttsPort: e.target.value })}
+                    onWheel={e => e.currentTarget.blur()}
+                    style={inputStyle(false)}
+                  />
+                  <span style={Object.assign({}, errStyle, { color: c.muted })}>
+                    {i18n.__(
+                      'The port VOICEVOX listens on. 50021 unless you changed it.'
+                    )}
+                  </span>
+                </div>
+                <div style={fieldLastStyle}>
+                  <label style={labelStyle}>{i18n.__('Speaker ID')}</label>
+                  <input
+                    type='number'
+                    value={ttsSpeakerId}
+                    min={0}
+                    onChange={e =>
+                      this.setState({ ttsSpeakerId: e.target.value })
+                    }
+                    onWheel={e => e.currentTarget.blur()}
+                    style={inputStyle(false)}
+                  />
+                  <span style={Object.assign({}, errStyle, { color: c.muted })}>
+                    {i18n.__(
+                      'Which VOICEVOX character speaks. The numbers are listed in the VOICEVOX app.'
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            <div style={testRowStyle}>
+              <button
+                type='button'
+                onClick={() => this.handleTestTts()}
+                disabled={ttsTesting}
+                style={testButtonStyle}
+              >
+                {ttsTesting
+                  ? i18n.__('Testing…')
+                  : ttsEngine === ENGINE_VOICEVOX
+                  ? i18n.__('Test connection')
+                  : i18n.__('Play a test voice')}
+              </button>
+              {ttsTestResult && (
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: ttsTestResult.ok ? c.success : c.danger
+                  }}
+                >
+                  {ttsTestResult.message}
+                </span>
+              )}
             </div>
           </div>
 

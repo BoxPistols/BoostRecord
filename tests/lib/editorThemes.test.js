@@ -5,8 +5,10 @@ const {
   coupleEditorTheme,
   applyEditorThemeChoice,
   migrateUntouchedEditorTheme,
+  migrateUntouchedCodeBlockTheme,
   DEFAULT_LIGHT_EDITOR_THEME,
-  DEFAULT_DARK_EDITOR_THEME
+  DEFAULT_DARK_EDITOR_THEME,
+  DEFAULT_LIGHT_CODE_BLOCK_THEME
 } = require('browser/lib/editorThemes')
 
 describe('isDarkEditorTheme', () => {
@@ -78,5 +80,48 @@ describe('applyEditorThemeChoice', () => {
 
   it('UI テーマだけ変えても明暗が一致していれば触らない', () => {
     expect(applyEditorThemeChoice(true, 'dracula', 'dracula')).toBe('dracula')
+  })
+})
+
+describe('migrateUntouchedCodeBlockTheme', () => {
+  it('ダーク UI + 既定のままならエディタのテーマに合わせる', () => {
+    // 実際に起きていた組み合わせ: UI=rockabilly / editor=monokai /
+    // codeBlockTheme=default で、プレビューのコードブロックだけが白かった
+    expect(
+      migrateUntouchedCodeBlockTheme(
+        true,
+        DEFAULT_LIGHT_CODE_BLOCK_THEME,
+        'monokai'
+      )
+    ).toBe('monokai')
+  })
+
+  it('エディタが明るい時は暗い既定へ落とす', () => {
+    expect(
+      migrateUntouchedCodeBlockTheme(
+        true,
+        DEFAULT_LIGHT_CODE_BLOCK_THEME,
+        DEFAULT_LIGHT_EDITOR_THEME
+      )
+    ).toBe(DEFAULT_DARK_EDITOR_THEME)
+  })
+
+  it('自分で選んだテーマは書き換えない', () => {
+    expect(
+      migrateUntouchedCodeBlockTheme(true, 'base16-light', 'monokai')
+    ).toBe('base16-light')
+    expect(migrateUntouchedCodeBlockTheme(true, 'dracula', 'monokai')).toBe(
+      'dracula'
+    )
+  })
+
+  it('明るい UI では何もしない', () => {
+    expect(
+      migrateUntouchedCodeBlockTheme(
+        false,
+        DEFAULT_LIGHT_CODE_BLOCK_THEME,
+        'monokai'
+      )
+    ).toBe(DEFAULT_LIGHT_CODE_BLOCK_THEME)
   })
 })

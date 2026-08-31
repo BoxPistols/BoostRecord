@@ -300,3 +300,37 @@ export function resolveEditorTheme(name) {
     ? DEFAULT_DARK_EDITOR_THEME
     : DEFAULT_LIGHT_EDITOR_THEME
 }
+
+// ---------------------------------------------------------------------------
+// プレビューのコードブロック（preview.codeBlockTheme）
+//
+// エディタのテーマとは別系統で、既定値も別（'default' = CodeMirror 素の白）。
+// エディタ側だけを連動させていたので、UI をダークにしてもプレビューの
+// コードブロックだけが白い箱として残っていた。
+
+export const DEFAULT_LIGHT_CODE_BLOCK_THEME = 'default'
+
+/**
+ * 読み込み時の移行。
+ *
+ * 既定値のままの人だけを対象にする（自分で明るいテーマを選んだ人の設定は
+ * 触らない）。寄せ先はエディタのテーマに合わせる。プレビューとエディタで
+ * 別々の配色が並ぶより、同じ見た目になる方が読みやすい。
+ *
+ * @param {boolean} uiIsDark
+ * @param {string} codeBlockTheme 現在の preview.codeBlockTheme
+ * @param {string} editorTheme 現在の editor.theme（解決前でよい）
+ * @returns {string}
+ */
+export function migrateUntouchedCodeBlockTheme(
+  uiIsDark,
+  codeBlockTheme,
+  editorTheme
+) {
+  if (!uiIsDark) return codeBlockTheme
+  if (codeBlockTheme !== DEFAULT_LIGHT_CODE_BLOCK_THEME) return codeBlockTheme
+  const resolvedEditor = resolveEditorTheme(editorTheme)
+  return isDarkEditorTheme(resolvedEditor)
+    ? resolvedEditor
+    : DEFAULT_DARK_EDITOR_THEME
+}

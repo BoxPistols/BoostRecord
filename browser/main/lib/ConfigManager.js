@@ -5,6 +5,7 @@ import ee from 'browser/main/lib/eventEmitter'
 import { DEFAULT_MODELS, normalizeAiModels } from 'browser/main/lib/aiModels'
 import uiThemes from 'browser/lib/ui-themes'
 import {
+  migrateUntouchedCodeBlockTheme,
   migrateUntouchedEditorTheme,
   resolveEditorTheme
 } from 'browser/lib/editorThemes'
@@ -296,6 +297,22 @@ function get() {
     storedConfig = Object.assign({}, storedConfig, {
       editor: Object.assign({}, storedConfig.editor, {
         theme: coupledEditorTheme
+      })
+    })
+    _save(storedConfig)
+  }
+
+  // プレビューのコードブロックも同じ扱い。ここを漏らしていたので、ダーク UI と
+  // 暗いエディタの隣で、プレビューのコードブロックだけが白い箱で残っていた
+  const coupledCodeBlockTheme = migrateUntouchedCodeBlockTheme(
+    uiIsDark,
+    storedConfig.preview.codeBlockTheme,
+    coupledEditorTheme
+  )
+  if (coupledCodeBlockTheme !== storedConfig.preview.codeBlockTheme) {
+    storedConfig = Object.assign({}, storedConfig, {
+      preview: Object.assign({}, storedConfig.preview, {
+        codeBlockTheme: coupledCodeBlockTheme
       })
     })
     _save(storedConfig)

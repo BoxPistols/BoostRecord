@@ -259,7 +259,8 @@ class AITab extends React.Component {
             border: `1px solid ${c.inputBorder}`,
             borderRadius: 5,
             color: c.dim,
-            fontSize: 11,
+            // A11y: 12px 未満を使わない
+            fontSize: 12,
             fontFamily: 'inherit',
             cursor: 'pointer'
           }}
@@ -470,7 +471,8 @@ class AITab extends React.Component {
       borderRadius: 999,
       background: c.accent,
       color: '#fff',
-      fontSize: 10,
+      // A11y: 12px 未満を使わない
+      fontSize: 12,
       fontWeight: 700,
       letterSpacing: '0.04em'
     }

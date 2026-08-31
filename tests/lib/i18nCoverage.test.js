@@ -72,11 +72,9 @@ describe('ja と en の対応', () => {
     fs.readFileSync(path.join(root, 'locales/en.json'), 'utf8')
   )
 
-  it('走査自体が空回りしていない', () => {
-    expect(Object.keys(en).length).toBeGreaterThan(300)
-  })
-
   it('en のキーはすべて ja にある', () => {
+    // 走査が空回りしていないことも兼ねる
+    expect(Object.keys(en).length).toBeGreaterThan(300)
     const missing = Object.keys(en).filter(key => !(key in ja))
     expect(missing).toEqual([])
   })

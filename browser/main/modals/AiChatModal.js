@@ -117,11 +117,14 @@ class AiChatModal extends React.Component {
   constructor(props) {
     super(props)
     const hasSelection = !!(props.selection && props.selection.trim())
+    // ノート全体にしか意味の無い操作（校閲を反映）は選択があっても全体
+    const scope =
+      props.forceScope === 'note' || !hasSelection ? 'note' : 'selection'
     this.state = {
       // 'selection' | 'note'
-      scope: hasSelection ? 'selection' : 'note',
+      scope,
       // 対象の「いまの文章」。適用するとここが更新され、続きの土台になる
-      target: hasSelection ? props.selection : props.noteContent || '',
+      target: scope === 'selection' ? props.selection : props.noteContent || '',
       messages: [],
       input: '',
       sending: false,
@@ -131,7 +134,9 @@ class AiChatModal extends React.Component {
       view: {},
       excluded: {},
       // 適用の履歴。元に戻す / やり直すはこの並びを行き来して onApply し直す
-      history: [hasSelection ? props.selection : props.noteContent || ''],
+      history: [
+        scope === 'selection' ? props.selection : props.noteContent || ''
+      ],
       historyIndex: 0
     }
   }
@@ -220,6 +225,9 @@ class AiChatModal extends React.Component {
   componentDidMount() {
     this.mounted = true
     if (this.refs.input) this.refs.input.focus()
+    // メニューからのワンショット操作は、開いた直後にその指示で 1 回頼む。
+    // 結果は差分として出るので、いきなり本文は変わらない
+    if (this.props.initialRequest) this.handleSend(this.props.initialRequest)
   }
 
   componentWillUnmount() {
@@ -657,6 +665,10 @@ AiChatModal.propTypes = {
   noteContent: PropTypes.string,
   /** 開いた時点の選択範囲（無ければ空） */
   selection: PropTypes.string,
+  /** 開いた直後に送る指示（メニューのワンショット操作） */
+  initialRequest: PropTypes.string,
+  /** 'note' なら選択があってもノート全体を対象にする */
+  forceScope: PropTypes.string,
   /** (scope: 'selection'|'note', text) => void。対象を text で置き換える */
   onApply: PropTypes.func,
   onInsert: PropTypes.func

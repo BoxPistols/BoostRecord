@@ -16,7 +16,7 @@ describe('pickProvider', () => {
   })
 
   it('routes Gemini/Gemma model ids to gemini', () => {
-    expect(pickProvider('gemini-2.5-flash')).toBe('gemini')
+    expect(pickProvider('gemini-3.8-flash')).toBe('gemini')
     expect(pickProvider('gemma-2-9b')).toBe('gemini')
   })
 
@@ -40,6 +40,6 @@ describe('isOpenAiReasoning', () => {
   it('is false for classic chat models (max_tokens + temperature)', () => {
     expect(isOpenAiReasoning('gpt-4o')).toBe(false)
     expect(isOpenAiReasoning('gpt-4')).toBe(false)
-    expect(isOpenAiReasoning('gemini-2.5-flash')).toBe(false)
+    expect(isOpenAiReasoning('gemini-3.8-flash')).toBe(false)
   })
 })

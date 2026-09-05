@@ -34,13 +34,13 @@ it('入力された provider / model / apiKey をそのまま使う', async () =
   mockInvoke.mockResolvedValue('OK')
   await testAiConnection({
     provider: 'gemini',
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3.8-flash',
     apiKey: 'AIza-test'
   })
   const [channel, req] = mockInvoke.mock.calls[0]
   expect(channel).toBe('ai:run')
   expect(req.provider).toBe('gemini')
-  expect(req.model).toBe('gemini-2.5-flash')
+  expect(req.model).toBe('gemini-3.8-flash')
   expect(req.apiKey).toBe('AIza-test')
 })
 

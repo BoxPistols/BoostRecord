@@ -158,10 +158,13 @@ function driver() {
     const before = { hunks: hunks.length, changesTab: changesTab ? changesTab.textContent.trim() : '' }
     // 2 つ目の塊（評価文の削除）を外す
     hunks[1].click(); await sleep(200)
+    const counts = Array.from(document.querySelectorAll('label')).map(l => (l.textContent||'').match(/\\+(\\d+) \\/ −(\\d+)/)).filter(Boolean).map(m => m[1] + '/' + m[2])
+    const diffBox = hunks[0].closest('[class*="diff"]')
+    const diffHeight = diffBox ? diffBox.getBoundingClientRect().height : -1
     const applyBtn = byText('選んだ変更だけ適用')
     const shot1 = !!applyBtn
     window.__aichatShot = 'diff'
-    return { ok:true, before, applyLabel: applyBtn ? applyBtn.textContent.trim() : (byText('ノート全体を置き換える') ? 'ノート全体を置き換える' : '') }
+    return { ok:true, before, counts, diffHeight, applyLabel: applyBtn ? applyBtn.textContent.trim() : (byText('ノート全体を置き換える') ? 'ノート全体を置き換える' : '') }
   })()`
 }
 
@@ -208,6 +211,11 @@ app.on('web-contents-created', (_e, wc) => {
           '塊を 1 つ外すとボタンが「選んだ変更だけ適用」になる',
           r.applyLabel === '選んだ変更だけ適用',
           r
+        )
+        check(
+          '塊の見出しに +追加 / −削除 の行数が出る',
+          JSON.stringify(r.counts) === JSON.stringify(['1/1', '0/2']),
+          r.counts
         )
         await shoot(win, 'aichat-diff.png')
         const a = await wc.executeJavaScript(applyAndUndo(), true)

@@ -52,3 +52,18 @@ describe('buildHunks / applyHunks', () => {
     expect(countChanges(buildHunks('a\nb', 'a\nb'))).toBe(0)
   })
 })
+
+describe('塊の整形', () => {
+  it('塊の先頭・末尾で同じ行は塊から外れ、変更なしに戻る', () => {
+    // 行差分は「傘を消して傘を足す」形を選びがち。傘は変更ではない
+    const before = '- [ ] 折りたたみ傘\n- [ ] 遮光傘\n\nこれは重要です。'
+    const after = '- [ ] 折りたたみ傘\n- [ ] 遮光傘'
+    const hunks = buildHunks(before, after)
+    const changes = hunks.filter(h => h.type === 'change')
+    expect(changes.length).toBe(1)
+    expect(changes[0].removed).toEqual(['', 'これは重要です。'])
+    expect(changes[0].added).toEqual([])
+    expect(applyHunks(hunks, [0], after)).toBe(after)
+    expect(applyHunks(hunks, [], before)).toBe(before)
+  })
+})

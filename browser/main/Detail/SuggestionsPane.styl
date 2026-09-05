@@ -1,0 +1,301 @@
+// 改善提案ペイン。目次ペインと同じ右の列に出す。
+// 種類ごとの色は Draftline と同じ値（明暗どちらでも読める中間色）
+
+$sug-grammar = #d4a843
+$sug-spelling = #c05746
+$sug-punctuation = #7b6ba5
+$sug-style = #4a8c6f
+$sug-clarity = #4e7ea8
+$sug-ai = #9b59b6
+$sug-accept = #2b8976
+
+.root
+  flex 1 1 auto
+  width 100%
+  min-width 0
+  display flex
+  flex-direction column
+  overflow hidden
+  border-left $ui-border
+  background-color $ui-backgroundColor
+  color inherit
+
+.header
+  flex 0 0 auto
+  display flex
+  align-items center
+  justify-content space-between
+  gap 6px
+  padding 6px 6px 6px 10px
+  border-bottom $ui-border
+
+.title
+  font-size 12px
+  font-weight 700
+  letter-spacing 0.06em
+  text-transform uppercase
+  color $ui-inactive-text-color
+  white-space nowrap
+
+.title-count
+  margin-left 8px
+  font-weight 400
+  letter-spacing 0
+  text-transform none
+  font-variant-numeric tabular-nums
+
+.close
+  flex 0 0 auto
+  width 22px
+  height 22px
+  padding 0
+  border none
+  border-radius 4px
+  background-color transparent
+  color $ui-inactive-text-color
+  cursor pointer
+  &:hover
+    color $ui-text-color
+    background-color rgba(128, 128, 128, 0.18)
+
+.run
+  flex 0 0 auto
+  display flex
+  flex-direction column
+  gap 6px
+  padding 8px 10px
+  border-bottom $ui-border
+
+.run-scope
+  font-size 12px
+  color $ui-inactive-text-color
+
+.run-custom
+  width 100%
+  box-sizing border-box
+  padding 6px 8px
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 4px
+  background transparent
+  color inherit
+  font-family inherit
+  font-size 12px
+  line-height 1.5
+  resize vertical
+
+.run-button
+  align-self flex-start
+  padding 6px 12px
+  border none
+  border-radius 4px
+  background $ui-active-color
+  color #fff
+  font-family inherit
+  font-size 12px
+  cursor pointer
+  &:disabled
+    opacity 0.6
+    cursor default
+
+.error
+  margin 8px 10px 0
+  padding 6px 8px
+  border-radius 4px
+  background rgba(192, 87, 70, 0.15)
+  color #e06060
+  font-size 12px
+  line-height 1.5
+
+.filters
+  flex 0 0 auto
+  display flex
+  flex-wrap wrap
+  gap 4px
+  padding 8px 10px 0
+
+.filter
+  padding 2px 8px
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 10px
+  background transparent
+  color inherit
+  font-family inherit
+  font-size 12px
+  cursor pointer
+  &:hover
+    background rgba(128, 128, 128, 0.15)
+
+.filter--active
+  @extend .filter
+  border-color $ui-active-color
+  color $ui-active-color
+
+.list
+  flex 1 1 auto
+  overflow-y auto
+  padding 8px 10px
+  display flex
+  flex-direction column
+  gap 8px
+
+.empty
+  font-size 12px
+  line-height 1.6
+  color $ui-inactive-text-color
+
+.card
+  padding 10px 12px
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 6px
+  background rgba(128, 128, 128, 0.06)
+  transition opacity 0.2s
+
+.card--done
+  @extend .card
+  opacity 0.45
+
+.card-head
+  display flex
+  align-items center
+  justify-content space-between
+  margin-bottom 6px
+
+.chip
+  display inline-block
+  padding 1px 8px
+  border-radius 10px
+  font-size 12px
+  font-weight 600
+  letter-spacing 0.04em
+  color #fff
+
+.chip--grammar
+  @extend .chip
+  background $sug-grammar
+  color #1a1a1a
+.chip--spelling
+  @extend .chip
+  background $sug-spelling
+.chip--punctuation
+  @extend .chip
+  background $sug-punctuation
+.chip--style
+  @extend .chip
+  background $sug-style
+.chip--clarity
+  @extend .chip
+  background $sug-clarity
+.chip--ai-writing
+  @extend .chip
+  background $sug-ai
+
+.card-state
+  font-size 12px
+  color $ui-inactive-text-color
+
+.card-why
+  margin 0 0 8px
+  font-size 12px
+  line-height 1.6
+  color inherit
+  opacity 0.85
+
+.card-diff
+  padding 6px 8px
+  border-radius 4px
+  background rgba(128, 128, 128, 0.12)
+  font-size 13px
+  line-height 1.6
+  word-break break-word
+
+.card-before
+  text-decoration line-through
+  color $sug-spelling
+  opacity 0.8
+
+.card-arrow
+  margin 0 6px
+  opacity 0.5
+
+.card-after
+  color $sug-accept
+  font-weight 600
+
+.card-actions
+  display flex
+  gap 6px
+  margin-top 8px
+  align-items center
+
+.accept
+  padding 4px 10px
+  border none
+  border-radius 4px
+  background $sug-accept
+  color #fff
+  font-family inherit
+  font-size 12px
+  cursor pointer
+
+.reject
+  padding 4px 10px
+  border solid 1px rgba(128, 128, 128, 0.4)
+  border-radius 4px
+  background transparent
+  color inherit
+  font-family inherit
+  font-size 12px
+  cursor pointer
+  &:hover
+    border-color $sug-spelling
+    color $sug-spelling
+
+.locate
+  margin-left auto
+  width 26px
+  height 24px
+  padding 0
+  border none
+  border-radius 4px
+  background transparent
+  color inherit
+  opacity 0.6
+  cursor pointer
+  &:hover
+    opacity 1
+    background rgba(128, 128, 128, 0.18)
+
+.footer
+  flex 0 0 auto
+  padding 8px 10px
+  border-top $ui-border
+
+.apply-all
+  width 100%
+  padding 8px 12px
+  border solid 1px $sug-accept
+  border-radius 4px
+  background rgba(43, 137, 118, 0.12)
+  color $sug-accept
+  font-family inherit
+  font-size 12px
+  font-weight 600
+  cursor pointer
+
+apply-theme(theme)
+  body[data-theme={theme}]
+    .root
+      border-color get-theme-var(theme, 'borderColor')
+      background-color get-theme-var(theme, 'backgroundColor')
+    .header, .run, .footer
+      border-color get-theme-var(theme, 'borderColor')
+    .title, .run-scope, .empty, .card-state, .close
+      color get-theme-var(theme, 'inactive-text-color')
+    .close:hover
+      color get-theme-var(theme, 'text-color')
+
+for theme in 'white' 'dark' 'solarized-dark' 'dracula'
+  apply-theme(theme)
+
+for theme in $themes
+  apply-theme(theme)

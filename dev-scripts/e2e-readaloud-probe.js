@@ -751,6 +751,33 @@ app.on('web-contents-created', (_e, wc) => {
         )
         await shoot(win, 'readaloud-playing.png')
 
+        // 改善提案ペイン（AI キー無しでも開ける。分析は押さない）
+        const sg = await wc.executeJavaScript(
+          `(async () => {${helpers}
+            const editor = document.querySelector('.CodeMirror')
+            const before = editor ? editor.getBoundingClientRect().right : -1
+            const btn = byLabel(/^改善提案（AI）$/)
+            if (!btn) return { ok:false, step:'no button' }
+            btn.click(); await sleep(400)
+            const pane = document.querySelector('.SuggestionsPane')
+            const analyze = byText('分析する') || Array.from(document.querySelectorAll('button')).find(b => /分析する/.test(b.textContent||''))
+            const after = editor ? editor.getBoundingClientRect().right : -1
+            const paneLeft = pane ? pane.getBoundingClientRect().left : -1
+            return { ok:true, pane: !!pane, analyze: !!analyze, noOverlap: paneLeft >= after - 2, before, after, paneLeft, scope: pane ? (pane.innerText.match(/対象: (\\S+)/)||[])[1] : '' }
+          })()`,
+          true
+        )
+        check(
+          '改善提案ペインが右の列に開き、本文と重ならない',
+          sg.ok && sg.pane && sg.analyze && sg.noOverlap,
+          sg
+        )
+        check(
+          '対象がノート全体と表示される（選択なし）',
+          /ノート全体/.test(sg.scope || ''),
+          sg
+        )
+
         finish(checks.every(c => c.pass) ? 0 : 1, {})
       } catch (err) {
         finish(2, { error: 'exec failed: ' + err.message })

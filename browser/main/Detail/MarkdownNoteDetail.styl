@@ -166,3 +166,20 @@ body[data-theme="dark"]
 // 文字色は触らない（テーマの構文色を潰さない）
 :global(.tb-tts-line)
   background-color rgba(106, 165, 233, 0.22)
+
+// 改善提案の箇所。種類ごとの色の下線（Draftline と同じ色）。文字色は触らない
+:global(.tb-sug)
+  border-bottom 2px solid currentColor
+  text-decoration none
+:global(.tb-sug--grammar)
+  border-bottom-color #d4a843
+:global(.tb-sug--spelling)
+  border-bottom-color #c05746
+:global(.tb-sug--punctuation)
+  border-bottom-color #7b6ba5
+:global(.tb-sug--style)
+  border-bottom-color #4a8c6f
+:global(.tb-sug--clarity)
+  border-bottom-color #4e7ea8
+:global(.tb-sug--ai-writing)
+  border-bottom-color #9b59b6

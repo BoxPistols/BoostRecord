@@ -2,6 +2,7 @@ import i18n from 'browser/lib/i18n'
 import fs from 'fs'
 import spellcheck from './spellcheck'
 import { speakText, stopSpeech } from 'browser/main/lib/ttsAssist'
+import eventEmitter from 'browser/main/lib/eventEmitter'
 import AiChatModal from 'browser/main/modals/AiChatModal'
 
 const remote = require('@electron/remote')
@@ -25,8 +26,72 @@ const AI_MENU_ITEMS = [
 // "## 要約 (AI)" / "## 校閲 (AI)" section appended at the end of the note.
 const NOTE_AI_MENU_ITEMS = [
   { key: 'summarizeNote', label: 'ページ要約（ノート全体）' },
-  { key: 'proofread', label: '校閲（選択 or ノート全体）' }
+  { key: 'proofread', label: '校閲（選択 or ノート全体）' },
+  {
+    key: 'convertNote',
+    label:
+      '整形: Apple メモなどの平文を BoostRecord 形式に（選択 or ノート全体）'
+  }
 ]
+
+// ノート全体（または選択範囲）を AI の結果で置き換える。
+// ストリーミングで本文を書き換えると途中の壊れた状態が見えるので、全部届いて
+// から 1 回の編集（Cmd+Z で戻せる）で差し替える。待っている間は先頭に印を出す
+function runNoteReplaceAiAction(editor, actionKey) {
+  if (editor == null) return
+  const aiAssist = require('browser/main/lib/aiAssist')
+  const action = aiAssist.AI_ACTIONS[actionKey]
+  if (action == null) return
+
+  const selected = editor.getSelection()
+  const useSelection = !!(selected && selected.trim())
+  const source = useSelection ? selected : editor.getValue()
+  if (!source || !source.trim()) return
+  const from = useSelection ? editor.getCursor('from') : { line: 0, ch: 0 }
+  const to = useSelection
+    ? editor.getCursor('to')
+    : {
+        line: editor.lastLine(),
+        ch: editor.getLine(editor.lastLine()).length
+      }
+
+  const MARK = '> ⏳ AI が整形しています…\n\n'
+  editor.replaceRange(MARK, { line: 0, ch: 0 })
+  const markLen = MARK.length
+  let received = ''
+  const finish = replacement => {
+    // 印を消してから、元の範囲を差し替える（1 操作にまとめる）
+    editor.operation(() => {
+      editor.replaceRange('', { line: 0, ch: 0 }, editor.posFromIndex(markLen))
+      if (replacement != null) editor.replaceRange(replacement, from, to)
+    })
+  }
+
+  aiAssist
+    .runAiAction(actionKey, source, t => {
+      received += t
+    })
+    .then(full => {
+      const text = (full || received || '')
+        .replace(/^\s*```(?:markdown|md)?\n([\s\S]*?)\n```\s*$/, '$1')
+        .trim()
+      if (!text) {
+        finish(null)
+        return
+      }
+      finish(useSelection ? text : text + '\n')
+      editor.setCursor({ line: 0, ch: 0 })
+    })
+    .catch(err => {
+      finish(null)
+      const message = (err && err.message) || String(err)
+      try {
+        remote.require('electron').dialog.showErrorBox('AI', message)
+      } catch (e) {
+        console.error('[AI]', message)
+      }
+    })
+}
 
 // Runs a whole-note AI action: sends the selection (when the action allows it
 // and one exists) or the entire note, appends the action's heading at the end
@@ -305,7 +370,13 @@ const buildEditorContextMenu = function(editor, event) {
           return {
             label: item.label,
             click: function() {
-              runNoteAiAction(editor, item.key)
+              const aiAssist = require('browser/main/lib/aiAssist')
+              const action = aiAssist.AI_ACTIONS[item.key]
+              if (action && action.mode === 'replaceNote') {
+                runNoteReplaceAiAction(editor, item.key)
+              } else {
+                runNoteAiAction(editor, item.key)
+              }
             }
           }
         })
@@ -328,6 +399,13 @@ const buildEditorContextMenu = function(editor, event) {
             console.error('[TTS]', err.message)
           }
         })
+      }
+    },
+    {
+      // 本文の上に再生バーを出して、ノート全体を最初から読む
+      label: 'ノート全体を読み上げ',
+      click: function() {
+        eventEmitter.emit('detail:readaloud')
       }
     },
     {

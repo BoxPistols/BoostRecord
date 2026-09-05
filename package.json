@@ -1,7 +1,7 @@
 {
   "name": "boostrecord",
   "productName": "BoostRecord",
-  "version": "0.27.1",
+  "version": "0.28.0",
   "main": "index.js",
   "description": "BoostRecord — a modernized, independent successor to Boostnote (originally © BoostIO, GPL-3.0)",
   "license": "GPL-3.0",

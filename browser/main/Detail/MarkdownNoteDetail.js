@@ -34,6 +34,8 @@ import markdownToc from 'browser/lib/markdown-toc-generator'
 import queryString from 'query-string'
 import { replace } from 'connected-react-router'
 import ToggleDirectionButton from 'browser/main/Detail/ToggleDirectionButton'
+import ReadAloudPlayer from './ReadAloudPlayer'
+import ttsPlayer from 'browser/main/lib/ttsPlayer'
 import TocPane from 'browser/main/Detail/TocPane'
 const { ipcRenderer } = require('electron')
 import FindBar from 'browser/main/Detail/FindBar'
@@ -55,6 +57,8 @@ import i18n from 'browser/lib/i18n'
 // ので、バーがある時は .body 全体を食い込み分だけ下げる。
 // 高さ 17 ではなく「バー下端 89 − body 上端 69」が必要な値（実測で確定）
 const TODO_BAR_OFFSET = 20
+// 読み上げバー（ReadAloudPlayer, 32px）を出している間、本文を下げる量
+const READ_ALOUD_BAR_OFFSET = 40
 // .body の styl 上の top ($info-height + $info-margin-under-border)。
 // バー表示時に inline style で top を上書きする際の基準値
 const BODY_TOP = 69
@@ -88,6 +92,9 @@ class MarkdownNoteDetail extends React.Component {
     this.state = {
       // 情報パネルの表示。DOM 直書きだと再描画で閉じてしまう
       isInfoPanelOpen: false,
+      // 読み上げバーの表示。autoplay は右クリックから開いた時だけ true
+      readAloudOpen: false,
+      readAloudAutoplay: false,
       isMovingNote: false,
       note: Object.assign(
         {
@@ -350,6 +357,14 @@ class MarkdownNoteDetail extends React.Component {
    * 持っている）。エディタとプレビューのどちらが出ていても効くよう、両方に
    * 当てる。参照が取れない構成では黙って何もしない
    */
+  // 目次のクリック。読み上げバーが開いていれば読み上げ位置もそこへ
+  handleTocJumpWithSpeech(line) {
+    if (this.state.readAloudOpen && ttsPlayer.getState().total) {
+      ttsPlayer.seekToLine(line)
+    }
+    return this.handleTocJump(line)
+  }
+
   handleTocJump(line) {
     const content = this.refs.content
     if (!content) return
@@ -419,6 +434,141 @@ class MarkdownNoteDetail extends React.Component {
     //  吸われて届かない。実測で keySeenInRenderer: 0）
     this.findOpenHandler = () => this.handleFindOpen()
     ipcRenderer.on('detail:find', this.findOpenHandler)
+    // 右クリックの「ノート全体を読み上げ」。バーを出してすぐ再生する
+    this.readAloudHandler = () => this.handleToggleReadAloud(true, true)
+    ee.on('detail:readaloud', this.readAloudHandler)
+    // ホットキー（設定 > ホットキー > 音声プレーヤー）。ipc 経由なので
+    // 第 1 引数は event、値は第 2 引数
+    this.playerToggleHandler = () => {
+      if (!this.state.readAloudOpen) this.handleToggleReadAloud(true, true)
+      else this.playerControl('toggle')
+    }
+    this.playerStopHandler = () => ttsPlayer.stop()
+    this.playerPrevHandler = () => ttsPlayer.prev()
+    this.playerNextHandler = () => ttsPlayer.next()
+    this.playerVolumeHandler = (e, dir) => ttsPlayer.stepVolume(dir)
+    this.playerSpeedHandler = (e, dir) => ttsPlayer.stepSpeed(dir)
+    ee.on('player:toggle', this.playerToggleHandler)
+    ee.on('player:stop', this.playerStopHandler)
+    ee.on('player:prev', this.playerPrevHandler)
+    ee.on('player:next', this.playerNextHandler)
+    ee.on('player:volume', this.playerVolumeHandler)
+    ee.on('player:speed', this.playerSpeedHandler)
+  }
+
+  // バーが開いている時の再生/一時停止。塊が無ければ本文を読み込んでから
+  playerControl(action) {
+    if (action === 'toggle') {
+      const st = ttsPlayer.getState()
+      if (st.status === 'idle' && !st.total) {
+        if (ttsPlayer.load(this.state.note.content) === 0) return
+      }
+      ttsPlayer.toggle()
+    }
+  }
+
+  // エディタのカーソル行（0 始まり）。プレビュー表示中は編集面が無いので null
+  getCursorLineNumber() {
+    const cm = _.get(this.refs, 'content.refs.code.editor')
+    if (!cm || !cm.getCursor) return null
+    return cm.getCursor().line
+  }
+
+  // プレビュー（iframe）の document。split と preview の両方の置き場所を見る
+  getPreviewDocument() {
+    const content = this.refs.content
+    if (!content) return null
+    const preview =
+      _.get(content, 'refs.preview') || _.get(content, 'previewRef.current')
+    const frame = _.get(preview, 'refs.root')
+    try {
+      return frame && frame.contentDocument
+    } catch (e) {
+      return null
+    }
+  }
+
+  /**
+   * いま読み上げている行を、エディタとプレビューの両方で示す。
+   * 塊が変わった時だけ呼ばれる（毎フレームではない）
+   */
+  highlightSpeechLines(startLine, endLine) {
+    // 表示を切り替えるとエディタもプレビューも作り直されるので、当て直せる
+    // よう最後の範囲を覚えておく
+    this.ttsRange = startLine == null ? null : { startLine, endLine }
+    this.highlightInEditor(startLine, endLine)
+    this.highlightInPreview(startLine, endLine)
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    const modeChanged =
+      prevState.previewOnly !== this.state.previewOnly ||
+      prevState.editorType !== this.state.editorType
+    if (!modeChanged || !this.ttsRange) return
+    // 作り直しの直後は DOM がまだ無い。次のフレームで当て直す
+    this.ttsLines = []
+    this.ttsPreviewEl = null
+    setTimeout(() => {
+      if (!this.ttsRange) return
+      this.highlightInEditor(this.ttsRange.startLine, this.ttsRange.endLine)
+      this.highlightInPreview(this.ttsRange.startLine, this.ttsRange.endLine)
+    }, 150)
+  }
+
+  highlightInEditor(startLine, endLine) {
+    const cm = _.get(this.refs, 'content.refs.code.editor')
+    if (!cm || !cm.addLineClass) return
+    ;(this.ttsLines || []).forEach(l => {
+      try {
+        cm.removeLineClass(l, 'background', 'tb-tts-line')
+      } catch (e) {
+        /* 行が消えている（本文を編集した） */
+      }
+    })
+    this.ttsLines = []
+    if (startLine == null) return
+    const last = Math.min(endLine, cm.lineCount() - 1)
+    for (let l = startLine; l <= last; l++) {
+      cm.addLineClass(l, 'background', 'tb-tts-line')
+      this.ttsLines.push(l)
+    }
+    cm.scrollIntoView({ line: startLine, ch: 0 }, 120)
+  }
+
+  // プレビューは iframe の中。markdown-it が data-line（元の行番号）を
+  // 付けているので、その塊を含むブロックに色を敷く
+  highlightInPreview(startLine, endLine) {
+    const doc = this.getPreviewDocument()
+    if (this.ttsPreviewEl) {
+      this.ttsPreviewEl.style.backgroundColor = this.ttsPreviewBg || ''
+      this.ttsPreviewEl = null
+    }
+    if (!doc || startLine == null) return
+    const els = doc.querySelectorAll('[data-line]')
+    let best = null
+    for (let i = 0; i < els.length; i++) {
+      const n = parseInt(els[i].getAttribute('data-line'), 10)
+      if (isNaN(n) || n > endLine) continue
+      if (!best || n >= best.line) best = { el: els[i], line: n }
+    }
+    if (!best) return
+    this.ttsPreviewEl = best.el
+    this.ttsPreviewBg = best.el.style.backgroundColor
+    best.el.style.backgroundColor = 'rgba(106, 165, 233, 0.22)'
+    if (best.el.scrollIntoView) best.el.scrollIntoView({ block: 'center' })
+  }
+
+  /**
+   * 読み上げバーの表示切替。閉じるときは再生も止める。
+   * @param {boolean} open
+   * @param {boolean} [autoplay] 開いた直後に今のノートを読み始める
+   */
+  handleToggleReadAloud(open, autoplay) {
+    if (!open) {
+      ttsPlayer.stop()
+      this.highlightSpeechLines(null, null)
+    }
+    this.setState({ readAloudOpen: !!open, readAloudAutoplay: !!autoplay })
   }
 
   /**
@@ -451,6 +601,11 @@ class MarkdownNoteDetail extends React.Component {
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     const isNewNote = nextProps.note.key !== this.props.note.key
+    // 別のノートへ移ったら前のノートの読み上げは止める（バーは残す）
+    if (isNewNote) {
+      ttsPlayer.stop()
+      this.highlightSpeechLines(null, null)
+    }
     const hasDeletedTags =
       nextProps.note.tags.length < this.props.note.tags.length
     if (!this.state.isMovingNote && (isNewNote || hasDeletedTags)) {
@@ -482,6 +637,15 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   componentWillUnmount() {
+    ee.off('detail:readaloud', this.readAloudHandler)
+    ee.off('player:toggle', this.playerToggleHandler)
+    ee.off('player:stop', this.playerStopHandler)
+    ee.off('player:prev', this.playerPrevHandler)
+    ee.off('player:next', this.playerNextHandler)
+    ee.off('player:volume', this.playerVolumeHandler)
+    ee.off('player:speed', this.playerSpeedHandler)
+    ttsPlayer.stop()
+    this.highlightSpeechLines(null, null)
     ee.off('editor:orientation', this.handleSwitchStackDirection)
     ee.off('topbar:togglelockbutton', this.toggleLockButton)
     ee.off('topbar:toggledirectionbutton', this.handleSwitchDirection)
@@ -873,6 +1037,11 @@ class MarkdownNoteDetail extends React.Component {
     const showToc = (config.preview || {}).showToc !== false
     // TODO が無ければバーは display:none なので下げない（無駄な余白を作らない）
     const hasTodoBar = !isNaN(getTodoPercentageOfCompleted(note.content))
+    // 本文の上に積むバーの合計。TODO バー → 読み上げバーの順に下へ足す
+    const readAloudTop = BODY_TOP + (hasTodoBar ? TODO_BAR_OFFSET : 0)
+    const barsOffset =
+      (hasTodoBar ? TODO_BAR_OFFSET : 0) +
+      (this.state.readAloudOpen ? READ_ALOUD_BAR_OFFSET : 0)
     // ドラッグ中は state を見る（config へ書くのは離した時）
     const tocWidth =
       this.state.tocWidth != null
@@ -987,6 +1156,23 @@ class MarkdownNoteDetail extends React.Component {
 
           <InfoButton onClick={e => this.handleInfoButtonClick(e)} />
 
+          {/* ノート全体の読み上げ。押すと本文の上に再生バーが出る */}
+          <button
+            styleName={
+              this.state.readAloudOpen
+                ? 'read-aloud-toggle--active'
+                : 'read-aloud-toggle'
+            }
+            onClick={() =>
+              this.handleToggleReadAloud(!this.state.readAloudOpen, false)
+            }
+            title={i18n.__('Read aloud')}
+            aria-label={i18n.__('Read aloud')}
+            aria-pressed={this.state.readAloudOpen}
+          >
+            <i className='fa fa-volume-up' aria-hidden='true' />
+          </button>
+
           {/* 目次の表示切替はアイコン列の一番右。閉じるとペインごと導線が
               消えるため、戻す手段としてもここが要る */}
           <button
@@ -1040,7 +1226,9 @@ class MarkdownNoteDetail extends React.Component {
             // 置く。固定値にするとどれかに必ず被る（top:6px はツールバーを
             // 覆っていた）
             style={{
-              top: hasTodoBar ? TODO_BAR_OFFSET + 74 : 76,
+              top:
+                (hasTodoBar ? TODO_BAR_OFFSET + 74 : 76) +
+                (this.state.readAloudOpen ? READ_ALOUD_BAR_OFFSET : 0),
               // 目次は .body の内側にあり、.body 自体が右に 30px の margin を
               // 持つ。tocWidth だけ引くと 30px ぶん食い込む
               right: findRight,
@@ -1063,9 +1251,19 @@ class MarkdownNoteDetail extends React.Component {
             onClose={() => this.handleFindClose()}
           />
         )}
+        {this.state.readAloudOpen && (
+          <ReadAloudPlayer
+            style={{ top: readAloudTop }}
+            autoplay={this.state.readAloudAutoplay}
+            getContent={() => this.state.note.content}
+            getCursorLineNumber={() => this.getCursorLineNumber()}
+            onLineChange={(a, b) => this.highlightSpeechLines(a, b)}
+            onClose={() => this.handleToggleReadAloud(false)}
+          />
+        )}
         <div
           styleName='body'
-          style={hasTodoBar ? { top: BODY_TOP + TODO_BAR_OFFSET } : undefined}
+          style={barsOffset ? { top: BODY_TOP + barsOffset } : undefined}
         >
           <div
             styleName={showToc ? 'body-editor--with-toc' : 'body-editor'}
@@ -1085,7 +1283,7 @@ class MarkdownNoteDetail extends React.Component {
               <TocPane
                 content={note.content}
                 config={config}
-                onJump={line => this.handleTocJump(line)}
+                onJump={line => this.handleTocJumpWithSpeech(line)}
                 onClose={() => this.handleToggleToc(false)}
               />
             </div>

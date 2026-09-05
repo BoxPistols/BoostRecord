@@ -12,8 +12,29 @@ import {
   listBrowserVoices,
   speakTextWith,
   stopSpeech,
-  testVoicevox
+  testVoicevox,
+  listVoicevoxSpeakers,
+  listVoicevoxPresets,
+  speakerLabelFor,
+  defaultVoicevoxParams
 } from 'browser/main/lib/ttsAssist'
+const {
+  VOICEVOX_PARAMS,
+  normalizeVoicevoxParams
+} = require('../../../../lib/tts/params')
+
+// 設定画面のスライダーの並び。VOICEVOX 本体の右パネルと同じ順
+const VOICEVOX_SLIDERS = [
+  { key: 'speed', label: 'Speed' },
+  { key: 'pitch', label: 'Pitch' },
+  { key: 'intonation', label: 'Intonation' },
+  { key: 'volume', label: 'Volume' },
+  { key: 'pauseScale', label: 'Pause length' },
+  { key: 'prePause', label: 'Leading silence' },
+  { key: 'postPause', label: 'Trailing silence' }
+]
+const PREVIEW_TEXT =
+  'こんにちは。これは読み上げの試聴です。話速と抑揚をここで確かめられます。'
 import {
   getEncryptionAvailable,
   getKeyStatus,
@@ -46,7 +67,8 @@ function validateKey(provider, key) {
 }
 
 const DEFAULT_TTS_PORT = 50021
-const DEFAULT_TTS_SPEAKER = 1
+// 里石ユカ（つぼみ）。lib/tts/ipc.js と ttsAssist の既定と揃える
+const DEFAULT_TTS_SPEAKER = 126
 
 class AITab extends React.Component {
   constructor(props) {
@@ -68,6 +90,18 @@ class AITab extends React.Component {
       geminiModel: (ai.gemini && ai.gemini.model) || DEFAULT_MODELS.gemini,
       ttsPort: tts.port || DEFAULT_TTS_PORT,
       ttsSpeakerId: tts.speakerId != null ? tts.speakerId : DEFAULT_TTS_SPEAKER,
+      ttsSpeakerLabel: tts.speakerLabel || '',
+      // VOICEVOX の話者一覧（/speakers）。取れない間は ID の直接入力に落とす
+      ttsSpeakers: [],
+      ttsSpeakersError: '',
+      ttsSpeakersLoading: false,
+      ttsParams: normalizeVoicevoxParams(tts),
+      ttsPreviewing: false,
+      // VOICEVOX 本体で保存したプリセット。話者一覧と一緒に取る
+      ttsPresets: [],
+      ttsSkipUnit: tts.skipUnit || 'paragraph',
+      // ループ試聴。スライダーを動かすと、その値で作り直して鳴らし続ける
+      ttsLoop: false,
       saved: false,
       // provider -> true（テスト実行中）
       testing: {},
@@ -307,6 +341,8 @@ class AITab extends React.Component {
 
   componentDidMount() {
     this.mounted = true
+    // 話者一覧の再試行の回数。loadSpeakers から使う
+    this.speakerRetryCount = 0
     // config に平文で残っているキーを資格情報ストアへ移す。**起動時ではなく
     // ここで**行う。移送は暗号化の可否を調べるのでキーチェーンの許可
     // ダイアログが出るが、起動のたびに出るのと、AI の設定を開いた時に出るのでは
@@ -320,6 +356,7 @@ class AITab extends React.Component {
       })
     this.refreshKeyStatus()
     this.loadBrowserVoices()
+    if (this.state.ttsEngine === ENGINE_VOICEVOX) this.loadSpeakers()
     // 声の一覧は非同期に届く。onvoiceschanged が来るまでは空
     const synth = typeof window !== 'undefined' && window.speechSynthesis
     if (synth) {
@@ -330,6 +367,9 @@ class AITab extends React.Component {
 
   componentWillUnmount() {
     this.mounted = false
+    if (this.speakerRetryTimer) clearTimeout(this.speakerRetryTimer)
+    if (this.previewRestartTimer) clearTimeout(this.previewRestartTimer)
+    this.previewToken = (this.previewToken || 0) + 1
     const synth = typeof window !== 'undefined' && window.speechSynthesis
     if (synth && this.handleVoicesChanged) {
       synth.removeEventListener('voiceschanged', this.handleVoicesChanged)
@@ -340,6 +380,164 @@ class AITab extends React.Component {
   loadBrowserVoices() {
     const voices = listBrowserVoices()
     if (this.mounted) this.setState({ browserVoices: voices })
+  }
+
+  /**
+   * VOICEVOX の話者一覧を取り直す。ポートを変えた時・接続テストが通った時・
+   * 「一覧を更新」を押した時に呼ぶ。
+   */
+  /**
+   * VOICEVOX の話者一覧を取り直す。エンジンは起動と再起動に十数秒かかるので、
+   * 失敗したら黙って間隔を空けて数回試す。利用者にボタンを押させない
+   * （設定画面を開いたまま VOICEVOX を起動しても、そのうち一覧に変わる）
+   * @param {boolean} [manual] 利用者が押した時は再試行の回数を数え直す
+   */
+  loadSpeakers(manual) {
+    if (this.speakerRetryTimer) {
+      clearTimeout(this.speakerRetryTimer)
+      this.speakerRetryTimer = null
+    }
+    if (manual) this.speakerRetryCount = 0
+    const port = parseInt(this.state.ttsPort, 10) || DEFAULT_TTS_PORT
+    this.setState({ ttsSpeakersLoading: true, ttsSpeakersError: '' })
+    // プリセットは無くても困らないので、失敗は黙って空にする
+    listVoicevoxPresets(port).then(
+      presets => {
+        if (this.mounted) this.setState({ ttsPresets: presets })
+      },
+      () => {
+        if (this.mounted) this.setState({ ttsPresets: [] })
+      }
+    )
+    listVoicevoxSpeakers(port).then(
+      speakers => {
+        if (!this.mounted) return
+        this.speakerRetryCount = 0
+        const id = parseInt(this.state.ttsSpeakerId, 10)
+        this.setState({
+          ttsSpeakers: speakers,
+          ttsSpeakersLoading: false,
+          // 表示名は一覧から引き直す（名前が変わっていても保存時に追随する）
+          ttsSpeakerLabel:
+            speakerLabelFor(speakers, id) || this.state.ttsSpeakerLabel
+        })
+      },
+      err => {
+        if (!this.mounted) return
+        this.setState({
+          ttsSpeakersLoading: false,
+          ttsSpeakersError: (err && err.message) || 'error'
+        })
+        // 3s → 6s → 12s → 20s → 20s。起動途中のエンジンはこの間に上がる
+        const waits = [3000, 6000, 12000, 20000, 20000]
+        const wait = waits[Math.min(this.speakerRetryCount, waits.length - 1)]
+        this.speakerRetryCount += 1
+        this.speakerRetryTimer = setTimeout(() => {
+          this.speakerRetryTimer = null
+          if (this.mounted && this.state.ttsEngine === ENGINE_VOICEVOX) {
+            this.loadSpeakers()
+          }
+        }, wait)
+      }
+    )
+  }
+
+  // キャラクターを変えたら、そのキャラクターの最初のスタイルにする
+  handleSpeakerChange(uuid) {
+    const speaker = this.state.ttsSpeakers.find(sp => sp.uuid === uuid)
+    if (!speaker || !speaker.styles.length) return
+    const style = speaker.styles[0]
+    this.setState({
+      ttsSpeakerId: style.id,
+      ttsSpeakerLabel: `${speaker.name}（${style.name}）`
+    })
+  }
+
+  handleStyleChange(id) {
+    const speakerId = parseInt(id, 10)
+    this.setState({
+      ttsSpeakerId: speakerId,
+      ttsSpeakerLabel:
+        speakerLabelFor(this.state.ttsSpeakers, speakerId) ||
+        this.state.ttsSpeakerLabel
+    })
+  }
+
+  // 本体のプリセットの値をスライダーへ写す（話者も合わせる）
+  handleApplyPreset(id) {
+    const preset = this.state.ttsPresets.find(p => String(p.id) === String(id))
+    if (!preset) return
+    const next = { ttsParams: normalizeVoicevoxParams(preset.params) }
+    if (preset.styleId != null) {
+      next.ttsSpeakerId = preset.styleId
+      next.ttsSpeakerLabel =
+        speakerLabelFor(this.state.ttsSpeakers, preset.styleId) ||
+        this.state.ttsSpeakerLabel
+    }
+    this.setState(next)
+  }
+
+  handleParamChange(key, value) {
+    const next = Object.assign({}, this.state.ttsParams, {
+      [key]: Number(value)
+    })
+    this.setState({ ttsParams: normalizeVoicevoxParams(next) }, () => {
+      // ループ試聴中は、指を止めてから少し置いて作り直す（合成は 1 回 0.5〜1 秒）
+      if (!this.state.ttsLoop || !this.state.ttsPreviewing) return
+      if (this.previewRestartTimer) clearTimeout(this.previewRestartTimer)
+      this.previewRestartTimer = setTimeout(() => {
+        this.previewRestartTimer = null
+        if (this.mounted && this.state.ttsPreviewing) this.startPreview()
+      }, 350)
+    })
+  }
+
+  /**
+   * 試聴を鳴らす。ループなら終わるたびに同じ文を作り直して鳴らす。
+   * token で「止めた後に届いた再生」を捨てる
+   */
+  startPreview() {
+    const { ttsPort, ttsSpeakerId, ttsParams, ttsSpeakerLabel } = this.state
+    const token = (this.previewToken = (this.previewToken || 0) + 1)
+    this.setState({ ttsPreviewing: true, ttsTestResult: null })
+    speakTextWith(PREVIEW_TEXT, {
+      engine: ENGINE_VOICEVOX,
+      port: parseInt(ttsPort, 10) || DEFAULT_TTS_PORT,
+      speakerId: parseInt(ttsSpeakerId, 10),
+      params: ttsParams,
+      speakerLabel: ttsSpeakerLabel
+    })
+      .then(() => {
+        if (!this.mounted || token !== this.previewToken) return
+        if (this.state.ttsLoop && this.state.ttsPreviewing) {
+          this.startPreview()
+          return
+        }
+        this.setState({ ttsPreviewing: false })
+      })
+      .catch(err => {
+        if (!this.mounted || token !== this.previewToken) return
+        this.setState({
+          ttsPreviewing: false,
+          ttsTestResult: { ok: false, message: err.message.split('\n')[0] }
+        })
+      })
+  }
+
+  stopPreview() {
+    this.previewToken = (this.previewToken || 0) + 1
+    if (this.previewRestartTimer) clearTimeout(this.previewRestartTimer)
+    stopSpeech()
+    this.setState({ ttsPreviewing: false })
+  }
+
+  /**
+   * 試聴ボタン。鳴っている間は「停止」になる。接続テストは繋がるかしか
+   * 分からず、声とパラメータの当たりは聞かないと決められない
+   */
+  handlePreviewVoicevox() {
+    if (this.state.ttsPreviewing) this.stopPreview()
+    else this.startPreview()
   }
 
   /**
@@ -355,6 +553,8 @@ class AITab extends React.Component {
         result => {
           if (!this.mounted) return
           this.setState({ ttsTesting: false, ttsTestResult: result })
+          // 繋がったなら話者一覧も取れるはず。ID 入力に落ちたままにしない
+          if (result.ok) this.loadSpeakers(true)
         },
         err => {
           // ここで握らないと、押しっぱなしの「テスト中…」で固まる
@@ -467,12 +667,19 @@ class AITab extends React.Component {
         model: geminiModel.trim()
       }
     }
-    const tts = {
-      engine: this.state.ttsEngine,
-      voiceURI: this.state.ttsVoiceURI,
-      port: parseInt(ttsPort, 10) || DEFAULT_TTS_PORT,
-      speakerId: parseInt(ttsSpeakerId, 10) || DEFAULT_TTS_SPEAKER
-    }
+    const speakerId = parseInt(ttsSpeakerId, 10)
+    // 音声パラメータは tts 直下に平置き（ConfigManager の既定と同じ形）
+    const tts = Object.assign(
+      {
+        engine: this.state.ttsEngine,
+        voiceURI: this.state.ttsVoiceURI,
+        port: parseInt(ttsPort, 10) || DEFAULT_TTS_PORT,
+        speakerId: Number.isNaN(speakerId) ? DEFAULT_TTS_SPEAKER : speakerId,
+        speakerLabel: this.state.ttsSpeakerLabel || '',
+        skipUnit: this.state.ttsSkipUnit
+      },
+      normalizeVoicevoxParams(this.state.ttsParams)
+    )
     ConfigManager.set({ ai, tts })
     store.dispatch({ type: 'SET_UI', config: { ai, tts } })
     this.setState({ saved: true })
@@ -515,6 +722,231 @@ class AITab extends React.Component {
     })
   }
 
+  /**
+   * VOICEVOX のキャラクター / スタイル選択と声の調整スライダー。
+   *
+   * キャラクター名はエンジンの /speakers にしか無い（話者 ID からアプリ側で
+   * 名前を引くことはできない）。繋がらない間は保存済みの名前を出し、
+   * 数字だけを見せない。一覧は自動で取り直すので、押させるボタンは出さない
+   */
+  renderVoicevoxSpeaker(c, st) {
+    const {
+      ttsSpeakers,
+      ttsSpeakersError,
+      ttsSpeakersLoading,
+      ttsSpeakerId,
+      ttsSpeakerLabel,
+      ttsParams,
+      ttsPreviewing
+    } = this.state
+    const id = parseInt(ttsSpeakerId, 10)
+    const current = ttsSpeakers.find(sp =>
+      sp.styles.some(style => style.id === id)
+    )
+    const selected = current || ttsSpeakers[0]
+    const rowStyle = { display: 'flex', gap: 8, alignItems: 'center' }
+    // 試聴はキャラクターのすぐ右。選んで、その場で聞いて、決める並びにする
+    const previewButtonStyle = Object.assign({}, st.testButtonStyle, {
+      cursor: 'pointer',
+      opacity: 1,
+      whiteSpace: 'nowrap',
+      // 鳴っている間は停止ボタンとして目立たせる
+      borderColor: ttsPreviewing ? c.accent : st.testButtonStyle.borderColor,
+      color: ttsPreviewing ? c.accent : st.testButtonStyle.color
+    })
+    const previewButton = (
+      <button
+        type='button'
+        onClick={() => this.handlePreviewVoicevox()}
+        style={previewButtonStyle}
+        aria-pressed={ttsPreviewing}
+      >
+        <i
+          className={ttsPreviewing ? 'fa fa-stop' : 'fa fa-play'}
+          aria-hidden='true'
+          style={{ marginRight: 6 }}
+        />
+        {ttsPreviewing ? i18n.__('Stop preview') : i18n.__('Preview voice')}
+      </button>
+    )
+    const loopToggle = (
+      <label
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 4,
+          fontSize: 12,
+          color: c.dim,
+          whiteSpace: 'nowrap',
+          cursor: 'pointer'
+        }}
+        title={i18n.__(
+          'Keep playing the sample. Move a slider and the voice follows.'
+        )}
+      >
+        <input
+          type='checkbox'
+          checked={this.state.ttsLoop}
+          onChange={e => this.setState({ ttsLoop: e.target.checked })}
+          style={{ margin: 0 }}
+        />
+        {i18n.__('Loop preview')}
+      </label>
+    )
+    const sliderRow = {
+      display: 'grid',
+      gridTemplateColumns: '96px 1fr 52px',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 6,
+      fontSize: 12,
+      color: c.dim
+    }
+    const numStyle = {
+      textAlign: 'right',
+      fontVariantNumeric: 'tabular-nums',
+      color: c.text
+    }
+    // 一覧が無い時に出す名前。保存済みの表示名 → 無ければ ID
+    const savedName =
+      ttsSpeakerLabel || i18n.__('Speaker ID') + ' ' + ttsSpeakerId
+    return (
+      <div>
+        <div style={st.fieldStyle}>
+          <label style={st.labelStyle}>{i18n.__('Character')}</label>
+          {ttsSpeakers.length ? (
+            <div style={rowStyle}>
+              <select
+                value={selected ? selected.uuid : ''}
+                onChange={e => this.handleSpeakerChange(e.target.value)}
+                style={st.inputStyle(false)}
+              >
+                {ttsSpeakers.map(sp => (
+                  <option key={sp.uuid} value={sp.uuid}>
+                    {sp.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={String(ttsSpeakerId)}
+                onChange={e => this.handleStyleChange(e.target.value)}
+                style={st.inputStyle(false)}
+                aria-label={i18n.__('Style')}
+              >
+                {(selected ? selected.styles : []).map(style => (
+                  <option key={style.id} value={String(style.id)}>
+                    {style.name}
+                  </option>
+                ))}
+              </select>
+              {previewButton}
+              {loopToggle}
+            </div>
+          ) : (
+            <div style={rowStyle}>
+              <div
+                style={Object.assign({}, st.inputStyle(false), {
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 8,
+                  opacity: 0.75
+                })}
+              >
+                <span>{savedName}</span>
+                <span style={{ color: c.muted, fontSize: 12 }}>
+                  {ttsSpeakersLoading
+                    ? i18n.__('Connecting to VOICEVOX…')
+                    : `ID ${ttsSpeakerId}`}
+                </span>
+              </div>
+              {previewButton}
+              {loopToggle}
+            </div>
+          )}
+          {ttsSpeakers.length > 0 && !current && (
+            <span style={st.errStyle}>
+              {i18n.__(
+                'This speaker ID is not in the running VOICEVOX. Pick a character above.'
+              )}
+            </span>
+          )}
+          {!ttsSpeakers.length && ttsSpeakersError && !ttsSpeakersLoading && (
+            <span style={Object.assign({}, st.errStyle, { color: c.muted })}>
+              {i18n.__(
+                'Character names come from VOICEVOX, so they cannot be shown while it is closed. Start VOICEVOX and the list appears here on its own.'
+              )}
+            </span>
+          )}
+        </div>
+
+        <div style={{ marginBottom: 0 }}>
+          <label style={st.labelStyle}>{i18n.__('Voice tuning')}</label>
+          <div style={Object.assign({}, st.helpStyle, { marginBottom: 8 })}>
+            {i18n.__(
+              'Defaults are slightly fast and flat. The same ranges as the VOICEVOX app.'
+            )}
+          </div>
+          {this.state.ttsPresets.length > 0 && (
+            <div style={Object.assign({}, rowStyle, { marginBottom: 10 })}>
+              <select
+                value=''
+                onChange={e => this.handleApplyPreset(e.target.value)}
+                style={st.inputStyle(false)}
+                aria-label={i18n.__('Copy a VOICEVOX preset')}
+              >
+                <option value=''>{i18n.__('Copy a VOICEVOX preset…')}</option>
+                {this.state.ttsPresets.map(p => (
+                  <option key={p.id} value={String(p.id)}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+          {this.state.ttsPresets.length === 0 && ttsSpeakers.length > 0 && (
+            <div style={Object.assign({}, st.helpStyle, { marginBottom: 8 })}>
+              {i18n.__(
+                'To reuse the tuning from the VOICEVOX app, save it there as a preset (Presets > Register). It will appear here.'
+              )}
+            </div>
+          )}
+          {VOICEVOX_SLIDERS.map(({ key, label }) => {
+            const spec = VOICEVOX_PARAMS[key]
+            return (
+              <label key={key} style={sliderRow}>
+                <span>{i18n.__(label)}</span>
+                <input
+                  type='range'
+                  min={spec.min}
+                  max={spec.max}
+                  step={spec.step}
+                  value={ttsParams[key]}
+                  onChange={e => this.handleParamChange(key, e.target.value)}
+                  style={{ margin: 0, accentColor: c.accent }}
+                />
+                <span style={numStyle}>{ttsParams[key].toFixed(2)}</span>
+              </label>
+            )
+          })}
+          <button
+            type='button'
+            onClick={() =>
+              this.setState({ ttsParams: defaultVoicevoxParams() })
+            }
+            style={Object.assign({}, st.testButtonStyle, {
+              marginTop: 4,
+              cursor: 'pointer',
+              opacity: 1
+            })}
+          >
+            {i18n.__('Reset to defaults')}
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   render() {
     const {
       provider,
@@ -525,7 +957,8 @@ class AITab extends React.Component {
       ttsEngine,
       ttsVoiceURI,
       ttsPort,
-      ttsSpeakerId,
+      // 話者と声の調整は renderVoicevoxSpeaker が this.state から直接読む
+      ttsSpeakers,
       ttsTesting,
       ttsTestResult,
       browserVoices,
@@ -874,19 +1307,37 @@ class AITab extends React.Component {
             {cardTitle(i18n.__('Read aloud'))}
             <div style={helpStyle}>
               {i18n.__(
-                'Select text in a note, right-click, and choose "Read aloud". This setting decides which voice is used.'
+                'Select text in a note and right-click for "Read aloud", or press the speaker button above the note to read the whole note. This setting decides which voice is used.'
               )}
+            </div>
+            <div style={fieldStyle}>
+              <label style={labelStyle}>{i18n.__('Skip unit')}</label>
+              <select
+                value={this.state.ttsSkipUnit}
+                onChange={e => this.setState({ ttsSkipUnit: e.target.value })}
+                style={inputStyle(false)}
+              >
+                <option value='paragraph'>{i18n.__('Paragraph')}</option>
+                <option value='section'>{i18n.__('Heading')}</option>
+                <option value='chunk'>{i18n.__('Sentence group')}</option>
+              </select>
+              <span style={Object.assign({}, errStyle, { color: c.muted })}>
+                {i18n.__(
+                  'What previous / next and the position bar move by. Heading matches the outline pane. You can also switch it on the player bar.'
+                )}
+              </span>
             </div>
             <div style={fieldStyle}>
               <label style={labelStyle}>{i18n.__('Voice engine')}</label>
               <select
                 value={ttsEngine}
-                onChange={e =>
-                  this.setState({
-                    ttsEngine: e.target.value,
-                    ttsTestResult: null
-                  })
-                }
+                onChange={e => {
+                  const engine = e.target.value
+                  this.setState({ ttsEngine: engine, ttsTestResult: null })
+                  if (engine === ENGINE_VOICEVOX && !ttsSpeakers.length) {
+                    this.loadSpeakers(true)
+                  }
+                }}
                 style={inputStyle(false)}
               >
                 <option value={ENGINE_BROWSER}>
@@ -938,6 +1389,7 @@ class AITab extends React.Component {
                     min={1}
                     max={65535}
                     onChange={e => this.setState({ ttsPort: e.target.value })}
+                    onBlur={() => this.loadSpeakers(true)}
                     onWheel={e => e.currentTarget.blur()}
                     style={inputStyle(false)}
                   />
@@ -947,24 +1399,14 @@ class AITab extends React.Component {
                     )}
                   </span>
                 </div>
-                <div style={fieldLastStyle}>
-                  <label style={labelStyle}>{i18n.__('Speaker ID')}</label>
-                  <input
-                    type='number'
-                    value={ttsSpeakerId}
-                    min={0}
-                    onChange={e =>
-                      this.setState({ ttsSpeakerId: e.target.value })
-                    }
-                    onWheel={e => e.currentTarget.blur()}
-                    style={inputStyle(false)}
-                  />
-                  <span style={Object.assign({}, errStyle, { color: c.muted })}>
-                    {i18n.__(
-                      'Which VOICEVOX character speaks. The numbers are listed in the VOICEVOX app.'
-                    )}
-                  </span>
-                </div>
+                {this.renderVoicevoxSpeaker(c, {
+                  fieldStyle,
+                  labelStyle,
+                  inputStyle,
+                  errStyle,
+                  helpStyle,
+                  testButtonStyle
+                })}
               </div>
             )}
 
@@ -981,6 +1423,7 @@ class AITab extends React.Component {
                   ? i18n.__('Test connection')
                   : i18n.__('Play a test voice')}
               </button>
+
               {ttsTestResult && (
                 <span
                   style={{

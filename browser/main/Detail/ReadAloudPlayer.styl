@@ -1,0 +1,159 @@
+// ノート読み上げの再生バー。色はテーマの文字色を継承し、面は半透明の
+// グレーだけで作る（明暗どちらのテーマでも崩れない）
+.root
+  position absolute
+  &:focus
+    outline none
+  left 30px
+  right 30px
+  height 32px
+  display flex
+  align-items center
+  gap 6px
+  padding 0 8px
+  box-sizing border-box
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 3px
+  background-color rgba(128, 128, 128, 0.10)
+  font-size 12px
+  color inherit
+  z-index 5
+
+.button
+  flex none
+  width 26px
+  height 24px
+  padding 0
+  border none
+  border-radius 3px
+  background transparent
+  color inherit
+  font-size 12px
+  cursor pointer
+  &:hover
+    background-color rgba(128, 128, 128, 0.25)
+  &:disabled
+    opacity 0.35
+    cursor default
+  &:focus
+    outline none
+  &:focus-visible
+    box-shadow inset 0 0 0 2px $ui-active-color
+
+.button--active
+  @extend .button
+  color $ui-active-color
+
+.button--primary
+  @extend .button
+  width 30px
+  color $ui-active-color
+
+.button--close
+  @extend .button
+  margin-left auto
+
+// 位置のシークバー。塊の番号が目盛り
+.seek
+  flex 1 1 60px
+  min-width 40px
+  max-width 200px
+  height 22px
+  margin 0 2px
+  accent-color $ui-active-color
+  background transparent
+  &:disabled
+    opacity 0.35
+
+.progress
+  flex none
+  min-width 48px
+  text-align center
+  font-variant-numeric tabular-nums
+  opacity 0.85
+
+.label
+  flex 0 1 auto
+  max-width 180px
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+  opacity 0.7
+
+.control
+  flex none
+  display flex
+  align-items center
+  gap 4px
+  margin-left 6px
+
+.control-name
+  opacity 0.7
+
+.select
+  height 22px
+  padding 0 4px
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 3px
+  background transparent
+  color inherit
+  font-size 12px
+  font-family inherit
+
+.range
+  width 80px
+  height 22px
+  margin 0
+  accent-color $ui-active-color
+  background transparent
+
+.error
+  flex 1 1 auto
+  min-width 0
+  overflow hidden
+  text-overflow ellipsis
+  white-space nowrap
+  color #E06060
+
+// キー案内。バーの直下に重ねる半透明のパネル（グラスモーフィズム）
+.help
+  position absolute
+  top 36px
+  right 0
+  z-index 20
+  min-width 360px
+  max-width 520px
+  padding 10px 12px
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 6px
+  background-color rgba(40, 40, 44, 0.85)
+  backdrop-filter blur(12px)
+  -webkit-backdrop-filter blur(12px)
+  color #eee
+  font-size 12px
+  line-height 1.5
+  box-shadow 0 6px 24px rgba(0, 0, 0, 0.35)
+
+.help-note
+  opacity 0.8
+  margin 4px 0
+
+.help-table
+  width 100%
+  border-collapse collapse
+  margin 6px 0
+  th, td
+    padding 3px 6px
+    text-align left
+    font-weight normal
+    white-space nowrap
+  th
+    opacity 0.7
+    border-bottom solid 1px rgba(255, 255, 255, 0.15)
+  kbd
+    font-family inherit
+    font-size 12px
+    padding 1px 6px
+    border solid 1px rgba(255, 255, 255, 0.3)
+    border-radius 3px
+    background rgba(255, 255, 255, 0.08)

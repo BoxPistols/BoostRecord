@@ -27,5 +27,30 @@ export default {
   },
   toggleToc: () => {
     ee.emit('detail:toggletoc')
+  },
+  // 音声プレーヤー。バーが閉じていれば開いてから再生する
+  playerToggle: () => {
+    ee.emit('player:toggle')
+  },
+  playerStop: () => {
+    ee.emit('player:stop')
+  },
+  playerPrev: () => {
+    ee.emit('player:prev')
+  },
+  playerNext: () => {
+    ee.emit('player:next')
+  },
+  playerVolumeUp: () => {
+    ee.emit('player:volume', 1)
+  },
+  playerVolumeDown: () => {
+    ee.emit('player:volume', -1)
+  },
+  playerSpeedUp: () => {
+    ee.emit('player:speed', 1)
+  },
+  playerSpeedDown: () => {
+    ee.emit('player:speed', -1)
   }
 }

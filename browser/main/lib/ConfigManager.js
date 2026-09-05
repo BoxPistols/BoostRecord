@@ -104,7 +104,17 @@ export const DEFAULT_CONFIG = {
     // （HTMLで貼り付け = Shift + V と対になる）
     focusNoteLink: OSX ? 'Command + Shift + C' : 'Ctrl + Shift + C',
     // 目次ペインの表示切替。Command + Shift + O（Outline）
-    toggleToc: OSX ? 'Command + Shift + O' : 'Ctrl + Shift + O'
+    toggleToc: OSX ? 'Command + Shift + O' : 'Ctrl + Shift + O',
+    // 音声プレーヤー。Command + Shift を土台にして、編集中の入力と衝突させない
+    // （P = Play、矢印は前後・音量・速度）。bindGlobal なので入力中でも効く
+    playerToggle: OSX ? 'Command + Shift + P' : 'Ctrl + Shift + P',
+    playerStop: OSX ? 'Command + Shift + .' : 'Ctrl + Shift + .',
+    playerPrev: OSX ? 'Command + Shift + Left' : 'Ctrl + Shift + Left',
+    playerNext: OSX ? 'Command + Shift + Right' : 'Ctrl + Shift + Right',
+    playerVolumeUp: OSX ? 'Command + Shift + Up' : 'Ctrl + Shift + Up',
+    playerVolumeDown: OSX ? 'Command + Shift + Down' : 'Ctrl + Shift + Down',
+    playerSpeedUp: OSX ? 'Command + Alt + Right' : 'Ctrl + Alt + Right',
+    playerSpeedDown: OSX ? 'Command + Alt + Left' : 'Ctrl + Alt + Left'
   },
   ui: {
     language: 'ja',
@@ -196,12 +206,25 @@ export const DEFAULT_CONFIG = {
   },
   // 読み上げ。既定は OS 内蔵の音声（追加インストール無しで動く）。
   // VOICEVOX は別途エンジンを起動している人向け
+  // VOICEVOX の音声パラメータは 1 段目に平置きする（mergeWithDefaults は
+  // 1 段しか埋めないので、入れ子にすると古い設定で項目が欠ける）
   tts: {
     engine: 'browser', // 'browser' | 'voicevox'
     port: 50021,
-    speakerId: 1,
+    speakerId: 126, // 里石ユカ（つぼみ）
+    speakerLabel: '里石ユカ（つぼみ）', // 表示用。/speakers から取った「名前（スタイル）」
+    // 読み上げの移動単位。'chunk'（文のまとまり）| 'paragraph' | 'section'（見出し）
+    skipUnit: 'paragraph',
     rate: 1,
-    voiceURI: ''
+    voiceURI: '',
+    // 既定は lib/tts/params.js と同じ「やや早口・淡々」
+    speed: 1.2,
+    pitch: 0,
+    intonation: 0.6,
+    volume: 1,
+    pauseScale: 1,
+    prePause: 0.1,
+    postPause: 0.1
   },
   export: {
     metadata: 'DONT_EXPORT', // 'DONT_EXPORT', 'MERGE_HEADER', 'MERGE_VARIABLE'
@@ -322,6 +345,33 @@ function get() {
     storedConfig = Object.assign({}, storedConfig, {
       preview: Object.assign({}, storedConfig.preview, {
         codeBlockTheme: coupledCodeBlockTheme
+      })
+    })
+    _save(storedConfig)
+  }
+
+  // 読み上げの既定話者を 1（ずんだもん あまあま）から 126（里石ユカ つぼみ）へ。
+  // 旧 UI は speakerLabel を保存しないので、そのキーが無ければ「話者を選んで
+  // いない」と見なして新しい既定に寄せる。新 UI で保存すると必ず入る
+  // 既定の話者のまま表示名だけ空で保存されている場合も、既定の名前で埋める
+  // （一覧が取れない間に「話者 ID 126」と数字だけ出るのを防ぐ）
+  if (
+    parsed &&
+    parsed.tts &&
+    parsed.tts.speakerLabel === '' &&
+    parsed.tts.speakerId === DEFAULT_CONFIG.tts.speakerId
+  ) {
+    storedConfig = Object.assign({}, storedConfig, {
+      tts: Object.assign({}, storedConfig.tts, {
+        speakerLabel: DEFAULT_CONFIG.tts.speakerLabel
+      })
+    })
+  }
+  if (parsed && parsed.tts && parsed.tts.speakerLabel === undefined) {
+    storedConfig = Object.assign({}, storedConfig, {
+      tts: Object.assign({}, storedConfig.tts, {
+        speakerId: DEFAULT_CONFIG.tts.speakerId,
+        speakerLabel: DEFAULT_CONFIG.tts.speakerLabel
       })
     })
     _save(storedConfig)

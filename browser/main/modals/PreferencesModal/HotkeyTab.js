@@ -11,6 +11,18 @@ import VimKeyReference from 'browser/components/VimKeyReference'
 const electron = require('electron')
 const ipc = electron.ipcRenderer
 
+// 音声プレーヤーのホットキー。並びは再生バーのボタンと同じ順
+const PLAYER_HOTKEYS = [
+  { key: 'playerToggle', label: 'Player: play / pause' },
+  { key: 'playerStop', label: 'Player: stop' },
+  { key: 'playerPrev', label: 'Player: previous' },
+  { key: 'playerNext', label: 'Player: next' },
+  { key: 'playerVolumeUp', label: 'Player: volume up' },
+  { key: 'playerVolumeDown', label: 'Player: volume down' },
+  { key: 'playerSpeedUp', label: 'Player: faster' },
+  { key: 'playerSpeedDown', label: 'Player: slower' }
+]
+
 class HotkeyTab extends React.Component {
   constructor(props) {
     super(props)
@@ -102,7 +114,15 @@ class HotkeyTab extends React.Component {
       insertDate: this.refs.insertDate.value,
       insertDateTime: this.refs.insertDateTime.value,
       ...read('toggleDirection'),
-      ...read('toggleMenuBar')
+      ...read('toggleMenuBar'),
+      ...read('playerToggle'),
+      ...read('playerStop'),
+      ...read('playerPrev'),
+      ...read('playerNext'),
+      ...read('playerVolumeUp'),
+      ...read('playerVolumeDown'),
+      ...read('playerSpeedUp'),
+      ...read('playerSpeedDown')
     })
     this.setState({
       config
@@ -349,6 +369,23 @@ class HotkeyTab extends React.Component {
               />
             </div>
           </div>
+          {/* 音声プレーヤー。読み上げバーの操作をまとめて置く。
+              バーにマウスが乗っている間は Space / ← → / ⇧↑↓ / ⌘←→ も効く */}
+          <div styleName='group-header2'>{i18n.__('Audio player')}</div>
+          {PLAYER_HOTKEYS.map(({ key, label }) => (
+            <div styleName='group-section' key={key}>
+              <div styleName='group-section-label'>{i18n.__(label)}</div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  onChange={e => this.handleHotkeyChange(e)}
+                  ref={key}
+                  value={config.hotkey[key] || ''}
+                  type='text'
+                />
+              </div>
+            </div>
+          ))}
           <div styleName='group-control'>
             <button
               styleName='group-control-leftButton'

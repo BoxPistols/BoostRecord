@@ -17,6 +17,19 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './PreferencesModal.styl'
 import _ from 'lodash'
 import i18n from 'browser/lib/i18n'
+import { subscribe, getJumpNumber } from 'browser/lib/metaKeyHold'
+
+// 左ナビの並び。番号ショートカット（修飾キー + 1..8）はこの順で引く
+const TAB_ORDER = [
+  'STORAGES',
+  'HOTKEY',
+  'UI',
+  'INFO',
+  'EXPORT',
+  'SNIPPET',
+  'AI',
+  'IMAGES'
+]
 
 class Preferences extends React.Component {
   constructor(props) {
@@ -26,7 +39,9 @@ class Preferences extends React.Component {
       currentTab: 'STORAGES',
       UIAlert: '',
       HotkeyAlert: '',
-      ExportAlert: ''
+      ExportAlert: '',
+      // 修飾キー長押し中だけ左ナビに 1..8 の番号を出す（サイドバーと同じ作法）
+      showJumpHints: false
     }
   }
 
@@ -34,6 +49,13 @@ class Preferences extends React.Component {
     this.refs.root.focus()
     const boundingBox = this.getContentBoundingBox()
     this.setState({ boundingBox })
+    this.unsubscribeMetaKey = subscribe(held =>
+      this.setState({ showJumpHints: held })
+    )
+  }
+
+  componentWillUnmount() {
+    if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
   }
 
   switchTeam(teamId) {
@@ -103,7 +125,15 @@ class Preferences extends React.Component {
   handleKeyDown(e) {
     if (e.keyCode === 27) {
       this.props.close()
+      return
     }
+    // 修飾キー + 1..8 で左ナビの N 番目のタブへ。入力欄の中からも効く
+    const jumpTo = getJumpNumber(e)
+    if (jumpTo === null) return
+    const tab = TAB_ORDER[jumpTo - 1]
+    if (!tab) return
+    e.preventDefault()
+    this.setState({ currentTab: tab, showJumpHints: false })
   }
 
   getContentBoundingBox() {
@@ -136,16 +166,23 @@ class Preferences extends React.Component {
       { target: 'IMAGES', label: i18n.__('Images') }
     ]
 
-    const navButtons = tabs.map(tab => {
+    const navButtons = tabs.map((tab, i) => {
       const isActive = this.state.currentTab === tab.target
       const isUiHotkeyTab =
         _.isObject(tab[tab.label]) && tab.label === tab[tab.label].tab
+      const jumpHint = i + 1
       return (
         <button
           styleName={isActive ? 'nav-button--active' : 'nav-button'}
           key={tab.target}
           onClick={e => this.handleNavButtonClick(tab.target)(e)}
+          data-jump-hint={jumpHint}
         >
+          {this.state.showJumpHints && (
+            <span styleName='nav-button-jump-hint' aria-hidden='true'>
+              {jumpHint}
+            </span>
+          )}
           <span>{tab.label}</span>
           {isUiHotkeyTab
             ? this.haveToSaveNotif(tab[tab.label].type, tab[tab.label].message)

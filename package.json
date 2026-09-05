@@ -38,6 +38,8 @@
     "e2e:uisections": "cross-env TB_E2E_PROBE=dev-scripts/e2e-uisections-probe.js electron .",
     "e2e:aikeys": "cross-env TB_E2E_PROBE=dev-scripts/e2e-aikeys-probe.js electron .",
     "e2e:aitab": "cross-env TB_E2E_PROBE=dev-scripts/e2e-aitab-probe.js electron .",
+    "e2e:readaloud": "cross-env TB_E2E_PROBE=dev-scripts/e2e-readaloud-probe.js electron .",
+    "e2e:ttsparams": "cross-env TB_E2E_PROBE=dev-scripts/e2e-ttsparams-probe.js electron .",
     "e2e:viewmode": "cross-env TB_E2E_PROBE=dev-scripts/e2e-viewmode-probe.js electron .",
     "e2e:navfocus": "cross-env TB_E2E_PROBE=dev-scripts/e2e-navfocus-probe.js electron .",
     "e2e:bracketkey": "cross-env TB_E2E_PROBE=dev-scripts/e2e-bracketkey-probe.js electron .",

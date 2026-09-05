@@ -18,7 +18,7 @@ top-bar--height = 50px
   border-bottom solid 1px $ui-borderColor
   p
     text-align center
-    font-size 18px
+    font-size 15px
     line-height top-bar--height
 
 .nav
@@ -58,6 +58,27 @@ top-bar--height = 50px
 
 .nav-button-icon
   display block
+
+// 修飾キー長押し中に出す 1..8 の連番バッジ。サイドバーの .menu-button-jump-hint と
+// 同じ見た目。行の中に流すとラベルが右へずれるので、重ねて出す
+.nav-button
+  position relative
+
+.nav-button-jump-hint
+  position absolute
+  right 8px
+  top 50%
+  transform translateY(-50%)
+  min-width 16px
+  height 16px
+  padding 0 3px
+  border-radius 3px
+  background-color alpha(#000, 70%)
+  color #fff
+  font-size 12px
+  line-height 16px
+  text-align center
+  pointer-events none
 
 .content
   absolute left right bottom

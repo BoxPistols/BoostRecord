@@ -136,13 +136,22 @@ for theme in $themes
   @extend .toc-toggle
   color $ui-active-color
 
+// 読み上げの切替。目次の切替と同じ見た目
+.read-aloud-toggle
+  @extend .toc-toggle
+
+.read-aloud-toggle--active
+  @extend .toc-toggle--active
+
 // 近隣の Trash / Info と同じ暗テーマ用の色を当てる。
 // これが無いと暗テーマで自分だけ明テーマの色のまま残り、
 // アイコン列の中で1つだけ沈んで見える（実機で指摘を受けた）
 body[data-theme="dark"]
   .toc-toggle
+  .read-aloud-toggle
     topBarButtonDark()
   .toc-toggle--active
+  .read-aloud-toggle--active
     topBarButtonDark()
     color $ui-active-color
 
@@ -152,3 +161,8 @@ body[data-theme="dark"]
 :global(.tb-find-all)
   background-color #ffeb3b
   color #1a1a1a
+
+// 読み上げ中の行。CodeMirror の行に直接当たるので :global で出す。
+// 文字色は触らない（テーマの構文色を潰さない）
+:global(.tb-tts-line)
+  background-color rgba(106, 165, 233, 0.22)

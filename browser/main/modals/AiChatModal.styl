@@ -170,3 +170,107 @@ for theme in 'solarized-dark' 'dracula'
 
 for theme in $themes
   apply-theme(theme)
+
+// 対象の選択（選択範囲 / ノート全体）
+.scope
+  display flex
+  align-items center
+  gap 16px
+  padding 10px 20px
+  border-bottom $ui-border
+  font-size 13px
+
+.scope-label
+  color $ui-inactive-text-color
+
+.scope-option
+  display inline-flex
+  align-items center
+  gap 6px
+  cursor pointer
+  input
+    margin 0
+
+.scope-option--off
+  @extend .scope-option
+  opacity 0.45
+  cursor default
+
+.scope-meta
+  font-size 12px
+  color $ui-inactive-text-color
+
+// 直した全文のプレビュー
+.revised
+  margin-top 10px
+  border 1px solid rgba(128, 128, 128, 0.35)
+  border-radius 6px
+  overflow hidden
+
+.revised-head
+  display flex
+  justify-content space-between
+  align-items center
+  padding 6px 10px
+  font-size 12px
+  background rgba(128, 128, 128, 0.15)
+  border-bottom 1px solid rgba(128, 128, 128, 0.35)
+
+.revised-meta
+  color $ui-inactive-text-color
+
+.revised-body
+  margin 0
+  padding 10px 12px
+  max-height 260px
+  overflow auto
+  font-family inherit
+  font-size 13px
+  line-height 1.6
+  white-space pre-wrap
+  word-break break-word
+
+.revised-actions
+  display flex
+  gap 8px
+  padding 8px 10px
+  border-top 1px solid rgba(128, 128, 128, 0.35)
+
+.apply
+  padding 6px 14px
+  border none
+  border-radius 4px
+  background $ui-active-color
+  color #fff
+  font-family inherit
+  font-size 13px
+  cursor pointer
+  &:disabled
+    opacity 0.6
+    cursor default
+
+.apply--done
+  @extend .apply
+  background rgba(128, 128, 128, 0.35)
+
+// よく使う指示
+.quick
+  display flex
+  flex-wrap wrap
+  gap 6px
+  margin-bottom 8px
+
+.quick-button
+  padding 4px 10px
+  border 1px solid rgba(128, 128, 128, 0.4)
+  border-radius 12px
+  background transparent
+  color inherit
+  font-family inherit
+  font-size 12px
+  cursor pointer
+  &:hover
+    background rgba(128, 128, 128, 0.15)
+  &:disabled
+    opacity 0.45
+    cursor default

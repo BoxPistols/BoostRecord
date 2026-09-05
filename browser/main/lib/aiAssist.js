@@ -172,7 +172,7 @@ export function testAiConnection({ provider, model, apiKey }) {
  * @param {{system: string, prompt: string, onDelta?: function(string): void}} options
  * @returns {Promise<string>} 応答の全文
  */
-export function runAiPrompt({ system, prompt, onDelta }) {
+export function runAiPrompt({ system, prompt, onDelta, maxOutputTokens }) {
   const config = ConfigManager.get()
   const ai = config.ai || {}
   const provider = ai.provider || 'openai'
@@ -194,7 +194,8 @@ export function runAiPrompt({ system, prompt, onDelta }) {
       model: providerCfg.model || DEFAULT_MODELS[provider],
       apiKey: providerCfg.apiKey || '',
       system,
-      prompt: input
+      prompt: input,
+      maxOutputTokens
     })
     .then(
       full => {

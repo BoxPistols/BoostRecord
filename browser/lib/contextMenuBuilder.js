@@ -24,24 +24,39 @@ const AI_MENU_ITEMS = [
 
 // Whole-note actions: no selection required. Result streams into a fresh
 // "## 要約 (AI)" / "## 校閲 (AI)" section appended at the end of the note.
+// {scope} はメニューを開いた時点の対象で置き換える（「選択範囲 123 文字」か
+// 「ノート全体」）。「選択 or 全体」と書くだけでは、どちらに効くのか分からない
 const NOTE_AI_MENU_ITEMS = [
   { key: 'summarizeNote', label: 'ページ要約（ノート全体）' },
-  { key: 'proofread', label: '校閲（選択 or ノート全体）' },
-  {
-    key: 'applyReview',
-    label: '校閲を反映（校閲 (AI) の指摘を本文に適用し、節を消す）'
-  },
+  { key: 'proofread', label: '校閲して指摘を末尾に足す（{scope}）' },
   {
     key: 'proofreadApply',
-    label: '校閲して直す（選択 or ノート全体。指摘を出さず直接直す）'
+    label: '校閲して直接直す（{scope}）'
   },
-  { key: 'dedupeNote', label: '重複をまとめる（選択 or ノート全体）' },
+  {
+    key: 'applyReview',
+    label: '校閲 (AI) の指摘を本文に反映し、節を消す（ノート全体）'
+  },
+  { key: 'dedupeNote', label: '重複をまとめる（{scope}）' },
   {
     key: 'convertNote',
-    label:
-      '整形: Apple メモなどの平文を BoostRecord 形式に（選択 or ノート全体）'
+    label: 'Apple メモなどの平文を BoostRecord 形式に整形（{scope}）'
   }
 ]
+
+// 対象の表示。選択があれば文字数つきで「選択範囲」、無ければ「ノート全体」
+// テストの偽エディタは getSelection を持たない。無ければ選択なし扱い
+function currentSelection(editor) {
+  return editor && typeof editor.getSelection === 'function'
+    ? editor.getSelection() || ''
+    : ''
+}
+
+function describeScope(editor) {
+  const sel = currentSelection(editor)
+  if (sel && sel.trim()) return `選択範囲 ${sel.length} 文字`
+  return 'ノート全体'
+}
 
 // ノート全体（または選択範囲）を AI の結果で置き換える。
 // ストリーミングで本文を書き換えると途中の壊れた状態が見えるので、全部届いて
@@ -121,8 +136,34 @@ function openAiChat(editor) {
   // require でも .default の取り違えは起きない
   const { openModal } = require('browser/main/lib/modal')
   const noteContent = editor != null ? editor.getValue() : ''
+  const selection = editor != null ? editor.getSelection() : ''
+  // 選択範囲は開いた時点の位置で覚える。適用のたびに終端を更新して、
+  // 続けて適用しても同じ場所を置き換え続けられるようにする
+  let selFrom = editor != null ? editor.getCursor('from') : null
+  let selTo = editor != null ? editor.getCursor('to') : null
   openModal(AiChatModal, {
     noteContent,
+    selection,
+    onApply:
+      editor == null
+        ? undefined
+        : function(scope, text) {
+            if (scope === 'selection' && selFrom && selTo) {
+              const startIdx = editor.indexFromPos(selFrom)
+              editor.replaceRange(text, selFrom, selTo)
+              selTo = editor.posFromIndex(startIdx + text.length)
+              editor.setSelection(selFrom, selTo)
+            } else {
+              const last = editor.lastLine()
+              editor.replaceRange(
+                text,
+                { line: 0, ch: 0 },
+                { line: last, ch: editor.getLine(last).length }
+              )
+              selFrom = { line: 0, ch: 0 }
+              selTo = editor.posFromIndex(text.length)
+            }
+          },
     onInsert:
       editor == null
         ? undefined
@@ -286,6 +327,7 @@ function runEditorAiAction(editor, actionKey) {
  * @returns {Electron.Menu} The created electron context menu
  */
 const buildEditorContextMenu = function(editor, event) {
+  const scopeText = describeScope(editor)
   if (
     editor == null ||
     event == null ||
@@ -357,11 +399,18 @@ const buildEditorContextMenu = function(editor, event) {
     { type: 'separator' },
     {
       label: 'AI',
+      // 対象は右クリックした時点で決まる。選択があればそれ、無ければノート全体。
+      // 先頭に対象を出しておき、各項目のラベルにも同じ語を入れる
       submenu: [
+        {
+          label: `対象: ${scopeText}`,
+          enabled: false
+        },
+        { type: 'separator' },
         {
           // 決まった型の操作（要約・翻訳等）に当てはまらない用途。
           // 「聞きたいことを聞く」導線がこれまで無かった
-          label: 'AIに質問する…',
+          label: 'AIで文章を改善する…',
           click: function() {
             openAiChat(editor)
           }
@@ -370,7 +419,9 @@ const buildEditorContextMenu = function(editor, event) {
       ].concat(
         AI_MENU_ITEMS.map(function(item) {
           return {
-            label: item.label,
+            // 選択範囲だけに効く操作。選択が無いときは押せないことを見せる
+            label: item.label + '（選択範囲）',
+            enabled: !!currentSelection(editor).trim(),
             click: function() {
               runEditorAiAction(editor, item.key)
             }
@@ -379,7 +430,7 @@ const buildEditorContextMenu = function(editor, event) {
         [{ type: 'separator' }],
         NOTE_AI_MENU_ITEMS.map(function(item) {
           return {
-            label: item.label,
+            label: item.label.replace('{scope}', scopeText),
             click: function() {
               const aiAssist = require('browser/main/lib/aiAssist')
               const action = aiAssist.AI_ACTIONS[item.key]

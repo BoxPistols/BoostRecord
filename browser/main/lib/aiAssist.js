@@ -21,6 +21,8 @@ const MAX_INPUT_CHARS = 20000
 //                         the source in one undoable edit after it fully arrives
 export const AI_ACTIONS = {
   applyReview: {
+    request:
+      '末尾の「## 校閲 (AI)」の節にある指摘を本文に反映し、その節は削除してください。指摘に無い箇所は変えないでください。',
     label: '校閲を反映（校閲 (AI) の指摘を本文に適用して節を消す）',
     mode: 'replaceNote',
     scope: 'note',
@@ -34,6 +36,8 @@ export const AI_ACTIONS = {
     ].join('\n')
   },
   proofreadApply: {
+    request:
+      '誤字脱字、文法の誤り、分かりにくい表現、用語と表記の不統一だけを直してください。意味・構成・見出し・箇条書き・コードブロック・数字・日付はそのままにしてください。',
     label: '校閲して直す（指摘を出さず本文を直接直す）',
     mode: 'replaceNote',
     scope: 'noteOrSelection',
@@ -45,6 +49,8 @@ export const AI_ACTIONS = {
     ].join('\n')
   },
   dedupeNote: {
+    request:
+      '重複している箇所や、散らばっている同じ話題を1箇所にまとめてください。固有の情報（数字・日付・品目）は必ず1回残し、見出しの階層と箇条書きの形は保ってください。重複でない文は書き換えないでください。',
     label: '重複をまとめる（重複・散らばった箇所を統合して整える）',
     mode: 'replaceNote',
     scope: 'noteOrSelection',
@@ -57,6 +63,8 @@ export const AI_ACTIONS = {
     ].join('\n')
   },
   convertNote: {
+    request:
+      'Apple メモなどから貼り付けた平文を、この Markdown ノート向けの形に整形してください。見出しの階層を推定し、●や絵文字だけの見出し代わりを外し、箇条書きとチェックボックスを揃え、重複した節はひとつにまとめてください。事実・数字・日付・品目は落とさないでください。',
     label: '整形（Apple メモなどの平文を BoostRecord 形式に）',
     mode: 'replaceNote',
     scope: 'noteOrSelection',

@@ -580,5 +580,15 @@
   "Not found in the text": "Not found in the text",
   "(delete)": "(delete)",
   "Show in the editor": "Show in the editor",
-  "The AI did not return suggestions in a readable form. Try again.": "The AI did not return suggestions in a readable form. Try again."
+  "The AI did not return suggestions in a readable form. Try again.": "The AI did not return suggestions in a readable form. Try again.",
+  "Changes": "Changes",
+  "Full text": "Full text",
+  "No differences from the current text.": "No differences from the current text.",
+  "%s unchanged lines": "%s unchanged lines",
+  "Take this change": "Take this change",
+  "Keep the original here": "Keep the original here",
+  "Apply the selected changes": "Apply the selected changes",
+  "Undo the last apply": "Undo the last apply",
+  "Undo": "Undo",
+  "Redo": "Redo"
 }

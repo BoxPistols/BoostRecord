@@ -4,6 +4,7 @@ import CSSModules from 'browser/lib/CSSModules'
 import styles from './AiChatModal.styl'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import i18n from 'browser/lib/i18n'
+import { buildHunks, applyHunks, countChanges } from 'browser/lib/textDiff'
 
 // 文章を AI と一緒に直すための窓。
 //
@@ -125,8 +126,95 @@ class AiChatModal extends React.Component {
       input: '',
       sending: false,
       error: null,
-      applied: null // 直近に適用した message の index
+      applied: null, // 直近に適用した message の index
+      // 返答ごとの表示（'diff' | 'full'）と、採用しない差分の塊の id
+      view: {},
+      excluded: {},
+      // 適用の履歴。元に戻す / やり直すはこの並びを行き来して onApply し直す
+      history: [hasSelection ? props.selection : props.noteContent || ''],
+      historyIndex: 0
     }
+  }
+
+  // 対象を変えたら履歴も新しくする
+  resetHistory(target) {
+    return { history: [target || ''], historyIndex: 0 }
+  }
+
+  // 返答 index の差分の塊（元 = いまの対象、後 = 直した全文）
+  hunksFor(index, revised) {
+    return buildHunks(this.state.target, revised)
+  }
+
+  isExcluded(index, hunkId) {
+    const ex = this.state.excluded[index]
+    return !!(ex && ex.indexOf(hunkId) !== -1)
+  }
+
+  toggleHunk(index, hunkId) {
+    this.setState(prev => {
+      const cur = prev.excluded[index] || []
+      const next =
+        cur.indexOf(hunkId) !== -1
+          ? cur.filter(x => x !== hunkId)
+          : cur.concat([hunkId])
+      return { excluded: Object.assign({}, prev.excluded, { [index]: next }) }
+    })
+  }
+
+  setView(index, view) {
+    this.setState(prev => ({
+      view: Object.assign({}, prev.view, { [index]: view })
+    }))
+  }
+
+  // 採用した塊だけを反映した全文
+  selectedText(index, revised) {
+    const hunks = this.hunksFor(index, revised)
+    const chosen = hunks
+      .filter(h => h.type === 'change' && !this.isExcluded(index, h.id))
+      .map(h => h.id)
+    return applyHunks(hunks, chosen, revised)
+  }
+
+  applyText(text, appliedIndex) {
+    if (!this.props.onApply) return
+    this.props.onApply(this.state.scope, text)
+    this.setState(prev => {
+      const history = prev.history
+        .slice(0, prev.historyIndex + 1)
+        .concat([text])
+      return {
+        target: text,
+        applied: appliedIndex,
+        history,
+        historyIndex: history.length - 1
+      }
+    })
+  }
+
+  handleUndo() {
+    const { history, historyIndex } = this.state
+    if (historyIndex <= 0) return
+    const text = history[historyIndex - 1]
+    this.props.onApply(this.state.scope, text)
+    this.setState({
+      target: text,
+      historyIndex: historyIndex - 1,
+      applied: null
+    })
+  }
+
+  handleRedo() {
+    const { history, historyIndex } = this.state
+    if (historyIndex >= history.length - 1) return
+    const text = history[historyIndex + 1]
+    this.props.onApply(this.state.scope, text)
+    this.setState({
+      target: text,
+      historyIndex: historyIndex + 1,
+      applied: null
+    })
   }
 
   componentDidMount() {
@@ -162,7 +250,19 @@ class AiChatModal extends React.Component {
     const target =
       scope === 'selection' ? this.props.selection : this.props.noteContent
     // 対象を変えたら会話も土台も新しくする（前の対象への指示が混ざらない）
-    this.setState({ scope, target: target || '', messages: [], applied: null })
+    this.setState(
+      Object.assign(
+        {
+          scope,
+          target: target || '',
+          messages: [],
+          applied: null,
+          excluded: {},
+          view: {}
+        },
+        this.resetHistory(target)
+      )
+    )
   }
 
   handleSend(preset) {
@@ -224,11 +324,84 @@ class AiChatModal extends React.Component {
       })
   }
 
-  // 直した全文で対象を置き換える。窓は閉じず、次の指示の土台にする
+  // 採用した差分だけで対象を置き換える。窓は閉じず、次の指示の土台にする
   handleApply(index, revised) {
     if (!this.props.onApply) return
-    this.props.onApply(this.state.scope, revised)
-    this.setState({ target: revised, applied: index })
+    this.applyText(this.selectedText(index, revised), index)
+  }
+
+  renderDiff(index, revised) {
+    const hunks = this.hunksFor(index, revised)
+    const changes = countChanges(hunks)
+    if (changes === 0) {
+      return (
+        <div styleName='diff-none'>
+          {i18n.__('No differences from the current text.')}
+        </div>
+      )
+    }
+    return (
+      <div styleName='diff'>
+        {hunks.map((h, i) => {
+          if (h.type === 'equal') {
+            // 変更の前後 2 行だけ見せて、あとは畳む
+            const lines = h.lines
+            const head = i === 0 ? [] : lines.slice(0, 2)
+            const tail = i === hunks.length - 1 ? [] : lines.slice(-2)
+            const hidden = Math.max(0, lines.length - head.length - tail.length)
+            return (
+              <div key={`eq-${i}`} styleName='diff-equal'>
+                {head.map((l, k) => (
+                  <div key={`h${k}`} styleName='diff-line'>
+                    {l || ' '}
+                  </div>
+                ))}
+                {hidden > 0 && (
+                  <div styleName='diff-skip'>
+                    {i18n.__('%s unchanged lines', String(hidden))}
+                  </div>
+                )}
+                {tail.map((l, k) => (
+                  <div key={`t${k}`} styleName='diff-line'>
+                    {l || ' '}
+                  </div>
+                ))}
+              </div>
+            )
+          }
+          const excluded = this.isExcluded(index, h.id)
+          return (
+            <label
+              key={`ch-${h.id}`}
+              styleName={excluded ? 'hunk--off' : 'hunk'}
+            >
+              <div styleName='hunk-head'>
+                <input
+                  type='checkbox'
+                  checked={!excluded}
+                  onChange={() => this.toggleHunk(index, h.id)}
+                />
+                <span>
+                  {excluded
+                    ? i18n.__('Keep the original here')
+                    : i18n.__('Take this change')}
+                </span>
+              </div>
+              {h.removed.map((l, k) => (
+                <div key={`r${k}`} styleName='diff-line--removed'>
+                  {l || ' '}
+                </div>
+              ))}
+              {h.added.map((l, k) => (
+                <div key={`a${k}`} styleName='diff-line--added'>
+                  {l || ' '}
+                </div>
+              ))}
+            </label>
+          )
+        })}
+      </div>
+    )
   }
 
   handleInsert(content) {
@@ -267,12 +440,36 @@ class AiChatModal extends React.Component {
                   : i18n.__('Revised text (still arriving…)')}
               </span>
               {complete && (
-                <span styleName='revised-meta'>
-                  {i18n.__('%s characters', String(revised.length))}
+                <span styleName='revised-tabs'>
+                  <button
+                    type='button'
+                    styleName={
+                      (this.state.view[index] || 'diff') === 'diff'
+                        ? 'tab--active'
+                        : 'tab'
+                    }
+                    onClick={() => this.setView(index, 'diff')}
+                  >
+                    {i18n.__('Changes')}{' '}
+                    {countChanges(this.hunksFor(index, revised))}
+                  </button>
+                  <button
+                    type='button'
+                    styleName={
+                      this.state.view[index] === 'full' ? 'tab--active' : 'tab'
+                    }
+                    onClick={() => this.setView(index, 'full')}
+                  >
+                    {i18n.__('Full text')}
+                  </button>
                 </span>
               )}
             </div>
-            <pre styleName='revised-body'>{revised}</pre>
+            {complete && (this.state.view[index] || 'diff') === 'diff' ? (
+              this.renderDiff(index, revised)
+            ) : (
+              <pre styleName='revised-body'>{revised}</pre>
+            )}
             {complete && !streaming && (
               <div styleName='revised-actions'>
                 <button
@@ -283,6 +480,8 @@ class AiChatModal extends React.Component {
                 >
                   {applied
                     ? i18n.__('Applied')
+                    : (this.state.excluded[index] || []).length
+                    ? i18n.__('Apply the selected changes')
                     : this.state.scope === 'selection'
                     ? i18n.__('Replace the selection')
                     : i18n.__('Replace the whole note')}
@@ -322,6 +521,29 @@ class AiChatModal extends React.Component {
       >
         <div styleName='header'>
           <div styleName='title'>{i18n.__('Improve the text with AI')}</div>
+          <div styleName='history'>
+            <button
+              type='button'
+              styleName='history-button'
+              disabled={this.state.historyIndex <= 0}
+              onClick={() => this.handleUndo()}
+              title={i18n.__('Undo the last apply')}
+            >
+              <i className='fa fa-undo' aria-hidden='true' /> {i18n.__('Undo')}
+            </button>
+            <button
+              type='button'
+              styleName='history-button'
+              disabled={
+                this.state.historyIndex >= this.state.history.length - 1
+              }
+              onClick={() => this.handleRedo()}
+              title={i18n.__('Redo')}
+            >
+              <i className='fa fa-repeat' aria-hidden='true' />{' '}
+              {i18n.__('Redo')}
+            </button>
+          </div>
           <ModalEscButton handleEscButtonClick={() => this.props.close()} />
         </div>
 

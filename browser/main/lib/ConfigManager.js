@@ -114,7 +114,11 @@ export const DEFAULT_CONFIG = {
     playerVolumeUp: OSX ? 'Command + Shift + Up' : 'Ctrl + Shift + Up',
     playerVolumeDown: OSX ? 'Command + Shift + Down' : 'Ctrl + Shift + Down',
     playerSpeedUp: OSX ? 'Command + Alt + Right' : 'Ctrl + Alt + Right',
-    playerSpeedDown: OSX ? 'Command + Alt + Left' : 'Ctrl + Alt + Left'
+    playerSpeedDown: OSX ? 'Command + Alt + Left' : 'Ctrl + Alt + Left',
+    // AI。A = 改善（AIで文章を改善する窓）、J = 提案（改善提案ペイン）。
+    // どちらも右クリック無しで一発で開く
+    aiImprove: OSX ? 'Command + Shift + A' : 'Ctrl + Shift + A',
+    aiSuggest: OSX ? 'Command + Shift + J' : 'Ctrl + Shift + J'
   },
   ui: {
     language: 'ja',

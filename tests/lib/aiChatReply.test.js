@@ -33,3 +33,16 @@ describe('parseReply', () => {
     })
   })
 })
+
+describe('差分の取捨選択（AiChatModal と textDiff の組み合わせ）', () => {
+  const { buildHunks, applyHunks } = require('browser/lib/textDiff')
+  it('不採用にした塊は元の行が残り、採用した塊だけ変わる', () => {
+    const before = '一。\n二。\n三。'
+    const after = '壱。\n二。\n参。'
+    const hunks = buildHunks(before, after)
+    const ids = hunks.filter(h => h.type === 'change').map(h => h.id)
+    expect(ids.length).toBe(2)
+    // 2 つ目を除外
+    expect(applyHunks(hunks, [ids[0]], after)).toBe('壱。\n二。\n三。')
+  })
+})

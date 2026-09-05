@@ -756,5 +756,15 @@
   "Not found in the text": "本文に見つからない",
   "(delete)": "（削除）",
   "Show in the editor": "エディタで場所を示す",
-  "The AI did not return suggestions in a readable form. Try again.": "AIの返答を提案として読めませんでした。もう一度試してください。"
+  "The AI did not return suggestions in a readable form. Try again.": "AIの返答を提案として読めませんでした。もう一度試してください。",
+  "Changes": "変更",
+  "Full text": "全文",
+  "No differences from the current text.": "いまの文章との差はありません。",
+  "%s unchanged lines": "変更なし %s行",
+  "Take this change": "この変更を採用",
+  "Keep the original here": "ここは元のまま",
+  "Apply the selected changes": "選んだ変更だけ適用",
+  "Undo the last apply": "直前の適用を元に戻す",
+  "Undo": "元に戻す",
+  "Redo": "やり直す"
 }

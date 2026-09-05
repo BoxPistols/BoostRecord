@@ -23,6 +23,12 @@ const PLAYER_HOTKEYS = [
   { key: 'playerSpeedDown', label: 'Player: slower' }
 ]
 
+// AI。右クリックを経ずに開く
+const AI_HOTKEYS = [
+  { key: 'aiImprove', label: 'AI: improve the text' },
+  { key: 'aiSuggest', label: 'AI: suggestions' }
+]
+
 class HotkeyTab extends React.Component {
   constructor(props) {
     super(props)
@@ -122,7 +128,9 @@ class HotkeyTab extends React.Component {
       ...read('playerVolumeUp'),
       ...read('playerVolumeDown'),
       ...read('playerSpeedUp'),
-      ...read('playerSpeedDown')
+      ...read('playerSpeedDown'),
+      ...read('aiImprove'),
+      ...read('aiSuggest')
     })
     this.setState({
       config
@@ -369,6 +377,21 @@ class HotkeyTab extends React.Component {
               />
             </div>
           </div>
+          <div styleName='group-header2'>{i18n.__('AI')}</div>
+          {AI_HOTKEYS.map(({ key, label }) => (
+            <div styleName='group-section' key={key}>
+              <div styleName='group-section-label'>{i18n.__(label)}</div>
+              <div styleName='group-section-control'>
+                <input
+                  styleName='group-section-control-input'
+                  onChange={e => this.handleHotkeyChange(e)}
+                  ref={key}
+                  value={config.hotkey[key] || ''}
+                  type='text'
+                />
+              </div>
+            </div>
+          ))}
           {/* 音声プレーヤー。読み上げバーの操作をまとめて置く。
               バーにマウスが乗っている間は Space / ← → / ⇧↑↓ / ⌘←→ も効く */}
           <div styleName='group-header2'>{i18n.__('Audio player')}</div>

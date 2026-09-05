@@ -52,5 +52,12 @@ export default {
   },
   playerSpeedDown: () => {
     ee.emit('player:speed', -1)
+  },
+  // AI。選択があれば選択範囲、無ければノート全体が対象になる
+  aiImprove: () => {
+    ee.emit('detail:aichat')
+  },
+  aiSuggest: () => {
+    ee.emit('detail:suggest')
   }
 }

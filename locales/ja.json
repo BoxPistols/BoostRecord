@@ -766,5 +766,7 @@
   "Apply the selected changes": "選んだ変更だけ適用",
   "Undo the last apply": "直前の適用を元に戻す",
   "Undo": "元に戻す",
-  "Redo": "やり直す"
+  "Redo": "やり直す",
+  "AI: improve the text": "AI: 文章を改善する窓を開く",
+  "AI: suggestions": "AI: 改善提案を出す"
 }

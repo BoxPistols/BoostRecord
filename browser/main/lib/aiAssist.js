@@ -17,7 +17,27 @@ const MAX_INPUT_CHARS = 20000
 //   mode 'replace'      : overwrite the selection with the result
 //   mode 'append'       : keep the selection, insert the result after it
 //   mode 'appendToEnd'  : whole-note scope; stream under `heading` at the end
+//   mode 'replaceNote'  : whole-note (or selection) rewrite; the result replaces
+//                         the source in one undoable edit after it fully arrives
 export const AI_ACTIONS = {
+  convertNote: {
+    label: '整形（Apple メモなどの平文を BoostRecord 形式に）',
+    mode: 'replaceNote',
+    scope: 'noteOrSelection',
+    // 全文の書き直しなので既定の 2000 トークンでは途中で切れる
+    maxOutputTokens: 8000,
+    system: [
+      'You convert loosely formatted notes (for example text pasted from Apple Notes) into clean, well-structured Markdown for a Markdown note app.',
+      'Rules:',
+      '- Keep every fact, number, date, name, and item. Never invent, summarize away, or reorder content that has a meaningful order. Keep the original language.',
+      '- Infer the heading hierarchy: the first line that names the note becomes "# ", major sections "## ", subsections "### ". Lines that act as labels (short, followed by a list or a block) become headings or bold labels, not plain paragraphs.',
+      '- Remove decorative markers that only mimic headings or bullets (●, ◉, ■, ▶, emoji used as bullets). Keep emoji that carry meaning inside sentences.',
+      '- Normalize lists: "- " for bullets, "1. " for ordered steps, "- [ ] " / "- [x] " for checkboxes. Turn aligned columns of the form "item   4〜5枚" into "- [ ] item 4〜5枚" (single space) or a Markdown table when there are 3 or more columns.',
+      '- Merge duplicated or overlapping sections: when the same topic appears twice, combine them under one heading and keep all unique lines once. Note nothing about the merge in the output.',
+      '- Keep paragraphs as paragraphs separated by one blank line. Do not wrap the result in a code fence. Do not add commentary before or after.',
+      'Output only the converted Markdown.'
+    ].join('\n')
+  },
   summarize: {
     label: '要約',
     mode: 'append',
@@ -180,7 +200,8 @@ export function runAiAction(actionKey, text, onDelta) {
       model: providerCfg.model || DEFAULT_MODELS[provider],
       apiKey: providerCfg.apiKey || '',
       system: action.system,
-      prompt: input
+      prompt: input,
+      maxOutputTokens: action.maxOutputTokens
     })
     .then(
       full => {

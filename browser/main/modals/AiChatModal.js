@@ -394,6 +394,9 @@ class AiChatModal extends React.Component {
                     ? i18n.__('Keep the original here')
                     : i18n.__('Take this change')}
                 </span>
+                <span styleName='hunk-count'>
+                  {`+${h.added.length} / −${h.removed.length}`}
+                </span>
               </div>
               {h.removed.map((l, k) => (
                 <div key={`r${k}`} styleName='diff-line--removed'>

@@ -15,13 +15,46 @@ export function buildHunks(before, after) {
   const out = []
   let pending = null
   let nextId = 0
+  // 塊の先頭・末尾で同じ行が並んでいたら塊から外す。行差分は最小編集を選ぶので
+  // 「A を消して A を足す」形が出ることがあり、そのままだと消して足し直したように
+  // 見える（実機で確認）。同じ行は変更ではないので「変更なし」に戻す
+  const pushEqual = lines => {
+    if (!lines.length) return
+    const last = out[out.length - 1]
+    if (last && last.type === 'equal') last.lines.push(...lines)
+    else out.push({ type: 'equal', lines })
+  }
   const flush = () => {
     if (!pending) return
-    // 追加も削除も無い塊は作らない
-    if (pending.removed.length || pending.added.length) {
-      pending.id = nextId++
-      out.push(pending)
+    const { removed, added } = pending
+    let head = 0
+    while (
+      head < removed.length &&
+      head < added.length &&
+      removed[head] === added[head]
+    ) {
+      head++
     }
+    let tail = 0
+    while (
+      tail < removed.length - head &&
+      tail < added.length - head &&
+      removed[removed.length - 1 - tail] === added[added.length - 1 - tail]
+    ) {
+      tail++
+    }
+    pushEqual(removed.slice(0, head))
+    const core = {
+      type: 'change',
+      removed: removed.slice(head, removed.length - tail),
+      added: added.slice(head, added.length - tail)
+    }
+    // 追加も削除も無い塊は作らない
+    if (core.removed.length || core.added.length) {
+      core.id = nextId++
+      out.push(core)
+    }
+    pushEqual(tail ? removed.slice(removed.length - tail) : [])
     pending = null
   }
   const toLines = value => {
@@ -38,7 +71,7 @@ export function buildHunks(before, after) {
       return
     }
     flush()
-    out.push({ type: 'equal', lines: toLines(part.value) })
+    pushEqual(toLines(part.value))
   })
   flush()
   return out

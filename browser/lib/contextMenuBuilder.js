@@ -54,7 +54,7 @@ function currentSelection(editor) {
 
 function describeScope(editor) {
   const sel = currentSelection(editor)
-  if (sel && sel.trim()) return `選択範囲 ${sel.length} 文字`
+  if (sel && sel.trim()) return `選択範囲${sel.length}文字`
   return 'ノート全体'
 }
 

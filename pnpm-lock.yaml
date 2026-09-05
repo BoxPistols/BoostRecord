@@ -61,6 +61,9 @@ importers:
       copy-to-clipboard:
         specifier: ^3.0.6
         version: 3.3.3
+      diff:
+        specifier: ^3.5.1
+        version: 3.5.1
       electron-config:
         specifier: ^1.0.0
         version: 1.0.0

@@ -28,6 +28,15 @@ const NOTE_AI_MENU_ITEMS = [
   { key: 'summarizeNote', label: 'ページ要約（ノート全体）' },
   { key: 'proofread', label: '校閲（選択 or ノート全体）' },
   {
+    key: 'applyReview',
+    label: '校閲を反映（校閲 (AI) の指摘を本文に適用し、節を消す）'
+  },
+  {
+    key: 'proofreadApply',
+    label: '校閲して直す（選択 or ノート全体。指摘を出さず直接直す）'
+  },
+  { key: 'dedupeNote', label: '重複をまとめる（選択 or ノート全体）' },
+  {
     key: 'convertNote',
     label:
       '整形: Apple メモなどの平文を BoostRecord 形式に（選択 or ノート全体）'
@@ -44,7 +53,9 @@ function runNoteReplaceAiAction(editor, actionKey) {
   if (action == null) return
 
   const selected = editor.getSelection()
-  const useSelection = !!(selected && selected.trim())
+  // scope 'note' の操作（校閲を反映）は選択があってもノート全体を対象にする
+  const useSelection =
+    action.scope !== 'note' && !!(selected && selected.trim())
   const source = useSelection ? selected : editor.getValue()
   if (!source || !source.trim()) return
   const from = useSelection ? editor.getCursor('from') : { line: 0, ch: 0 }

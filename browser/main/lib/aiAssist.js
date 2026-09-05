@@ -20,6 +20,42 @@ const MAX_INPUT_CHARS = 20000
 //   mode 'replaceNote'  : whole-note (or selection) rewrite; the result replaces
 //                         the source in one undoable edit after it fully arrives
 export const AI_ACTIONS = {
+  applyReview: {
+    label: '校閲を反映（校閲 (AI) の指摘を本文に適用して節を消す）',
+    mode: 'replaceNote',
+    scope: 'note',
+    maxOutputTokens: 8000,
+    system: [
+      'The user\'s note ends with one or more review sections whose heading is "## 校閲 (AI)" (a bullet list of "fragment → fix: reason").',
+      'Apply every suggested fix to the body of the note, then remove the review section(s) entirely. If a suggestion is ambiguous, apply the most conservative reading. Do not apply anything that is not in the review.',
+      'Keep everything else exactly as written: wording, order, headings, lists, code blocks, links, front matter, and the original language. Do not add commentary.',
+      'If there is no review section, return the note unchanged.',
+      'Output only the full corrected note as Markdown. Do not wrap it in a code fence.'
+    ].join('\n')
+  },
+  proofreadApply: {
+    label: '校閲して直す（指摘を出さず本文を直接直す）',
+    mode: 'replaceNote',
+    scope: 'noteOrSelection',
+    maxOutputTokens: 8000,
+    system: [
+      "You are a careful copy editor. Fix typos, grammatical errors, unclear phrasing, inconsistent terminology, and inconsistent notation in the user's text, directly in the text.",
+      'Change as little as possible: keep the meaning, structure, headings, lists, code blocks, links, numbers, dates, and the original language. Do not add, remove, or reorder content. Do not add commentary or a list of changes.',
+      'Output only the corrected text as Markdown. Do not wrap it in a code fence.'
+    ].join('\n')
+  },
+  dedupeNote: {
+    label: '重複をまとめる（重複・散らばった箇所を統合して整える）',
+    mode: 'replaceNote',
+    scope: 'noteOrSelection',
+    maxOutputTokens: 8000,
+    system: [
+      "Tidy the user's note by merging duplicated or overlapping content.",
+      'When the same topic, list, or statement appears in more than one place, combine them into one place under the most appropriate heading and keep every unique fact, number, date, and item exactly once. Prefer the more complete or more recent phrasing when two versions differ, and never drop information that appears in only one of them.',
+      'Keep the heading hierarchy, list styles, code blocks, links, and the original language. Do not rewrite sentences that are not part of a duplication. Do not add commentary or notes about what was merged.',
+      'Output only the tidied text as Markdown. Do not wrap it in a code fence.'
+    ].join('\n')
+  },
   convertNote: {
     label: '整形（Apple メモなどの平文を BoostRecord 形式に）',
     mode: 'replaceNote',

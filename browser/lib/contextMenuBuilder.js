@@ -415,6 +415,14 @@ const buildEditorContextMenu = function(editor, event) {
             openAiChat(editor)
           }
         },
+        { type: 'separator' },
+        {
+          // 提案を 1 件ずつ見て適用する（Draftline と同じ型）
+          label: `改善提案を出す（${scopeText}）`,
+          click: function() {
+            eventEmitter.emit('detail:suggest')
+          }
+        },
         { type: 'separator' }
       ].concat(
         AI_MENU_ITEMS.map(function(item) {

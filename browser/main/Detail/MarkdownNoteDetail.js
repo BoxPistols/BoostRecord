@@ -35,6 +35,7 @@ import queryString from 'query-string'
 import { replace } from 'connected-react-router'
 import ToggleDirectionButton from 'browser/main/Detail/ToggleDirectionButton'
 import ReadAloudPlayer from './ReadAloudPlayer'
+import SuggestionsPane from './SuggestionsPane'
 import ttsPlayer from 'browser/main/lib/ttsPlayer'
 import TocPane from 'browser/main/Detail/TocPane'
 const { ipcRenderer } = require('electron')
@@ -95,6 +96,13 @@ class MarkdownNoteDetail extends React.Component {
       // 読み上げバーの表示。autoplay は右クリックから開いた時だけ true
       readAloudOpen: false,
       readAloudAutoplay: false,
+      // 改善提案ペイン（目次と同じ右の列に出す）
+      suggestOpen: false,
+      suggestions: [],
+      suggestAnalyzing: false,
+      suggestError: null,
+      suggestCategory: 'all',
+      suggestScopeLabel: '',
       isMovingNote: false,
       note: Object.assign(
         {
@@ -454,6 +462,166 @@ class MarkdownNoteDetail extends React.Component {
     ee.on('player:next', this.playerNextHandler)
     ee.on('player:volume', this.playerVolumeHandler)
     ee.on('player:speed', this.playerSpeedHandler)
+    // 右クリック › AI › 改善提案。開いてすぐ分析する
+    this.suggestHandler = () => this.handleToggleSuggest(true, true)
+    ee.on('detail:suggest', this.suggestHandler)
+  }
+
+  /**
+   * 改善提案ペインの表示切替。
+   * @param {boolean} open
+   * @param {boolean} [analyzeNow] 開いた直後に分析を走らせる
+   */
+  handleToggleSuggest(open, analyzeNow) {
+    if (!open) this.clearSuggestionMarks()
+    this.setState({ suggestOpen: !!open }, () => {
+      if (open && analyzeNow) this.runSuggest('')
+    })
+  }
+
+  // 対象。右クリック時に選択があれば選択範囲、無ければノート全体
+  getSuggestTarget() {
+    const cm = _.get(this.refs, 'content.refs.code.editor')
+    const sel = cm && cm.getSelection ? cm.getSelection() : ''
+    if (sel && sel.trim()) {
+      return { text: sel, label: `選択範囲${sel.length}文字` }
+    }
+    return { text: this.state.note.content, label: 'ノート全体' }
+  }
+
+  runSuggest(custom) {
+    if (this.state.suggestAnalyzing) return
+    const target = this.getSuggestTarget()
+    if (!target.text || !target.text.trim()) return
+    this.clearSuggestionMarks()
+    this.setState({
+      suggestAnalyzing: true,
+      suggestError: null,
+      suggestions: [],
+      suggestScopeLabel: target.label,
+      suggestCategory: 'all'
+    })
+    const { runSuggest } = require('browser/main/lib/aiSuggest')
+    runSuggest(target.text, custom).then(
+      result => {
+        if (!this.mountedForSuggest && this.unmounted) return
+        if (!result.parsed) {
+          this.setState({
+            suggestAnalyzing: false,
+            suggestError: i18n.__(
+              'The AI did not return suggestions in a readable form. Try again.'
+            )
+          })
+          return
+        }
+        // 本文に見つからない提案は最初から「見つからない」にしておく
+        const doc = this.state.note.content
+        const suggestions = result.suggestions.map(sg =>
+          doc.indexOf(sg.original) === -1
+            ? Object.assign({}, sg, { status: 'missing' })
+            : sg
+        )
+        this.setState({ suggestAnalyzing: false, suggestions }, () =>
+          this.refreshSuggestionMarks()
+        )
+      },
+      err => {
+        this.setState({
+          suggestAnalyzing: false,
+          suggestError: (err && err.message) || String(err)
+        })
+      }
+    )
+  }
+
+  // エディタ上で提案箇所に下線を敷く（種類ごとの色）。適用・却下で消える
+  refreshSuggestionMarks() {
+    this.clearSuggestionMarks()
+    const cm = _.get(this.refs, 'content.refs.code.editor')
+    if (!cm || !cm.markText) return
+    const doc = cm.getValue()
+    this.suggestMarks = []
+    this.state.suggestions.forEach(sg => {
+      if (sg.status !== 'pending') return
+      const at = doc.indexOf(sg.original)
+      if (at === -1) return
+      const from = cm.posFromIndex(at)
+      const to = cm.posFromIndex(at + sg.original.length)
+      this.suggestMarks.push(
+        cm.markText(from, to, {
+          className: `tb-sug tb-sug--${sg.type}`,
+          title: sg.explanation,
+          attributes: { 'data-suggestion-id': String(sg.id) }
+        })
+      )
+    })
+  }
+
+  clearSuggestionMarks() {
+    ;(this.suggestMarks || []).forEach(m => {
+      try {
+        m.clear()
+      } catch (e) {
+        /* 既に消えている */
+      }
+    })
+    this.suggestMarks = []
+  }
+
+  // 1 件適用。original の最初の出現を suggestion で置き換える（Cmd+Z で戻せる）
+  applySuggestion(sg) {
+    const cm = _.get(this.refs, 'content.refs.code.editor')
+    if (!cm) return
+    const doc = cm.getValue()
+    const at = doc.indexOf(sg.original)
+    const status = at === -1 ? 'missing' : 'accepted'
+    if (at !== -1) {
+      cm.replaceRange(
+        sg.suggestion,
+        cm.posFromIndex(at),
+        cm.posFromIndex(at + sg.original.length)
+      )
+    }
+    this.setState(
+      prev => ({
+        suggestions: prev.suggestions.map(x =>
+          x.id === sg.id ? Object.assign({}, x, { status }) : x
+        )
+      }),
+      () => this.refreshSuggestionMarks()
+    )
+  }
+
+  dismissSuggestion(sg) {
+    this.setState(
+      prev => ({
+        suggestions: prev.suggestions.map(x =>
+          x.id === sg.id ? Object.assign({}, x, { status: 'rejected' }) : x
+        )
+      }),
+      () => this.refreshSuggestionMarks()
+    )
+  }
+
+  applyAllSuggestions(list) {
+    const cm = _.get(this.refs, 'content.refs.code.editor')
+    if (!cm) return
+    // 1 回の操作にまとめて、Cmd+Z 1 回で全部戻せるようにする
+    cm.operation(() => {
+      list.forEach(sg => this.applySuggestion(sg))
+    })
+  }
+
+  // 提案箇所へスクロールして選択する
+  locateSuggestion(sg) {
+    const cm = _.get(this.refs, 'content.refs.code.editor')
+    if (!cm) return
+    const at = cm.getValue().indexOf(sg.original)
+    if (at === -1) return
+    const from = cm.posFromIndex(at)
+    const to = cm.posFromIndex(at + sg.original.length)
+    cm.setSelection(from, to)
+    cm.scrollIntoView({ from, to }, 120)
   }
 
   // バーが開いている時の再生/一時停止。塊が無ければ本文を読み込んでから
@@ -605,6 +773,11 @@ class MarkdownNoteDetail extends React.Component {
     if (isNewNote) {
       ttsPlayer.stop()
       this.highlightSpeechLines(null, null)
+      // 提案は前のノートのもの。持ち越さない
+      this.clearSuggestionMarks()
+      if (this.state.suggestions.length) {
+        this.setState({ suggestions: [], suggestError: null })
+      }
     }
     const hasDeletedTags =
       nextProps.note.tags.length < this.props.note.tags.length
@@ -637,6 +810,9 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   componentWillUnmount() {
+    this.unmounted = true
+    ee.off('detail:suggest', this.suggestHandler)
+    this.clearSuggestionMarks()
     ee.off('detail:readaloud', this.readAloudHandler)
     ee.off('player:toggle', this.playerToggleHandler)
     ee.off('player:stop', this.playerStopHandler)
@@ -1156,6 +1332,21 @@ class MarkdownNoteDetail extends React.Component {
 
           <InfoButton onClick={e => this.handleInfoButtonClick(e)} />
 
+          {/* 改善提案（AI）。右の列にペインが出る */}
+          <button
+            styleName={
+              this.state.suggestOpen
+                ? 'read-aloud-toggle--active'
+                : 'read-aloud-toggle'
+            }
+            onClick={() => this.handleToggleSuggest(!this.state.suggestOpen)}
+            title={i18n.__('Suggestions (AI)')}
+            aria-label={i18n.__('Suggestions (AI)')}
+            aria-pressed={this.state.suggestOpen}
+          >
+            <i className='fa fa-magic' aria-hidden='true' />
+          </button>
+
           {/* ノート全体の読み上げ。押すと本文の上に再生バーが出る */}
           <button
             styleName={
@@ -1266,12 +1457,45 @@ class MarkdownNoteDetail extends React.Component {
           style={barsOffset ? { top: BODY_TOP + barsOffset } : undefined}
         >
           <div
-            styleName={showToc ? 'body-editor--with-toc' : 'body-editor'}
-            style={showToc ? { right: tocSize } : undefined}
+            styleName={
+              showToc || this.state.suggestOpen
+                ? 'body-editor--with-toc'
+                : 'body-editor'
+            }
+            style={
+              showToc || this.state.suggestOpen ? { right: tocSize } : undefined
+            }
           >
             {this.renderEditor()}
           </div>
-          {showToc && (
+          {this.state.suggestOpen && (
+            <div styleName='body-toc' style={{ width: tocSize }}>
+              <div
+                styleName='toc-slider'
+                onMouseDown={e => this.handleTocSliderMouseDown(e)}
+                draggable='false'
+              >
+                <div styleName='toc-slider-hitbox' />
+              </div>
+              <SuggestionsPane
+                suggestions={this.state.suggestions}
+                analyzing={this.state.suggestAnalyzing}
+                error={this.state.suggestError}
+                category={this.state.suggestCategory}
+                scopeLabel={
+                  this.state.suggestScopeLabel || this.getSuggestTarget().label
+                }
+                onCategory={c => this.setState({ suggestCategory: c })}
+                onAnalyze={custom => this.runSuggest(custom)}
+                onApply={sg => this.applySuggestion(sg)}
+                onDismiss={sg => this.dismissSuggestion(sg)}
+                onApplyAll={list => this.applyAllSuggestions(list)}
+                onLocate={sg => this.locateSuggestion(sg)}
+                onClose={() => this.handleToggleSuggest(false)}
+              />
+            </div>
+          )}
+          {showToc && !this.state.suggestOpen && (
             <div styleName='body-toc' style={{ width: tocSize }}>
               <div
                 styleName='toc-slider'

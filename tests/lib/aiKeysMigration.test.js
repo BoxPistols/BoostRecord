@@ -49,7 +49,7 @@ it('資格情報ストアへ移せた provider だけ config の平文を消す'
   seedConfig({
     provider: 'openai',
     openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
-    gemini: { apiKey: 'AIza-plain', model: 'gemini-2.5-flash' }
+    gemini: { apiKey: 'AIza-plain', model: 'gemini-3.8-flash' }
   })
 
   const result = await freshMigrate()()
@@ -70,7 +70,7 @@ it('保存に失敗した provider の平文は残す（消えたら再入力で
   seedConfig({
     provider: 'openai',
     openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
-    gemini: { apiKey: '', model: 'gemini-2.5-flash' }
+    gemini: { apiKey: '', model: 'gemini-3.8-flash' }
   })
 
   const result = await freshMigrate()()
@@ -91,7 +91,7 @@ it('片方だけ成功した場合、成功した方だけ消す', async () => {
   seedConfig({
     provider: 'openai',
     openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
-    gemini: { apiKey: 'AIza-plain', model: 'gemini-2.5-flash' }
+    gemini: { apiKey: 'AIza-plain', model: 'gemini-3.8-flash' }
   })
 
   await freshMigrate()()
@@ -109,7 +109,7 @@ it('IPC が失敗しても例外を投げず、平文も消さない', async () 
   seedConfig({
     provider: 'openai',
     openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
-    gemini: { apiKey: '', model: 'gemini-2.5-flash' }
+    gemini: { apiKey: '', model: 'gemini-3.8-flash' }
   })
 
   const result = await freshMigrate()()
@@ -122,7 +122,7 @@ it('移すものが無ければ IPC を叩かない', async () => {
   seedConfig({
     provider: 'openai',
     openai: { apiKey: '', model: 'gpt-5.6-luna' },
-    gemini: { apiKey: '   ', model: 'gemini-2.5-flash' }
+    gemini: { apiKey: '   ', model: 'gemini-3.8-flash' }
   })
 
   const result = await freshMigrate()()
@@ -136,7 +136,7 @@ it('2 回目の呼び出しは何もしない（起動時1回）', async () => {
   seedConfig({
     provider: 'openai',
     openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
-    gemini: { apiKey: '', model: 'gemini-2.5-flash' }
+    gemini: { apiKey: '', model: 'gemini-3.8-flash' }
   })
 
   const migrate = freshMigrate()

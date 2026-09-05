@@ -120,138 +120,192 @@ class ExportTab extends React.Component {
           <div styleName='group-header'>{i18n.__('Export')}</div>
 
           <div styleName='group-hint'>
-            {/* 「何のための機能か」を先に置く。手順だけ並べても、使う場面が
-                分からないと読み飛ばされる */}
+            {/* 文章だけでは伝わらないので、流れ・出力の差・フォルダ構造を
+                図にする。文言は図の補足に留める */}
             <p>
               {i18n.__(
-                'Exporting turns a note into a file outside this app. Use it when:'
-              )}
-            </p>
-            <ul>
-              <li>
-                {i18n.__(
-                  'Handing a note to someone who does not use this app (.md / .html / .pdf)'
-                )}
-              </li>
-              <li>
-                {i18n.__(
-                  'Moving notes into another tool that reads Markdown, such as Obsidian or a Git repository'
-                )}
-              </li>
-              <li>
-                {i18n.__(
-                  'Keeping a copy as a plain file, independent of this app'
-                )}
-              </li>
-            </ul>
-            <p>
-              {i18n.__(
-                'This tab sets the defaults for those files. Exporting itself is started from the places below.'
+                'Exporting turns a note into a file outside this app. This tab sets the defaults for those files.'
               )}
             </p>
 
-            <p>{i18n.__('Where export happens:')}</p>
-            <ul>
-              <li>{i18n.__('Menu: File > Export as')}</li>
-              <li>
-                {i18n.__(
-                  'Note info panel (i) > export buttons (.md / .txt / .html / .pdf)'
-                )}
-              </li>
-              <li>{i18n.__('Right-click a note in the note list')}</li>
-            </ul>
+            <div styleName='export-flow'>
+              <div styleName='export-flow-col'>
+                <div styleName='export-flow-title'>
+                  {i18n.__('Where export happens:')}
+                </div>
+                <div styleName='export-tile'>
+                  <i className='fa fa-bars' />
+                  <span>File &gt; Export as</span>
+                </div>
+                <div styleName='export-tile'>
+                  <i className='fa fa-info-circle' />
+                  <span>{i18n.__('Note info panel (i)')}</span>
+                </div>
+                <div styleName='export-tile'>
+                  <i className='fa fa-mouse-pointer' />
+                  <span>{i18n.__('Right-click a note')}</span>
+                </div>
+              </div>
+              <div styleName='export-flow-arrow'>
+                <i className='fa fa-long-arrow-right' />
+              </div>
+              <div styleName='export-flow-col'>
+                <div styleName='export-flow-title'>{i18n.__('File')}</div>
+                <div styleName='export-tile'>
+                  <i className='fa fa-file-text-o' />
+                  <span>.md / .txt</span>
+                </div>
+                <div styleName='export-tile'>
+                  <i className='fa fa-file-code-o' />
+                  <span>.html</span>
+                </div>
+                <div styleName='export-tile'>
+                  <i className='fa fa-file-pdf-o' />
+                  <span>.pdf</span>
+                </div>
+              </div>
+              <div styleName='export-flow-arrow'>
+                <i className='fa fa-long-arrow-right' />
+              </div>
+              <div styleName='export-flow-col'>
+                <div styleName='export-flow-title'>
+                  {i18n.__('Destination')}
+                </div>
+                <div styleName='export-tile'>
+                  <i className='fa fa-user-o' />
+                  <span>{i18n.__('Someone without this app')}</span>
+                </div>
+                <div styleName='export-tile'>
+                  <i className='fa fa-git' />
+                  <span>{i18n.__('Obsidian / Git repository')}</span>
+                </div>
+                <div styleName='export-tile'>
+                  <i className='fa fa-folder-o' />
+                  <span>{i18n.__('Plain file on disk')}</span>
+                </div>
+              </div>
+            </div>
 
-            <p>
-              {i18n.__(
-                'Metadata — include note info (title, tags, dates) at the top of the exported file:'
-              )}
-            </p>
-            <ul>
-              <li>{i18n.__("Don't export — body text only")}</li>
-              <li>
-                {i18n.__('Merge with the header — each field is written as-is')}
-              </li>
-              <li>
-                {i18n.__(
-                  'Merge with a variable — everything is nested under the variable name below'
-                )}
-              </li>
-            </ul>
-            <pre styleName='group-hint-code'>
-              {'# Merge with the header\n' +
-                '---\n' +
-                'title: 会議メモ\n' +
-                'tags:\n' +
-                '  - work\n' +
-                'createdAt: 2026-07-06T10:00:00.000Z\n' +
-                '---\n' +
-                '(本文)\n' +
-                '\n' +
-                '# Merge with a variable（変数名: note）\n' +
-                '---\n' +
-                'note:\n' +
-                '  title: 会議メモ\n' +
-                '  tags:\n' +
-                '    - work\n' +
-                '---\n' +
-                '(本文)'}
-            </pre>
+            <div styleName='export-flow-title'>
+              <i className='fa fa-tag' /> {i18n.__('Metadata')}
+              {' — '}
+              {i18n.__('what goes at the top of the exported file')}
+            </div>
+            <div styleName='export-compare'>
+              <div styleName='export-compare-item'>
+                <div styleName='export-compare-label'>
+                  {i18n.__("Don't export")}
+                </div>
+                <pre styleName='export-compare-body'>{'(本文)'}</pre>
+              </div>
+              <div styleName='export-compare-item'>
+                <div styleName='export-compare-label'>
+                  {i18n.__('Merge with the header')}
+                </div>
+                <pre styleName='export-compare-meta'>
+                  {
+                    '---\ntitle: 会議メモ\ntags:\n  - work\ncreatedAt: 2026-07-06\n---'
+                  }
+                </pre>
+                <pre styleName='export-compare-body'>{'(本文)'}</pre>
+              </div>
+              <div styleName='export-compare-item'>
+                <div styleName='export-compare-label'>
+                  {i18n.__('Merge with a variable')}
+                  <span styleName='export-compare-sub'>note</span>
+                </div>
+                <pre styleName='export-compare-meta'>
+                  {'---\nnote:\n  title: 会議メモ\n  tags:\n    - work\n---'}
+                </pre>
+                <pre styleName='export-compare-body'>{'(本文)'}</pre>
+              </div>
+            </div>
 
-            <p>{i18n.__('Prefix attachment folder:')}</p>
-            <ul>
-              <li>
-                {i18n.__(
-                  'ON — attachments are exported to a per-note folder: "Note title - attachments"'
-                )}
-              </li>
-              <li>
-                {i18n.__(
-                  'OFF — all notes share one "attachments" folder (files may overwrite each other)'
-                )}
-              </li>
-            </ul>
+            <div styleName='export-flow-title'>
+              <i className='fa fa-paperclip' />{' '}
+              {i18n.__('Prefix attachment folder')}
+              {' — '}
+              {i18n.__('where attachments land')}
+            </div>
+            <div styleName='export-compare'>
+              <div styleName='export-compare-item'>
+                <div styleName='export-compare-label'>
+                  <i className='fa fa-check-square-o' /> ON
+                </div>
+                <div styleName='export-tree'>
+                  <div>
+                    <i className='fa fa-folder-o' /> 会議メモ - attachments/
+                  </div>
+                  <div styleName='export-tree-leaf'>
+                    <i className='fa fa-file-image-o' /> image.png
+                  </div>
+                  <div>
+                    <i className='fa fa-folder-o' /> 議事録 - attachments/
+                  </div>
+                  <div styleName='export-tree-leaf'>
+                    <i className='fa fa-file-image-o' /> image.png
+                  </div>
+                </div>
+                <p styleName='export-note'>
+                  {i18n.__(
+                    'One folder per note. Same file names never collide.'
+                  )}
+                </p>
+              </div>
+              <div styleName='export-compare-item'>
+                <div styleName='export-compare-label'>
+                  <i className='fa fa-square-o' /> OFF
+                </div>
+                <div styleName='export-tree'>
+                  <div>
+                    <i className='fa fa-folder-o' /> attachments/
+                  </div>
+                  <div styleName='export-tree-leaf'>
+                    <i className='fa fa-file-image-o' /> image.png{' '}
+                    <i className='fa fa-exclamation-triangle' />
+                  </div>
+                </div>
+                <p styleName='export-note'>
+                  {i18n.__(
+                    'All notes share one folder. Files with the same name overwrite each other.'
+                  )}
+                </p>
+              </div>
+            </div>
 
-            <p style={{ marginTop: '14px', fontWeight: 'bold' }}>
-              {i18n.__('Format compatibility')}
-            </p>
-            <ul>
-              <li>
-                <strong>{i18n.__('YAML front matter')}</strong>
-                {' — '}
-                {i18n.__(
-                  '"Merge with the header" produces standard YAML front matter, compatible with Jekyll, Hugo, Next.js MDX, Obsidian, and most static-site generators.'
-                )}
-              </li>
-              <li>
-                <strong>Mermaid</strong>
-                {' — '}
-                {i18n.__(
-                  'Mermaid code blocks (```mermaid) render live in preview and are exported as-is in .md — compatible with GitHub, GitLab, Notion, and Obsidian.'
-                )}
-              </li>
-              <li>
-                <strong>{i18n.__('AI docs (CLAUDE.md / Skills.md)')}</strong>
-                {' — '}
-                {i18n.__(
-                  'Export .md with "Merge with the header" to produce AI-ready documents. YAML front matter, Mermaid diagrams, and code blocks are all preserved.'
-                )}
-              </li>
-            </ul>
-            <pre styleName='group-hint-code'>
-              {'# AI-ready .md export\n' +
-                '---\n' +
-                'title: Feature Spec\n' +
-                'tags:\n' +
-                '  - claude\n' +
-                '---\n' +
-                '\n' +
-                '## Flow\n' +
-                '\n' +
-                '```mermaid\n' +
-                'graph TD\n' +
-                '  A[User] --> B[App] --> C[AI]\n' +
-                '```'}
-            </pre>
+            <div styleName='export-flow-title'>
+              <i className='fa fa-plug' /> {i18n.__('Format compatibility')}
+            </div>
+            <div styleName='export-compat'>
+              <div styleName='export-compat-row'>
+                <span styleName='export-compat-key'>YAML front matter</span>
+                <span styleName='export-chip'>Jekyll</span>
+                <span styleName='export-chip'>Hugo</span>
+                <span styleName='export-chip'>Next.js MDX</span>
+                <span styleName='export-chip'>Obsidian</span>
+              </div>
+              <div styleName='export-compat-row'>
+                <span styleName='export-compat-key'>Mermaid</span>
+                <span styleName='export-chip'>
+                  <i className='fa fa-github' /> GitHub
+                </span>
+                <span styleName='export-chip'>
+                  <i className='fa fa-gitlab' /> GitLab
+                </span>
+                <span styleName='export-chip'>Notion</span>
+                <span styleName='export-chip'>Obsidian</span>
+              </div>
+              <div styleName='export-compat-row'>
+                <span styleName='export-compat-key'>{i18n.__('AI docs')}</span>
+                <span styleName='export-chip'>CLAUDE.md</span>
+                <span styleName='export-chip'>Skills.md</span>
+                <span styleName='export-note'>
+                  {i18n.__(
+                    'Export .md with "Merge with the header". Front matter, Mermaid and code blocks are kept as-is.'
+                  )}
+                </span>
+              </div>
+            </div>
 
             <p style={{ marginTop: '14px' }}>
               {i18n.__(

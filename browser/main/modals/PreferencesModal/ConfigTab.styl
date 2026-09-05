@@ -152,16 +152,17 @@ div[id^="firstRow"]
   max-width 520px
 
 .group
-  margin-bottom 45px
+  margin-bottom 32px
 
 .group-header
   @extend .header
   color $ui-text-color
 
 .group-header2
-  font-size 20px
-  margin-bottom 15px
-  margin-top 30px
+  font-size 16px
+  font-weight 600
+  margin-bottom 12px
+  margin-top 24px
 
 .group-header--sub
   @extend .group-header
@@ -298,6 +299,133 @@ div[id^="firstRow"]
   background-color rgba(128, 128, 128, 0.12)
   white-space pre
   overflow-x auto
+
+// エクスポートタブの図解。色はテーマに依らないよう currentColor と
+// 半透明グレーだけで作る（ダーク/ライト両方で崩れない）
+.export-flow
+  display flex
+  align-items flex-start
+  gap 8px
+  margin 12px 0 16px
+  flex-wrap wrap
+
+.export-flow-col
+  flex 1 1 150px
+  min-width 150px
+  display flex
+  flex-direction column
+  gap 6px
+
+.export-flow-arrow
+  align-self center
+  padding-top 18px
+  font-size 20px
+  opacity 0.5
+
+.export-flow-title
+  font-size 13px
+  font-weight 600
+  margin 14px 0 6px
+  color inherit
+  .fa
+    width 1.2em
+    text-align center
+
+.export-tile
+  display flex
+  align-items center
+  gap 8px
+  padding 6px 10px
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 3px
+  background-color rgba(128, 128, 128, 0.08)
+  font-size 12px
+  line-height 1.4
+  .fa
+    font-size 14px
+    width 1.2em
+    text-align center
+    flex none
+
+.export-compare
+  display flex
+  gap 8px
+  flex-wrap wrap
+  margin-bottom 6px
+
+.export-compare-item
+  flex 1 1 180px
+  min-width 180px
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 3px
+  overflow hidden
+
+.export-compare-label
+  padding 5px 10px
+  font-size 12px
+  font-weight 600
+  background-color rgba(128, 128, 128, 0.15)
+  border-bottom solid 1px rgba(128, 128, 128, 0.35)
+
+.export-compare-sub
+  font-family SFMono-Regular, Consolas, monospace
+  font-weight 400
+  margin-left 6px
+  opacity 0.8
+
+.export-compare-meta
+.export-compare-body
+  font-family SFMono-Regular, Consolas, monospace
+  font-size 12px
+  line-height 1.5
+  margin 0
+  padding 6px 10px
+  white-space pre
+
+.export-compare-meta
+  background-color rgba(106, 165, 233, 0.18)
+
+.export-tree
+  font-family SFMono-Regular, Consolas, monospace
+  font-size 12px
+  line-height 1.7
+  padding 6px 10px
+  .fa-exclamation-triangle
+    color #E0A030
+
+.export-tree-leaf
+  padding-left 1.6em
+
+.export-note
+  font-size 12px
+  line-height 1.5
+  margin 0
+  padding 0 10px 8px
+  opacity 0.85
+
+.export-compat
+  display flex
+  flex-direction column
+  gap 6px
+
+.export-compat-row
+  display flex
+  align-items center
+  flex-wrap wrap
+  gap 6px
+
+.export-compat-key
+  font-size 12px
+  font-weight 600
+  min-width 130px
+
+.export-chip
+  font-size 12px
+  padding 2px 8px
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 3px
+  .fa
+    margin-right 3px
 
 .note-for-keymap
   font-size: 12px

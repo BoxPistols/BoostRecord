@@ -33,7 +33,7 @@ it('廃止された旧 ID は既定へ寄り、localStorage にも書き戻る',
   seed({
     provider: 'openai',
     openai: { apiKey: 'sk-keepme', model: 'gpt-5-mini' },
-    gemini: { apiKey: '', model: 'gemini-2.5-flash' }
+    gemini: { apiKey: '', model: 'gemini-3.8-flash' }
   })
 
   const config = ConfigManager.get()
@@ -49,7 +49,7 @@ it('提供中の ID はそのまま（勝手に既定へ戻さない）', () => 
   seed({
     provider: 'openai',
     openai: { apiKey: '', model: 'gpt-5.6-sol' },
-    gemini: { apiKey: '', model: 'gemini-2.5-flash' }
+    gemini: { apiKey: '', model: 'gemini-3.8-flash' }
   })
 
   expect(ConfigManager.get().ai.openai.model).toBe('gpt-5.6-sol')

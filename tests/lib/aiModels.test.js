@@ -32,8 +32,8 @@ describe('modelLabel', () => {
   })
 
   it('注記が無ければ既定表記だけ', () => {
-    expect(modelLabel('gemini-2.5-flash-lite', true)).toBe(
-      'gemini-2.5-flash-lite （既定）'
+    expect(modelLabel('gemini-3.5-flash-lite', true)).toBe(
+      'gemini-3.5-flash-lite （既定）'
     )
   })
 
@@ -49,7 +49,7 @@ describe('normalizeAiModels', () => {
     const next = normalizeAiModels({
       provider: 'openai',
       openai: { apiKey: 'sk-x', model: 'gpt-5-mini' },
-      gemini: { apiKey: '', model: 'gemini-2.5-flash' }
+      gemini: { apiKey: '', model: 'gemini-3.8-flash' }
     })
     expect(next.openai.model).toBe(DEFAULT_MODELS.openai)
   })
@@ -85,7 +85,7 @@ describe('normalizeAiModels', () => {
     const ai = {
       provider: 'openai',
       openai: { apiKey: 'sk-x', model: 'gpt-5.6-sol' },
-      gemini: { apiKey: '', model: 'gemini-2.5-flash-lite' }
+      gemini: { apiKey: '', model: 'gemini-3.5-flash-lite' }
     }
     expect(normalizeAiModels(ai)).toBe(ai)
   })

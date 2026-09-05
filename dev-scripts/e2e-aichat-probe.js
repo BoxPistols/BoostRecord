@@ -145,11 +145,12 @@ function driver() {
       await sleep(250)
     }
     for (let i=0;i<40;i++){ if (document.querySelector('.CodeMirror')) break; await sleep(250) }
-    // 窓を開く
-    require('@electron/remote').getCurrentWindow().webContents.send('detail:aichat')
+    // 窓をホットキーで開く（Cmd+Shift+A。mousetrap は document の keydown を見る）
+    const press = (key, keyCode) => document.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode, which: keyCode, metaKey: true, shiftKey: true, bubbles: true, cancelable: true }))
+    press('A', 65)
     let quick = null
     for (let i=0;i<40;i++){ await sleep(250); quick = byText('改善案を出す'); if (quick) break }
-    if (!quick) return { ok:false, step:'modal did not open' }
+    if (!quick) return { ok:false, step:'modal did not open via Cmd+Shift+A' }
     quick.click()
     // 差分の塊（チェックボックス）が出るまで待つ
     let hunks = []
@@ -165,6 +166,20 @@ function driver() {
     const shot1 = !!applyBtn
     window.__aichatShot = 'diff'
     return { ok:true, before, counts, diffHeight, applyLabel: applyBtn ? applyBtn.textContent.trim() : (byText('ノート全体を置き換える') ? 'ノート全体を置き換える' : '') }
+  })()`
+}
+
+function suggestHotkey() {
+  return `(async () => {${helpers}
+    // 窓を閉じる（Esc）
+    const root = document.querySelector('[class*="root"][tabindex="-1"]')
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', keyCode: 27, bubbles: true }))
+    await sleep(400)
+    const press = (key, keyCode) => document.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode, which: keyCode, metaKey: true, shiftKey: true, bubbles: true, cancelable: true }))
+    press('J', 74)
+    let pane = null
+    for (let i=0;i<40;i++){ await sleep(200); pane = document.querySelector('.SuggestionsPane'); if (pane) break }
+    return { opened: !!pane }
   })()`
 }
 
@@ -201,7 +216,11 @@ app.on('web-contents-created', (_e, wc) => {
         const win = BrowserWindow.getAllWindows()[0]
         const r = await wc.executeJavaScript(driver(), true)
         if (!r.ok) return finish(1, r)
-        check('返答が差分の塊 2 つになる', r.before.hunks === 2, r.before)
+        check(
+          'Cmd+Shift+A で窓が開き、返答が差分の塊 2 つになる',
+          r.before.hunks === 2,
+          r.before
+        )
         check(
           '「変更 2」タブが出る',
           r.before.changesTab === '変更 2',
@@ -233,6 +252,8 @@ app.on('web-contents-created', (_e, wc) => {
         })
         check('やり直すで再び適用後になる', a.afterRedo === expected)
         await shoot(win, 'aichat-applied.png')
+        const hk = await wc.executeJavaScript(suggestHotkey(), true)
+        check('Cmd+Shift+J で改善提案ペインが開く', hk.opened, hk)
         finish(checks.every(c => c.pass) ? 0 : 1, {})
       } catch (err) {
         finish(2, { error: 'exec failed: ' + err.message })

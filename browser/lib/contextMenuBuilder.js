@@ -485,7 +485,7 @@ const buildMarkdownPreviewContextMenu = function(markdownPreview, event) {
 }
 
 // Named exports for ESM consumers; default kept for require().prop callers.
-export { buildEditorContextMenu, buildMarkdownPreviewContextMenu }
+export { buildEditorContextMenu, buildMarkdownPreviewContextMenu, openAiChat }
 
 export default {
   buildEditorContextMenu: buildEditorContextMenu,

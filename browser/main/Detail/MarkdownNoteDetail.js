@@ -465,6 +465,14 @@ class MarkdownNoteDetail extends React.Component {
     // 右クリック › AI › 改善提案。開いてすぐ分析する
     this.suggestHandler = () => this.handleToggleSuggest(true, true)
     ee.on('detail:suggest', this.suggestHandler)
+    // 「AIで文章を改善する」窓をメニュー以外（ホットキー / probe）から開く
+    this.aiChatHandler = () => {
+      const cm = _.get(this.refs, 'content.refs.code.editor')
+      if (!cm) return
+      const { openAiChat } = require('browser/lib/contextMenuBuilder')
+      openAiChat(cm)
+    }
+    ee.on('detail:aichat', this.aiChatHandler)
   }
 
   /**
@@ -812,6 +820,7 @@ class MarkdownNoteDetail extends React.Component {
   componentWillUnmount() {
     this.unmounted = true
     ee.off('detail:suggest', this.suggestHandler)
+    ee.off('detail:aichat', this.aiChatHandler)
     this.clearSuggestionMarks()
     ee.off('detail:readaloud', this.readAloudHandler)
     ee.off('player:toggle', this.playerToggleHandler)

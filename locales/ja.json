@@ -760,7 +760,7 @@
   "Changes": "変更",
   "Full text": "全文",
   "No differences from the current text.": "いまの文章との差はありません。",
-  "%s unchanged lines": "変更なし %s行",
+  "%s unchanged lines": "変更なし%s行",
   "Take this change": "この変更を採用",
   "Keep the original here": "ここは元のまま",
   "Apply the selected changes": "選んだ変更だけ適用",

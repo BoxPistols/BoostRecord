@@ -1,7 +1,20 @@
 const _ = require('lodash')
+const fs = require('fs')
 const path = require('path')
 const CSON = require('@rokt33r/season')
 const migrateFromV6Storage = require('./migrateFromV6Storage')
+
+// 読めなかった boostnote.json の実バイト列を退避する。
+// 実名・色・階層を後から復元できる唯一の手掛かりになる
+function backupUnreadableFile(filePath) {
+  try {
+    const backupPath = filePath + '.unreadable-' + Date.now()
+    fs.copyFileSync(filePath, backupPath)
+    console.warn('Backed up unreadable boostnote.json to ' + backupPath)
+  } catch (e) {
+    console.error('Failed to back up unreadable boostnote.json', e)
+  }
+}
 
 function resolveStorageData(storageCache) {
   const storage = {
@@ -20,11 +33,14 @@ function resolveStorageData(storageCache) {
     storage.folders = jsonData.folders
     storage.version = jsonData.version
   } catch (err) {
-    if (err.code === 'ENOENT') {
+    const fileExists = fs.existsSync(boostnoteJSONPath)
+    if (err.code === 'ENOENT' && !fileExists) {
       console.warn("boostnote.json file doesn't exist the given path")
       CSON.writeFileSync(boostnoteJSONPath, { folders: [], version: '1.0' })
     } else {
       // ファイルはあるのに読めない/形が違う = **壊れている**。
+      // OneDrive/iCloud の未実体化プレースホルダは実体があるのに読み取りが
+      // 失敗する。この場合 ENOENT でもここへ落とす(空で上書きさせない)。
       // ここで folders: [] のまま先へ進めると、次のフォルダ操作が
       // `_.pick(storage, ['folders','version'])` で空配列を書き戻し、
       // 全フォルダレコードが1操作で消える（v0.18.1 の「弾くだけの検証が
@@ -36,6 +52,7 @@ function resolveStorageData(storageCache) {
       // 1つ壊れただけで**全ストレージが読み込めなくなる**。
       // そこで「読み込みは通すが、書き戻しは禁じる」印を付ける
       console.error(err)
+      backupUnreadableFile(boostnoteJSONPath)
       storage.foldersUnreadable = true
     }
     storage.folders = []

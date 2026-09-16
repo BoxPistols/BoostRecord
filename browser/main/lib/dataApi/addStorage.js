@@ -69,7 +69,8 @@ function addStorage(input) {
             })
           }
         })
-        if (unknownCount > 0) {
+        // 同上: 読めなかった boostnote.json は上書きしない
+        if (unknownCount > 0 && !storage.foldersUnreadable) {
           CSON.writeFileSync(
             path.join(storage.path, 'boostnote.json'),
             _.pick(storage, ['folders', 'version'])

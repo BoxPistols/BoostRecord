@@ -10,6 +10,7 @@ const localStorage = (window.localStorage = global.localStorage = new Storage(
   { strict: true }
 ))
 const path = require('path')
+const fs = require('fs')
 const _ = require('lodash')
 const TestDummy = require('../fixtures/TestDummy')
 const sander = require('sander')
@@ -48,4 +49,38 @@ it('Create a folder', done => {
 afterAll(() => {
   localStorage.clear()
   sander.rimrafSync(storagePath)
+})
+
+it('does not overwrite boostnote.json when it could not be read', () => {
+  const brokenPath = path.join(os.tmpdir(), 'test/create-folder-broken')
+  sander.rimrafSync(brokenPath)
+  sander.mkdirSync(brokenPath)
+  const jsonPath = path.join(brokenPath, 'boostnote.json')
+  const brokenSource = '{ "folders": [ broken'
+  fs.writeFileSync(jsonPath, brokenSource)
+  const brokenCache = {
+    key: 'broken-storage',
+    name: 'broken',
+    type: 'FILESYSTEM',
+    path: brokenPath,
+    isOpen: true
+  }
+  localStorage.setItem(
+    'storages',
+    JSON.stringify([storageContext.cache, brokenCache])
+  )
+
+  return createFolder('broken-storage', {
+    name: 'created',
+    color: '#ff5555'
+  }).then(
+    () => {
+      throw new Error('createFolder should reject for an unreadable storage')
+    },
+    () => {
+      expect(fs.readFileSync(jsonPath, 'utf8')).toBe(brokenSource)
+      sander.rimrafSync(brokenPath)
+      localStorage.setItem('storages', JSON.stringify([storageContext.cache]))
+    }
+  )
 })

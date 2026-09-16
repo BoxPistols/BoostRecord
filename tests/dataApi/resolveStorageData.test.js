@@ -45,3 +45,19 @@ it('reads folders and version from an existing boostnote.json', () => {
     expect(storage.path).toBe(storagePath)
   })
 })
+
+it('marks the storage unreadable and keeps the original bytes when boostnote.json is broken', () => {
+  const jsonPath = path.join(storagePath, 'boostnote.json')
+  // 実名入りの定義が壊れた状態(パース不能)で置かれている場合
+  fs.writeFileSync(jsonPath, '{ "folders": [ broken')
+  return resolveStorageData(cache).then(storage => {
+    expect(storage.foldersUnreadable).toBe(true)
+    // 原本は書き換えられていない
+    expect(fs.readFileSync(jsonPath, 'utf8')).toBe('{ "folders": [ broken')
+    // 退避コピーが残る
+    const backups = fs
+      .readdirSync(storagePath)
+      .filter(name => name.indexOf('boostnote.json.unreadable-') === 0)
+    expect(backups.length).toBe(1)
+  })
+})

@@ -56,7 +56,9 @@ function init() {
               })
             }
           })
-          if (unknownCount > 0) {
+          // boostnote.json が読めなかったストレージへは書き戻さない。
+          // Unknown N はメモリ上の救済に留める(実名入りの定義を潰すため)
+          if (unknownCount > 0 && !storage.foldersUnreadable) {
             try {
               CSON.writeFileSync(
                 path.join(storage.path, 'boostnote.json'),

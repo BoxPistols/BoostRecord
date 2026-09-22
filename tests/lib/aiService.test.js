@@ -13,6 +13,7 @@ describe('pickProvider', () => {
     // dotted 2026 ids (gpt-5.6-*) must still route to openai
     expect(pickProvider('gpt-5.6-luna')).toBe('openai')
     expect(pickProvider('gpt-5.6-sol')).toBe('openai')
+    expect(pickProvider('gpt-6-luna')).toBe('openai')
   })
 
   it('routes Gemini/Gemma model ids to gemini', () => {
@@ -35,6 +36,8 @@ describe('isOpenAiReasoning', () => {
     // the dotted gpt-5.x ids share the reasoning param shape
     expect(isOpenAiReasoning('gpt-5.6-luna')).toBe(true)
     expect(isOpenAiReasoning('gpt-5.6-sol')).toBe(true)
+    // gpt-6以降もmax_tokens/temperatureの経路に落とさない
+    expect(isOpenAiReasoning('gpt-6-luna')).toBe(true)
   })
 
   it('is false for classic chat models (max_tokens + temperature)', () => {

@@ -180,16 +180,13 @@ app.on('web-contents-created', (_e, wc) => {
         check('BYOK の注意書きが出ている', view.hasByokNotice)
         check(
           '旧モデル ID が既定へ寄っている',
-          view.selected[0] === 'gpt-5.6-luna （既定・無料/回数制限あり）',
+          view.selected[0] === 'gpt-6-luna （既定）',
           { selected: view.selected[0] }
         )
         check(
           'OpenAI の選択肢が 2026-08 版',
           JSON.stringify(view.options[0]) ===
-            JSON.stringify([
-              'gpt-5.6-luna （既定・無料/回数制限あり）',
-              'gpt-5.6-sol'
-            ]),
+            JSON.stringify(['gpt-6-luna （既定）', 'gpt-5.6-sol']),
           { options: view.options[0] }
         )
         check('「使用中」バッジが1つだけ出ている', view.badgeCount === 1, {

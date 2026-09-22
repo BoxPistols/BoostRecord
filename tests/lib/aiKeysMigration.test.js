@@ -48,7 +48,7 @@ it('資格情報ストアへ移せた provider だけ config の平文を消す'
   mockInvoke.mockResolvedValue({ ok: true })
   seedConfig({
     provider: 'openai',
-    openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
+    openai: { apiKey: 'sk-plain', model: 'gpt-6-luna' },
     gemini: { apiKey: 'AIza-plain', model: 'gemini-3.8-flash' }
   })
 
@@ -58,7 +58,7 @@ it('資格情報ストアへ移せた provider だけ config の平文を消す'
   expect(savedAi().openai.apiKey).toBe('')
   expect(savedAi().gemini.apiKey).toBe('')
   // モデル設定は巻き添えにしない
-  expect(savedAi().openai.model).toBe('gpt-5.6-luna')
+  expect(savedAi().openai.model).toBe('gpt-6-luna')
 
   const sent = mockInvoke.mock.calls.filter(c => c[0] === 'ai:keys-set')
   expect(sent).toHaveLength(2)
@@ -69,7 +69,7 @@ it('保存に失敗した provider の平文は残す（消えたら再入力で
   mockInvoke.mockResolvedValue({ ok: false, error: 'ENCRYPTION_UNAVAILABLE' })
   seedConfig({
     provider: 'openai',
-    openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
+    openai: { apiKey: 'sk-plain', model: 'gpt-6-luna' },
     gemini: { apiKey: '', model: 'gemini-3.8-flash' }
   })
 
@@ -90,7 +90,7 @@ it('片方だけ成功した場合、成功した方だけ消す', async () => {
   )
   seedConfig({
     provider: 'openai',
-    openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
+    openai: { apiKey: 'sk-plain', model: 'gpt-6-luna' },
     gemini: { apiKey: 'AIza-plain', model: 'gemini-3.8-flash' }
   })
 
@@ -108,7 +108,7 @@ it('IPC が失敗しても例外を投げず、平文も消さない', async () 
   )
   seedConfig({
     provider: 'openai',
-    openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
+    openai: { apiKey: 'sk-plain', model: 'gpt-6-luna' },
     gemini: { apiKey: '', model: 'gemini-3.8-flash' }
   })
 
@@ -121,7 +121,7 @@ it('IPC が失敗しても例外を投げず、平文も消さない', async () 
 it('移すものが無ければ IPC を叩かない', async () => {
   seedConfig({
     provider: 'openai',
-    openai: { apiKey: '', model: 'gpt-5.6-luna' },
+    openai: { apiKey: '', model: 'gpt-6-luna' },
     gemini: { apiKey: '   ', model: 'gemini-3.8-flash' }
   })
 
@@ -135,7 +135,7 @@ it('2 回目の呼び出しは何もしない（起動時1回）', async () => {
   mockInvoke.mockResolvedValue({ ok: true })
   seedConfig({
     provider: 'openai',
-    openai: { apiKey: 'sk-plain', model: 'gpt-5.6-luna' },
+    openai: { apiKey: 'sk-plain', model: 'gpt-6-luna' },
     gemini: { apiKey: '', model: 'gemini-3.8-flash' }
   })
 

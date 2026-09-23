@@ -90,7 +90,7 @@ function seed() {
       ai:{ provider:'openai',
            openai:{ apiKey:${JSON.stringify(
              PLAINTEXT_KEY
-           )}, model:'gpt-5.6-luna' },
+           )}, model:'gpt-6-luna' },
            gemini:{ apiKey:'', model:'gemini-2.5-flash' } }
     }))
     localStorage.setItem('__aikeysProbeSeeded','1')

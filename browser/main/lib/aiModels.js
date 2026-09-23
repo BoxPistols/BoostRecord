@@ -5,7 +5,7 @@
 //
 // First entry per provider is the default (AITab labels it 「既定」).
 // Model IDs move fast — refreshed 2026-09.
-//   gpt-5.6-luna : default. Free, but rate-limited.
+//   gpt-6-luna   : default. gpt-5.6-lunaの後継。無料枠の有無は未確認なので注記を付けない
 //   gpt-5.6-sol  : the other gpt-5.6 model on offer.
 //   gemini-3.5-flash-lite : default. Newest Flash-Lite (cheapest) per
 //                           ai.google.dev/gemini-api/docs/models, 2026-09-05.
@@ -16,7 +16,7 @@
 // so never cheaper than the free default), text-embedding-3-small (embeddings)
 // and gpt-audio-1.5 (audio) — the latter two can't serve chat completions.
 export const MODEL_OPTIONS = {
-  openai: ['gpt-5.6-luna', 'gpt-5.6-sol'],
+  openai: ['gpt-6-luna', 'gpt-5.6-sol'],
   gemini: ['gemini-3.5-flash-lite', 'gemini-3.8-flash']
 }
 
@@ -27,12 +27,10 @@ export const DEFAULT_MODELS = {
 
 // モデル選択に添える短い注記（料金・制限）。選ぶ前に分かる必要がある情報だけ。
 // 載っていないモデルは注記なしで出す（推測で書かない）
-export const MODEL_NOTES = {
-  'gpt-5.6-luna': '無料/回数制限あり'
-}
+export const MODEL_NOTES = {}
 
 /**
- * モデル選択に出す表示名。`gpt-5.6-luna （既定・無料/回数制限あり）` のように、
+ * モデル選択に出す表示名。`<モデルID> （既定・注記）` のように、
  * 選ぶ前に要る情報だけ括弧で添える。注記が無いモデルは ID だけを返す。
  *
  * @param {string} model モデル ID

@@ -6,7 +6,8 @@
 // First entry per provider is the default (AITab labels it 「既定」).
 // Model IDs move fast — refreshed 2026-09.
 //   gpt-6-luna   : default. gpt-5.6-lunaの後継。無料枠の有無は未確認なので注記を付けない
-//   gpt-5.6-sol  : the other gpt-5.6 model on offer.
+//   gpt-5.6-solは2026-09-24に外し、OpenAIはgpt-6-lunaだけにした。
+//   保存値に残っていればnormalizeAiModelsが既定へ戻す
 //   gemini-3.5-flash-lite : default. Newest Flash-Lite (cheapest) per
 //                           ai.google.dev/gemini-api/docs/models, 2026-09-05.
 //   gemini-3.8-flashは2026-09-24に外した。混雑で503が続き、アプリの条件で応答を確認できなかったため。
@@ -17,7 +18,7 @@
 // so never cheaper than the free default), text-embedding-3-small (embeddings)
 // and gpt-audio-1.5 (audio) — the latter two can't serve chat completions.
 export const MODEL_OPTIONS = {
-  openai: ['gpt-6-luna', 'gpt-5.6-sol'],
+  openai: ['gpt-6-luna'],
   gemini: ['gemini-3.5-flash-lite']
 }
 

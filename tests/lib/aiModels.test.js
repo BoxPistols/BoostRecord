@@ -42,7 +42,7 @@ describe('modelLabel', () => {
   })
 
   it('既定でも注記でもなければ ID だけ（括弧を出さない）', () => {
-    expect(modelLabel('gpt-5.6-sol', false)).toBe('gpt-5.6-sol')
+    expect(modelLabel('gpt-6-luna', false)).toBe('gpt-6-luna')
     // 設定に残った一覧外の ID もそのまま出せる
     expect(modelLabel('gpt-5-mini', false)).toBe('gpt-5-mini')
   })
@@ -65,6 +65,17 @@ describe('normalizeAiModels', () => {
       gemini: { apiKey: '', model: 'gemini-3.8-flash' }
     })
     expect(next.openai.model).toBe('gpt-6-luna')
+  })
+
+  it('外したgpt-5.6-solはgpt-6-lunaへ戻す', () => {
+    const next = normalizeAiModels({
+      provider: 'openai',
+      openai: { apiKey: 'sk-keepme', model: 'gpt-5.6-sol' },
+      gemini: { apiKey: '', model: 'gemini-3.5-flash-lite' }
+    })
+    expect(next.openai.model).toBe('gpt-6-luna')
+    expect(next.openai.apiKey).toBe('sk-keepme')
+    expect(MODEL_OPTIONS.openai).toEqual(['gpt-6-luna'])
   })
 
   it('外したgemini-3.8-flashは3.5-flash-liteへ戻す', () => {
@@ -108,7 +119,7 @@ describe('normalizeAiModels', () => {
   it('提供中の ID なら同一参照を返す（不要な保存を避けるため）', () => {
     const ai = {
       provider: 'openai',
-      openai: { apiKey: 'sk-x', model: 'gpt-5.6-sol' },
+      openai: { apiKey: 'sk-x', model: 'gpt-6-luna' },
       gemini: { apiKey: '', model: 'gemini-3.5-flash-lite' }
     }
     expect(normalizeAiModels(ai)).toBe(ai)

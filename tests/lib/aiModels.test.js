@@ -13,7 +13,7 @@ describe('MODEL_OPTIONS / DEFAULT_MODELS', () => {
   it('先頭が既定モデル', () => {
     expect(DEFAULT_MODELS.openai).toBe(MODEL_OPTIONS.openai[0])
     expect(DEFAULT_MODELS.gemini).toBe(MODEL_OPTIONS.gemini[0])
-    expect(DEFAULT_MODELS.openai).toBe('gpt-5.6-luna')
+    expect(DEFAULT_MODELS.openai).toBe('gpt-6-luna')
   })
 
   it('注記は提供中のモデルにだけ付く（消したモデルの注記が残らない）', () => {
@@ -26,9 +26,13 @@ describe('MODEL_OPTIONS / DEFAULT_MODELS', () => {
 
 describe('modelLabel', () => {
   it('既定と注記をまとめて括弧で添える', () => {
-    expect(modelLabel('gpt-5.6-luna', true)).toBe(
-      'gpt-5.6-luna （既定・無料/回数制限あり）'
-    )
+    // 現在は注記を持つモデルが無いので、一時的に注記を足して書式だけ確かめる
+    MODEL_NOTES['gpt-6-luna'] = '注記'
+    try {
+      expect(modelLabel('gpt-6-luna', true)).toBe('gpt-6-luna （既定・注記）')
+    } finally {
+      delete MODEL_NOTES['gpt-6-luna']
+    }
   })
 
   it('注記が無ければ既定表記だけ', () => {
@@ -52,6 +56,15 @@ describe('normalizeAiModels', () => {
       gemini: { apiKey: '', model: 'gemini-3.8-flash' }
     })
     expect(next.openai.model).toBe(DEFAULT_MODELS.openai)
+  })
+
+  it('旧既定のgpt-5.6-lunaもgpt-6-lunaへ寄せる', () => {
+    const next = normalizeAiModels({
+      provider: 'openai',
+      openai: { apiKey: 'sk-x', model: 'gpt-5.6-luna' },
+      gemini: { apiKey: '', model: 'gemini-3.8-flash' }
+    })
+    expect(next.openai.model).toBe('gpt-6-luna')
   })
 
   it('apiKey と provider は触らない', () => {

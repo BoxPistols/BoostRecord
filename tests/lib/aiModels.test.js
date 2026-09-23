@@ -67,6 +67,17 @@ describe('normalizeAiModels', () => {
     expect(next.openai.model).toBe('gpt-6-luna')
   })
 
+  it('外したgemini-3.8-flashは3.5-flash-liteへ戻す', () => {
+    const next = normalizeAiModels({
+      provider: 'gemini',
+      openai: { apiKey: '', model: 'gpt-6-luna' },
+      gemini: { apiKey: 'AIza-keepme', model: 'gemini-3.8-flash' }
+    })
+    expect(next.gemini.model).toBe('gemini-3.5-flash-lite')
+    expect(next.gemini.apiKey).toBe('AIza-keepme')
+    expect(MODEL_OPTIONS.gemini).not.toContain('gemini-3.8-flash')
+  })
+
   it('apiKey と provider は触らない', () => {
     const next = normalizeAiModels({
       provider: 'gemini',

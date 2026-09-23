@@ -9,7 +9,8 @@
 //   gpt-5.6-sol  : the other gpt-5.6 model on offer.
 //   gemini-3.5-flash-lite : default. Newest Flash-Lite (cheapest) per
 //                           ai.google.dev/gemini-api/docs/models, 2026-09-05.
-//   gemini-3.8-flash      : newest stable Flash on the same page.
+//   gemini-3.8-flashは2026-09-24に外した。混雑で503が続き、アプリの条件で応答を確認できなかったため。
+//   保存値に残っていればnormalizeAiModelsが既定へ戻す
 // gemini-2.5-* are still listed there but superseded; stored configs that
 // point at them are moved to the default by normalizeAiModels.
 // Left out on purpose: the gpt-5.4 family (retired), gpt-5.1-codex-mini (paid,
@@ -17,7 +18,7 @@
 // and gpt-audio-1.5 (audio) — the latter two can't serve chat completions.
 export const MODEL_OPTIONS = {
   openai: ['gpt-6-luna', 'gpt-5.6-sol'],
-  gemini: ['gemini-3.5-flash-lite', 'gemini-3.8-flash']
+  gemini: ['gemini-3.5-flash-lite']
 }
 
 export const DEFAULT_MODELS = {

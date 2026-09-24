@@ -86,8 +86,8 @@ test('挿入位置は原文の画像の行で決め、古い行番号には引�
   const dup = fakeEditor('![x](x.png)\n\n本文\n\n![x](x.png)')
   expect(findImageLine(dup, 'x.png', 3)).toBe(4)
   expect(findImageLine(dup, 'x.png', 0)).toBe(0)
-  // 見つからなければ目安の行を使う
-  expect(findImageLine(cm, 'none.png', 2)).toBe(2)
+  // 名前があって見つからなければ-1（古い行番号には入れない）。名前が無ければ目安の行
+  expect(findImageLine(cm, 'none.png', 2)).toBe(-1)
   expect(findImageLine(cm, null, 2)).toBe(2)
 })
 
@@ -130,5 +130,5 @@ test('画像の行はファイル名の完全一致で探し、本文中の名�
   )
   expect(findImageLine(cm, 'b.png', 2)).toBe(6)
   expect(findImageLine(cm, '図.png', 0)).toBe(8)
-  expect(findImageLine(cm, 'none.png', 3)).toBe(3)
+  expect(findImageLine(cm, 'none.png', 3)).toBe(-1)
 })

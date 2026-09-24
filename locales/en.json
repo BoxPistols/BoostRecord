@@ -625,5 +625,19 @@
   "The image is too large to read (20 MB max).": "The image is too large to read (20 MB max).",
   "Could not download the image.": "Could not download the image.",
   "The image file was not found.": "The image file was not found.",
-  "Reading the image took too long.": "Reading the image took too long."
+  "Reading the image took too long.": "Reading the image took too long.",
+  "Discuss the text with AI": "Discuss the text with AI",
+  "Mode": "Mode",
+  "Revise": "Revise",
+  "Discuss": "Discuss",
+  "Thread": "Thread",
+  "New thread": "New thread",
+  "Summarize the key points": "Summarize the key points",
+  "What is missing?": "What is missing?",
+  "Questions to ask": "Questions to ask",
+  "Risks and concerns": "Risks and concerns",
+  "Ask anything about the text: sort out the points, find what is missing, or test an idea. The note is not changed in this mode.": "Ask anything about the text: sort out the points, find what is missing, or test an idea. The note is not changed in this mode.",
+  "The conversation is saved as a thread of this note, next to the note in its storage folder.": "The conversation is saved as a thread of this note, next to the note in its storage folder.",
+  "The saved threads of this note could not be read, so this conversation is not saved (to avoid overwriting them).": "The saved threads of this note could not be read, so this conversation is not saved (to avoid overwriting them).",
+  "Could not save this thread. The conversation continues.": "Could not save this thread. The conversation continues."
 }

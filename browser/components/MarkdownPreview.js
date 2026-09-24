@@ -30,6 +30,7 @@ import formatHTML, {
 import formatPDF from 'browser/main/lib/dataApi/formatPDF'
 import yaml from 'js-yaml'
 import i18n from 'browser/lib/i18n'
+import { openImageLightbox } from 'browser/lib/imageLightbox'
 import path from 'path'
 import { shell } from 'electron'
 const remote = require('@electron/remote')
@@ -768,73 +769,22 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   setImgOnClickEventHelper(img, rect) {
+    // 同じノートの画像を並び順で集め、左右キー・矢印・サムネイルで送れるようにする
     img.onclick = () => {
-      const widthMagnification = document.body.clientWidth / img.width
-      const heightMagnification = document.body.clientHeight / img.height
-      const baseOnWidth = widthMagnification < heightMagnification
-      const magnification = baseOnWidth
-        ? widthMagnification
-        : heightMagnification
-
-      const zoomImgWidth = img.width * magnification
-      const zoomImgHeight = img.height * magnification
-      const zoomImgTop = (document.body.clientHeight - zoomImgHeight) / 2
-      const zoomImgLeft = (document.body.clientWidth - zoomImgWidth) / 2
-      const originalImgTop = img.y + rect.top
-      const originalImgLeft = img.x + rect.left
-      const originalImgRect = {
-        top: `${originalImgTop}px`,
-        left: `${originalImgLeft}px`,
-        width: `${img.width}px`,
-        height: `${img.height}px`
-      }
-      const zoomInImgRect = {
-        top: `${baseOnWidth ? zoomImgTop : 0}px`,
-        left: `${baseOnWidth ? 0 : zoomImgLeft}px`,
-        width: `${zoomImgWidth}px`,
-        height: `${zoomImgHeight}px`
-      }
-      const animationSpeed = 300
-
-      const zoomImg = document.createElement('img')
-      zoomImg.src = img.src
-      zoomImg.style = `
-        position: absolute;
-        top: ${baseOnWidth ? zoomImgTop : 0}px;
-        left: ${baseOnWidth ? 0 : zoomImgLeft}px;
-        width: ${zoomImgWidth};
-        height: ${zoomImgHeight}px;
-        `
-      zoomImg.animate([originalImgRect, zoomInImgRect], animationSpeed)
-
-      const overlay = document.createElement('div')
-      overlay.style = `
-        background-color: rgba(0,0,0,0.5);
-        cursor: zoom-out;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: ${document.body.clientHeight}px;
-        z-index: 100;
-      `
-      overlay.onclick = () => {
-        zoomImg.style = `
-          position: absolute;
-          top: ${originalImgTop}px;
-          left: ${originalImgLeft}px;
-          width: ${img.width}px;
-          height: ${img.height}px;
-          `
-        const zoomOutImgAnimation = zoomImg.animate(
-          [zoomInImgRect, originalImgRect],
-          animationSpeed
-        )
-        zoomOutImgAnimation.onfinish = () => overlay.remove()
-      }
-
-      overlay.appendChild(zoomImg)
-      document.body.appendChild(overlay)
+      const frame = this.refs.root
+      const images = Array.from(
+        frame.contentWindow.document.body.querySelectorAll('img')
+      ).filter(el => typeof el.onclick === 'function')
+      openImageLightbox({
+        images,
+        index: Math.max(images.indexOf(img), 0),
+        frame,
+        labels: {
+          previous: i18n.__('Previous image'),
+          next: i18n.__('Next image'),
+          close: i18n.__('Close')
+        }
+      })
     }
   }
 

@@ -113,3 +113,22 @@ test('入れた文章だけを取り除き、変わっていれば何もしな�
   expect(removeAfterBlock(cm, 0, '結果\n2行目')).toBe(false)
   expect(cm.value()).toBe('![a](a.png)\n\n本文')
 })
+
+test('画像の行はファイル名の完全一致で探し、本文中の名前や似た名前は拾わない', () => {
+  const cm = fakeEditor(
+    [
+      '![a](:storage/n/a.png)',
+      '',
+      'b.pngのメモ（本文にファイル名が書いてある）',
+      '',
+      '![c](:storage/n/sub-b.png)',
+      '',
+      '![x](:storage/n/x.png) ![b](:storage/n/b.png)',
+      '',
+      '<img src="https://example.com/img/%E5%9B%B3.png" width="200">'
+    ].join('\n')
+  )
+  expect(findImageLine(cm, 'b.png', 2)).toBe(6)
+  expect(findImageLine(cm, '図.png', 0)).toBe(8)
+  expect(findImageLine(cm, 'none.png', 3)).toBe(3)
+})

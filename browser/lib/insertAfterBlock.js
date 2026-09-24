@@ -21,6 +21,20 @@ export function imageNeedle(src) {
   }
 }
 
+// 行に含まれる画像のURL（Markdownの![](url)とHTMLの<img src>）
+const IMAGE_URL_PATTERN = /!\[[^\]]*\]\(\s*<?([^)\s>]+)|<img\b[^>]*\bsrc=["']([^"']+)["']/gi
+
+// 行の中に、ファイル名がneedleと完全に一致する画像があるか。
+// 部分一致だと、本文にファイル名を書いた行や、名前の一部が重なる別の画像を拾う
+function hasImageNamed(line, needle) {
+  IMAGE_URL_PATTERN.lastIndex = 0
+  let m
+  while ((m = IMAGE_URL_PATTERN.exec(line))) {
+    if (imageNeedle(m[1] || m[2]) === needle) return true
+  }
+  return false
+}
+
 /**
  * 原文から画像の行を探す。同じ名前が複数あればhintLineに近い行を選ぶ
  * @param {Object} cm CodeMirrorのエディタ
@@ -32,7 +46,7 @@ export function findImageLine(cm, needle, hintLine) {
   if (!needle) return hintLine
   let best = -1
   for (let i = 0; i < cm.lineCount(); i++) {
-    if (cm.getLine(i).indexOf(needle) === -1) continue
+    if (!hasImageNamed(cm.getLine(i), needle)) continue
     const hint = hintLine >= 0 ? hintLine : 0
     if (best === -1 || Math.abs(i - hint) < Math.abs(best - hint)) best = i
   }

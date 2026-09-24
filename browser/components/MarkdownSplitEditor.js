@@ -6,6 +6,7 @@ import _ from 'lodash'
 
 import styles from './MarkdownSplitEditor.styl'
 import CSSModules from 'browser/lib/CSSModules'
+import { insertImageText, removeImageText } from 'browser/lib/insertAfterBlock'
 
 class MarkdownSplitEditor extends React.Component {
   constructor(props) {
@@ -481,6 +482,12 @@ class MarkdownSplitEditor extends React.Component {
           tabInde='0'
           value={value}
           onCheckboxClick={e => this.handleCheckboxClick(e)}
+          onInsertImageText={(src, line, text, previous) =>
+            insertImageText(this.refs.code.editor, src, line, text, previous)
+          }
+          onRemoveImageText={(src, line, text) =>
+            removeImageText(this.refs.code.editor, src, line, text)
+          }
           onScroll={e => this.handlePreviewScroll(e)}
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}

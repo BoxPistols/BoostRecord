@@ -62,3 +62,8 @@ it('既定値どうしでホットキーが重複しない', () => {
     .filter(Boolean)
   expect(new Set(values).size).toBe(values.length)
 })
+
+it('画像の文字の読み取り方式は、保存済み設定に無ければ既定値になり、保存した値は残る', () => {
+  expect(getWith({ ui: {} }).ocr.engine).toBe(DEFAULT_CONFIG.ocr.engine)
+  expect(getWith({ ocr: { engine: 'vision' } }).ocr.engine).toBe('vision')
+})

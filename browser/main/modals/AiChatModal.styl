@@ -36,14 +36,14 @@
 
 .message--user
   margin-bottom 16px
-  padding 10px 12px
-  border-radius 6px
+  padding 12px 14px
+  border-radius 8px
   background-color rgba(128, 128, 128, 0.14)
 
 .message--assistant
   margin-bottom 16px
-  padding 10px 12px
-  border-radius 6px
+  padding 12px 14px
+  border-radius 8px
   background-color rgba(128, 128, 128, 0.06)
   border 1px solid rgba(128, 128, 128, 0.18)
 
@@ -104,12 +104,14 @@
   font-family inherit
   font-size 14px
   line-height 1.6
-  padding 8px 10px
-  border 1px solid rgba(128, 128, 128, 0.4)
-  border-radius 4px
-  background-color transparent
+  padding 10px 12px
+  border 1px solid transparent
+  border-radius 6px
+  background-color rgba(128, 128, 128, 0.08)
   color inherit
   outline none
+  &:focus
+    border-color $ui-active-color
 
 .control-row
   display flex
@@ -123,9 +125,12 @@
   color $ui-inactive-text-color
 
 .send
-  colorPrimaryButton()
   border none
-  border-radius 4px
+  border-radius 16px
+  // 面は本文色、文字は背景色の反転。ライトボックスの押下状態と同じ作り
+  background-color $ui-text-color
+  color $ui-backgroundColor
+  font-family inherit
   font-size 14px
   height 32px
   padding 0 20px
@@ -145,10 +150,9 @@ apply-theme(theme)
       border-color get-theme-var(theme, 'borderColor')
     .control
       border-color get-theme-var(theme, 'borderColor')
-    .input
-      border-color get-theme-var(theme, 'borderColor')
-    .send
-      colorThemedPrimaryButton(theme)
+    .send, .apply
+      background-color get-theme-var(theme, 'text-color')
+      color get-theme-var(theme, 'backgroundColor')
 
 body[data-theme="dark"]
   .root
@@ -158,10 +162,9 @@ body[data-theme="dark"]
     border-color $ui-dark-borderColor
   .control
     border-color $ui-dark-borderColor
-  .input
-    border-color $ui-dark-borderColor
-  .send
-    colorDarkPrimaryButton()
+  .send, .apply
+    background-color $ui-dark-text-color
+    color $ui-dark-backgroundColor
 
 // 'white' はモーダル用の変数を持たないので入れない（空の宣言が出る）。
 // 'dark' は上の明示ブロックで扱う
@@ -237,11 +240,12 @@ for theme in $themes
   border-top 1px solid rgba(128, 128, 128, 0.35)
 
 .apply
-  padding 6px 14px
+  height 32px
+  padding 0 16px
   border none
-  border-radius 4px
-  background $ui-active-color
-  color #fff
+  border-radius 16px
+  background $ui-text-color
+  color $ui-backgroundColor
   font-family inherit
   font-size 13px
   cursor pointer

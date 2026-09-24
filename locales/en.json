@@ -620,5 +620,10 @@
   "Replaced the text inserted earlier": "Replaced the text inserted earlier",
   "Undo insert": "Undo insert",
   "Removed the inserted text": "Removed the inserted text",
-  "The inserted text was edited in the note, so it was not removed.": "The inserted text was edited in the note, so it was not removed."
+  "The inserted text was edited in the note, so it was not removed.": "The inserted text was edited in the note, so it was not removed.",
+  "On-device recognition is available on macOS 13 or later.": "On-device recognition is available on macOS 13 or later.",
+  "The image is too large to read (20 MB max).": "The image is too large to read (20 MB max).",
+  "Could not download the image.": "Could not download the image.",
+  "The image file was not found.": "The image file was not found.",
+  "Reading the image took too long.": "Reading the image took too long."
 }

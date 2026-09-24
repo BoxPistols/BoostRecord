@@ -782,7 +782,9 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // 画像の文字の読み取り。外部に送る方式は送り先が分かる名前にする
-  async buildImageOcrOptions() {
+  // imagesはライトボックスを開いたときの並び。押した時点で取り直すと、
+  // カルーセルの画像に後から onclick が付いて番号がずれ、別の画像の下に書き込む
+  async buildImageOcrOptions(images) {
     const { vision } = await getOcrCapabilities()
     const ai = ConfigManager.get().ai || {}
     const providerName = ai.provider === 'gemini' ? 'Google' : 'OpenAI'
@@ -796,7 +798,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const { onInsertImageText, onRemoveImageText } = this.props
     // 位置は編集側が原文から探す。data-lineは同名の画像が複数あるときの目安
     const locate = index => {
-      const target = this.getGalleryImages()[index]
+      const target = images[index]
       if (!target) return null
       const block = target.closest('[data-line]')
       const line = block ? parseInt(block.getAttribute('data-line'), 10) : -1
@@ -855,7 +857,7 @@ document.addEventListener('DOMContentLoaded', function () {
         images,
         index: Math.max(images.indexOf(img), 0),
         frame,
-        ocr: await this.buildImageOcrOptions(),
+        ocr: await this.buildImageOcrOptions(images),
         labels: {
           previous: i18n.__('Previous image'),
           next: i18n.__('Next image'),

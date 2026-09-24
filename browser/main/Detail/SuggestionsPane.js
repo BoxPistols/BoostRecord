@@ -205,11 +205,20 @@ class SuggestionsPane extends React.Component {
         <div styleName='list'>
           {suggestions.length === 0 ? (
             <div styleName='empty'>
-              {analyzing
-                ? i18n.__('Reading the text…')
-                : i18n.__(
-                    'Press Analyze. Each suggestion shows where, what, and why. Apply them one by one, or all at once.'
-                  )}
+              {analyzing ? (
+                <div aria-busy='true'>
+                  {i18n.__('Reading the text…')}
+                  <div styleName='skeleton' aria-hidden='true'>
+                    <div styleName='skeleton-line' />
+                    <div styleName='skeleton-line' />
+                    <div styleName='skeleton-line' />
+                  </div>
+                </div>
+              ) : (
+                i18n.__(
+                  'Press Analyze. Each suggestion shows where, what, and why. Apply them one by one, or all at once.'
+                )
+              )}
             </div>
           ) : filtered.length === 0 ? (
             <div styleName='empty'>

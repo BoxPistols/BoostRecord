@@ -5,6 +5,11 @@ import styles from './AiChatModal.styl'
 import ModalEscButton from 'browser/components/ModalEscButton'
 import i18n from 'browser/lib/i18n'
 import { buildHunks, applyHunks, countChanges } from 'browser/lib/textDiff'
+import {
+  loadThreads,
+  saveThread,
+  threadTitle
+} from 'browser/main/lib/dataApi/aiThreads'
 
 // 文章を AI と一緒に直すための窓。
 //
@@ -29,6 +34,43 @@ const SYSTEM = [
   'Keep everything the user did not ask you to change: facts, numbers, dates, links, code blocks, headings and list structure, front matter, and the original language. Do not add commentary outside the two parts.',
   'If the user only asks a question about the text and no change is wanted, answer briefly and omit the revised block.'
 ].join('\n')
+
+// 相談モード。本文は書き換えず、問いへの答えや論点の整理を返す
+const SYSTEM_DISCUSS = [
+  'You are a thinking partner inside a Markdown note app. The user shares a target text (a selection or a whole note) and wants to discuss its content: ask questions, test ideas, find gaps, and organize points.',
+  'Answer in the language of the target text. Be concrete and refer to specific parts of the text when useful. Use short paragraphs or bullet lists.',
+  'Do not rewrite the whole text and do not output a ```revised block. If the user asks for a rewrite, suggest switching to the Revise mode.'
+].join('\n')
+
+// 相談のときによく使う問いかけ
+const DISCUSS_ACTIONS = [
+  {
+    key: 'points',
+    label: 'Summarize the key points',
+    prompt: 'この内容の論点を整理してください。'
+  },
+  {
+    key: 'gaps',
+    label: 'What is missing?',
+    prompt: '抜けている観点や、確認しておくべきことを挙げてください。'
+  },
+  {
+    key: 'questions',
+    label: 'Questions to ask',
+    prompt: 'この内容について、相手に確認すべき質問を挙げてください。'
+  },
+  {
+    key: 'risks',
+    label: 'Risks and concerns',
+    prompt: 'この内容で気をつけるべきリスクや懸念を挙げてください。'
+  }
+]
+
+function newThreadId() {
+  return `t${Date.now().toString(36)}${Math.random()
+    .toString(36)
+    .slice(2, 8)}`
+}
 
 // よく使う指示。押すとそのまま送る
 const QUICK_ACTIONS = [
@@ -120,7 +162,19 @@ class AiChatModal extends React.Component {
     // ノート全体にしか意味の無い操作（校閲を反映）は選択があっても全体
     const scope =
       props.forceScope === 'note' || !hasSelection ? 'note' : 'selection'
+    // 相談スレッドの読み込み。保存先が分からない・読めないときは保存しない
+    const thread = props.thread
+    const loaded = thread
+      ? loadThreads(thread.storagePath, thread.noteKey)
+      : { ok: false, reason: 'NO_NOTE' }
+    this.threadsLoaded = loaded
     this.state = {
+      // 'edit'（直す）| 'discuss'（相談する）
+      mode: 'edit',
+      threadId: newThreadId(),
+      threadCreatedAt: Date.now(),
+      threads: loaded.ok ? loaded.threads : [],
+      saveError: null,
       // 'selection' | 'note'
       scope,
       // 対象の「いまの文章」。適用するとここが更新され、続きの土台になる
@@ -263,6 +317,9 @@ class AiChatModal extends React.Component {
         {
           scope,
           target: target || '',
+          // 会話を空にするので別のスレッドにする（前のスレッドを上書きしない）
+          threadId: newThreadId(),
+          threadCreatedAt: Date.now(),
           messages: [],
           applied: null,
           excluded: {},
@@ -303,7 +360,7 @@ class AiChatModal extends React.Component {
     // aiAssist は ConfigManager 経由で electron を読む。送る時に読む
     const { runAiPrompt } = require('browser/main/lib/aiAssist')
     runAiPrompt({
-      system: SYSTEM,
+      system: this.state.mode === 'discuss' ? SYSTEM_DISCUSS : SYSTEM,
       prompt: buildPrompt(this.state.target, history),
       onDelta: append,
       // 全文を返させるので既定の上限では途中で切れる
@@ -311,13 +368,16 @@ class AiChatModal extends React.Component {
     })
       .then(full => {
         if (!this.mounted) return
-        this.setState(prev => {
-          const next = prev.messages.slice()
-          if (!next[next.length - 1].content) {
-            next[next.length - 1] = { role: 'assistant', content: full }
-          }
-          return { messages: next, sending: false }
-        })
+        this.setState(
+          prev => {
+            const next = prev.messages.slice()
+            if (!next[next.length - 1].content) {
+              next[next.length - 1] = { role: 'assistant', content: full }
+            }
+            return { messages: next, sending: false }
+          },
+          () => this.persistThread()
+        )
       })
       .catch(err => {
         if (!this.mounted) return
@@ -330,6 +390,74 @@ class AiChatModal extends React.Component {
           return { messages, sending: false, error: err.message }
         })
       })
+  }
+
+  // 返答が届き終わるたびに、いまのスレッドを保存する
+  persistThread() {
+    const { thread } = this.props
+    const { messages, mode, threadId, threadCreatedAt } = this.state
+    if (!thread || !this.threadsLoaded.ok || messages.length === 0) return
+    const result = saveThread(
+      thread.storagePath,
+      thread.noteKey,
+      this.threadsLoaded,
+      {
+        id: threadId,
+        mode,
+        title: threadTitle(messages),
+        createdAt: threadCreatedAt,
+        updatedAt: Date.now(),
+        messages
+      }
+    )
+    if (!this.mounted) return
+    if (result.ok) {
+      this.threadsLoaded = result
+      this.setState({ threads: result.threads, saveError: null })
+    } else {
+      this.setState({ saveError: result.reason })
+    }
+  }
+
+  // 新しいスレッドを始める。いまの対象はそのまま
+  handleNewThread(mode) {
+    this.setState({
+      mode: mode || this.state.mode,
+      threadId: newThreadId(),
+      threadCreatedAt: Date.now(),
+      messages: [],
+      applied: null,
+      excluded: {},
+      view: {},
+      error: null
+    })
+  }
+
+  // 直す / 相談するを切り替える。会話の型が違うので、新しいスレッドにする
+  handleModeChange(mode) {
+    if (mode === this.state.mode || this.state.sending) return
+    this.handleNewThread(mode)
+  }
+
+  // 過去のスレッドを開く。対象はいまのノートの内容で続ける
+  handleOpenThread(id) {
+    if (this.state.sending) return
+    if (!id) {
+      this.handleNewThread()
+      return
+    }
+    const found = this.state.threads.find(t => t.id === id)
+    if (!found) return
+    this.setState({
+      mode: found.mode === 'discuss' ? 'discuss' : 'edit',
+      threadId: found.id,
+      threadCreatedAt: found.createdAt || Date.now(),
+      messages: found.messages || [],
+      applied: null,
+      excluded: {},
+      view: {},
+      error: null
+    })
   }
 
   // 採用した差分だけで対象を置き換える。窓は閉じず、次の指示の土台にする
@@ -515,7 +643,21 @@ class AiChatModal extends React.Component {
   }
 
   render() {
-    const { messages, input, sending, error, scope, target } = this.state
+    const {
+      messages,
+      input,
+      sending,
+      error,
+      scope,
+      target,
+      mode,
+      threads,
+      threadId,
+      saveError
+    } = this.state
+    const discuss = mode === 'discuss'
+    const actions = discuss ? DISCUSS_ACTIONS : QUICK_ACTIONS
+    const canSave = !!this.props.thread && this.threadsLoaded.ok
     const hasSelection = !!(this.props.selection && this.props.selection.trim())
     const hasNote = !!(this.props.noteContent && this.props.noteContent.trim())
     const shortcut = /Mac|iPhone|iPad|iPod/.test(
@@ -531,7 +673,32 @@ class AiChatModal extends React.Component {
         onKeyDown={e => this.handleKeyDown(e)}
       >
         <div styleName='header'>
-          <div styleName='title'>{i18n.__('Improve the text with AI')}</div>
+          <div styleName='title'>
+            {discuss
+              ? i18n.__('Discuss the text with AI')
+              : i18n.__('Improve the text with AI')}
+          </div>
+          {/* 直す（全文を返す）と相談する（問いに答える）の切り替え */}
+          <div styleName='mode' role='group' aria-label={i18n.__('Mode')}>
+            <button
+              type='button'
+              styleName={discuss ? 'mode-button' : 'mode-button--active'}
+              aria-pressed={!discuss}
+              disabled={sending}
+              onClick={() => this.handleModeChange('edit')}
+            >
+              {i18n.__('Revise')}
+            </button>
+            <button
+              type='button'
+              styleName={discuss ? 'mode-button--active' : 'mode-button'}
+              aria-pressed={discuss}
+              disabled={sending}
+              onClick={() => this.handleModeChange('discuss')}
+            >
+              {i18n.__('Discuss')}
+            </button>
+          </div>
           <div styleName='history'>
             <button
               type='button'
@@ -557,6 +724,38 @@ class AiChatModal extends React.Component {
           </div>
           <ModalEscButton handleEscButtonClick={() => this.props.close()} />
         </div>
+
+        {/* スレッド。このノートで前に話した続きから始められる */}
+        {canSave && (
+          <div styleName='threads'>
+            <span styleName='scope-label'>{i18n.__('Thread')}</span>
+            <select
+              styleName='threads-select'
+              value={threads.some(t => t.id === threadId) ? threadId : ''}
+              disabled={sending}
+              onChange={e => this.handleOpenThread(e.target.value)}
+            >
+              <option value=''>{i18n.__('New thread')}</option>
+              {threads.map(t => (
+                <option key={t.id} value={t.id}>
+                  {`${
+                    t.mode === 'discuss'
+                      ? i18n.__('Discuss')
+                      : i18n.__('Revise')
+                  } · ${new Date(t.updatedAt).toLocaleString()} · ${t.title}`}
+                </option>
+              ))}
+            </select>
+            <button
+              type='button'
+              styleName='threads-new'
+              disabled={sending || messages.length === 0}
+              onClick={() => this.handleNewThread()}
+            >
+              {i18n.__('New thread')}
+            </button>
+          </div>
+        )}
 
         {/* 対象。どこを直すのかを最初に決める */}
         <div styleName='scope'>
@@ -602,14 +801,26 @@ class AiChatModal extends React.Component {
           {messages.length === 0 ? (
             <div styleName='empty'>
               <p>
-                {i18n.__(
-                  'Pick what to do below, or type your own request. The AI replies with a list of changes and the revised text. Press Replace to put it into the note, then keep refining.'
-                )}
+                {discuss
+                  ? i18n.__(
+                      'Ask anything about the text: sort out the points, find what is missing, or test an idea. The note is not changed in this mode.'
+                    )
+                  : i18n.__(
+                      'Pick what to do below, or type your own request. The AI replies with a list of changes and the revised text. Press Replace to put it into the note, then keep refining.'
+                    )}
               </p>
               <p>
-                {i18n.__(
-                  'The conversation is not saved. It is gone when this window closes.'
-                )}
+                {canSave
+                  ? i18n.__(
+                      'The conversation is saved as a thread of this note, next to the note in its storage folder.'
+                    )
+                  : this.props.thread
+                  ? i18n.__(
+                      'The saved threads of this note could not be read, so this conversation is not saved (to avoid overwriting them).'
+                    )
+                  : i18n.__(
+                      'The conversation is not saved. It is gone when this window closes.'
+                    )}
               </p>
             </div>
           ) : (
@@ -618,10 +829,15 @@ class AiChatModal extends React.Component {
         </div>
 
         {error !== null && <div styleName='error'>{error}</div>}
+        {saveError !== null && (
+          <div styleName='error'>
+            {i18n.__('Could not save this thread. The conversation continues.')}
+          </div>
+        )}
 
         <div styleName='control'>
           <div styleName='quick'>
-            {QUICK_ACTIONS.map(a => (
+            {actions.map(a => (
               <button
                 key={a.key}
                 type='button'

@@ -382,3 +382,90 @@ for theme in $themes
   margin-left auto
   font-variant-numeric tabular-nums
   color $ui-inactive-text-color
+
+// 直す / 相談するの切り替え。選択中は面の色と文字の太さで示す
+.mode
+  display inline-flex
+  gap 2px
+  margin-left 16px
+  padding 3px
+  border-radius 18px
+  background-color rgba(128, 128, 128, 0.14)
+
+.mode-button
+  height 28px
+  padding 0 14px
+  border none
+  border-radius 14px
+  background transparent
+  color inherit
+  font-family inherit
+  font-size 13px
+  cursor pointer
+  &:disabled
+    opacity 0.5
+    cursor default
+
+.mode-button--active
+  @extend .mode-button
+  background-color $ui-backgroundColor
+  font-weight 600
+  box-shadow 0 1px 2px rgba(0, 0, 0, 0.18)
+
+// このノートのスレッド
+.threads
+  display flex
+  align-items center
+  gap 10px
+  padding 10px 20px
+  border-bottom $ui-border
+  font-size 13px
+
+.threads-select
+  flex 1 1 auto
+  min-width 0
+  height 30px
+  padding 0 8px
+  border 1px solid transparent
+  border-radius 6px
+  background-color rgba(128, 128, 128, 0.08)
+  color inherit
+  font-family inherit
+  font-size 13px
+  &:focus
+    outline none
+    border-color $ui-active-color
+
+.threads-new
+  flex 0 0 auto
+  height 30px
+  padding 0 12px
+  border 1px solid rgba(128, 128, 128, 0.4)
+  border-radius 15px
+  background transparent
+  color inherit
+  font-family inherit
+  font-size 12px
+  cursor pointer
+  &:disabled
+    opacity 0.45
+    cursor default
+
+apply-mode-theme(theme)
+  body[data-theme={theme}]
+    .mode-button--active
+      background-color get-theme-var(theme, 'backgroundColor')
+    .threads
+      border-color get-theme-var(theme, 'borderColor')
+
+body[data-theme="dark"]
+  .mode-button--active
+    background-color $ui-dark-backgroundColor
+  .threads
+    border-color $ui-dark-borderColor
+
+for theme in 'solarized-dark' 'dracula'
+  apply-mode-theme(theme)
+
+for theme in $themes
+  apply-mode-theme(theme)

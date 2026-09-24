@@ -814,5 +814,18 @@
   "Ask anything about the text: sort out the points, find what is missing, or test an idea. The note is not changed in this mode.": "内容について自由に相談できます。論点の整理、抜けている観点の洗い出し、考えの壁打ちなど。このモードではノートは書き換わりません。",
   "The conversation is saved as a thread of this note, next to the note in its storage folder.": "会話はこのノートのスレッドとして、ノートの保存先フォルダに残ります。",
   "The saved threads of this note could not be read, so this conversation is not saved (to avoid overwriting them).": "このノートの保存済みスレッドを読めなかったため、上書きしないよう、この会話は保存しません。",
-  "Could not save this thread. The conversation continues.": "このスレッドを保存できませんでした。会話はこのまま続けられます。"
+  "Could not save this thread. The conversation continues.": "このスレッドを保存できませんでした。会話はこのまま続けられます。",
+  "Exact match": "完全一致",
+  "Same meaning": "意味の重複",
+  "%s places": "%sか所",
+  "Line %s": "%s行目",
+  "Go": "移動",
+  "Duplicates": "重複",
+  "Hide duplicates": "重複を閉じる",
+  "Check again": "調べ直す",
+  "No exact duplicates.": "完全一致の重複はありません。",
+  "Same meaning (AI)": "意味の重複（AI）",
+  "Asking the AI about passages with the same meaning…": "意味が同じ箇所をAIに確認しています…",
+  "No passages with the same meaning.": "意味が同じ箇所はありません。",
+  "The AI did not return the result in a readable form. Try again.": "AIの応答を読み取れませんでした。もう一度試してください。"
 }

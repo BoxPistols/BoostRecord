@@ -371,6 +371,13 @@ const buildEditorContextMenu = function(editor, event) {
             eventEmitter.emit('detail:suggest')
           }
         },
+        {
+          // 本文は書き換えず、同じことが書かれた箇所を並べるだけ
+          label: '重複を検出（書き換えない・ノート全体）',
+          click: function() {
+            eventEmitter.emit('detail:duplicates')
+          }
+        },
         { type: 'separator' }
       ].concat(
         AI_MENU_ITEMS.map(function(item) {

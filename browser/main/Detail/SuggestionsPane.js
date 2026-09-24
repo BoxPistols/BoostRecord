@@ -49,7 +49,8 @@ class SuggestionsPane extends React.Component {
         data-suggestion-id={s.id}
       >
         <div styleName='card-head'>
-          <span styleName={`chip chip--${s.type}`}>
+          {/* styleNameに2つ並べると描画時に例外になる。chip--*は.chipを@extendしている */}
+          <span styleName={`chip--${s.type}`}>
             {i18n.__(TYPE_LABELS[s.type] || s.type)}
           </span>
           {done && (

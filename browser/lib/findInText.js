@@ -21,6 +21,12 @@ export function findMatches(text, query, options) {
   if (typeof text !== 'string' || typeof query !== 'string') return []
   if (query === '') return []
 
+  // 複数行の検索語。空白と改行の違いはエディタとプレビューで食い違う（プレビューは
+  // 空行の数が変わり、ブロックの区切りに文字が無いこともある）ので、並びとして照合する
+  if (/\s/.test(query) && query.trim() !== '') {
+    return findFlexibleMatches(text, query, opts)
+  }
+
   const haystack = opts.caseSensitive ? text : text.toLowerCase()
   const needle = opts.caseSensitive ? query : query.toLowerCase()
   // 大文字小文字を畳むと長さが変わる文字（ẞ 等）があると、位置が
@@ -36,6 +42,35 @@ export function findMatches(text, query, options) {
     if (index === -1) break
     out.push({ start: index, end: index + needle.length })
     from = index + needle.length
+  }
+  return out
+}
+
+function escapeRegExp(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ * 空白を含む検索語の照合。改行を含む空白の並びは0文字以上の空白に、
+ * 空白だけの並びは1文字以上の空白に当てる。前後の空白は無視する
+ */
+function findFlexibleMatches(text, query, opts) {
+  const parts = query.trim().split(/(\s+)/)
+  const source = parts
+    .map(part => {
+      if (!/^\s+$/.test(part)) return escapeRegExp(part)
+      return /\n/.test(part) ? '\\s*' : '\\s+'
+    })
+    .join('')
+  const re = new RegExp(source, opts.caseSensitive ? 'g' : 'gi')
+  const out = []
+  let m
+  while ((m = re.exec(text))) {
+    if (m[0].length === 0) {
+      re.lastIndex++
+      continue
+    }
+    out.push({ start: m.index, end: m.index + m[0].length })
   }
   return out
 }

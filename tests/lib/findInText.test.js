@@ -97,3 +97,35 @@ describe('formatCount', () => {
     expect(formatCount(-1, 0)).toBe('0 / 0')
   })
 })
+
+describe('複数行の検索語', () => {
+  test('改行の数が違っても、空行を挟んでも並びのまま見つける', () => {
+    const text =
+      '【業務内容】\n今回は、モックの作成です。\n\n・画面イメージの作成'
+    const hits = findMatches(
+      text,
+      '今回は、モックの作成です。\n・画面イメージの作成'
+    )
+    expect(hits).toHaveLength(1)
+    expect(text.slice(hits[0].start, hits[0].end)).toBe(
+      '今回は、モックの作成です。\n\n・画面イメージの作成'
+    )
+  })
+
+  test('プレビューのようにブロックの間に文字が無くても見つける', () => {
+    const text = '【業務内容】今回は、モックの作成です。'
+    expect(findMatches(text, '【業務内容】\n今回は')).toHaveLength(1)
+  })
+
+  test('語の間の空白は1文字以上の空白に当て、正規表現の記号はそのまま探す', () => {
+    expect(findMatches('a  b\na b', 'a b')).toHaveLength(2)
+    expect(findMatches('ab', 'a b')).toHaveLength(0)
+    expect(
+      findMatches('価格(税込) 1.5倍\n価格X税込Y 105倍', '(税込) 1.5')
+    ).toHaveLength(1)
+  })
+
+  test('空白だけの検索語は従来どおり文字として探す', () => {
+    expect(findMatches('a b c', ' ')).toHaveLength(2)
+  })
+})

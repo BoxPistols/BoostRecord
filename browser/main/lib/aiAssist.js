@@ -137,7 +137,7 @@ const TEST_PROMPT = 'ping'
 // Electron は ipcMain.handle の reject を
 // 「Error invoking remote method 'ai:run': Error: <本文>」で包む。
 // 設定画面にそのまま出すと読めないので本文だけ取り出す
-function unwrapIpcError(err) {
+export function unwrapIpcError(err) {
   // message が空文字の Error だと String(err) は "Error" になり、
   // 利用者には何も伝わらない。message があればそれだけを見る
   const raw = err && typeof err.message === 'string' ? err.message : String(err)

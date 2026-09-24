@@ -9,6 +9,7 @@ import eventEmitter from 'browser/main/lib/eventEmitter'
 import { findStorage } from 'browser/lib/findStorage'
 import ConfigManager from 'browser/main/lib/ConfigManager'
 import attachmentManagement from 'browser/main/lib/dataApi/attachmentManagement'
+import { insertImageText, removeImageText } from 'browser/lib/insertAfterBlock'
 
 class MarkdownEditor extends React.Component {
   constructor(props) {
@@ -461,6 +462,12 @@ class MarkdownEditor extends React.Component {
           onMouseUp={e => this.handlePreviewMouseUp(e)}
           onMouseDown={e => this.handlePreviewMouseDown(e)}
           onCheckboxClick={e => this.handleCheckboxClick(e)}
+          onInsertImageText={(src, line, text, previous) =>
+            insertImageText(this.refs.code.editor, src, line, text, previous)
+          }
+          onRemoveImageText={(src, line, text) =>
+            removeImageText(this.refs.code.editor, src, line, text)
+          }
           showCopyNotification={config.ui.showCopyNotification}
           storagePath={storage.path}
           noteKey={noteKey}

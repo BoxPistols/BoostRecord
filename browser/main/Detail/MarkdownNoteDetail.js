@@ -36,6 +36,7 @@ import { replace } from 'connected-react-router'
 import ToggleDirectionButton from 'browser/main/Detail/ToggleDirectionButton'
 import ReadAloudPlayer from './ReadAloudPlayer'
 import SuggestionsPane from './SuggestionsPane'
+import DuplicatesPane from './DuplicatesPane'
 import ttsPlayer from 'browser/main/lib/ttsPlayer'
 import TocPane from 'browser/main/Detail/TocPane'
 const { ipcRenderer } = require('electron')
@@ -103,6 +104,12 @@ class MarkdownNoteDetail extends React.Component {
       suggestError: null,
       suggestCategory: 'all',
       suggestScopeLabel: '',
+      // 重複のペイン（改善提案と同じ右の列。同時には開かない）
+      dupOpen: false,
+      dupExact: [],
+      dupSemantic: [],
+      dupSemanticState: 'idle',
+      dupSemanticError: null,
       isMovingNote: false,
       note: Object.assign(
         {
@@ -465,6 +472,9 @@ class MarkdownNoteDetail extends React.Component {
     // 右クリック › AI › 改善提案。開いてすぐ分析する
     this.suggestHandler = () => this.handleToggleSuggest(true, true)
     ee.on('detail:suggest', this.suggestHandler)
+    // 右クリック › AI › 重複を検出。開いてすぐ調べる
+    this.duplicatesHandler = () => this.handleToggleDuplicates(true)
+    ee.on('detail:duplicates', this.duplicatesHandler)
     // 「AIで文章を改善する」窓をメニュー以外（ホットキー / probe）から開く
     this.aiChatHandler = () => {
       const cm = _.get(this.refs, 'content.refs.code.editor')
@@ -482,9 +492,86 @@ class MarkdownNoteDetail extends React.Component {
    */
   handleToggleSuggest(open, analyzeNow) {
     if (!open) this.clearSuggestionMarks()
-    this.setState({ suggestOpen: !!open }, () => {
+    // 同じ列を使うので、重複のペインは閉じる
+    this.setState({ suggestOpen: !!open, dupOpen: false }, () => {
       if (open && analyzeNow) this.runSuggest('')
     })
+  }
+
+  /**
+   * 重複のペインの表示切替。開くときはノート全体を調べ直す
+   * @param {boolean} open
+   */
+  handleToggleDuplicates(open) {
+    if (open) this.clearSuggestionMarks()
+    this.setState({ dupOpen: !!open, suggestOpen: false }, () => {
+      if (open) this.runDuplicates()
+    })
+  }
+
+  // 完全一致は端末内ですぐに出し、意味の重複はAIの応答を待って足す。本文は書き換えない
+  runDuplicates() {
+    const {
+      findExactDuplicates,
+      parseSemanticGroups,
+      SEMANTIC_SYSTEM
+    } = require('browser/lib/findDuplicates')
+    const text = this.state.note.content || ''
+    const exact = findExactDuplicates(text)
+    const runId = (this.dupRunId = (this.dupRunId || 0) + 1)
+    this.setState({
+      dupExact: exact,
+      dupSemantic: [],
+      dupSemanticState: text.trim() ? 'running' : 'done',
+      dupSemanticError: null
+    })
+    if (!text.trim()) return
+    const { runAiPrompt } = require('browser/main/lib/aiAssist')
+    runAiPrompt({
+      system: SEMANTIC_SYSTEM,
+      prompt: text,
+      maxOutputTokens: 4000
+    }).then(
+      content => {
+        // 調べ直した後に届いた古い応答は捨てる
+        if (this.unmounted || runId !== this.dupRunId) return
+        const result = parseSemanticGroups(content, text, exact)
+        this.setState(
+          result.parsed
+            ? { dupSemantic: result.groups, dupSemanticState: 'done' }
+            : {
+                dupSemanticState: 'error',
+                dupSemanticError: i18n.__(
+                  'The AI did not return the result in a readable form. Try again.'
+                )
+              }
+        )
+      },
+      err => {
+        if (this.unmounted || runId !== this.dupRunId) return
+        this.setState({
+          dupSemanticState: 'error',
+          dupSemanticError: (err && err.message) || String(err)
+        })
+      }
+    )
+  }
+
+  // 箇所へ移動して選択する。調べた後に本文が変わっていたら、同じ文字列を探し直す
+  locateDuplicate(occurrence) {
+    const cm = _.get(this.refs, 'content.refs.code.editor')
+    if (!cm) return
+    const doc = cm.getValue()
+    let at = occurrence.start
+    if (doc.slice(at, at + occurrence.text.length) !== occurrence.text) {
+      at = doc.indexOf(occurrence.text)
+      if (at === -1) return
+    }
+    const from = cm.posFromIndex(at)
+    const to = cm.posFromIndex(at + occurrence.text.length)
+    cm.setSelection(from, to)
+    cm.scrollIntoView({ from, to }, 120)
+    cm.focus()
   }
 
   // 対象。右クリック時に選択があれば選択範囲、無ければノート全体
@@ -786,6 +873,10 @@ class MarkdownNoteDetail extends React.Component {
       if (this.state.suggestions.length) {
         this.setState({ suggestions: [], suggestError: null })
       }
+      // 重複も前のノートのもの。開いていれば新しいノートで調べ直す
+      if (this.state.dupOpen) {
+        this.runDuplicates()
+      }
     }
     const hasDeletedTags =
       nextProps.note.tags.length < this.props.note.tags.length
@@ -820,6 +911,7 @@ class MarkdownNoteDetail extends React.Component {
   componentWillUnmount() {
     this.unmounted = true
     ee.off('detail:suggest', this.suggestHandler)
+    ee.off('detail:duplicates', this.duplicatesHandler)
     ee.off('detail:aichat', this.aiChatHandler)
     this.clearSuggestionMarks()
     ee.off('detail:readaloud', this.readAloudHandler)
@@ -1467,12 +1559,14 @@ class MarkdownNoteDetail extends React.Component {
         >
           <div
             styleName={
-              showToc || this.state.suggestOpen
+              showToc || this.state.suggestOpen || this.state.dupOpen
                 ? 'body-editor--with-toc'
                 : 'body-editor'
             }
             style={
-              showToc || this.state.suggestOpen ? { right: tocSize } : undefined
+              showToc || this.state.suggestOpen || this.state.dupOpen
+                ? { right: tocSize }
+                : undefined
             }
           >
             {this.renderEditor()}
@@ -1504,7 +1598,27 @@ class MarkdownNoteDetail extends React.Component {
               />
             </div>
           )}
-          {showToc && !this.state.suggestOpen && (
+          {this.state.dupOpen && (
+            <div styleName='body-toc' style={{ width: tocSize }}>
+              <div
+                styleName='toc-slider'
+                onMouseDown={e => this.handleTocSliderMouseDown(e)}
+                draggable='false'
+              >
+                <div styleName='toc-slider-hitbox' />
+              </div>
+              <DuplicatesPane
+                exactGroups={this.state.dupExact}
+                semanticGroups={this.state.dupSemantic}
+                semanticState={this.state.dupSemanticState}
+                semanticError={this.state.dupSemanticError}
+                onRun={() => this.runDuplicates()}
+                onLocate={o => this.locateDuplicate(o)}
+                onClose={() => this.handleToggleDuplicates(false)}
+              />
+            </div>
+          )}
+          {showToc && !this.state.suggestOpen && !this.state.dupOpen && (
             <div styleName='body-toc' style={{ width: tocSize }}>
               <div
                 styleName='toc-slider'

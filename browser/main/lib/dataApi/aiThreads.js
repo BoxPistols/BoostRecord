@@ -4,6 +4,7 @@
 // 0バイトや途中までに見えたりする。これを「スレッド無し」とみなして保存すると、既存の
 // スレッドを空で上書きして消してしまう。そこで新規作成してよいのはファイルが存在しない
 // （ENOENT）ときだけにし、読めない・解析できないときは保存しない。
+const crypto = require('crypto')
 const fs = require('fs')
 const path = require('path')
 
@@ -70,7 +71,8 @@ export function saveThread(storagePath, noteKey, loaded, thread) {
   try {
     fs.mkdirSync(path.dirname(file), { recursive: true })
     // 一時ファイルに書いてから置き換える。途中で止まっても元のファイルは残る
-    const tmp = `${file}.${process.pid}.${Date.now()}.tmp`
+    // 名前に乱数を入れ、ほかのプロセスの一時ファイルと重ならないようにする
+    const tmp = `${file}.${crypto.randomBytes(8).toString('hex')}.tmp`
     fs.writeFileSync(tmp, body, { flag: 'wx' })
     fs.renameSync(tmp, file)
   } catch (err) {

@@ -768,5 +768,7 @@
   "Undo": "元に戻す",
   "Redo": "やり直す",
   "AI: improve the text": "AI: 文章を改善する窓を開く",
-  "AI: suggestions": "AI: 改善提案を出す"
+  "AI: suggestions": "AI: 改善提案を出す",
+  "Previous image": "前の画像",
+  "Next image": "次の画像"
 }

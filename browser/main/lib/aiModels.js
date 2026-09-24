@@ -31,6 +31,33 @@ export const DEFAULT_MODELS = {
 // 載っていないモデルは注記なしで出す（推測で書かない）
 export const MODEL_NOTES = {}
 
+// 料金の概算に使う単価（米ドル / 100万トークン）。公式ページで確かめたものだけ載せ、
+// 載っていないモデルは料金を出さない（推測で書かない）。
+//   gpt-6-luna: developers.openai.com/api/docs/models/gpt-6-luna 2026-09-25確認
+export const MODEL_PRICING = {
+  'gpt-6-luna': { input: 0.1, cachedInput: 0.01, output: 0.5 }
+}
+
+/**
+ * 使用量から料金を概算する。キャッシュ済みの入力は安い単価で数える
+ * @param {string} model
+ * @param {{inputTokens:number, cachedInputTokens:number, outputTokens:number}} usage
+ * @returns {number|null} 米ドル。単価が無ければnull
+ */
+export function estimateCostUsd(model, usage) {
+  const price = MODEL_PRICING[model]
+  if (!price || !usage) return null
+  const cached = Math.min(usage.cachedInputTokens || 0, usage.inputTokens || 0)
+  const uncached = (usage.inputTokens || 0) - cached
+  const cachedRate = price.cachedInput == null ? price.input : price.cachedInput
+  return (
+    (uncached * price.input +
+      cached * cachedRate +
+      (usage.outputTokens || 0) * price.output) /
+    1e6
+  )
+}
+
 /**
  * モデル選択に出す表示名。`<モデルID> （既定・注記）` のように、
  * 選ぶ前に要る情報だけ括弧で添える。注記が無いモデルは ID だけを返す。

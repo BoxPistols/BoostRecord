@@ -31,6 +31,12 @@ import formatPDF from 'browser/main/lib/dataApi/formatPDF'
 import yaml from 'js-yaml'
 import i18n from 'browser/lib/i18n'
 import { openImageLightbox } from 'browser/lib/imageLightbox'
+import {
+  getOcrCapabilities,
+  getOcrEngine,
+  setOcrEngine,
+  extractImageText
+} from 'browser/main/lib/imageOcr'
 import path from 'path'
 import { shell } from 'electron'
 const remote = require('@electron/remote')
@@ -768,17 +774,88 @@ document.addEventListener('DOMContentLoaded', function () {
     markImageRows(this.refs.root.contentWindow.document)
   }
 
+  // 同じノートの画像を並び順で集める。挿入で再描画された後も同じ順で引けるよう毎回取り直す
+  getGalleryImages() {
+    return Array.from(
+      this.refs.root.contentWindow.document.body.querySelectorAll('img')
+    ).filter(el => typeof el.onclick === 'function')
+  }
+
+  // 画像の文字の読み取り。外部に送る方式は送り先が分かる名前にする
+  async buildImageOcrOptions() {
+    const { vision } = await getOcrCapabilities()
+    const ai = ConfigManager.get().ai || {}
+    const providerName = ai.provider === 'gemini' ? 'Google' : 'OpenAI'
+    const engines = [
+      { id: 'ai', label: i18n.__('AI (sent to %s)', providerName) }
+    ]
+    if (vision) {
+      engines.push({ id: 'vision', label: i18n.__('On device (macOS)') })
+    }
+    const saved = getOcrEngine()
+    const { onInsertImageText, onRemoveImageText } = this.props
+    // 位置は編集側が原文から探す。data-lineは同名の画像が複数あるときの目安
+    const locate = index => {
+      const target = this.getGalleryImages()[index]
+      if (!target) return null
+      const block = target.closest('[data-line]')
+      const line = block ? parseInt(block.getAttribute('data-line'), 10) : -1
+      return { src: target.src, line }
+    }
+    return {
+      engines,
+      engine: engines.some(e => e.id === saved) ? saved : 'ai',
+      onEngineChange: setOcrEngine,
+      extract: extractImageText,
+      copy: text => copy(text),
+      insert: onInsertImageText
+        ? (index, text, previous) => {
+            const at = locate(index)
+            return at
+              ? onInsertImageText(at.src, at.line, text, previous)
+              : false
+          }
+        : null,
+      remove: onRemoveImageText
+        ? (index, text) => {
+            const at = locate(index)
+            return at ? onRemoveImageText(at.src, at.line, text) : false
+          }
+        : null,
+      labels: {
+        extract: i18n.__('Extract text'),
+        title: i18n.__('Text in the image'),
+        engine: i18n.__('Recognition method'),
+        run: i18n.__('Read this image'),
+        retry: i18n.__('Read again'),
+        running: i18n.__('Reading...'),
+        empty: i18n.__('No text was found.'),
+        copy: i18n.__('Copy'),
+        copied: i18n.__('Copied'),
+        insert: i18n.__('Insert into note'),
+        inserted: i18n.__('Inserted below the image'),
+        insertFailed: i18n.__('Could not find where to insert.'),
+        alreadyInserted: i18n.__('This text is already below the image.'),
+        replaced: i18n.__('Replaced the text inserted earlier'),
+        undo: i18n.__('Undo insert'),
+        undone: i18n.__('Removed the inserted text'),
+        undoFailed: i18n.__(
+          'The inserted text was edited in the note, so it was not removed.'
+        )
+      }
+    }
+  }
+
   setImgOnClickEventHelper(img, rect) {
     // 同じノートの画像を並び順で集め、左右キー・矢印・サムネイルで送れるようにする
-    img.onclick = () => {
+    img.onclick = async () => {
       const frame = this.refs.root
-      const images = Array.from(
-        frame.contentWindow.document.body.querySelectorAll('img')
-      ).filter(el => typeof el.onclick === 'function')
+      const images = this.getGalleryImages()
       openImageLightbox({
         images,
         index: Math.max(images.indexOf(img), 0),
         frame,
+        ocr: await this.buildImageOcrOptions(),
         labels: {
           previous: i18n.__('Previous image'),
           next: i18n.__('Next image'),
@@ -956,6 +1033,8 @@ MarkdownPreview.propTypes = {
   onMouseUp: PropTypes.func,
   onMouseDown: PropTypes.func,
   onContextMenu: PropTypes.func,
+  onInsertImageText: PropTypes.func,
+  onRemoveImageText: PropTypes.func,
   className: PropTypes.string,
   value: PropTypes.string,
   showCopyNotification: PropTypes.bool,

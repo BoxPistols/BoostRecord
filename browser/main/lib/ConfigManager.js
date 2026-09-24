@@ -242,6 +242,10 @@ export const DEFAULT_CONFIG = {
     provider: 'openai', // 'openai' | 'gemini'
     openai: { apiKey: '', model: DEFAULT_MODELS.openai },
     gemini: { apiKey: '', model: DEFAULT_MODELS.gemini }
+  },
+  // 画像の文字の読み取り方式。'ai' は設定中のモデルに画像を送る、'vision' はmacOS標準の文字認識で端末内だけで処理する
+  ocr: {
+    engine: 'ai'
   }
 }
 

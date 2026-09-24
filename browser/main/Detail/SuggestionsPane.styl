@@ -26,31 +26,29 @@ $sug-accept = #2b8976
   align-items center
   justify-content space-between
   gap 6px
-  padding 6px 6px 6px 10px
+  padding 12px 12px 12px 16px
   border-bottom $ui-border
 
 .title
-  font-size 12px
-  font-weight 700
-  letter-spacing 0.06em
-  text-transform uppercase
-  color $ui-inactive-text-color
+  font-size 14px
+  font-weight 600
+  color $ui-text-color
   white-space nowrap
 
 .title-count
   margin-left 8px
+  font-size 12px
   font-weight 400
-  letter-spacing 0
-  text-transform none
+  color $ui-inactive-text-color
   font-variant-numeric tabular-nums
 
 .close
   flex 0 0 auto
-  width 22px
-  height 22px
+  width 28px
+  height 28px
   padding 0
   border none
-  border-radius 4px
+  border-radius 50%
   background-color transparent
   color $ui-inactive-text-color
   cursor pointer
@@ -62,8 +60,8 @@ $sug-accept = #2b8976
   flex 0 0 auto
   display flex
   flex-direction column
-  gap 6px
-  padding 8px 10px
+  gap 8px
+  padding 12px 16px
   border-bottom $ui-border
 
 .run-scope
@@ -73,25 +71,30 @@ $sug-accept = #2b8976
 .run-custom
   width 100%
   box-sizing border-box
-  padding 6px 8px
-  border solid 1px rgba(128, 128, 128, 0.35)
-  border-radius 4px
-  background transparent
+  padding 10px 12px
+  border solid 1px transparent
+  border-radius 6px
+  background rgba(128, 128, 128, 0.08)
   color inherit
   font-family inherit
-  font-size 12px
-  line-height 1.5
+  font-size 13px
+  line-height 1.6
   resize vertical
+  outline none
+  &:focus
+    border-color $ui-active-color
 
 .run-button
   align-self flex-start
-  padding 6px 12px
+  height 32px
+  padding 0 16px
   border none
-  border-radius 4px
-  background $ui-active-color
-  color #fff
+  border-radius 16px
+  // 面は本文色、文字は背景色の反転。ライトボックスの押下状態と同じ作り
+  background $ui-text-color
+  color $ui-backgroundColor
   font-family inherit
-  font-size 12px
+  font-size 13px
   cursor pointer
   &:disabled
     opacity 0.6
@@ -133,20 +136,47 @@ $sug-accept = #2b8976
 .list
   flex 1 1 auto
   overflow-y auto
-  padding 8px 10px
+  padding 12px 16px
   display flex
   flex-direction column
-  gap 8px
+  gap 10px
 
 .empty
-  font-size 12px
+  font-size 13px
   line-height 1.6
   color $ui-inactive-text-color
 
-.card
-  padding 10px 12px
-  border solid 1px rgba(128, 128, 128, 0.35)
+// 読み込み中の仮表示。動かすのはこの3本だけ
+.skeleton
+  display flex
+  flex-direction column
+  gap 8px
+  margin-top 12px
+
+.skeleton-line
+  height 12px
   border-radius 6px
+  background rgba(128, 128, 128, 0.16)
+  animation skeleton-pulse 1.4s ease-in-out infinite
+  &:nth-child(2)
+    width 80%
+  &:nth-child(3)
+    width 55%
+
+@keyframes skeleton-pulse
+  0%, 100%
+    opacity 1
+  50%
+    opacity 0.45
+
+@media (prefers-reduced-motion: reduce)
+  .skeleton-line
+    animation none
+
+.card
+  padding 12px 14px
+  border solid 1px rgba(128, 128, 128, 0.35)
+  border-radius 8px
   background rgba(128, 128, 128, 0.06)
   transition opacity 0.2s
 
@@ -289,7 +319,12 @@ apply-theme(theme)
       background-color get-theme-var(theme, 'backgroundColor')
     .header, .run, .footer
       border-color get-theme-var(theme, 'borderColor')
-    .title, .run-scope, .empty, .card-state, .close
+    .title
+      color get-theme-var(theme, 'text-color')
+    .run-button
+      background get-theme-var(theme, 'text-color')
+      color get-theme-var(theme, 'backgroundColor')
+    .title-count, .run-scope, .empty, .card-state, .close
       color get-theme-var(theme, 'inactive-text-color')
     .close:hover
       color get-theme-var(theme, 'text-color')

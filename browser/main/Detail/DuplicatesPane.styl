@@ -1,0 +1,85 @@
+// 重複のペイン。枠や見出しは改善提案のペイン（SuggestionsPane.styl）と共通で、
+// ここには重複の箇所を並べる行だけを置く
+
+$dup-exact = #4e7ea8
+$dup-semantic = #7b6ba5
+
+// styleNameには1つしか渡せない。SuggestionsPane.stylの.chipは別ファイルで
+// @extendできないので、札の見た目をここで完結させる
+.chip--exact
+  display inline-block
+  padding 1px 8px
+  border-radius 10px
+  font-size 12px
+  font-weight 600
+  letter-spacing 0.04em
+  color #fff
+  background $dup-exact
+
+.chip--semantic
+  @extend .chip--exact
+  background $dup-semantic
+
+.occurrences
+  display flex
+  flex-direction column
+  gap 6px
+  margin-top 8px
+
+.occurrence
+  display flex
+  align-items flex-start
+  gap 8px
+  padding 8px 10px
+  border-radius 6px
+  background rgba(128, 128, 128, 0.1)
+
+.occurrence-line
+  flex 0 0 auto
+  font-size 12px
+  font-variant-numeric tabular-nums
+  color $ui-inactive-text-color
+  padding-top 2px
+
+.occurrence-text
+  flex 1 1 auto
+  min-width 0
+  font-size 13px
+  line-height 1.6
+  white-space pre-wrap
+  word-break break-word
+  display -webkit-box
+  -webkit-line-clamp 3
+  -webkit-box-orient vertical
+  overflow hidden
+
+.occurrence-jump
+  flex 0 0 auto
+  height 26px
+  padding 0 10px
+  border 1px solid rgba(128, 128, 128, 0.4)
+  border-radius 13px
+  background transparent
+  color inherit
+  font-family inherit
+  font-size 12px
+  cursor pointer
+  &:hover
+    background rgba(128, 128, 128, 0.16)
+
+.section
+  font-size 12px
+  font-weight 600
+  color $ui-inactive-text-color
+  margin-top 4px
+
+apply-dup-theme(theme)
+  body[data-theme={theme}]
+    .occurrence-line, .section
+      color get-theme-var(theme, 'inactive-text-color')
+
+for theme in 'white' 'dark' 'solarized-dark' 'dracula'
+  apply-dup-theme(theme)
+
+for theme in $themes
+  apply-dup-theme(theme)

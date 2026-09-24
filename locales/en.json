@@ -639,5 +639,18 @@
   "Ask anything about the text: sort out the points, find what is missing, or test an idea. The note is not changed in this mode.": "Ask anything about the text: sort out the points, find what is missing, or test an idea. The note is not changed in this mode.",
   "The conversation is saved as a thread of this note, next to the note in its storage folder.": "The conversation is saved as a thread of this note, next to the note in its storage folder.",
   "The saved threads of this note could not be read, so this conversation is not saved (to avoid overwriting them).": "The saved threads of this note could not be read, so this conversation is not saved (to avoid overwriting them).",
-  "Could not save this thread. The conversation continues.": "Could not save this thread. The conversation continues."
+  "Could not save this thread. The conversation continues.": "Could not save this thread. The conversation continues.",
+  "Exact match": "Exact match",
+  "Same meaning": "Same meaning",
+  "%s places": "%s places",
+  "Line %s": "Line %s",
+  "Go": "Go",
+  "Duplicates": "Duplicates",
+  "Hide duplicates": "Hide duplicates",
+  "Check again": "Check again",
+  "No exact duplicates.": "No exact duplicates.",
+  "Same meaning (AI)": "Same meaning (AI)",
+  "Asking the AI about passages with the same meaning…": "Asking the AI about passages with the same meaning…",
+  "No passages with the same meaning.": "No passages with the same meaning.",
+  "The AI did not return the result in a readable form. Try again.": "The AI did not return the result in a readable form. Try again."
 }

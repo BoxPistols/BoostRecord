@@ -41,7 +41,7 @@ function findByPhrase(notes, phrase) {
     if (note.type === 'SNIPPET_NOTE') {
       return (
         phraseRegExp.test(note.description || '') ||
-        note.snippets.some(
+        (note.snippets || []).some(
           snippet =>
             phraseRegExp.test(snippet.name || '') ||
             phraseRegExp.test(snippet.content || '')

@@ -795,5 +795,10 @@
   "Replaced the text inserted earlier": "前に挿入した文章を置き換えました",
   "Undo insert": "元に戻す",
   "Removed the inserted text": "挿入した文章を取り除きました",
-  "The inserted text was edited in the note, so it was not removed.": "挿入した文章がノート側で変更されているため、取り除きませんでした。"
+  "The inserted text was edited in the note, so it was not removed.": "挿入した文章がノート側で変更されているため、取り除きませんでした。",
+  "On-device recognition is available on macOS 13 or later.": "端末内の読み取りはmacOS 13以降で使えます。",
+  "The image is too large to read (20 MB max).": "画像が大きすぎて読み取れません（20MBまで）。",
+  "Could not download the image.": "画像をダウンロードできませんでした。",
+  "The image file was not found.": "画像のファイルが見つかりません。",
+  "Reading the image took too long.": "画像の読み込みに時間がかかりすぎたため中止しました。"
 }

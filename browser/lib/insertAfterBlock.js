@@ -40,7 +40,8 @@ function hasImageNamed(line, needle) {
  * @param {Object} cm CodeMirrorのエディタ
  * @param {string|null} needle
  * @param {number} hintLine
- * @returns {number} 見つからなければhintLine
+ * @returns {number} needleが無ければhintLine。needleがあって原文に見つからなければ-1
+ *   （古いかもしれないhintLineへ入れると、別の段落に挿入してしまうため）
  */
 export function findImageLine(cm, needle, hintLine) {
   if (!needle) return hintLine
@@ -50,7 +51,7 @@ export function findImageLine(cm, needle, hintLine) {
     const hint = hintLine >= 0 ? hintLine : 0
     if (best === -1 || Math.abs(i - hint) < Math.abs(best - hint)) best = i
   }
-  return best === -1 ? hintLine : best
+  return best
 }
 
 // ブロックの終わりの行（空行の手前）

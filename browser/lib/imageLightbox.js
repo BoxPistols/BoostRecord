@@ -725,7 +725,18 @@ export function openImageLightbox(options) {
   })
   // 画像そのもののクリックでは閉じない（背景・×・Escで閉じる）
   view.addEventListener('click', e => e.stopPropagation())
-  overlay.addEventListener('click', () => close())
+  // 背景で押して背景で離したときだけ閉じる。結果欄で文字を選びながらパネルの外で離すと、
+  // clickは共通の親で起きるため、パネル側のstopPropagationでは止まらない
+  const isBackdrop = el =>
+    el === overlay || el === body || el === stage || el === bar
+  let pressedOnBackdrop = false
+  overlay.addEventListener('mousedown', e => {
+    pressedOnBackdrop = isBackdrop(e.target)
+  })
+  overlay.addEventListener('click', e => {
+    if (pressedOnBackdrop && isBackdrop(e.target)) close()
+    pressedOnBackdrop = false
+  })
   win.addEventListener('keydown', handleKeyDown, true)
 
   // 切り離されたノードではscrollIntoViewが効かないので、追加してから表示する

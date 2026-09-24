@@ -132,3 +132,22 @@ test('画像の行はファイル名の完全一致で探し、本文中の名�
   expect(findImageLine(cm, '図.png', 0)).toBe(8)
   expect(findImageLine(cm, 'none.png', 3)).toBe(-1)
 })
+
+test('Windowsのバックスラッシュ区切りの画像も同じ名前で見つける', () => {
+  expect(imageNeedle(':storage\\note-key\\shot.png')).toBe('shot.png')
+  const cm = fakeEditor('![shot.png](:storage\\note-key\\shot.png)\n\n本文')
+  // プレビューのsrcは / 区切りに直っている
+  expect(
+    findImageLine(
+      cm,
+      imageNeedle('file:///C:/Boost/attachments/note-key/shot.png'),
+      0
+    )
+  ).toBe(0)
+})
+
+test('空行を挟まずにコードブロックが続くときは、フェンスの手前に入れる', () => {
+  const cm = fakeEditor('![a](a.png)\n```\nコード\n\nコード2\n```')
+  expect(insertAfterBlock(cm, 0, '文字')).toBe(true)
+  expect(cm.value()).toBe('![a](a.png)\n\n文字\n```\nコード\n\nコード2\n```')
+})

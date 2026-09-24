@@ -12,9 +12,17 @@ const ERROR_MESSAGES = {
       'This image format cannot be sent to AI (PNG, JPEG, WebP, GIF only). Try on-device recognition.'
     ),
   OCR_VISION_UNAVAILABLE: () =>
-    i18n.__('On-device recognition is available on macOS only.'),
-  IMAGE_SRC_UNSUPPORTED: () => i18n.__('This image cannot be read.')
+    i18n.__('On-device recognition is available on macOS 13 or later.'),
+  IMAGE_SRC_UNSUPPORTED: () => i18n.__('This image cannot be read.'),
+  IMAGE_SRC_EMPTY: () => i18n.__('This image cannot be read.'),
+  IMAGE_DATA_URL_INVALID: () => i18n.__('This image cannot be read.'),
+  IMAGE_TOO_LARGE: () => i18n.__('The image is too large to read (20 MB max).'),
+  IMAGE_FETCH_FAILED: () => i18n.__('Could not download the image.'),
+  'ENOENT:': () => i18n.__('The image file was not found.')
 }
+
+// 時間切れのときはコードではなく、AbortErrorの英語のメッセージが返る
+const ABORT_PATTERN = /aborted/i
 
 let capabilities = null
 
@@ -97,6 +105,10 @@ export function extractImageText(src, engine) {
     .catch(err => {
       const message = unwrapIpcError(err)
       const code = message.split(' ')[0]
-      throw new Error(ERROR_MESSAGES[code] ? ERROR_MESSAGES[code]() : message)
+      if (ERROR_MESSAGES[code]) throw new Error(ERROR_MESSAGES[code]())
+      if (ABORT_PATTERN.test(message)) {
+        throw new Error(i18n.__('Reading the image took too long.'))
+      }
+      throw new Error(message)
     })
 }

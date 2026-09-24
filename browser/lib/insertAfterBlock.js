@@ -12,7 +12,10 @@
 export function imageNeedle(src) {
   if (typeof src !== 'string' || /^data:/i.test(src)) return null
   const clean = src.split(/[?#]/)[0]
-  const name = clean.slice(clean.lastIndexOf('/') + 1)
+  // Windowsで貼り付けた画像は :storage\key\x.png のようにバックスラッシュで区切られる
+  const name = clean.slice(
+    Math.max(clean.lastIndexOf('/'), clean.lastIndexOf('\\')) + 1
+  )
   if (!name) return null
   try {
     return decodeURIComponent(name)
@@ -55,9 +58,16 @@ export function findImageLine(cm, needle, hintLine) {
 }
 
 // ブロックの終わりの行（空行の手前）
+// 空行を挟まずにコードブロックが続く場合は、その手前で止める（フェンスの中に入れない）
+const FENCE_PATTERN = /^\s*(```|~~~)/
+
 function blockEnd(cm, startLine) {
   let end = startLine
-  while (end + 1 < cm.lineCount() && cm.getLine(end + 1).trim() !== '') {
+  while (
+    end + 1 < cm.lineCount() &&
+    cm.getLine(end + 1).trim() !== '' &&
+    !FENCE_PATTERN.test(cm.getLine(end + 1))
+  ) {
     end++
   }
   return end

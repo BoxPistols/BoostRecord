@@ -8,6 +8,7 @@ const {
   buildGeminiContents
 } = require('../../lib/ai/imageInput')
 const { decodeDataUrl } = require('../../lib/ocr/loadImage')
+const { isVisionAvailable } = require('../../lib/ocr/visionOcr')
 const {
   normalizeOpenAiUsage,
   normalizeGeminiUsage
@@ -114,5 +115,19 @@ test('Geminiの使用量をそろえる。思考トークンは出力に足す',
     cachedInputTokens: 0,
     outputTokens: 140,
     reasoningTokens: 40
+  })
+})
+
+test('端末内の読み取りはmacOS 13（Darwin 22）以降だけで出す', () => {
+  // [platform, release, 期待]
+  const testCases = [
+    ['darwin', '22.1.0', true],
+    ['darwin', '27.0.0', true],
+    ['darwin', '21.6.0', false],
+    ['win32', '10.0.22631', false],
+    ['linux', '6.1.0', false]
+  ]
+  testCases.forEach(([platform, release, expected]) => {
+    expect(isVisionAvailable(platform, release)).toBe(expected)
   })
 })

@@ -31,6 +31,13 @@ function current() {
     .getAttribute('src')
 }
 
+// 背景で押して離す（閉じる操作）
+function clickBackdrop() {
+  const el = overlay()
+  el.dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true }))
+  el.click()
+}
+
 function press(key) {
   window.dispatchEvent(
     new window.KeyboardEvent('keydown', { key, bubbles: true })
@@ -107,7 +114,7 @@ test('1枚だけのときは送りの操作を出さない', () => {
   expect(overlay().querySelectorAll('.imageLightbox-thumb').length).toBe(0)
   expect(overlay().querySelector('.imageLightbox-prev').hidden).toBe(true)
   expect(overlay().querySelector('.imageLightbox-next').hidden).toBe(true)
-  overlay().click()
+  clickBackdrop()
   expect(overlay()).toBeNull()
 })
 
@@ -356,6 +363,30 @@ test('開いたまま別の画像で開き直すと、古い方のキー操作�
     add.mockRestore()
     remove.mockRestore()
     const leftover = overlay()
-    if (leftover) leftover.click()
+    if (leftover) clickBackdrop()
   }
+})
+
+test('結果欄で押してパネルの外で離しても閉じない', async () => {
+  const { frame, images } = setup(1)
+  openImageLightbox({
+    images,
+    index: 0,
+    frame,
+    labels: LABELS,
+    ocr: ocrOptions()
+  })
+  overlay()
+    .querySelector('.imageLightbox-tools .imageLightbox-textButton')
+    .click()
+  await flush()
+  const text = overlay().querySelector('textarea')
+  // 文字を選びながら外へ出て離すと、clickは共通の親（背景側）で起きる
+  text.dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true }))
+  overlay()
+    .querySelector('.imageLightbox-body')
+    .dispatchEvent(new window.MouseEvent('click', { bubbles: true }))
+  expect(overlay()).not.toBeNull()
+  clickBackdrop()
+  expect(overlay()).toBeNull()
 })

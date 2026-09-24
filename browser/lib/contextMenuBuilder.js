@@ -58,6 +58,20 @@ function describeScope(editor) {
   return 'ノート全体'
 }
 
+function noteThreadTarget(editor) {
+  const note = editor != null && editor.state && editor.state.boostnoteNote
+  if (!note || !note.storageKey || !note.noteKey) return null
+  try {
+    const { findStorage } = require('browser/lib/findStorage')
+    return {
+      storagePath: findStorage(note.storageKey).path,
+      noteKey: note.noteKey
+    }
+  } catch (e) {
+    return null
+  }
+}
+
 function openAiChat(editor, opts) {
   // modal.js は store（と ConfigManager）を読み込む。単体テストで electron を
   // 触りに行かせないよう、押された時だけ読む。名前付き export なので
@@ -72,6 +86,8 @@ function openAiChat(editor, opts) {
   openModal(AiChatModal, {
     noteContent,
     selection,
+    // 相談スレッドの保存先。分からなければ保存しない（窓にその旨を出す）
+    thread: noteThreadTarget(editor),
     // ワンショットの整形（重複をまとめる等）もここを通す。いきなり本文を
     // 置き換えず、差分を見て塊ごとに採用できる窓で確認してから入れる
     initialRequest: opts && opts.initialRequest,

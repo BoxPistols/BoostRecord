@@ -415,6 +415,12 @@ export default class CodeEditor extends React.Component {
       this.setMode(this.props.mode)
     }
 
+    // AIの相談スレッドをノートごとに残すため、どのノートの編集中かをエディタに持たせる。
+    // 右クリックメニューはエディタしか受け取らないので、ここから読む
+    this.editor.state.boostnoteNote = {
+      storageKey: this.props.storageKey,
+      noteKey: this.props.noteKey
+    }
     this.editor.on('focus', this.focusHandler)
     this.editor.on('blur', this.blurHandler)
     this.editor.on('change', this.changeHandler)
@@ -652,6 +658,15 @@ export default class CodeEditor extends React.Component {
     } = this.props
     if (prevProps.mode !== this.props.mode) {
       this.setMode(this.props.mode)
+    }
+    if (
+      prevProps.storageKey !== this.props.storageKey ||
+      prevProps.noteKey !== this.props.noteKey
+    ) {
+      this.editor.state.boostnoteNote = {
+        storageKey: this.props.storageKey,
+        noteKey: this.props.noteKey
+      }
     }
     if (prevProps.theme !== this.props.theme) {
       this.editor.setOption('theme', this.props.theme)

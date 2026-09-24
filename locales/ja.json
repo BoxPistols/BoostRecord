@@ -800,5 +800,19 @@
   "The image is too large to read (20 MB max).": "画像が大きすぎて読み取れません（20MBまで）。",
   "Could not download the image.": "画像をダウンロードできませんでした。",
   "The image file was not found.": "画像のファイルが見つかりません。",
-  "Reading the image took too long.": "画像の読み込みに時間がかかりすぎたため中止しました。"
+  "Reading the image took too long.": "画像の読み込みに時間がかかりすぎたため中止しました。",
+  "Discuss the text with AI": "AIと内容を相談する",
+  "Mode": "モード",
+  "Revise": "直す",
+  "Discuss": "相談する",
+  "Thread": "スレッド",
+  "New thread": "新しいスレッド",
+  "Summarize the key points": "論点を整理",
+  "What is missing?": "抜けている観点",
+  "Questions to ask": "確認すべき質問",
+  "Risks and concerns": "リスクと懸念",
+  "Ask anything about the text: sort out the points, find what is missing, or test an idea. The note is not changed in this mode.": "内容について自由に相談できます。論点の整理、抜けている観点の洗い出し、考えの壁打ちなど。このモードではノートは書き換わりません。",
+  "The conversation is saved as a thread of this note, next to the note in its storage folder.": "会話はこのノートのスレッドとして、ノートの保存先フォルダに残ります。",
+  "The saved threads of this note could not be read, so this conversation is not saved (to avoid overwriting them).": "このノートの保存済みスレッドを読めなかったため、上書きしないよう、この会話は保存しません。",
+  "Could not save this thread. The conversation continues.": "このスレッドを保存できませんでした。会話はこのまま続けられます。"
 }

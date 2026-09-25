@@ -495,6 +495,7 @@ class MarkdownSplitEditor extends React.Component {
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
           lineThroughCheckbox={config.preview.lineThroughCheckbox}
+          youtubeEmbed={config.preview.youtubeEmbed !== false}
           getNote={getNote}
           export={config.export}
           RTL={RTL}

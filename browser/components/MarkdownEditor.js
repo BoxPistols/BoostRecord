@@ -474,6 +474,7 @@ class MarkdownEditor extends React.Component {
           customCSS={config.preview.customCSS}
           allowCustomCSS={config.preview.allowCustomCSS}
           lineThroughCheckbox={config.preview.lineThroughCheckbox}
+          youtubeEmbed={config.preview.youtubeEmbed !== false}
           getNote={getNote}
           export={config.export}
           onDrop={e => this.handleDropImage(e)}

@@ -487,6 +487,11 @@ document.addEventListener('DOMContentLoaded', function () {
       needsRewriteIframe = true
     }
 
+    // YouTubeの表示を切り替えたら、今のカードを消すため描き直す
+    if (prevProps.youtubeEmbed !== this.props.youtubeEmbed) {
+      needsRewriteIframe = true
+    }
+
     if (needsRewriteIframe) {
       this.rewriteIframe()
     }
@@ -772,7 +777,7 @@ document.addEventListener('DOMContentLoaded', function () {
     })
 
     // 段落に単独で置いたYouTubeのリンク → サムネイル（押すとプレーヤー）。設定で切れる
-    if (ConfigManager.get().preview.youtubeEmbed !== false) {
+    if (this.props.youtubeEmbed !== false) {
       hydrateYouTubeLinks(this.refs.root.contentWindow.document, {
         playLabel: i18n.__('Play %s'),
         openLabel: i18n.__('Open on YouTube'),
@@ -1047,6 +1052,8 @@ MarkdownPreview.propTypes = {
   onContextMenu: PropTypes.func,
   onInsertImageText: PropTypes.func,
   onRemoveImageText: PropTypes.func,
+  /** 段落に単独のYouTubeのリンクをサムネイルとプレーヤーにする（既定はtrue） */
+  youtubeEmbed: PropTypes.bool,
   className: PropTypes.string,
   value: PropTypes.string,
   showCopyNotification: PropTypes.bool,

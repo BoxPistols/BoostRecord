@@ -31,6 +31,7 @@ import formatPDF from 'browser/main/lib/dataApi/formatPDF'
 import yaml from 'js-yaml'
 import i18n from 'browser/lib/i18n'
 import { openImageLightbox } from 'browser/lib/imageLightbox'
+import { hydrateYouTubeLinks } from 'browser/lib/youtubeEmbed'
 import {
   getOcrCapabilities,
   getOcrEngine,
@@ -486,6 +487,11 @@ document.addEventListener('DOMContentLoaded', function () {
       needsRewriteIframe = true
     }
 
+    // YouTubeの表示を切り替えたら、今のカードを消すため描き直す
+    if (prevProps.youtubeEmbed !== this.props.youtubeEmbed) {
+      needsRewriteIframe = true
+    }
+
     if (needsRewriteIframe) {
       this.rewriteIframe()
     }
@@ -770,6 +776,15 @@ document.addEventListener('DOMContentLoaded', function () {
       onLinkCreated: a => a.addEventListener('click', this.linkClickHandler)
     })
 
+    // 段落に単独で置いたYouTubeのリンク → サムネイル（押すとプレーヤー）。設定で切れる
+    if (this.props.youtubeEmbed !== false) {
+      hydrateYouTubeLinks(this.refs.root.contentWindow.document, {
+        playLabel: i18n.__('Play %s'),
+        openLabel: i18n.__('Open on YouTube'),
+        onLinkCreated: a => a.addEventListener('click', this.linkClickHandler)
+      })
+    }
+
     // Paragraphs of consecutive images → responsive side-by-side rows.
     markImageRows(this.refs.root.contentWindow.document)
   }
@@ -1037,6 +1052,8 @@ MarkdownPreview.propTypes = {
   onContextMenu: PropTypes.func,
   onInsertImageText: PropTypes.func,
   onRemoveImageText: PropTypes.func,
+  /** 段落に単独のYouTubeのリンクをサムネイルとプレーヤーにする（既定はtrue） */
+  youtubeEmbed: PropTypes.bool,
   className: PropTypes.string,
   value: PropTypes.string,
   showCopyNotification: PropTypes.bool,

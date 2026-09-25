@@ -597,6 +597,7 @@ class UiTab extends React.Component {
         scrollSync: this.refs.previewScrollSync.checked,
         smartQuotes: this.refs.previewSmartQuotes.checked,
         urlPreview: this.refs.previewUrlPreview.checked,
+        youtubeEmbed: this.refs.previewYoutubeEmbed.checked,
         breaks: this.refs.previewBreaks.checked,
         smartArrows: this.refs.previewSmartArrows.checked,
         sanitize: this.refs.previewSanitize.value,
@@ -1829,6 +1830,23 @@ class UiTab extends React.Component {
             <div styleName='group-checkBoxSection-hint'>
               {i18n.__(
                 'Hovering an external link fetches that page and shows its title and summary. It reaches the network.'
+              )}
+            </div>
+            <div styleName='group-checkBoxSection'>
+              <label>
+                <input
+                  onChange={e => this.handleUIChange(e)}
+                  checked={this.state.config.preview.youtubeEmbed !== false}
+                  ref='previewYoutubeEmbed'
+                  type='checkbox'
+                />
+                &nbsp;
+                {i18n.__('Show YouTube links as a thumbnail and player')}
+              </label>
+            </div>
+            <div styleName='group-checkBoxSection-hint'>
+              {i18n.__(
+                'A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube.'
               )}
             </div>
             <div styleName='group-checkBoxSection'>

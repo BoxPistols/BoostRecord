@@ -118,6 +118,26 @@ class TopBar extends React.Component {
     this.debouncedUpdateKeyword(keyword)
   }
 
+  // 1行の入力欄は貼り付けた改行を落とし、行がつながって見つからなくなる。
+  // 複数行は "..." で囲んだひと続きの語句として入れ、並びのまま探す
+  handleSearchPaste(e) {
+    const text = e.clipboardData && e.clipboardData.getData('text/plain')
+    if (!text || !/\n/.test(text)) return
+    const phrase = text
+      .replace(/"/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (!phrase) return
+    e.preventDefault()
+    const el = e.target
+    const value = el.value || ''
+    const start = el.selectionStart == null ? value.length : el.selectionStart
+    const end = el.selectionEnd == null ? value.length : el.selectionEnd
+    const next = `${value.slice(0, start)}"${phrase}"${value.slice(end)}`
+    this.setState({ search: next })
+    this.debouncedUpdateKeyword(next)
+  }
+
   handleSearchFocus(e) {
     this.setState({
       isSearching: true
@@ -223,6 +243,7 @@ class TopBar extends React.Component {
               styleName='control-search-input'
               onFocus={this.handleSearchFocus}
               onBlur={this.handleSearchBlur}
+              onPaste={e => this.handleSearchPaste(e)}
               tabIndex='-1'
               ref='search'
             >

@@ -18,6 +18,9 @@ import { formatCount } from 'browser/lib/findInText'
  * 見るだけで isComposing を見ない）、日本語変換の確定 Enter がダイアログを
  * 閉じて未確定の文字列で検索していた。それを置き換えるのが本コンポーネント。
  */
+// 入力欄が広がる上限。これより長い検索語は欄の中でスクロールする
+const MAX_ROWS = 5
+
 class FindBar extends React.Component {
   constructor(props) {
     super(props)
@@ -57,6 +60,13 @@ class FindBar extends React.Component {
     if (e.key === 'Enter') {
       if (composing) return
       e.preventDefault()
+      // Option（Alt）+Enterで改行を入れる。Shift+Enterは前の一致へ戻るのでそのまま
+      if (e.altKey) {
+        const el = e.target
+        el.setRangeText('\n', el.selectionStart, el.selectionEnd, 'end')
+        this.props.onChange(el.value)
+        return
+      }
       this.props.onStep(e.shiftKey ? -1 : 1)
     }
     // ↑↓ は割り当てない。IME の候補ウィンドウの操作キーなので奪うと
@@ -83,15 +93,20 @@ class FindBar extends React.Component {
         style={this.props.style}
       >
         <i styleName='icon' className='fa fa-search' aria-hidden='true' />
-        <input
+        {/* 複数行を貼り付けて探せるようにtextareaにする。行数に合わせて最大5行まで広がる */}
+        <textarea
           styleName={empty ? 'input--empty' : 'input'}
           ref={this.inputRef}
-          type='text'
+          rows={Math.min(MAX_ROWS, query.split('\n').length)}
           value={query}
           // このノートの中を探すことを明示する。サイドバー/上部の検索と
           // 同じ「検索」という語だけだと、どれが何を探すのか区別できない
           placeholder={i18n.__('Find in this note')}
           aria-label={i18n.__('Find in this note')}
+          title={i18n.__(
+            '%s + Enter for a new line',
+            /Mac/.test(navigator.userAgent) ? 'Option' : 'Alt'
+          )}
           onChange={e => onChange(e.target.value)}
           onCompositionStart={() => this.setState({ composing: true })}
           onCompositionEnd={e => {

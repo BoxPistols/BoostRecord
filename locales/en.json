@@ -653,5 +653,9 @@
   "Asking the AI about passages with the same meaning…": "Asking the AI about passages with the same meaning…",
   "No passages with the same meaning.": "No passages with the same meaning.",
   "The AI did not return the result in a readable form. Try again.": "The AI did not return the result in a readable form. Try again.",
-  "%s + Enter for a new line": "%s + Enter for a new line"
+  "%s + Enter for a new line": "%s + Enter for a new line",
+  "Play %s": "Play %s",
+  "Open on YouTube": "Open on YouTube",
+  "Show YouTube links as a thumbnail and player": "Show YouTube links as a thumbnail and player",
+  "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube.": "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube."
 }

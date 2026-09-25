@@ -200,6 +200,8 @@ export const DEFAULT_CONFIG = {
     mermaidHTMLLabel: false,
     lineThroughCheckbox: true,
     urlPreview: true,
+    // 段落に単独で置いたYouTubeのリンクを、プレビューでサムネイルとプレーヤーにする
+    youtubeEmbed: true,
     // 目次（ページ内リンク）ペイン。validate() には足さない
     // （既存の設定ファイルに無いキーを必須にすると初期値へ巻き戻る）
     showToc: true,

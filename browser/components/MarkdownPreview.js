@@ -31,6 +31,7 @@ import formatPDF from 'browser/main/lib/dataApi/formatPDF'
 import yaml from 'js-yaml'
 import i18n from 'browser/lib/i18n'
 import { openImageLightbox } from 'browser/lib/imageLightbox'
+import { hydrateYouTubeLinks } from 'browser/lib/youtubeEmbed'
 import {
   getOcrCapabilities,
   getOcrEngine,
@@ -769,6 +770,15 @@ document.addEventListener('DOMContentLoaded', function () {
       captureScreenshot: captureUrlScreenshot,
       onLinkCreated: a => a.addEventListener('click', this.linkClickHandler)
     })
+
+    // 段落に単独で置いたYouTubeのリンク → サムネイル（押すとプレーヤー）。設定で切れる
+    if (ConfigManager.get().preview.youtubeEmbed !== false) {
+      hydrateYouTubeLinks(this.refs.root.contentWindow.document, {
+        playLabel: i18n.__('Play %s'),
+        openLabel: i18n.__('Open on YouTube'),
+        onLinkCreated: a => a.addEventListener('click', this.linkClickHandler)
+      })
+    }
 
     // Paragraphs of consecutive images → responsive side-by-side rows.
     markImageRows(this.refs.root.contentWindow.document)

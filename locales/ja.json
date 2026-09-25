@@ -827,5 +827,6 @@
   "Same meaning (AI)": "意味の重複（AI）",
   "Asking the AI about passages with the same meaning…": "意味が同じ箇所をAIに確認しています…",
   "No passages with the same meaning.": "意味が同じ箇所はありません。",
-  "The AI did not return the result in a readable form. Try again.": "AIの応答を読み取れませんでした。もう一度試してください。"
+  "The AI did not return the result in a readable form. Try again.": "AIの応答を読み取れませんでした。もう一度試してください。",
+  "%s + Enter for a new line": "%s + Enterで改行"
 }

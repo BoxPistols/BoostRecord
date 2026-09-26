@@ -99,9 +99,10 @@ gh release view v0.X.Y
 ```
 
 Expected asset list:
-- `BoostRecord-0.X.Y-mac.zip` (universal mac, for quarantine-bypass)
-- `BoostRecord-0.X.Y.dmg` (mac installer, arm64 + x64 universal)
+- `BoostRecord-0.X.Y-arm64.dmg` / `-arm64.zip` (Apple Silicon mac)
+- `BoostRecord-0.X.Y-x64.dmg` / `-x64.zip` (Intel mac)
 - `BoostRecord-Setup-0.X.Y.exe` (windows nsis installer)
+- Release body: filled from `.github/release-notes-template.md` by the `notes` job (skipped if already written)
 - `latest-mac.yml`, `latest.yml` (electron-updater manifests)
 
 If assets are missing: check the Release workflow logs.
@@ -129,18 +130,11 @@ This takes ~10 min. Required if any of these changed:
 
 ## Step 8 — Update release notes (optional)
 
+The `notes` job already filled the body with the download guide (arm64 / x64 / Windows). Prepend "What's new" instead of replacing it:
+
 ```bash
-gh release edit v0.X.Y --notes "$(cat <<'EOF'
-## What's new
-
-- <user-facing description>
-
-## Install
-
-**macOS**: Download `BoostRecord-0.X.Y.dmg`. First launch: right-click → Open (unsigned build).
-**Windows**: Download `BoostRecord-Setup-0.X.Y.exe`. SmartScreen → More info → Run anyway.
-EOF
-)"
+{ printf '## What'\''s new\n\n- <user-facing description>\n\n'; gh release view v0.X.Y --json body -q .body; } > /tmp/notes.md
+gh release edit v0.X.Y --notes-file /tmp/notes.md
 ```
 
 ---

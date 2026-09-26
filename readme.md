@@ -101,7 +101,7 @@ cd poc/collab-core && npm install && npm test
 
 - 全リリースはパッケージ後に **実行時依存の解決チェック**（`scripts/check-packaged-requires.mjs`）を通過
 - **Windows は CI 実機で起動検証**: [win-smoke](.github/workflows/win-smoke.yml) がリリース済み exe をサイレントインストール → 実起動 → メイン UI 到達を機械判定
-- macOS は Apple Silicon 実機でインストール〜起動を検証
+- macOS は Apple Silicon 実機でインストール〜起動を検証。Intel 版（x64）も Intel Mac（macOS 13）で起動を確認済み
 
 ### BoostRecord Next（モダン土台 `app/`・実験的）
 

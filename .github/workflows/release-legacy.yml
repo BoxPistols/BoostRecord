@@ -133,5 +133,7 @@ jobs:
         run: |
           BODY="$(gh release view "$TAG" --json body -q .body)"
           if [ -n "$BODY" ]; then echo "body already set; skip"; exit 0; fi
-          sed "s/__VERSION__/${TAG#v}/g" .github/release-notes-template.md > "$RUNNER_TEMP/notes.md"
+          # Asset names come from package.json, not the tag, so use the same source
+          VERSION="$(node -p "require('./package.json').version")"
+          sed "s/__VERSION__/$VERSION/g" .github/release-notes-template.md > "$RUNNER_TEMP/notes.md"
           gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md"

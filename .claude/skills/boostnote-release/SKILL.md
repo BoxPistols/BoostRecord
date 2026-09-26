@@ -99,9 +99,10 @@ gh release view v0.X.Y
 ```
 
 Expected asset list:
-- `BoostRecord-0.X.Y-mac.zip` (universal mac, for quarantine-bypass)
-- `BoostRecord-0.X.Y.dmg` (mac installer, arm64 + x64 universal)
+- `BoostRecord-0.X.Y-arm64.dmg` / `-arm64.zip` (Apple Silicon mac)
+- `BoostRecord-0.X.Y-x64.dmg` / `-x64.zip` (Intel mac)
 - `BoostRecord-Setup-0.X.Y.exe` (windows nsis installer)
+- Release body: filled from `.github/release-notes-template.md` by the `notes` job (skipped if already written)
 - `latest-mac.yml`, `latest.yml` (electron-updater manifests)
 
 If assets are missing: check the Release workflow logs.

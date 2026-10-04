@@ -1,3 +1,4 @@
+// ai-api:allow-superseded-file 一覧外の旧IDが既定へ寄ることの確認
 // 廃止モデル ID の移行（normalizeAiModels）の単体テスト。
 // localStorage に古い ID が残ったままだと AI 呼び出しが失敗し続けるので、
 // 「寄せる」「余計なものは触らない」「変更が無ければ同一参照」を固定する。
@@ -58,7 +59,7 @@ describe('normalizeAiModels', () => {
     const next = normalizeAiModels({
       provider: 'gemini',
       openai: { apiKey: 'sk-keepme', model: 'gpt-5.4-nano' },
-      gemini: { apiKey: 'AIza-keepme', model: 'gemini-1.0-pro' }
+      gemini: { apiKey: 'AIza-keepme', model: 'gemini-1.0-pro' } // ai-api:allow-superseded 一覧外の旧IDが既定へ寄ることの確認
     })
     expect(next.provider).toBe('gemini')
     expect(next.openai.apiKey).toBe('sk-keepme')

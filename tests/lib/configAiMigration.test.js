@@ -1,3 +1,4 @@
+// ai-api:allow-superseded-file 設定の移行を確かめるテスト
 // ConfigManager.get() が「廃止モデル ID を既定へ寄せて保存し直す」ところまで
 // 通しで確認する。normalizeAiModels 単体（aiModels.test.js）が正しくても、
 // get() に配線されていなければ実機では何も起きないため、配線の側を固定する。

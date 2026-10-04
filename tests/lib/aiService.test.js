@@ -1,3 +1,4 @@
+// ai-api:allow-superseded-file プロバイダ判定と reasoning 判定を世代ごとに確かめるテスト
 // Unit tests for the AI provider-routing pure functions. These decide which
 // SDK a model id is sent to and which token/param shape it needs — cheap to get
 // wrong, so pin the behaviour.

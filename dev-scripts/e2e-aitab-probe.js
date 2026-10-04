@@ -74,8 +74,8 @@ function seed() {
       zoom:1, isSideNavFolded:false, listWidth:280,
       ui:{ language:'ja', theme:'dark' },
       ai:{ provider:'openai',
-           openai:{ apiKey:'', model:'gpt-5-mini' },
-           gemini:{ apiKey:'', model:'gemini-2.5-flash' } }
+           openai:{ apiKey:'', model:'gpt-5-mini' }, // ai-api:allow-superseded 起動時の移行を試すため旧IDを積む
+           gemini:{ apiKey:'', model:'gemini-2.5-flash' } } // ai-api:allow-superseded 起動時の移行を試すため旧IDを積む
     }))
     localStorage.setItem('__aitabProbeSeeded','1')
     setTimeout(()=>location.reload(),50); return false

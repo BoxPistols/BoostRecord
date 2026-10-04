@@ -9,7 +9,18 @@
 //   gpt-5.6-sol  : the other gpt-5.6 model on offer.
 //   gemini-3.5-flash-lite : default. Newest Flash-Lite (cheapest) per
 //                           ai.google.dev/gemini-api/docs/models, 2026-09-05.
-//   gemini-3.8-flash      : newest stable Flash on the same page.
+//   gemini-3.8-flash      : current Flash. GA since 2026-09-03; docs/latest-model
+//                           (ja) says so outright, and gemini-flash-latest
+//                           resolves to it (a 429 on the alias named
+//                           gemini-3.8-flash, measured 2026-09-06).
+// One model per tier. A second Flash of an older generation would only add a
+// choice that is never the better pick. The free tier is 20 requests per day
+// per project per model (429 quotaId
+// GenerateRequestsPerDayPerProjectPerModel-FreeTier, quotaValue 20), so a
+// second model does buy more calls — but only where the app spends its own
+// key. Here the user supplies the key in the AI tab, so it does not apply.
+// docs/models?hl=ja lags and still omits 3.7 / 3.8 — do not use that page alone
+// to roll these IDs back.
 // gemini-2.5-* are still listed there but superseded; stored configs that
 // point at them are moved to the default by normalizeAiModels.
 // Left out on purpose: the gpt-5.4 family (retired), gpt-5.1-codex-mini (paid,

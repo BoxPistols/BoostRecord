@@ -91,7 +91,7 @@ function seed() {
            openai:{ apiKey:${JSON.stringify(
              PLAINTEXT_KEY
            )}, model:'gpt-5.6-luna' },
-           gemini:{ apiKey:'', model:'gemini-2.5-flash' } }
+           gemini:{ apiKey:'', model:'gemini-2.5-flash' } } // ai-api:allow-superseded 起動時の移行を試すため旧IDを積む
     }))
     localStorage.setItem('__aikeysProbeSeeded','1')
     setTimeout(()=>location.reload(),50); return false

@@ -1,3 +1,4 @@
+// ai-api:allow-superseded-file 保存済みの旧IDを積んで疎通を確かめるテスト
 // 接続テスト（#94）の単体テスト。実際の API は叩かず ai:run の invoke をモックする。
 // jest.mock のファクトリからは mock 接頭辞の変数しか参照できない
 const mockInvoke = jest.fn()

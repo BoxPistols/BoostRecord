@@ -83,6 +83,8 @@ cd poc/collab-core && npm install && npm test
 > それでも「壊れているため開けません」と出る場合（旧バージョン等）はターミナルで
 > `xattr -cr "/Applications/BoostRecord.app"` を実行してから開いてください。
 
+> Intel Mac でアイコンに 🚫 が付いて開けないときは、arm64 版を入れています。x64 版を入れ直してください。対応環境と、新しい Mac への引っ越し手順は[インストールガイド](docs/install.md#対応環境)にあります。
+
 ### Windows（x64）
 
 1. Releases から `BoostRecord-Setup-<ver>.exe` をダウンロード

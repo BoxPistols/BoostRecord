@@ -9,6 +9,11 @@
 // Result JSON is written to TB_E2E_RESULT (default: <tmp>/tb-e2e-result.json).
 // Exit codes: 0 pass, 1 flow failed, 2 probe error, 3 watchdog timeout.
 const { app } = require('electron')
+// GitHub's Windows runner has no usable GPU: since 2026-10 its GPU process
+// crashes 9 times and Electron exits with "GPU process isn't usable"
+// (EXCEPTION_BREAKPOINT, exit -2147483645). CI sets this to render in software.
+// Must run before app 'ready', which holds because index.js loads the probe first.
+if (process.env.TB_E2E_DISABLE_GPU === '1') app.disableHardwareAcceleration()
 const fs = require('fs')
 const os = require('os')
 const path = require('path')

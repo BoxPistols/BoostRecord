@@ -78,9 +78,10 @@ jobs:
           $idx = Join-Path $appDir "resources\app\index.js"
           $probe = @'
           const { app: probeApp } = require('electron')
-          // The runner has no usable GPU and Electron exits after its GPU
-          // process crashes repeatedly; render in software for this check.
+          // The runner's sandboxed GPU process crashes until Electron exits;
+          // turn off the GPU sandbox for this check (see dev-scripts/e2e-probe.js).
           probeApp.disableHardwareAcceleration()
+          probeApp.commandLine.appendSwitch('disable-gpu-sandbox')
           const probeFs = require('fs')
           const probeOut = require('path').join(require('os').tmpdir(), 'tb-verify-result.json')
           probeApp.on('web-contents-created', (_e, wc) => {

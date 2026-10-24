@@ -9,11 +9,15 @@
 // Result JSON is written to TB_E2E_RESULT (default: <tmp>/tb-e2e-result.json).
 // Exit codes: 0 pass, 1 flow failed, 2 probe error, 3 watchdog timeout.
 const { app } = require('electron')
-// GitHub's Windows runner has no usable GPU: since 2026-10 its GPU process
-// crashes 9 times and Electron exits with "GPU process isn't usable"
-// (EXCEPTION_BREAKPOINT, exit -2147483645). CI sets this to render in software.
+// On GitHub's Windows runner (windows-2025 image 20261021) the sandboxed GPU
+// process crashes 9 times and Electron exits with "GPU process isn't usable"
+// (EXCEPTION_BREAKPOINT, exit -2147483645). Disabling hardware acceleration
+// alone still crashed 4/4; turning off only the GPU sandbox passed 4/4.
 // Must run before app 'ready', which holds because index.js loads the probe first.
-if (process.env.TB_E2E_DISABLE_GPU === '1') app.disableHardwareAcceleration()
+if (process.env.TB_E2E_DISABLE_GPU === '1') {
+  app.disableHardwareAcceleration()
+  app.commandLine.appendSwitch('disable-gpu-sandbox')
+}
 const fs = require('fs')
 const os = require('os')
 const path = require('path')

@@ -11,6 +11,8 @@
 Mac の種類は、画面左上のアップルメニュー →「この Mac について」の「チップ」（Apple M…）か「プロセッサ」（Intel…）で分かります。
 To check your Mac: Apple menu → About This Mac → "Chip" (Apple M…) or "Processor" (Intel…).
 
+Intel Mac に arm64 版を入れると、アイコンに 🚫 が付いて開けません。その場合は x64 版を入れ直してください。 / An arm64 build on an Intel Mac shows a 🚫 icon and will not open; install the x64 build instead.
+
 - `.zip` は同じ中身を zip にしたものです。普通は `.dmg` を選んでください。 / `.zip` has the same app; use `.dmg` unless you need a zip.
 - `.blockmap` と `latest*.yml` は自動更新用なので、ダウンロード不要です。 / `.blockmap` and `latest*.yml` are for auto-update; no need to download them.
 

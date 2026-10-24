@@ -3,7 +3,11 @@
  * (lib/main-app.js). The old electron-gh-releases updater pointed at the
  * dead upstream repo — these tests pin the replacement's decision logic.
  */
-const { isNewerVersion, pickDownloadUrl } = require('../../lib/update-check')
+const {
+  isNewerVersion,
+  pickDownloadUrl,
+  hostArch
+} = require('../../lib/update-check')
 
 it('detects a newer patch / minor / major version', () => {
   expect(isNewerVersion('0.16.3', '0.16.2')).toBe(true)
@@ -101,5 +105,32 @@ describe('pickDownloadUrl', () => {
       assets: [null, {}, { name: 42 }, { name: 'BoostRecord-0.31.1-x64.dmg' }]
     }
     expect(pickDownloadUrl(odd, 'darwin', 'x64')).toBeNull()
+  })
+})
+
+describe('pickDownloadUrl asset name matching', () => {
+  it('ignores dmgs that are not BoostRecord installers', () => {
+    const release = {
+      assets: [
+        { name: 'debug-x64.dmg', browser_download_url: 'https://dl/debug.dmg' },
+        {
+          name: 'BoostRecord-0.31.2-x64.dmg',
+          browser_download_url: 'https://dl/x64.dmg'
+        }
+      ]
+    }
+    expect(pickDownloadUrl(release, 'darwin', 'x64')).toBe('https://dl/x64.dmg')
+  })
+})
+
+describe('hostArch', () => {
+  it('reports arm64 for an x64 build running under Rosetta', () => {
+    expect(hostArch('x64', true)).toBe('arm64')
+  })
+
+  it('reports process.arch when not translated', () => {
+    expect(hostArch('x64', false)).toBe('x64')
+    expect(hostArch('arm64', false)).toBe('arm64')
+    expect(hostArch('x64', undefined)).toBe('x64')
   })
 })

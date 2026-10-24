@@ -100,8 +100,8 @@ jobs:
           if (-not (Test-Path $exe)) { throw "packaged app not found" }
           $env:TB_E2E_PROBE = "$PWD\dev-scripts\e2e-probe.js"
           $env:TB_E2E_RESULT = "$env:RUNNER_TEMP\tb-e2e.json"
-          # The runner's GPU process crashes until Electron gives up; render in
-          # software (see dev-scripts/e2e-probe.js).
+          # The runner's sandboxed GPU process crashes until Electron gives up;
+          # the probe turns off the GPU sandbox (see dev-scripts/e2e-probe.js).
           $env:TB_E2E_DISABLE_GPU = "1"
           $p = Start-Process -FilePath $exe -Wait -PassThru
           Get-Content $env:TB_E2E_RESULT -ErrorAction SilentlyContinue

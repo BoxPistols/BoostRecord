@@ -51,7 +51,12 @@ function finish(code, result) {
   setTimeout(() => app.exit(code), 300)
 }
 
-setTimeout(() => finish(3, { error: 'watchdog timeout (90s)' }), 90000)
+// Slow runners (the Intel macOS job) can raise this via TB_E2E_WATCHDOG_MS.
+const WATCHDOG_MS = Number(process.env.TB_E2E_WATCHDOG_MS) || 90000
+setTimeout(
+  () => finish(3, { error: `watchdog timeout (${WATCHDOG_MS / 1000}s)` }),
+  WATCHDOG_MS
+)
 
 // The renderer driver. Runs twice: first load seeds localStorage with the
 // throwaway storage and reloads; second load exercises the note flow.

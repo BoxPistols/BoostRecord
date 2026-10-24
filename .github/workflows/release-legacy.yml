@@ -114,6 +114,50 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
         run: pnpm exec electron-builder --publish always
 
+  intel-smoke:
+    # The x64 (Intel) mac build is cross-compiled on the arm64 runner above
+    # and was never launched in CI. Download the x64 zip that `build` just
+    # published and boot it on an Intel runner, so a broken Intel build is
+    # visible. Intel is a fallback target (see docs/install.md "対応環境"), so
+    # this job is informational: it runs after publishing and never blocks it.
+    # GitHub retires its last Intel macOS runner (macos-15-intel) in fall 2027;
+    # drop this job then and fall back to a manual check on an Intel Mac.
+    name: smoke published x64 build on Intel (informational)
+    needs: build
+    runs-on: macos-15-intel
+    continue-on-error: true
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        # Only for package.json (version) and dev-scripts/e2e-probe.js.
+        uses: actions/checkout@v4
+
+      - name: Download published x64 app
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          gh release download "v$VERSION" -p "BoostRecord-$VERSION-x64.zip" -D "$RUNNER_TEMP/dl"
+          ditto -x -k "$RUNNER_TEMP/dl/BoostRecord-$VERSION-x64.zip" "$RUNNER_TEMP/app"
+          file "$RUNNER_TEMP/app/BoostRecord.app/Contents/MacOS/BoostRecord"
+
+      - name: E2E on published x64 app
+        # Same probe as the arm64 job: create note → type → save → title.
+        # The probe's 90s watchdog timed out on a slow Intel Mac, so give
+        # the Intel runner 5 minutes.
+        env:
+          TB_E2E_WATCHDOG_MS: '300000'
+        run: |
+          APP="$RUNNER_TEMP/app/BoostRecord.app"
+          set +e
+          TB_E2E_PROBE="$PWD/dev-scripts/e2e-probe.js" \
+          TB_E2E_RESULT="$RUNNER_TEMP/tb-e2e.json" \
+            "$APP/Contents/MacOS/BoostRecord"
+          CODE=$?
+          set -e
+          cat "$RUNNER_TEMP/tb-e2e.json" || true
+          exit $CODE
+
   notes:
     # electron-builder leaves the GitHub Release body empty, so the page never
     # said which of the 3 installers to pick. Fill it from the template once

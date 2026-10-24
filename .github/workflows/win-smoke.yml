@@ -78,6 +78,9 @@ jobs:
           $idx = Join-Path $appDir "resources\app\index.js"
           $probe = @'
           const { app: probeApp } = require('electron')
+          // The runner has no usable GPU and Electron exits after its GPU
+          // process crashes repeatedly; render in software for this check.
+          probeApp.disableHardwareAcceleration()
           const probeFs = require('fs')
           const probeOut = require('path').join(require('os').tmpdir(), 'tb-verify-result.json')
           probeApp.on('web-contents-created', (_e, wc) => {

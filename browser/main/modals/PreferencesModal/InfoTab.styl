@@ -1,16 +1,15 @@
 @import('./ConfigTab.styl')
 
+// 説明文が長いと右側が折り返して固定の高さからはみ出し、下のリストに重なるため flex で横並びを保つ
 .icon-space
   margin 20px 0
-  height 100px
+  display flex
+  align-items center
 
 .icon
-  display inline-block
-  vertical-align middle
+  flex-shrink 0
 
 .icon-right
-  display inline-block
-  vertical-align middle
   margin-left 20px
 
 .appId

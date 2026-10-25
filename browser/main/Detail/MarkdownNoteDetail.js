@@ -41,7 +41,8 @@ import ttsPlayer from 'browser/main/lib/ttsPlayer'
 import TocPane from 'browser/main/Detail/TocPane'
 const { ipcRenderer } = require('electron')
 import FindBar from 'browser/main/Detail/FindBar'
-import { findMatches, stepIndex } from 'browser/lib/findInText'
+import { stepIndex } from 'browser/lib/findInText'
+import * as editorFind from 'browser/lib/editorFind'
 import * as previewFind from 'browser/lib/findInPreview'
 import i18n from 'browser/lib/i18n'
 
@@ -273,7 +274,14 @@ class MarkdownNoteDetail extends React.Component {
     // 既に開いていれば入力欄を選び直すだけ（打ち直せる）
     this.setState(prev => ({
       find: Object.assign(
-        { query: '', index: -1, count: 0, focusToken: 0 },
+        {
+          query: '',
+          index: -1,
+          count: 0,
+          focusToken: 0,
+          replace: '',
+          replaceOpen: false
+        },
         prev.find,
         { focusToken: ((prev.find && prev.find.focusToken) || 0) + 1 }
       )
@@ -290,9 +298,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   clearEditorMarks() {
-    const cm = this.getEditorCm()
-    if (!cm || !this.editorMarks) return
-    this.editorMarks.forEach(mark => mark.clear())
+    editorFind.clearMarks(this.editorMarks)
     this.editorMarks = null
   }
 
@@ -328,18 +334,50 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   markEditorMatches(query) {
-    const cm = this.getEditorCm()
     this.clearEditorMarks()
-    if (!cm || !query) return 0
-    const value = cm.getValue()
-    const hits = findMatches(value, query)
-    this.editorHits = hits
-    this.editorMarks = hits.map(hit =>
-      cm.markText(cm.posFromIndex(hit.start), cm.posFromIndex(hit.end), {
-        className: 'tb-find-all'
-      })
+    this.editorMarks = editorFind.markMatches(this.getEditorCm(), query)
+    return this.editorMarks.length
+  }
+
+  // 置換はエディタのときだけ（FindBar もエディタのときだけ置換欄を出す）
+  handleReplace() {
+    const find = this.state.find
+    const cm = this.getEditorCm()
+    if (!find || !find.count || !cm || this.getFindTarget() !== 'EDITOR') return
+    // まだ現在地が無ければ、置き換えずに最初の一致を選ぶだけにする
+    // （どれが置き換わるのか見えないまま書き換えない）
+    const mark =
+      find.index >= 0 && this.editorMarks && this.editorMarks[find.index]
+    if (!mark) {
+      this.handleFindStep(1)
+      return
+    }
+    const offset = editorFind.replaceMark(cm, mark, find.replace || '')
+    // 一致の中身が手で消されていたら、置き換えずに探し直すだけ
+    this.reselectAfterReplace(
+      offset < 0 ? cm.indexFromPos(cm.getCursor()) : offset
     )
-    return hits.length
+  }
+
+  handleReplaceAll() {
+    const find = this.state.find
+    const cm = this.getEditorCm()
+    if (!find || !find.count || !cm || this.getFindTarget() !== 'EDITOR') return
+    editorFind.replaceAllMarks(cm, this.editorMarks, find.replace || '')
+    this.reselectAfterReplace(-1)
+  }
+
+  // 置き換えた後に探し直す。offset 以降の最初の一致を現在地にする（-1 なら現在地なし）
+  reselectAfterReplace(offset) {
+    const query = this.state.find.query
+    const count = this.markEditorMatches(query)
+    const cm = this.getEditorCm()
+    const index =
+      offset < 0 ? -1 : editorFind.indexAfter(cm, this.editorMarks, offset)
+    if (index >= 0) editorFind.selectMark(cm, this.editorMarks[index])
+    this.setState(prev => ({
+      find: Object.assign({}, prev.find, { count, index })
+    }))
   }
 
   /** 現在地を動かす。**Enter / ボタンからしか呼ばない** */
@@ -353,14 +391,10 @@ class MarkdownNoteDetail extends React.Component {
       const doc = this.getPreviewDoc()
       if (doc) previewFind.setActive(doc, this.previewRanges, next)
     } else {
-      const cm = this.getEditorCm()
-      const hit = this.editorHits && this.editorHits[next]
-      if (cm && hit) {
-        const from = cm.posFromIndex(hit.start)
-        const to = cm.posFromIndex(hit.end)
-        cm.setSelection(from, to)
-        cm.scrollIntoView({ from, to }, 120)
-      }
+      editorFind.selectMark(
+        this.getEditorCm(),
+        this.editorMarks && this.editorMarks[next]
+      )
     }
     this.setState(prev => ({
       find: Object.assign({}, prev.find, { index: next })
@@ -1541,6 +1575,26 @@ class MarkdownNoteDetail extends React.Component {
             onChange={q => this.runFind(q)}
             onStep={d => this.handleFindStep(d)}
             onClose={() => this.handleFindClose()}
+            replaceOpen={this.state.find.replaceOpen}
+            replaceValue={this.state.find.replace}
+            onToggleReplace={() =>
+              this.setState(prev => ({
+                find: Object.assign({}, prev.find, {
+                  replaceOpen: !prev.find.replaceOpen
+                })
+              }))
+            }
+            onReplaceChange={v =>
+              this.setState(prev => ({
+                find: Object.assign({}, prev.find, { replace: v })
+              }))
+            }
+            onReplace={
+              this.getFindTarget() === 'EDITOR'
+                ? () => this.handleReplace()
+                : null
+            }
+            onReplaceAll={() => this.handleReplaceAll()}
           />
         )}
         {this.state.readAloudOpen && (

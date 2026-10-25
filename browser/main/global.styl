@@ -94,6 +94,9 @@ modalBackColor = white
     absolute top left bottom right
     background-color modalBackColor
     z-index modalZIndex + 1
+  // 半透明の窓（AI の窓）用。幕も透かさないと、窓の面を透かしても無地しか見えない
+  &.ModalBase--glass .modalBack
+    background-color alpha(modalBackColor, 0.6)
 
 
 .CodeMirror
@@ -172,6 +175,8 @@ apply-theme(theme)
     .ModalBase
       .modalBack
         background-color get-theme-var(theme, 'backgroundColor')
+      &.ModalBase--glass .modalBack
+        background-color alpha(get-theme-var(theme, 'backgroundColor'), 0.6)
     .sortableItemHelper
       color get-theme-var(theme, 'text-color')
 

@@ -1,5 +1,10 @@
 .root
   modal()
+  // 重ねて出す窓のルール（半透明 + ぼかし）。情報パネル・ライトボックスとそろえる。
+  // 文字は 88% の面の上に乗るので、後ろの本文と混ざって読めなくなることは無い
+  background-color alpha($modal-background, 88%)
+  backdrop-filter blur(20px) saturate(140%)
+  -webkit-backdrop-filter blur(20px) saturate(140%)
   width 760px
   max-width calc(100vw - 80px)
   height 760px
@@ -144,9 +149,9 @@
 apply-theme(theme)
   body[data-theme={theme}]
     .root
-      background-color get-theme-var(theme, 'backgroundColor')
+      background-color alpha(get-theme-var(theme, 'backgroundColor'), 88%)
       color get-theme-var(theme, 'text-color')
-    .header
+    .header, .scope
       border-color get-theme-var(theme, 'borderColor')
     .control
       border-color get-theme-var(theme, 'borderColor')
@@ -156,9 +161,9 @@ apply-theme(theme)
 
 body[data-theme="dark"]
   .root
-    background-color $ui-dark-backgroundColor
+    background-color alpha($ui-dark-backgroundColor, 88%)
     color $ui-dark-text-color
-  .header
+  .header, .scope
     border-color $ui-dark-borderColor
   .control
     border-color $ui-dark-borderColor

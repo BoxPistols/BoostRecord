@@ -83,43 +83,47 @@ function openAiChat(editor, opts) {
   // 続けて適用しても同じ場所を置き換え続けられるようにする
   let selFrom = editor != null ? editor.getCursor('from') : null
   let selTo = editor != null ? editor.getCursor('to') : null
-  openModal(AiChatModal, {
-    noteContent,
-    selection,
-    // 相談スレッドの保存先。分からなければ保存しない（窓にその旨を出す）
-    thread: noteThreadTarget(editor),
-    // ワンショットの整形（重複をまとめる等）もここを通す。いきなり本文を
-    // 置き換えず、差分を見て塊ごとに採用できる窓で確認してから入れる
-    initialRequest: opts && opts.initialRequest,
-    forceScope: opts && opts.forceScope,
-    onApply:
-      editor == null
-        ? undefined
-        : function(scope, text) {
-            if (scope === 'selection' && selFrom && selTo) {
-              const startIdx = editor.indexFromPos(selFrom)
-              editor.replaceRange(text, selFrom, selTo)
-              selTo = editor.posFromIndex(startIdx + text.length)
-              editor.setSelection(selFrom, selTo)
-            } else {
-              const last = editor.lastLine()
-              editor.replaceRange(
-                text,
-                { line: 0, ch: 0 },
-                { line: last, ch: editor.getLine(last).length }
-              )
-              selFrom = { line: 0, ch: 0 }
-              selTo = editor.posFromIndex(text.length)
+  openModal(
+    AiChatModal,
+    {
+      noteContent,
+      selection,
+      // 相談スレッドの保存先。分からなければ保存しない（窓にその旨を出す）
+      thread: noteThreadTarget(editor),
+      // ワンショットの整形（重複をまとめる等）もここを通す。いきなり本文を
+      // 置き換えず、差分を見て塊ごとに採用できる窓で確認してから入れる
+      initialRequest: opts && opts.initialRequest,
+      forceScope: opts && opts.forceScope,
+      onApply:
+        editor == null
+          ? undefined
+          : function(scope, text) {
+              if (scope === 'selection' && selFrom && selTo) {
+                const startIdx = editor.indexFromPos(selFrom)
+                editor.replaceRange(text, selFrom, selTo)
+                selTo = editor.posFromIndex(startIdx + text.length)
+                editor.setSelection(selFrom, selTo)
+              } else {
+                const last = editor.lastLine()
+                editor.replaceRange(
+                  text,
+                  { line: 0, ch: 0 },
+                  { line: last, ch: editor.getLine(last).length }
+                )
+                selFrom = { line: 0, ch: 0 }
+                selTo = editor.posFromIndex(text.length)
+              }
+            },
+      onInsert:
+        editor == null
+          ? undefined
+          : function(text) {
+              editor.replaceSelection(text)
+              editor.focus()
             }
-          },
-    onInsert:
-      editor == null
-        ? undefined
-        : function(text) {
-            editor.replaceSelection(text)
-            editor.focus()
-          }
-  })
+    },
+    { backdrop: 'glass' }
+  )
 }
 
 function runNoteAiAction(editor, actionKey) {

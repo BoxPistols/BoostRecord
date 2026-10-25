@@ -13,6 +13,12 @@ const ERROR_MESSAGES = {
     ),
   OCR_VISION_UNAVAILABLE: () =>
     i18n.__('On-device recognition is available on macOS 13 or later.'),
+  OCR_WINDOWS_NO_LANGUAGE: () =>
+    i18n.__(
+      'No recognition language is installed. Add a language in Windows Settings > Time & language > Language & region.'
+    ),
+  OCR_WINDOWS_IMAGE_TOO_LARGE: () =>
+    i18n.__('The image is too large for on-device recognition.'),
   IMAGE_SRC_UNSUPPORTED: () => i18n.__('This image cannot be read.'),
   IMAGE_SRC_EMPTY: () => i18n.__('This image cannot be read.'),
   IMAGE_DATA_URL_INVALID: () => i18n.__('This image cannot be read.'),
@@ -27,14 +33,14 @@ const ABORT_PATTERN = /aborted/i
 let capabilities = null
 
 /**
- * 使える読み取り方式。macOS以外では端末内の方式を出さない
- * @returns {Promise<{vision: boolean}>}
+ * 使える読み取り方式。端末内の方式はmacOS 13以降とWindowsだけ
+ * @returns {Promise<{vision: boolean, onDevice: 'macos'|'windows'|null, japanese: boolean}>}
  */
 export function getOcrCapabilities() {
   if (!capabilities) {
     capabilities = ipcRenderer
       .invoke('ocr:capabilities')
-      .catch(() => ({ vision: false }))
+      .catch(() => ({ vision: false, onDevice: null, japanese: false }))
   }
   return capabilities
 }

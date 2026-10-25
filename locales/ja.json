@@ -832,5 +832,9 @@
   "Play %s": "%sを再生",
   "Open on YouTube": "YouTubeで開く",
   "Show YouTube links as a thumbnail and player": "YouTubeのリンクをサムネイルとプレーヤーで表示する",
-  "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube.": "1行に単独で書いたYouTubeのリンクをサムネイルで表示し、押すとプレビューの中で再生します。文中のリンクはリンクのままです。サムネイルはYouTubeから読み込みます。"
+  "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube.": "1行に単独で書いたYouTubeのリンクをサムネイルで表示し、押すとプレビューの中で再生します。文中のリンクはリンクのままです。サムネイルはYouTubeから読み込みます。",
+  "No recognition language is installed. Add a language in Windows Settings > Time & language > Language & region.": "文字認識の言語が入っていません。Windowsの設定の［時刻と言語］→［言語と地域］で言語を追加してください。",
+  "The image is too large for on-device recognition.": "画像が大きすぎて、端末内では読み取れません。",
+  "On device (Windows)": "端末内（Windows）",
+  "On device (Windows, no Japanese)": "端末内（Windows・日本語なし）"
 }

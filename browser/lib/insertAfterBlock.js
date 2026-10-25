@@ -24,16 +24,49 @@ export function imageNeedle(src) {
   }
 }
 
-// 行に含まれる画像のURL（Markdownの![](url)とHTMLの<img src>）
-const IMAGE_URL_PATTERN = /!\[[^\]]*\]\(\s*<?([^)\s>]+)|<img\b[^>]*\bsrc=["']([^"']+)["']/gi
+// 行に含まれる画像のURL（Markdownの![](url)・![](<空白を含むurl>)とHTMLの<img src>）
+const IMAGE_URL_PATTERN = /!\[[^\]]*\]\(\s*(?:<([^>\n]+)>|([^)\s]+))|<img\b[^>]*\bsrc=["']([^"']+)["']/gi
+
+// 参照形式の画像（![alt][ref] / ![alt][] / ![ref]）。後ろが ( のものはインライン形式
+const IMAGE_REF_PATTERN = /!\[([^\]]*)\](?:\[([^\]]*)\])?(?!\()/g
+
+// 参照の定義行（[ref]: url / [ref]: <空白を含むurl>）
+const REF_DEF_PATTERN = /^ {0,3}\[([^\]]+)\]:\s*(?:<([^>]+)>|(\S+))/
+
+// 参照名は大文字小文字と連続する空白を区別しない（CommonMarkと同じ）
+function refKey(label) {
+  return label
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+}
+
+// 原文全体から参照名 → URL の表を作る。同じ名前は最初の定義が勝つ
+function collectRefDefs(cm) {
+  const defs = new Map()
+  for (let i = 0; i < cm.lineCount(); i++) {
+    const m = REF_DEF_PATTERN.exec(cm.getLine(i))
+    if (!m) continue
+    const key = refKey(m[1])
+    if (key && !defs.has(key)) defs.set(key, m[2] || m[3])
+  }
+  return defs
+}
 
 // 行の中に、ファイル名がneedleと完全に一致する画像があるか。
 // 部分一致だと、本文にファイル名を書いた行や、名前の一部が重なる別の画像を拾う
-function hasImageNamed(line, needle) {
+function hasImageNamed(line, needle, defs) {
   IMAGE_URL_PATTERN.lastIndex = 0
   let m
   while ((m = IMAGE_URL_PATTERN.exec(line))) {
-    if (imageNeedle(m[1] || m[2]) === needle) return true
+    if (imageNeedle(m[1] || m[2] || m[3]) === needle) return true
+  }
+  if (defs.size === 0) return false
+  IMAGE_REF_PATTERN.lastIndex = 0
+  while ((m = IMAGE_REF_PATTERN.exec(line))) {
+    // ![alt][] と ![ref] は alt がそのまま参照名になる
+    const url = defs.get(refKey(m[2] || m[1]))
+    if (url && imageNeedle(url) === needle) return true
   }
   return false
 }
@@ -48,9 +81,10 @@ function hasImageNamed(line, needle) {
  */
 export function findImageLine(cm, needle, hintLine) {
   if (!needle) return hintLine
+  const defs = collectRefDefs(cm)
   let best = -1
   for (let i = 0; i < cm.lineCount(); i++) {
-    if (!hasImageNamed(cm.getLine(i), needle)) continue
+    if (!hasImageNamed(cm.getLine(i), needle, defs)) continue
     const hint = hintLine >= 0 ? hintLine : 0
     if (best === -1 || Math.abs(i - hint) < Math.abs(best - hint)) best = i
   }

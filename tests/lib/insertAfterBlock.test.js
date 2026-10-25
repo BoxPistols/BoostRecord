@@ -151,3 +151,46 @@ test('空行を挟まずにコードブロックが続くときは、フェン�
   expect(insertAfterBlock(cm, 0, '文字')).toBe(true)
   expect(cm.value()).toBe('![a](a.png)\n\n文字\n```\nコード\n\nコード2\n```')
 })
+
+test('参照形式の画像は定義行からパスを引いて、画像の行を返す', () => {
+  const cm = fakeEditor(
+    [
+      '# 見出し',
+      '',
+      '![図1][fig]',
+      '',
+      '![図2][]',
+      '',
+      '![Shortcut]',
+      '',
+      '[fig]: :storage/abc/fig.png',
+      '[図2]: <./images/my figure.png>',
+      '[shortcut]: ./short.png "タイトル"'
+    ].join('\n')
+  )
+  expect(findImageLine(cm, 'fig.png', 0)).toBe(2)
+  expect(findImageLine(cm, 'my figure.png', 0)).toBe(4)
+  // 参照名は大文字小文字を区別しない
+  expect(findImageLine(cm, 'short.png', 0)).toBe(6)
+})
+
+test('定義の無い参照や、画像でないリンクの参照は拾わない', () => {
+  const cm = fakeEditor(
+    '[本文のリンク][fig]\n\n![未定義][none]\n\n[fig]: fig.png'
+  )
+  expect(findImageLine(cm, 'fig.png', 0)).toBe(-1)
+})
+
+test('<...> で囲んだ空白を含むパスの画像を見つける', () => {
+  const cm = fakeEditor('本文\n\n![図](<./images/my figure.png> "題")\n\n続き')
+  expect(findImageLine(cm, imageNeedle('./images/my%20figure.png'), 0)).toBe(2)
+})
+
+test('参照形式の画像の直後に挿入できる', () => {
+  const cm = fakeEditor('![図][fig]\n\n本文\n\n[fig]: fig.png')
+  const line = findImageLine(cm, 'fig.png', 0)
+  expect(insertAfterBlock(cm, line, '読み取った文字')).toBe(true)
+  expect(cm.value()).toBe(
+    '![図][fig]\n\n読み取った文字\n\n本文\n\n[fig]: fig.png'
+  )
+})

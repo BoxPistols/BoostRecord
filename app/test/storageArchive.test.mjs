@@ -294,6 +294,8 @@ test('zip を取り込むとノートが入れ替わり、そのまま保存も�
     ['取り込んだ']
   )
   assert.equal(res.storages[0].folders[0].name, 'メモ')
+  // デスクトップ版の boostnote.json は name を持たない。中のフォルダ名ではなく「このブラウザ」と出す
+  assert.equal(res.storages[0].name, 'このブラウザ')
   // 取り込んだ直後の保存が「別のアプリから変更」で止まらない（更新日時を取り直している）
   await repo.saveNote({ ...res.notes[0], content: '# 直した' })
   assert.match(

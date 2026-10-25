@@ -55,6 +55,17 @@ export async function openOpfsStorage(
   return dir
 }
 
+// デスクトップ版の boostnote.json は name を持たないので、取り込むとフォルダ名
+// （STORAGE_DIR）がそのまま出る。利用者に見せる名前に置き換える
+function withDisplayName(res: { storages: Storage[]; notes: Note[] }) {
+  return {
+    notes: res.notes,
+    storages: res.storages.map(s =>
+      s.name === STORAGE_DIR ? { ...s, name: DEFAULT_META.name } : s
+    )
+  }
+}
+
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -114,7 +125,7 @@ export function createOpfsRepository(
   return {
     async load() {
       try {
-        return await (await open()).inner.load()
+        return withDisplayName(await (await open()).inner.load())
       } catch {
         return { storages: [], notes: [] }
       }
@@ -143,7 +154,7 @@ export function createOpfsRepository(
       const { dir, inner } = await open()
       await replaceStorage(dir, contents)
       // 読み直して、保存時の突き合わせに使う更新日時も取り直す
-      return inner.load()
+      return withDisplayName(await inner.load())
     },
     async exportArchive() {
       const { dir } = await open()

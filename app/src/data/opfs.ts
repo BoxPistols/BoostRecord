@@ -114,6 +114,10 @@ export function createOpfsRepository(
         // OPFS のハンドルは「前回のフォルダ」として覚えない（覚える先は File System Access 用）
         inner: createFileSystemAccessRepository(dir, { rememberHandle: false })
       }))
+      // 開けなかったら次の操作で開き直す。失敗を覚えたままだと再読み込みまで保存できない
+      opened.catch(() => {
+        opened = null
+      })
       // ストレージが逼迫したときに消されないよう頼む。断られても使える
       if (typeof navigator !== 'undefined' && navigator.storage?.persist) {
         navigator.storage.persist().catch(() => false)

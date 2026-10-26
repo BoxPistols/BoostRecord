@@ -176,7 +176,7 @@ export async function readZip(
   const out: ZipEntry[] = []
 
   for (let i = 0; i < count; i++) {
-    if (view.getUint32(pos, true) !== 0x02014b50) {
+    if (pos + 46 > bytes.byteLength || view.getUint32(pos, true) !== 0x02014b50) {
       throw new Error('zip の目次が壊れています')
     }
     const flags = view.getUint16(pos + 8, true)
@@ -200,9 +200,15 @@ export async function readZip(
     if (total > maxTotal) throw new Error('zip の中身が大きすぎます')
 
     // データの位置はローカルヘッダの長さで決まる（目次と extra の長さが違うことがある）
+    if (localOffset + 30 > bytes.byteLength) {
+      throw new Error('zip の目次が壊れています')
+    }
     const localNameLen = view.getUint16(localOffset + 26, true)
     const localExtraLen = view.getUint16(localOffset + 28, true)
     const start = localOffset + 30 + localNameLen + localExtraLen
+    if (start + compSize > bytes.byteLength) {
+      throw new Error('zip の中身が途中で切れています')
+    }
     const raw = bytes.subarray(start, start + compSize)
 
     let data: Uint8Array

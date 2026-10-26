@@ -120,8 +120,9 @@ export async function replaceStorage(
 ): Promise<void> {
   try {
     await root.removeEntry('notes', { recursive: true })
-  } catch {
-    // notes/ がまだ無い
+  } catch (e) {
+    // notes/ がまだ無いときだけ進める。消し損ねたまま書くと古いノートが混ざる
+    if ((e as { name?: string } | null)?.name !== 'NotFoundError') throw e
   }
   await writeFileText(root, 'boostnote.json', contents.meta)
   const notesDir = await root.getDirectoryHandle('notes', { create: true })

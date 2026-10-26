@@ -303,3 +303,48 @@ test('zip を取り込むとノートが入れ替わり、そのまま保存も�
     /直した/
   )
 })
+
+test('途中で切れた zip や、範囲外を指す目次は読めないと伝える', async () => {
+  const zip = createZip([{ path: 'a.txt', data: enc.encode('hello world') }])
+  // 中身の途中を切り落とし、目次（末尾）だけ残す
+  const eocd = zip.length - 22
+  const cdSize = new DataView(zip.buffer).getUint32(eocd + 12, true)
+  const tail = zip.slice(eocd - cdSize)
+  await assert.rejects(readZip(tail), /zip/)
+
+  // ローカルヘッダの位置を範囲外に書き換える
+  const bad = zip.slice()
+  new DataView(bad.buffer).setUint32(eocd - cdSize + 42, 0xfffffff0, true)
+  await assert.rejects(readZip(bad), /zip の目次が壊れています/)
+
+  // 目次の数を水増しする
+  const more = zip.slice()
+  new DataView(more.buffer).setUint16(eocd + 10, 5, true)
+  await assert.rejects(readZip(more), /zip の目次が壊れています/)
+})
+
+test('notes/ を消せなかったときは書き込まずに止める', async () => {
+  const root = makeDir('storage')
+  await root.getDirectoryHandle('notes', { create: true })
+  root.removeEntry = async () => {
+    throw new DOMException('denied', 'NoModificationAllowedError')
+  }
+  await assert.rejects(
+    replaceStorage(root, { meta: '{}', notes: [{ key: 'a', text: 'x' }] }),
+    /denied/
+  )
+  assert.equal(root.files['boostnote.json'], undefined)
+})
+
+test('OPFS を開けなかった後でも、次の操作で開き直す', async () => {
+  const opfsRoot = makeDir('opfs')
+  let fail = true
+  const repo = createOpfsRepository(async () => {
+    if (fail) throw new DOMException('quota', 'QuotaExceededError')
+    return opfsRoot
+  })
+  await assert.rejects(repo.createNote({ folder: 'default' }), /quota/)
+  fail = false
+  const note = await repo.createNote({ folder: 'default' })
+  assert.ok(note.key)
+})

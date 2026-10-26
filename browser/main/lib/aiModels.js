@@ -34,8 +34,11 @@ export const MODEL_NOTES = {}
 // 料金の概算に使う単価（米ドル / 100万トークン）。公式ページで確かめたものだけ載せ、
 // 載っていないモデルは料金を出さない（推測で書かない）。
 //   gpt-6-luna: developers.openai.com/api/docs/models/gpt-6-luna 2026-09-25確認
+//   gemini-3.5-flash-lite: ai.google.dev/gemini-api/docs/pricing の Standard・有料枠 2026-10-25確認
+//     （ページは2026-10-22更新）。無料枠では課金されないが、ここでは有料枠の単価で数える
 export const MODEL_PRICING = {
-  'gpt-6-luna': { input: 0.1, cachedInput: 0.01, output: 0.5 }
+  'gpt-6-luna': { input: 0.1, cachedInput: 0.01, output: 0.5 },
+  'gemini-3.5-flash-lite': { input: 0.3, cachedInput: 0.03, output: 2.5 }
 }
 
 /**

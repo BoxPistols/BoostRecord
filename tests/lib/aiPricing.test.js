@@ -27,3 +27,13 @@ test('単価表の値はすべて数値', () => {
     expect(typeof p.output).toBe('number')
   })
 })
+
+test('Gemini の既定モデルにも単価がある', () => {
+  // gemini-3.5-flash-lite: 入力0.3 / キャッシュ済み0.03 / 出力2.5（100万トークンあたり）
+  const cost = estimateCostUsd('gemini-3.5-flash-lite', {
+    inputTokens: 1000000,
+    cachedInputTokens: 0,
+    outputTokens: 100000
+  })
+  expect(cost).toBeCloseTo(0.3 + 0.1 * 2.5, 10)
+})

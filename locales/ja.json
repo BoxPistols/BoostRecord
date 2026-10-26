@@ -832,5 +832,8 @@
   "Play %s": "%sを再生",
   "Open on YouTube": "YouTubeで開く",
   "Show YouTube links as a thumbnail and player": "YouTubeのリンクをサムネイルとプレーヤーで表示する",
-  "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube.": "1行に単独で書いたYouTubeのリンクをサムネイルで表示し、押すとプレビューの中で再生します。文中のリンクはリンクのままです。サムネイルはYouTubeから読み込みます。"
+  "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube.": "1行に単独で書いたYouTubeのリンクをサムネイルで表示し、押すとプレビューの中で再生します。文中のリンクはリンクのままです。サムネイルはYouTubeから読み込みます。",
+  "Replace with": "置換後の文字列",
+  "Replace match": "置換",
+  "Toggle replace": "置換を開閉"
 }

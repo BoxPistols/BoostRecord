@@ -800,14 +800,21 @@ document.addEventListener('DOMContentLoaded', function () {
   // imagesはライトボックスを開いたときの並び。押した時点で取り直すと、
   // カルーセルの画像に後から onclick が付いて番号がずれ、別の画像の下に書き込む
   async buildImageOcrOptions(images) {
-    const { vision } = await getOcrCapabilities()
+    const { vision, onDevice, japanese } = await getOcrCapabilities()
     const ai = ConfigManager.get().ai || {}
     const providerName = ai.provider === 'gemini' ? 'Google' : 'OpenAI'
     const engines = [
       { id: 'ai', label: i18n.__('AI (sent to %s)', providerName) }
     ]
     if (vision) {
-      engines.push({ id: 'vision', label: i18n.__('On device (macOS)') })
+      // Windowsで日本語の認識を入れていなければ、選ぶ前にそれと分かる名前にする
+      const label =
+        onDevice === 'windows'
+          ? japanese
+            ? i18n.__('On device (Windows)')
+            : i18n.__('On device (Windows, no Japanese)')
+          : i18n.__('On device (macOS)')
+      engines.push({ id: 'vision', label })
     }
     const saved = getOcrEngine()
     const { onInsertImageText, onRemoveImageText } = this.props

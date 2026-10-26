@@ -98,3 +98,19 @@ jobs:
         env:
           ELECTRON_DISABLE_SANDBOX: '1'
         run: xvfb-run --auto-servernum pnpm run e2e:realinput
+
+  windows-ocr:
+    # 端末内の文字認識（Windows.Media.Ocr を PowerShell から呼ぶ）は Windows でしか
+    # 動かない。依存を入れずに、画像を作って読めるかだけを見る
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Read text from an image with Windows OCR
+        run: node dev-scripts/check-windows-ocr.js

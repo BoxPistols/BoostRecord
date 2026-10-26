@@ -184,7 +184,7 @@ class SnippetNoteDetail extends React.Component {
     // 検索を開いたままタブを切り替えたら、新しいタブで探し直す。
     // 前のタブのマークを残すと、見えていないタブの件数と現在地を出し続ける
     if (this.state.find && prevState.snippetIndex !== this.state.snippetIndex) {
-      this.runFind(this.state.find.query)
+      this.runFind(this.state.find.query, true)
     }
     // description の開閉でエディタの高さが変わる。CodeMirror はコンテナの
     // サイズ変化を自前で検知しないので、resize を投げて再計測させる
@@ -302,7 +302,7 @@ class SnippetNoteDetail extends React.Component {
   }
 
   /** 探すだけ。**現在地は動かさない**（IME の変換中に画面が飛ばないように） */
-  runFind(query) {
+  runFind(query, resetIndex = false) {
     this.clearFindHighlights()
     const surface = this.getFindSurface()
     this.findTarget = surface.target
@@ -322,11 +322,12 @@ class SnippetNoteDetail extends React.Component {
       find: Object.assign({}, prev.find, {
         query,
         count,
-        // 件数が変わったら現在地は無効。ただし勝手に進めない
+        // 語が変わったら現在地は無効（選ばれていない一致を置き換えないため）。
+        // IME の確定などで同じ語を探し直すときだけ引き継ぐ。勝手に進めない
         index:
-          count === 0
+          count === 0 || resetIndex || !prev.find || prev.find.query !== query
             ? -1
-            : Math.min(prev.find ? prev.find.index : -1, count - 1)
+            : Math.min(prev.find.index, count - 1)
       })
     }))
   }
@@ -337,7 +338,7 @@ class SnippetNoteDetail extends React.Component {
     if (!find) return
     // 開いたままエディタとプレビューを切り替えていたら、探し直してから進める
     if (this.getFindSurface().target !== this.findTarget) {
-      this.runFind(find.query)
+      this.runFind(find.query, true)
       return
     }
     if (!find.count) return

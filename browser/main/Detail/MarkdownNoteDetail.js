@@ -303,7 +303,7 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   /** 探すだけ。**現在地は動かさない** */
-  runFind(query) {
+  runFind(query, resetIndex = false) {
     const target = this.getFindTarget()
     let count = 0
     if (target === 'PREVIEW') {
@@ -324,11 +324,12 @@ class MarkdownNoteDetail extends React.Component {
       find: Object.assign({}, prev.find, {
         query,
         count,
-        // 件数が変わったら現在地は無効。ただし勝手に進めない
+        // 語が変わったら現在地は無効（選ばれていない一致を置き換えないため）。
+        // IME の確定などで同じ語を探し直すときだけ引き継ぐ。勝手に進めない
         index:
-          count === 0
+          count === 0 || resetIndex || !prev.find || prev.find.query !== query
             ? -1
-            : Math.min(prev.find ? prev.find.index : -1, count - 1)
+            : Math.min(prev.find.index, count - 1)
       })
     }))
   }

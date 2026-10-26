@@ -88,8 +88,9 @@ class FindBar extends React.Component {
     if (e.key === 'Enter') {
       if (composing) return
       e.preventDefault()
-      if (e.metaKey || e.ctrlKey) this.props.onReplaceAll()
-      else this.props.onReplace()
+      const handler =
+        e.metaKey || e.ctrlKey ? this.props.onReplaceAll : this.props.onReplace
+      if (handler) handler()
     }
   }
 

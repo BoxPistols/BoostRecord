@@ -12,7 +12,9 @@ const ERROR_MESSAGES = {
       'This image format cannot be sent to AI (PNG, JPEG, WebP, GIF only). Try on-device recognition.'
     ),
   OCR_VISION_UNAVAILABLE: () =>
-    i18n.__('On-device recognition is available on macOS 13 or later.'),
+    i18n.__(
+      'On-device recognition is available on macOS 13 or later, or on Windows.'
+    ),
   OCR_WINDOWS_NO_LANGUAGE: () =>
     i18n.__(
       'No recognition language is installed. Add a language in Windows Settings > Time & language > Language & region.'

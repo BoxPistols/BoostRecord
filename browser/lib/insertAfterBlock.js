@@ -47,10 +47,12 @@ function fencedLines(cm) {
   const lines = new Set()
   let open = null
   for (let i = 0; i < cm.lineCount(); i++) {
-    const m = /^ {0,3}(`{3,}|~{3,})/.exec(cm.getLine(i))
+    const m = /^ {0,3}(`{3,}|~{3,})(.*)$/.exec(cm.getLine(i))
     if (open) {
       lines.add(i)
-      if (m && m[1][0] === open[0] && m[1].length >= open.length) open = null
+      // 閉じるフェンスの後ろには空白しか置けない（```js は中身の行）
+      const closes = m && m[1][0] === open[0] && m[1].length >= open.length
+      if (closes && m[2].trim() === '') open = null
     } else if (m) {
       lines.add(i)
       open = m[1]

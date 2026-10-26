@@ -198,16 +198,17 @@ test('参照形式の画像の直後に挿入できる', () => {
 test('コードブロックの中の参照定義と画像は数えない', () => {
   const cm = fakeEditor(
     [
-      '```md',
+      '````md',
+      '```js',
       '![例][fig]',
       '[fig]: wrong.png',
-      '```',
+      '````',
       '',
       '![図][fig]',
       '',
       '[fig]: fig.png'
     ].join('\n')
   )
-  expect(findImageLine(cm, 'fig.png', 0)).toBe(5)
+  expect(findImageLine(cm, 'fig.png', 0)).toBe(6)
   expect(findImageLine(cm, 'wrong.png', 0)).toBe(-1)
 })

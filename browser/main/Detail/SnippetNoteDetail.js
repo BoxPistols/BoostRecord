@@ -31,6 +31,10 @@ import i18n from 'browser/lib/i18n'
 import { confirmDeleteNote } from 'browser/lib/confirmDeleteNote'
 import markdownToc from 'browser/lib/markdown-toc-generator'
 import queryString from 'query-string'
+import FindBar from './FindBar'
+import { stepIndex } from 'browser/lib/findInText'
+import * as editorFind from 'browser/lib/editorFind'
+import * as previewFind from 'browser/lib/findInPreview'
 import { replace } from 'connected-react-router'
 import {
   subscribe as subscribeMetaKey,
@@ -83,6 +87,8 @@ class SnippetNoteDetail extends React.Component {
       // description は既定で畳む。トグルで固定展開、フォーカス中は一時展開
       isDescriptionPinned: false,
       isDescriptionFocused: false,
+      // ノート内検索。null なら閉じている
+      find: null,
       note: Object.assign(
         {
           description: ''
@@ -132,6 +138,11 @@ class SnippetNoteDetail extends React.Component {
     this.ipcNextTab = this.ipcTabHandler(1)
     ipcRenderer.on('snippet:prev-tab', this.ipcPrevTab)
     ipcRenderer.on('snippet:next-tab', this.ipcNextTab)
+    // Cmd/Ctrl+F は main プロセスが捕まえて detail:find を送る。受け口が
+    // Markdown ノートにしか無く、スニペットノートでは何も起きなかった。
+    // 一覧が描くのはどちらか一方の詳細だけなので、両方で受けても二重には開かない
+    this.findOpenHandler = () => this.handleFindOpen()
+    ipcRenderer.on('detail:find', this.findOpenHandler)
 
     const visibleTabs = this.visibleTabs
     const allTabs = this.allTabs
@@ -170,6 +181,11 @@ class SnippetNoteDetail extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+    // 検索を開いたままタブを切り替えたら、新しいタブで探し直す。
+    // 前のタブのマークを残すと、見えていないタブの件数と現在地を出し続ける
+    if (this.state.find && prevState.snippetIndex !== this.state.snippetIndex) {
+      this.runFind(this.state.find.query, true)
+    }
     // description の開閉でエディタの高さが変わる。CodeMirror はコンテナの
     // サイズ変化を自前で検知しないので、resize を投げて再計測させる
     if (
@@ -185,6 +201,8 @@ class SnippetNoteDetail extends React.Component {
       !this.state.isMovingNote
     ) {
       if (this.saveQueue != null) this.saveNow()
+      // 別のノートへ移ったら検索は閉じる（前のノートのマークを持ち越さない）
+      if (this.state.find) this.handleFindClose(false)
       const nextNote = Object.assign(
         {
           description: ''
@@ -224,6 +242,193 @@ class SnippetNoteDetail extends React.Component {
     if (this.unsubscribeMetaKey) this.unsubscribeMetaKey()
     ipcRenderer.removeListener('snippet:prev-tab', this.ipcPrevTab)
     ipcRenderer.removeListener('snippet:next-tab', this.ipcNextTab)
+    ipcRenderer.removeListener('detail:find', this.findOpenHandler)
+    this.clearFindHighlights()
+  }
+
+  // ---- ノート内検索（Markdown ノートと同じ FindBar を使う） ----
+
+  /**
+   * いま探す面。Markdown のタブでプレビューを出しているときはプレビュー、
+   * それ以外はアクティブなタブのエディタ
+   * @returns {{target: 'EDITOR'|'PREVIEW', cm: Object|null, doc: Document|null}}
+   */
+  getFindSurface() {
+    const ref = this.refs['code-' + this.getActiveSnippetIndex()]
+    if (!ref) return { target: 'EDITOR', cm: null, doc: null }
+    if (ref.state && ref.state.status === 'PREVIEW') {
+      const preview = ref.previewRef && ref.previewRef.current
+      const root = preview && preview.refs && preview.refs.root
+      const doc =
+        root && root.contentWindow ? root.contentWindow.document : null
+      return { target: 'PREVIEW', cm: null, doc }
+    }
+    // CodeEditor はそのまま、MarkdownEditor は中の CodeEditor が CodeMirror を持つ
+    const code = ref.editor ? ref : ref.refs && ref.refs.code
+    return { target: 'EDITOR', cm: (code && code.editor) || null, doc: null }
+  }
+
+  handleFindOpen() {
+    // 既に開いていれば入力欄を選び直すだけ（打ち直せる）
+    this.setState(prev => ({
+      find: Object.assign(
+        {
+          query: '',
+          index: -1,
+          count: 0,
+          focusToken: 0,
+          replace: '',
+          replaceOpen: false
+        },
+        prev.find,
+        { focusToken: ((prev.find && prev.find.focusToken) || 0) + 1 }
+      )
+    }))
+  }
+
+  clearFindHighlights() {
+    editorFind.clearMarks(this.findMarks)
+    this.findMarks = null
+    if (this.findDoc) previewFind.clear(this.findDoc)
+    this.findDoc = null
+    this.previewRanges = null
+  }
+
+  handleFindClose(refocus = true) {
+    this.clearFindHighlights()
+    this.setState({ find: null })
+    // 閉じたら本文へ戻す。フォーカスが宙に浮くと次の操作が効かない
+    if (refocus) this.focusEditor()
+  }
+
+  /** 探すだけ。**現在地は動かさない**（IME の変換中に画面が飛ばないように） */
+  runFind(query, resetIndex = false) {
+    this.clearFindHighlights()
+    const surface = this.getFindSurface()
+    this.findTarget = surface.target
+    let count = 0
+    if (surface.target === 'PREVIEW') {
+      if (surface.doc && query) {
+        const result = previewFind.search(surface.doc, query)
+        this.findDoc = surface.doc
+        this.previewRanges = result.ranges
+        count = result.count
+      }
+    } else {
+      this.findMarks = editorFind.markMatches(surface.cm, query)
+      count = this.findMarks.length
+    }
+    this.setState(prev => ({
+      find: Object.assign({}, prev.find, {
+        query,
+        count,
+        // 語が変わったら現在地は無効（選ばれていない一致を置き換えないため）。
+        // IME の確定などで同じ語を探し直すときだけ引き継ぐ。勝手に進めない
+        index:
+          count === 0 || resetIndex || !prev.find || prev.find.query !== query
+            ? -1
+            : Math.min(prev.find.index, count - 1)
+      })
+    }))
+  }
+
+  /** 現在地を動かす。**Enter / ボタンからしか呼ばない** */
+  handleFindStep(direction) {
+    const find = this.state.find
+    if (!find) return
+    // 開いたままエディタとプレビューを切り替えていたら、探し直してから進める
+    if (this.getFindSurface().target !== this.findTarget) {
+      this.runFind(find.query, true)
+      return
+    }
+    if (!find.count) return
+    const next = stepIndex(find.index, find.count, direction)
+    const surface = this.getFindSurface()
+    if (surface.target === 'PREVIEW') {
+      if (surface.doc)
+        previewFind.setActive(surface.doc, this.previewRanges, next)
+    } else {
+      editorFind.selectMark(surface.cm, this.findMarks && this.findMarks[next])
+    }
+    this.setState(prev => ({
+      find: Object.assign({}, prev.find, { index: next })
+    }))
+  }
+
+  handleReplace() {
+    const find = this.state.find
+    const { target, cm } = this.getFindSurface()
+    if (!find || !find.count || !cm || target !== 'EDITOR') return
+    // まだ現在地が無ければ、置き換えずに最初の一致を選ぶだけにする
+    // （どれが置き換わるのか見えないまま書き換えない）
+    const mark = find.index >= 0 && this.findMarks && this.findMarks[find.index]
+    if (!mark) {
+      this.handleFindStep(1)
+      return
+    }
+    const offset = editorFind.replaceMark(cm, mark, find.replace || '')
+    // 一致の中身が手で消されていたら、置き換えずに探し直すだけ
+    this.reselectAfterReplace(
+      cm,
+      offset < 0 ? cm.indexFromPos(cm.getCursor()) : offset
+    )
+  }
+
+  handleReplaceAll() {
+    const find = this.state.find
+    const { target, cm } = this.getFindSurface()
+    if (!find || !find.count || !cm || target !== 'EDITOR') return
+    editorFind.replaceAllMarks(cm, this.findMarks, find.replace || '')
+    this.reselectAfterReplace(cm, -1)
+  }
+
+  // 置き換えた後に探し直す。offset 以降の最初の一致を現在地にする（-1 なら現在地なし）
+  reselectAfterReplace(cm, offset) {
+    editorFind.clearMarks(this.findMarks)
+    this.findMarks = editorFind.markMatches(cm, this.state.find.query)
+    const index =
+      offset < 0 ? -1 : editorFind.indexAfter(cm, this.findMarks, offset)
+    if (index >= 0) editorFind.selectMark(cm, this.findMarks[index])
+    const count = this.findMarks.length
+    this.setState(prev => ({
+      find: Object.assign({}, prev.find, { count, index })
+    }))
+  }
+
+  renderFindBar() {
+    const find = this.state.find
+    if (!find) return null
+    const isEditor = this.getFindSurface().target === 'EDITOR'
+    return (
+      <FindBar
+        // タブ列の下、エディタの右上に重ねる（本文の幅は変えない）
+        style={{ top: 'calc(var(--tb-tabs-top, 70px) + 36px)', right: 6 }}
+        query={find.query}
+        index={find.index}
+        count={find.count}
+        focusToken={find.focusToken}
+        target={isEditor ? i18n.__('Editor') : i18n.__('Preview')}
+        onChange={q => this.runFind(q)}
+        onStep={d => this.handleFindStep(d)}
+        onClose={() => this.handleFindClose()}
+        replaceOpen={find.replaceOpen}
+        replaceValue={find.replace}
+        onToggleReplace={() =>
+          this.setState(prev => ({
+            find: Object.assign({}, prev.find, {
+              replaceOpen: !prev.find.replaceOpen
+            })
+          }))
+        }
+        onReplaceChange={v =>
+          this.setState(prev => ({
+            find: Object.assign({}, prev.find, { replace: v })
+          }))
+        }
+        onReplace={isEditor ? () => this.handleReplace() : null}
+        onReplaceAll={() => this.handleReplaceAll()}
+      />
+    )
   }
 
   /** 情報パネルを開いてノートリンクを選択・コピーする（Markdown 側と同じ） */
@@ -1395,6 +1600,7 @@ class SnippetNoteDetail extends React.Component {
             </button>
           </div>
           {viewList}
+          {this.renderFindBar()}
         </div>
 
         <div styleName='override'>

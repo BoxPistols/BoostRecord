@@ -657,5 +657,8 @@
   "Play %s": "Play %s",
   "Open on YouTube": "Open on YouTube",
   "Show YouTube links as a thumbnail and player": "Show YouTube links as a thumbnail and player",
-  "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube.": "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube."
+  "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube.": "A YouTube link on a line by itself shows its thumbnail. Press it to play in the preview. Links inside sentences stay as links. The thumbnail is loaded from YouTube.",
+  "Replace with": "Replace with",
+  "Replace match": "Replace",
+  "Toggle replace": "Show or hide replace"
 }

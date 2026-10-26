@@ -836,5 +836,8 @@
   "No recognition language is installed. Add a language in Windows Settings > Time & language > Language & region.": "文字認識の言語が入っていません。Windowsの設定の［時刻と言語］→［言語と地域］で言語を追加してください。",
   "The image is too large for on-device recognition.": "画像が大きすぎて、端末内では読み取れません。",
   "On device (Windows)": "端末内（Windows）",
-  "On device (Windows, no Japanese)": "端末内（Windows・日本語なし）"
+  "On device (Windows, no Japanese)": "端末内（Windows・日本語なし）",
+  "Replace with": "置換後の文字列",
+  "Replace match": "置換",
+  "Toggle replace": "置換を開閉"
 }

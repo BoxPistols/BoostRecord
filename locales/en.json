@@ -661,5 +661,8 @@
   "No recognition language is installed. Add a language in Windows Settings > Time & language > Language & region.": "No recognition language is installed. Add a language in Windows Settings > Time & language > Language & region.",
   "The image is too large for on-device recognition.": "The image is too large for on-device recognition.",
   "On device (Windows)": "On device (Windows)",
-  "On device (Windows, no Japanese)": "On device (Windows, no Japanese)"
+  "On device (Windows, no Japanese)": "On device (Windows, no Japanese)",
+  "Replace with": "Replace with",
+  "Replace match": "Replace",
+  "Toggle replace": "Show or hide replace"
 }

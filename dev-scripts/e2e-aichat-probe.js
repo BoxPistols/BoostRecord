@@ -99,7 +99,9 @@ function seed() {
     )}}]))
     localStorage.setItem('config', JSON.stringify({
       zoom:1, isSideNavFolded:false, listWidth:280,
-      ui:{ language:'ja', theme:'dark' },
+      ui:{ language:'ja', theme:${JSON.stringify(
+        process.env.TB_THEME || 'dark'
+      )} },
       ai:{ provider:'openai', openai:{ apiKey:'dummy', model:'gpt-6-luna' } }
     }))
     localStorage.setItem('__aichatSeeded','1')

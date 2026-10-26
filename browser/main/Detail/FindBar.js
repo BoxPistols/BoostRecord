@@ -24,7 +24,7 @@ const MAX_ROWS = 5
 class FindBar extends React.Component {
   constructor(props) {
     super(props)
-    this.state = { composing: false }
+    this.state = { composing: false, replaceComposing: false }
     this.inputRef = React.createRef()
   }
 
@@ -73,6 +73,63 @@ class FindBar extends React.Component {
     // 日本語入力が壊れる
   }
 
+  // 置換欄。Enter で今の一致を置換、Cmd/Ctrl+Enter ですべて置換。
+  // 変換確定の Enter で置換しないよう、検索欄と同じく変換中は何もしない
+  handleReplaceKeyDown(e) {
+    const composing =
+      this.state.replaceComposing ||
+      (e.nativeEvent && e.nativeEvent.isComposing) ||
+      e.keyCode === 229
+    if (e.key === 'Escape') {
+      e.preventDefault()
+      this.props.onClose()
+      return
+    }
+    if (e.key === 'Enter') {
+      if (composing) return
+      e.preventDefault()
+      const handler =
+        e.metaKey || e.ctrlKey ? this.props.onReplaceAll : this.props.onReplace
+      if (handler) handler()
+    }
+  }
+
+  renderReplaceRow() {
+    const { replaceValue, count, onReplaceChange, onReplace } = this.props
+    const allKey = /Mac/.test(navigator.userAgent) ? 'Cmd' : 'Ctrl'
+    return (
+      <div styleName='row'>
+        <input
+          styleName='replace-input'
+          type='text'
+          value={replaceValue}
+          placeholder={i18n.__('Replace with')}
+          aria-label={i18n.__('Replace with')}
+          onChange={e => onReplaceChange(e.target.value)}
+          onCompositionStart={() => this.setState({ replaceComposing: true })}
+          onCompositionEnd={() => this.setState({ replaceComposing: false })}
+          onKeyDown={e => this.handleReplaceKeyDown(e)}
+        />
+        <button
+          styleName='action'
+          onClick={onReplace}
+          disabled={count === 0}
+          title={`${i18n.__('Replace match')} (Enter)`}
+        >
+          {i18n.__('Replace match')}
+        </button>
+        <button
+          styleName='action'
+          onClick={this.props.onReplaceAll}
+          disabled={count === 0}
+          title={`${i18n.__('Replace all')} (${allKey} + Enter)`}
+        >
+          {i18n.__('Replace all')}
+        </button>
+      </div>
+    )
+  }
+
   render() {
     const {
       query,
@@ -84,6 +141,9 @@ class FindBar extends React.Component {
       target
     } = this.props
     const empty = query !== '' && count === 0
+    // 置換は書き換えられる面（エディタ）のときだけ。プレビューで押せるのに何も起きないボタンを出さない
+    const canReplace = typeof this.props.onReplace === 'function'
+    const { replaceOpen, onToggleReplace } = this.props
 
     return (
       <div
@@ -92,60 +152,80 @@ class FindBar extends React.Component {
         role='search'
         style={this.props.style}
       >
-        <i styleName='icon' className='fa fa-search' aria-hidden='true' />
-        {/* 複数行を貼り付けて探せるようにtextareaにする。行数に合わせて最大5行まで広がる */}
-        <textarea
-          styleName={empty ? 'input--empty' : 'input'}
-          ref={this.inputRef}
-          rows={Math.min(MAX_ROWS, query.split('\n').length)}
-          value={query}
-          // このノートの中を探すことを明示する。サイドバー/上部の検索と
-          // 同じ「検索」という語だけだと、どれが何を探すのか区別できない
-          placeholder={i18n.__('Find in this note')}
-          aria-label={i18n.__('Find in this note')}
-          title={i18n.__(
-            '%s + Enter for a new line',
-            /Mac/.test(navigator.userAgent) ? 'Option' : 'Alt'
+        <div styleName='row'>
+          {canReplace ? (
+            <button
+              styleName='step'
+              onClick={onToggleReplace}
+              aria-expanded={!!replaceOpen}
+              title={i18n.__('Toggle replace')}
+              aria-label={i18n.__('Toggle replace')}
+            >
+              <i
+                className={`fa ${
+                  replaceOpen ? 'fa-caret-down' : 'fa-caret-right'
+                }`}
+                aria-hidden='true'
+              />
+            </button>
+          ) : (
+            <i styleName='icon' className='fa fa-search' aria-hidden='true' />
           )}
-          onChange={e => onChange(e.target.value)}
-          onCompositionStart={() => this.setState({ composing: true })}
-          onCompositionEnd={e => {
-            this.setState({ composing: false })
-            // 変換確定後の文字列で探し直す。**現在地は動かさない**
-            onChange(e.target.value)
-          }}
-          onKeyDown={e => this.handleKeyDown(e)}
-        />
-        <span styleName={empty ? 'count--empty' : 'count'} aria-live='polite'>
-          {query === '' ? '' : formatCount(index, count)}
-        </span>
-        <button
-          styleName='step'
-          onClick={() => onStep(-1)}
-          disabled={count === 0}
-          title={`${i18n.__('Previous match')} (Shift + Enter)`}
-          aria-label={i18n.__('Previous match')}
-        >
-          <i className='fa fa-chevron-up' aria-hidden='true' />
-        </button>
-        <button
-          styleName='step'
-          onClick={() => onStep(1)}
-          disabled={count === 0}
-          title={`${i18n.__('Next match')} (Enter)`}
-          aria-label={i18n.__('Next match')}
-        >
-          <i className='fa fa-chevron-down' aria-hidden='true' />
-        </button>
-        <span styleName='target'>{target}</span>
-        <button
-          styleName='close'
-          onClick={onClose}
-          title={`${i18n.__('Close')} (Esc)`}
-          aria-label={i18n.__('Close')}
-        >
-          <i className='fa fa-times' aria-hidden='true' />
-        </button>
+          {/* 複数行を貼り付けて探せるようにtextareaにする。行数に合わせて最大5行まで広がる */}
+          <textarea
+            styleName={empty ? 'input--empty' : 'input'}
+            ref={this.inputRef}
+            rows={Math.min(MAX_ROWS, query.split('\n').length)}
+            value={query}
+            // このノートの中を探すことを明示する。サイドバー/上部の検索と
+            // 同じ「検索」という語だけだと、どれが何を探すのか区別できない
+            placeholder={i18n.__('Find in this note')}
+            aria-label={i18n.__('Find in this note')}
+            title={i18n.__(
+              '%s + Enter for a new line',
+              /Mac/.test(navigator.userAgent) ? 'Option' : 'Alt'
+            )}
+            onChange={e => onChange(e.target.value)}
+            onCompositionStart={() => this.setState({ composing: true })}
+            onCompositionEnd={e => {
+              this.setState({ composing: false })
+              // 変換確定後の文字列で探し直す。**現在地は動かさない**
+              onChange(e.target.value)
+            }}
+            onKeyDown={e => this.handleKeyDown(e)}
+          />
+          <span styleName={empty ? 'count--empty' : 'count'} aria-live='polite'>
+            {query === '' ? '' : formatCount(index, count)}
+          </span>
+          <button
+            styleName='step'
+            onClick={() => onStep(-1)}
+            disabled={count === 0}
+            title={`${i18n.__('Previous match')} (Shift + Enter)`}
+            aria-label={i18n.__('Previous match')}
+          >
+            <i className='fa fa-chevron-up' aria-hidden='true' />
+          </button>
+          <button
+            styleName='step'
+            onClick={() => onStep(1)}
+            disabled={count === 0}
+            title={`${i18n.__('Next match')} (Enter)`}
+            aria-label={i18n.__('Next match')}
+          >
+            <i className='fa fa-chevron-down' aria-hidden='true' />
+          </button>
+          <span styleName='target'>{target}</span>
+          <button
+            styleName='close'
+            onClick={onClose}
+            title={`${i18n.__('Close')} (Esc)`}
+            aria-label={i18n.__('Close')}
+          >
+            <i className='fa fa-times' aria-hidden='true' />
+          </button>
+        </div>
+        {canReplace && replaceOpen && this.renderReplaceRow()}
       </div>
     )
   }
@@ -160,7 +240,14 @@ FindBar.propTypes = {
   focusToken: PropTypes.number,
   onChange: PropTypes.func.isRequired,
   onStep: PropTypes.func.isRequired,
-  onClose: PropTypes.func.isRequired
+  onClose: PropTypes.func.isRequired,
+  // 置換。onReplace を渡したときだけ置換の開閉と置換欄を出す
+  replaceOpen: PropTypes.bool,
+  replaceValue: PropTypes.string,
+  onToggleReplace: PropTypes.func,
+  onReplaceChange: PropTypes.func,
+  onReplace: PropTypes.func,
+  onReplaceAll: PropTypes.func
 }
 
 export default CSSModules(FindBar, styles)

@@ -226,9 +226,9 @@ app.on('web-contents-created', (_e, wc) => {
         const bar = await wc.executeJavaScript(
           `(async () => {
              const sleep = ms => new Promise(r => setTimeout(r, ms))
-             const el = document.querySelector('.FindBar input')
+             const el = document.querySelector('.FindBar textarea')
              if (!el) return { ok:false, step:'no FindBar' }
-             const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set
+             const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set
              setter.call(el, 'needle')
              el.dispatchEvent(new Event('input', { bubbles: true }))
              await sleep(500)
@@ -289,9 +289,9 @@ app.on('web-contents-created', (_e, wc) => {
         const pv = await wc.executeJavaScript(
           `(async () => {
              const sleep = ms => new Promise(r => setTimeout(r, ms))
-             const el = document.querySelector('.FindBar input')
+             const el = document.querySelector('.FindBar textarea')
              if (!el) return { ok:false, step:'no FindBar' }
-             const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype,'value').set
+             const setter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype,'value').set
              setter.call(el, 'needle')
              el.dispatchEvent(new Event('input', { bubbles: true }))
              await sleep(600)

@@ -34,6 +34,11 @@ export default function App() {
   const canPick = typeof repository.pickStorage === 'function'
   const canCreate = typeof repository.createNote === 'function'
   const canExport = typeof repository.exportNote === 'function'
+  // OPFS（ブラウザの中に保存）のときだけ、zip で出し入れする
+  const canArchive =
+    typeof repository.importArchive === 'function' &&
+    typeof repository.exportArchive === 'function'
+  const archiveInput = useRef<HTMLInputElement | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const newNoteRef = useRef<() => void>(() => {})
 
@@ -219,6 +224,40 @@ export default function App() {
     }
   }
 
+  async function handleExportArchive() {
+    if (!repository.exportArchive) return
+    try {
+      setSaveError(null)
+      await repository.exportArchive()
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  async function handleImportArchive(file: File) {
+    if (!repository.importArchive) return
+    // 取り込みは置き換え。今あるノートがあれば、消えることを先に伝える
+    const live = notes.length
+    if (
+      live > 0 &&
+      !window.confirm(
+        `このブラウザにある ${live} 件のノートを、zip の中身で置き換えます。今のノートは消えます。先に「zip で書き出す」で保存しておくことをおすすめします。続けますか？`
+      )
+    ) {
+      return
+    }
+    try {
+      setSaveError(null)
+      const res = await repository.importArchive(file)
+      setStorages(res.storages)
+      setNotes(res.notes)
+      setSelection({ kind: 'smart', value: 'all' })
+      setActiveKey(res.notes[0]?.key ?? null)
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : String(e))
+    }
+  }
+
   async function deleteActiveForever() {
     if (!active || !repository.deleteNote) return
     if (!window.confirm('このノートを完全に削除しますか？元に戻せません。')) return
@@ -278,7 +317,25 @@ export default function App() {
             : undefined
         }
         onShowHelp={() => setShowHelp(true)}
+        onImportArchive={
+          canArchive ? () => archiveInput.current?.click() : undefined
+        }
+        onExportArchive={canArchive ? handleExportArchive : undefined}
       />
+      {canArchive && (
+        <input
+          ref={archiveInput}
+          type="file"
+          accept=".zip,application/zip"
+          hidden
+          onChange={e => {
+            const file = e.target.files?.[0]
+            // 同じファイルを続けて選んでも change が起きるよう空に戻す
+            e.target.value = ''
+            if (file) handleImportArchive(file)
+          }}
+        />
+      )}
       <NoteList
         notes={visible}
         activeKey={activeKey}
@@ -404,8 +461,19 @@ export default function App() {
               )}
             </div>
           ) : (
-            <div style={{ textAlign: 'center' }}>
+            <div style={{ textAlign: 'center', maxWidth: 360 }}>
+              {canArchive && notes.length === 0 && (
+                <div style={{ marginBottom: 14 }}>
+                  このブラウザではフォルダを直接開けないため、ノートはブラウザの中に保存します。デスクトップ版のストレージフォルダを
+                  zip にして「zip を取り込む」から入れられます。
+                </div>
+              )}
               <div style={{ marginBottom: 12 }}>ノートを選択してください</div>
+              {saveError && (
+                <div style={{ color: 'var(--accent)', marginBottom: 10 }}>
+                  {saveError}
+                </div>
+              )}
               {canCreate && (
                 <button className="btn-primary" onClick={handleNewNote}>
                   ＋ 新規ノート

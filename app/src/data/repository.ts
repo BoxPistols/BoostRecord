@@ -5,6 +5,7 @@ import {
   createFileSystemAccessRepository,
   isFileSystemAccessSupported
 } from './fileSystemAccess'
+import { createOpfsRepository, isOpfsSupported } from './opfs'
 
 /**
  * The data-layer seam. The renderer only ever talks to a NotesRepository;
@@ -24,6 +25,13 @@ export interface NotesRepository {
   deleteNote?(key: string): Promise<void>
   /** Export a note's content to a `.md` file (returns false if canceled). */
   exportNote?(note: Note): Promise<boolean>
+  /**
+   * ストレージを zip で置き換える（OPFS のときだけ）。今あるノートは消えるので、
+   * 呼ぶ前に確認すること
+   */
+  importArchive?(file: Blob): Promise<{ storages: Storage[]; notes: Note[] }>
+  /** ストレージを zip で書き出す（OPFS のときだけ） */
+  exportArchive?(): Promise<boolean>
 }
 
 // Deterministic (no Math.random) generator so the list reaches realistic
@@ -121,7 +129,8 @@ export function createElectronRepository(): NotesRepository {
  *
  * 1. Electron — real `.cson` files over the preload bridge
  * 2. File System Access が使えるブラウザ — 利用者が選んだフォルダを直読み
- * 3. それ以外 — 見本データ（読むだけ）
+ * 3. OPFS が使えるブラウザ（Safari / Firefox）— ブラウザの中に保存し、zip で出し入れする
+ * 4. それ以外 — 見本データ（読むだけ）
  */
 export function createRepository(): NotesRepository {
   if (typeof window !== 'undefined' && window.boostnote) {
@@ -129,6 +138,9 @@ export function createRepository(): NotesRepository {
   }
   if (isFileSystemAccessSupported()) {
     return createFileSystemAccessRepository()
+  }
+  if (isOpfsSupported()) {
+    return createOpfsRepository()
   }
   return createInMemoryRepository()
 }

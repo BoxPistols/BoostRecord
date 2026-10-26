@@ -11,6 +11,10 @@ interface Props {
   onEmptyTrash?: () => void
   /** Opens the keyboard-shortcut help overlay. */
   onShowHelp?: () => void
+  /** ブラウザの中に保存しているとき（OPFS）、zip を取り込む */
+  onImportArchive?: () => void
+  /** ブラウザの中に保存しているとき（OPFS）、zip で書き出す */
+  onExportArchive?: () => void
 }
 
 export function Sidebar({
@@ -20,7 +24,9 @@ export function Sidebar({
   onSelect,
   onPickStorage,
   onEmptyTrash,
-  onShowHelp
+  onShowHelp,
+  onImportArchive,
+  onExportArchive
 }: Props) {
   const live = notes.filter(n => !n.isTrashed)
   const counts = {
@@ -103,11 +109,29 @@ export function Sidebar({
         </div>
       )}
 
-      {(onPickStorage || onShowHelp) && (
+      {(onPickStorage || onShowHelp || onImportArchive || onExportArchive) && (
         <div className="side-section" style={{ marginTop: 'auto' }}>
           {onPickStorage && (
             <button className="btn-ghost" onClick={onPickStorage}>
               ＋ ストレージを追加
+            </button>
+          )}
+          {onExportArchive && (
+            <button
+              className="btn-ghost"
+              onClick={onExportArchive}
+              title="このブラウザに保存しているノートを zip にして保存します。展開するとデスクトップ版のストレージとして開けます"
+            >
+              ⬇ zip で書き出す
+            </button>
+          )}
+          {onImportArchive && (
+            <button
+              className="btn-ghost"
+              onClick={onImportArchive}
+              title="ストレージフォルダを zip にしたものを取り込みます。このブラウザに今あるノートは置き換わります"
+            >
+              ⬆ zip を取り込む
             </button>
           )}
           {onShowHelp && (

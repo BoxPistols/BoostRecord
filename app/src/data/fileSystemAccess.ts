@@ -239,9 +239,12 @@ export interface FileSystemAccessRepository {
 /**
  * @param initialRoot すでに手元にあるハンドル。渡すと IndexedDB を見ずに
  *   そのフォルダを使う（テストと、呼び出し側がハンドルを持っている場合）
+ * @param options.rememberHandle false なら開いたフォルダを「前回のフォルダ」として
+ *   覚えない（OPFS のフォルダを、利用者が選んだフォルダと取り違えないため）
  */
 export function createFileSystemAccessRepository(
-  initialRoot?: FileSystemDirectoryHandle
+  initialRoot?: FileSystemDirectoryHandle,
+  options: { rememberHandle?: boolean } = {}
 ): FileSystemAccessRepository {
   let root: FileSystemDirectoryHandle | null = initialRoot || null
   let mtimes = new Map<string, number>()
@@ -255,7 +258,7 @@ export function createFileSystemAccessRepository(
     const contents = await readStorage(handle)
     root = handle
     mtimes = contents.mtimes
-    await saveStoredHandle(handle)
+    if (options.rememberHandle !== false) await saveStoredHandle(handle)
     return { storages: [contents.storage], notes: contents.notes }
   }
 

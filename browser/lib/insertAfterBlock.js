@@ -41,10 +41,29 @@ function refKey(label) {
     .toLowerCase()
 }
 
+// フェンスで囲まれたコードブロックの行（フェンス自身を含む）。
+// コードとして書かれた ![図][fig] や [fig]: x.png は画像でも定義でもない
+function fencedLines(cm) {
+  const lines = new Set()
+  let open = null
+  for (let i = 0; i < cm.lineCount(); i++) {
+    const m = /^ {0,3}(`{3,}|~{3,})/.exec(cm.getLine(i))
+    if (open) {
+      lines.add(i)
+      if (m && m[1][0] === open[0] && m[1].length >= open.length) open = null
+    } else if (m) {
+      lines.add(i)
+      open = m[1]
+    }
+  }
+  return lines
+}
+
 // 原文全体から参照名 → URL の表を作る。同じ名前は最初の定義が勝つ
-function collectRefDefs(cm) {
+function collectRefDefs(cm, fenced) {
   const defs = new Map()
   for (let i = 0; i < cm.lineCount(); i++) {
+    if (fenced.has(i)) continue
     const m = REF_DEF_PATTERN.exec(cm.getLine(i))
     if (!m) continue
     const key = refKey(m[1])
@@ -81,9 +100,11 @@ function hasImageNamed(line, needle, defs) {
  */
 export function findImageLine(cm, needle, hintLine) {
   if (!needle) return hintLine
-  const defs = collectRefDefs(cm)
+  const fenced = fencedLines(cm)
+  const defs = collectRefDefs(cm, fenced)
   let best = -1
   for (let i = 0; i < cm.lineCount(); i++) {
+    if (fenced.has(i)) continue
     if (!hasImageNamed(cm.getLine(i), needle, defs)) continue
     const hint = hintLine >= 0 ? hintLine : 0
     if (best === -1 || Math.abs(i - hint) < Math.abs(best - hint)) best = i

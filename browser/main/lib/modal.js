@@ -18,6 +18,8 @@ class ModalBase extends React.Component {
     this.state = {
       component: null,
       componentProps: {},
+      // 'glass' なら背景幕を半透明にして、後ろのノートが透けて見えるようにする
+      backdrop: null,
       isHidden: true
     }
   }
@@ -27,6 +29,7 @@ class ModalBase extends React.Component {
       modalBase.setState({
         component: null,
         componentProps: null,
+        backdrop: null,
         isHidden: true
       })
     setNoteListOverflow('auto')
@@ -34,7 +37,13 @@ class ModalBase extends React.Component {
 
   render() {
     return (
-      <div className={'ModalBase' + (this.state.isHidden ? ' hide' : '')}>
+      <div
+        className={
+          'ModalBase' +
+          (this.state.backdrop === 'glass' ? ' ModalBase--glass' : '') +
+          (this.state.isHidden ? ' hide' : '')
+        }
+      >
         <div onClick={e => this.close(e)} className='modalBack' />
         {this.state.component == null ? null : (
           <Provider store={store}>
@@ -54,7 +63,13 @@ document.body.appendChild(el)
 let modalBase
 ReactDOM.render(<ModalBase ref={c => (modalBase = c)} />, el)
 
-export function openModal(component, props) {
+/**
+ * @param {Function} component
+ * @param {Object} props
+ * @param {{backdrop?: 'glass'}} [options] backdrop: 'glass' で背景幕を半透明にする。
+ *   窓の面も半透明にする前提（後ろが不透明な幕のままだと、透かしても無地しか見えない）
+ */
+export function openModal(component, props, options) {
   if (modalBase == null) {
     return
   }
@@ -64,6 +79,7 @@ export function openModal(component, props) {
   modalBase.setState({
     component: component,
     componentProps: props,
+    backdrop: (options && options.backdrop) || null,
     isHidden: false
   })
 }

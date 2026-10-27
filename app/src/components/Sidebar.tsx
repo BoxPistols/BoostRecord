@@ -15,6 +15,11 @@ interface Props {
   onImportArchive?: () => void
   /** ブラウザの中に保存しているとき（OPFS）、zip で書き出す */
   onExportArchive?: () => void
+  /** 畳んだ表示（アイコンだけ）。名前は title で出す */
+  folded?: boolean
+  width: number
+  /** 左下の « » ボタン（Cmd/Ctrl+B と同じ巡回） */
+  onToggle: () => void
 }
 
 export function Sidebar({
@@ -26,7 +31,10 @@ export function Sidebar({
   onEmptyTrash,
   onShowHelp,
   onImportArchive,
-  onExportArchive
+  onExportArchive,
+  folded = false,
+  width,
+  onToggle
 }: Props) {
   const live = notes.filter(n => !n.isTrashed)
   const counts = {
@@ -45,27 +53,33 @@ export function Sidebar({
   const isTag = (t: string) => selection.kind === 'tag' && selection.value === t
 
   return (
-    <nav className="sidebar">
+    <nav
+      className={`sidebar ${folded ? 'folded' : ''}`}
+      style={{ width }}
+    >
       <div className="side-section">
-        <div
-          className={`side-item ${isSmart('all') ? 'active' : ''}`}
-          onClick={() => onSelect({ kind: 'smart', value: 'all' })}
-        >
-          <span>📒</span> All Notes <span className="count">{counts.all}</span>
-        </div>
-        <div
-          className={`side-item ${isSmart('starred') ? 'active' : ''}`}
-          onClick={() => onSelect({ kind: 'smart', value: 'starred' })}
-        >
-          <span>★</span> Starred <span className="count">{counts.starred}</span>
-        </div>
-        <div
-          className={`side-item ${isSmart('trashed') ? 'active' : ''}`}
-          onClick={() => onSelect({ kind: 'smart', value: 'trashed' })}
-        >
-          <span>🗑</span> Trash <span className="count">{counts.trashed}</span>
-        </div>
-        {onEmptyTrash && counts.trashed > 0 && (
+        {(
+          [
+            ['all', '📒', 'All Notes', counts.all],
+            ['starred', '★', 'Starred', counts.starred],
+            ['trashed', '🗑', 'Trash', counts.trashed]
+          ] as const
+        ).map(([value, icon, label, count]) => (
+          <div
+            key={value}
+            className={`side-item ${isSmart(value) ? 'active' : ''}`}
+            onClick={() => onSelect({ kind: 'smart', value })}
+            title={folded ? `${label} (${count})` : undefined}
+          >
+            <span>{icon}</span>
+            {!folded && (
+              <>
+                {label} <span className="count">{count}</span>
+              </>
+            )}
+          </div>
+        ))}
+        {!folded && onEmptyTrash && counts.trashed > 0 && (
           <button className="empty-trash" onClick={onEmptyTrash}>
             ゴミ箱を空にする
           </button>
@@ -74,7 +88,7 @@ export function Sidebar({
 
       {storages.map(storage => (
         <div className="side-section" key={storage.key}>
-          <div className="side-storage">▾ {storage.name}</div>
+          {!folded && <div className="side-storage">▾ {storage.name}</div>}
           {storage.folders.map(folder => {
             const key = `${storage.key}|${folder.key}`
             return (
@@ -82,17 +96,28 @@ export function Sidebar({
                 key={folder.key}
                 className={`side-item ${isFolder(key) ? 'active' : ''}`}
                 onClick={() => onSelect({ kind: 'folder', value: key })}
+                title={
+                  folded
+                    ? `${storage.name} / ${folder.name} (${folderCount(storage.key, folder.key)})`
+                    : undefined
+                }
               >
                 <span className="dot" style={{ background: folder.color }} />
-                {folder.name}
-                <span className="count">{folderCount(storage.key, folder.key)}</span>
+                {!folded && (
+                  <>
+                    {folder.name}
+                    <span className="count">
+                      {folderCount(storage.key, folder.key)}
+                    </span>
+                  </>
+                )}
               </div>
             )
           })}
         </div>
       ))}
 
-      {tags.length > 0 && (
+      {!folded && tags.length > 0 && (
         <div className="side-section">
           <div className="side-head">Tags</div>
           <div style={{ padding: '2px 8px' }}>
@@ -109,7 +134,8 @@ export function Sidebar({
         </div>
       )}
 
-      {(onPickStorage || onShowHelp || onImportArchive || onExportArchive) && (
+      {!folded &&
+        (onPickStorage || onShowHelp || onImportArchive || onExportArchive) && (
         <div className="side-section" style={{ marginTop: 'auto' }}>
           {onPickStorage && (
             <button className="btn-ghost" onClick={onPickStorage}>
@@ -141,6 +167,14 @@ export function Sidebar({
           )}
         </div>
       )}
+      <button
+        className="pane-toggle"
+        onClick={onToggle}
+        title={`サイドバーを${folded ? '隠す' : '畳む'} (⌘/Ctrl+B)`}
+        aria-label="サイドバーの表示を切り替える"
+      >
+        «
+      </button>
     </nav>
   )
 }

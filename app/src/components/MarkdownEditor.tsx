@@ -20,9 +20,9 @@ function formatCommand(transform: (selected: string) => FormatResult) {
   }
 }
 
-// ⌘/Ctrl+B bold, +I italic, +K link. Placed before defaultKeymap to win.
+// ⌘/Ctrl+I italic, +K link. Placed before defaultKeymap to win.
+// ⌘/Ctrl+B はデスクトップ版と同じくサイドバーの開閉に使う（App.tsx）
 const formatKeymap = keymap.of([
-  { key: 'Mod-b', run: formatCommand(s => toggleWrap(s, '**')) },
   { key: 'Mod-i', run: formatCommand(s => toggleWrap(s, '*')) },
   { key: 'Mod-k', run: formatCommand(makeLink) }
 ])

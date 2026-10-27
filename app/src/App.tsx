@@ -38,6 +38,9 @@ export default function App() {
   const canArchive =
     typeof repository.importArchive === 'function' &&
     typeof repository.exportArchive === 'function'
+  // 保存先が無いブラウザ（Safari 18 以前など）は見本データで動く。編集しても
+  // 再読み込みで消えるので、そのことを常に出しておく
+  const isSample = typeof repository.saveNote !== 'function'
   const archiveInput = useRef<HTMLInputElement | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const newNoteRef = useRef<() => void>(() => {})
@@ -369,6 +372,14 @@ export default function App() {
             {saveError && (
               <span className="save-error" title={saveError}>
                 ⚠ 保存に失敗しました
+              </span>
+            )}
+            {isSample && (
+              <span
+                className="save-error"
+                title="このブラウザには保存先がありません。Chrome・Edge・Firefox で開くと、自分のノートを保存できます。"
+              >
+                見本データです。このブラウザでは保存されません
               </span>
             )}
             <span className="spacer" />

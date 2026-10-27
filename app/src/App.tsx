@@ -8,6 +8,31 @@ import { MarkdownEditor } from './components/MarkdownEditor'
 import { Preview } from './components/Preview'
 import { TagEditor } from './components/TagEditor'
 import { ShortcutHelp } from './components/ShortcutHelp'
+import { Splitter } from './components/Splitter'
+import { ModeSwitcher } from './components/ModeSwitcher'
+import {
+  NAV,
+  SPLIT,
+  clamp,
+  listPaneWidth,
+  navPaneWidth,
+  nextPaneMode,
+  nextViewMode,
+  parseLayout,
+  resizeList,
+  togglePreview
+} from './layout'
+import type { Layout } from './layout'
+
+const LAYOUT_STORE = 'boostrecord.layout'
+
+function loadLayout(): Layout {
+  try {
+    return parseLayout(localStorage.getItem(LAYOUT_STORE))
+  } catch {
+    return parseLayout(null)
+  }
+}
 
 function firstTitle(content: string, fallback: string) {
   const line = content.split('\n').find(l => l.trim().length > 0)
@@ -30,6 +55,11 @@ export default function App() {
   const [query, setQuery] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
   const [showHelp, setShowHelp] = useState(false)
+  const [layout, setLayout] = useState(loadLayout)
+  const appRef = useRef<HTMLDivElement | null>(null)
+  const splitRef = useRef<HTMLDivElement | null>(null)
+  // ドラッグ中は保存しない（離したときに 1 回だけ書く）
+  const resizing = useRef(false)
 
   const canPick = typeof repository.pickStorage === 'function'
   const canCreate = typeof repository.createNote === 'function'
@@ -100,6 +130,50 @@ export default function App() {
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
+
+  // デスクトップ版と同じキー。エディタにフォーカスがあっても効くよう capture で拾う
+  //   ⌘/Ctrl+B サイドバー、⌘/Ctrl+Shift+B ノート一覧（どちらも 展開→畳む→隠す）
+  //   ⌘/Ctrl+E Split と全面プレビュー、⌘/Ctrl+Shift+E Editor→Split→Preview
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey) || e.altKey) return
+      const key = e.key.toLowerCase()
+      let change: ((l: Layout) => Layout) | null = null
+      if (key === 'b' && !e.shiftKey)
+        change = l => ({ ...l, navMode: nextPaneMode(l.navMode) })
+      else if (key === 'b')
+        change = l => ({ ...l, listMode: nextPaneMode(l.listMode) })
+      else if (key === 'e' && !e.shiftKey)
+        change = l => ({ ...l, viewMode: togglePreview(l.viewMode) })
+      else if (key === 'e')
+        change = l => ({ ...l, viewMode: nextViewMode(l.viewMode) })
+      if (!change) return
+      e.preventDefault()
+      e.stopPropagation()
+      setLayout(change)
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
+  }, [])
+
+  useEffect(() => {
+    if (resizing.current) return
+    try {
+      localStorage.setItem(LAYOUT_STORE, JSON.stringify(layout))
+    } catch {
+      // 保存できなくても、今の画面では効く
+    }
+  }, [layout])
+
+  function endResize() {
+    resizing.current = false
+    // 中身は変えずに作り直し、保存の effect を走らせる
+    setLayout(l => ({ ...l }))
+  }
+
+  function appLeft() {
+    return appRef.current?.getBoundingClientRect().left ?? 0
+  }
 
   const visible = useMemo(() => {
     const live = notes.filter(n => !n.isTrashed)
@@ -306,25 +380,49 @@ export default function App() {
     ''
   const canMove = typeof repository.saveNote === 'function' && activeFolders.length > 0
 
+  const navWidth = navPaneWidth(layout)
+  const listWidth = listPaneWidth(layout)
+  const cycleNav = () => setLayout(l => ({ ...l, navMode: nextPaneMode(l.navMode) }))
+  const cycleList = () =>
+    setLayout(l => ({ ...l, listMode: nextPaneMode(l.listMode) }))
+
   return (
-    <div className="app">
-      <Sidebar
-        storages={storages}
-        notes={notes}
-        selection={selection}
-        onSelect={selectView}
-        onPickStorage={canPick ? handlePickStorage : undefined}
-        onEmptyTrash={
-          typeof repository.deleteNote === 'function'
-            ? handleEmptyTrash
-            : undefined
-        }
-        onShowHelp={() => setShowHelp(true)}
-        onImportArchive={
-          canArchive ? () => archiveInput.current?.click() : undefined
-        }
-        onExportArchive={canArchive ? handleExportArchive : undefined}
-      />
+    <div className="app" ref={appRef}>
+      {layout.navMode !== 'HIDDEN' && (
+        <Sidebar
+          width={navWidth}
+          folded={layout.navMode === 'FOLDED'}
+          onToggle={cycleNav}
+          storages={storages}
+          notes={notes}
+          selection={selection}
+          onSelect={selectView}
+          onPickStorage={canPick ? handlePickStorage : undefined}
+          onEmptyTrash={
+            typeof repository.deleteNote === 'function'
+              ? handleEmptyTrash
+              : undefined
+          }
+          onShowHelp={() => setShowHelp(true)}
+          onImportArchive={
+            canArchive ? () => archiveInput.current?.click() : undefined
+          }
+          onExportArchive={canArchive ? handleExportArchive : undefined}
+        />
+      )}
+      {layout.navMode === 'EXPANDED' && (
+        <Splitter
+          label="サイドバーの幅"
+          onDrag={x => {
+            resizing.current = true
+            setLayout(l => ({
+              ...l,
+              navWidth: clamp(x - appLeft(), NAV.min, NAV.max)
+            }))
+          }}
+          onEnd={endResize}
+        />
+      )}
       {canArchive && (
         <input
           ref={archiveInput}
@@ -346,7 +444,44 @@ export default function App() {
         query={query}
         onQueryChange={setQuery}
         onNewNote={canCreate ? handleNewNote : undefined}
+        width={listWidth}
+        folded={layout.listMode === 'FOLDED'}
+        hidden={layout.listMode === 'HIDDEN'}
+        onToggle={cycleList}
       />
+      {layout.listMode !== 'HIDDEN' && (
+        <Splitter
+          label="ノート一覧の幅"
+          onDrag={x => {
+            resizing.current = true
+            setLayout(l => resizeList(l, x - appLeft() - navPaneWidth(l)))
+          }}
+          onEnd={endResize}
+        />
+      )}
+      {(layout.navMode === 'HIDDEN' || layout.listMode === 'HIDDEN') && (
+        // 隠したペインはキーでしか戻せないと気付けないので、左下に戻す口を残す
+        <div className="pane-restore">
+          {layout.navMode === 'HIDDEN' && (
+            <button
+              className="pane-toggle"
+              onClick={cycleNav}
+              title="サイドバーを出す (⌘/Ctrl+B)"
+            >
+              »
+            </button>
+          )}
+          {layout.listMode === 'HIDDEN' && (
+            <button
+              className="pane-toggle"
+              onClick={cycleList}
+              title="ノート一覧を出す (⌘/Ctrl+Shift+B)"
+            >
+              »
+            </button>
+          )}
+        </div>
+      )}
       {active ? (
         <section className="detail">
           <div className="detail-head">
@@ -383,6 +518,10 @@ export default function App() {
               </span>
             )}
             <span className="spacer" />
+            <ModeSwitcher
+              mode={layout.viewMode}
+              onChange={viewMode => setLayout(l => ({ ...l, viewMode }))}
+            />
             {active.isTrashed ? (
               <>
                 <button
@@ -440,14 +579,41 @@ export default function App() {
               onChange={updateTags}
             />
           )}
-          <div className="split">
-            <div className="pane editor">
+          <div className={`split view-${layout.viewMode.toLowerCase()}`} ref={splitRef}>
+            {/* 全面プレビューでもエディタは外さない（元に戻す履歴を失わない） */}
+            <div
+              className="pane editor"
+              style={
+                layout.viewMode === 'SPLIT'
+                  ? { flex: `0 0 ${layout.editorPercent}%` }
+                  : undefined
+              }
+            >
               <MarkdownEditor
                 noteKey={active.key}
                 value={active.content}
                 onChange={updateActiveContent}
               />
             </div>
+            {layout.viewMode === 'SPLIT' && (
+              <Splitter
+                label="エディタとプレビューの幅"
+                onDrag={x => {
+                  const rect = splitRef.current?.getBoundingClientRect()
+                  if (!rect || rect.width === 0) return
+                  resizing.current = true
+                  setLayout(l => ({
+                    ...l,
+                    editorPercent: clamp(
+                      ((x - rect.left) / rect.width) * 100,
+                      SPLIT.min,
+                      SPLIT.max
+                    )
+                  }))
+                }}
+                onEnd={endResize}
+              />
+            )}
             <Preview content={active.content} />
           </div>
         </section>

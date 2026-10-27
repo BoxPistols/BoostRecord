@@ -4,7 +4,10 @@ import { useEffect } from 'react'
 const SHORTCUTS: { keys: string; desc: string }[] = [
   { keys: '⌘/Ctrl + N', desc: '新規ノート' },
   { keys: '⌘/Ctrl + F', desc: '検索にフォーカス' },
-  { keys: '⌘/Ctrl + B', desc: '太字（選択をトグル）' },
+  { keys: '⌘/Ctrl + B', desc: 'サイドバーを 展開 → 畳む → 隠す' },
+  { keys: '⌘/Ctrl + Shift + B', desc: 'ノート一覧を 展開 → 畳む → 隠す' },
+  { keys: '⌘/Ctrl + E', desc: 'エディタとプレビュー ↔ プレビューだけ' },
+  { keys: '⌘/Ctrl + Shift + E', desc: 'エディタだけ → 両方 → プレビューだけ' },
   { keys: '⌘/Ctrl + I', desc: '斜体（選択をトグル）' },
   { keys: '⌘/Ctrl + K', desc: 'リンク化' },
   { keys: 'Esc', desc: 'このヘルプを閉じる' }

@@ -25,6 +25,13 @@ interface Props {
   onQueryChange: (q: string) => void
   /** When set (Electron), shows a button to create a new note. */
   onNewNote?: () => void
+  width: number
+  /** 畳んだ表示。並び替えを隠し、検索と一覧だけにする */
+  folded?: boolean
+  /** 隠す。検索文字列とスクロール位置を失わないよう、外さずに display:none にする */
+  hidden?: boolean
+  /** 左下の « ボタン（Cmd/Ctrl+Shift+B と同じ巡回） */
+  onToggle: () => void
 }
 
 const ROW_H = 58 // fixed row height enables simple, fast windowing
@@ -45,7 +52,11 @@ export function NoteList({
   onSelect,
   query,
   onQueryChange,
-  onNewNote
+  onNewNote,
+  width,
+  folded = false,
+  hidden = false,
+  onToggle
 }: Props) {
   const [sort, setSort] = useState(loadSort)
   const sorted = useMemo(
@@ -96,7 +107,10 @@ export function NoteList({
   const windowed = sorted.slice(start, end)
 
   return (
-    <section className="notelist">
+    <section
+      className={`notelist ${folded ? 'folded' : ''}`}
+      style={hidden ? { display: 'none' } : { width }}
+    >
       <div className="notelist-search">
         <input
           ref={searchRef}
@@ -108,29 +122,33 @@ export function NoteList({
         />
       </div>
       <div className="notelist-head">
-        <select
-          className="sort-select"
-          value={sort.key}
-          onChange={e => setSort(s => ({ ...s, key: e.target.value as SortKey }))}
-          title="並び替え"
-        >
-          {(Object.keys(SORT_LABELS) as SortKey[]).map(k => (
-            <option key={k} value={k}>
-              {SORT_LABELS[k]}
-            </option>
-          ))}
-        </select>
-        <button
-          className="sort-dir"
-          onClick={() =>
-            setSort(s => ({ ...s, dir: s.dir === 'asc' ? 'desc' : 'asc' }))
-          }
-          title={sort.dir === 'asc' ? '昇順' : '降順'}
-        >
-          {sort.dir === 'asc' ? '▲' : '▼'}
-        </button>
+        {!folded && (
+          <>
+            <select
+              className="sort-select"
+              value={sort.key}
+              onChange={e => setSort(s => ({ ...s, key: e.target.value as SortKey }))}
+              title="並び替え"
+            >
+              {(Object.keys(SORT_LABELS) as SortKey[]).map(k => (
+                <option key={k} value={k}>
+                  {SORT_LABELS[k]}
+                </option>
+              ))}
+            </select>
+            <button
+              className="sort-dir"
+              onClick={() =>
+                setSort(s => ({ ...s, dir: s.dir === 'asc' ? 'desc' : 'asc' }))
+              }
+              title={sort.dir === 'asc' ? '昇順' : '降順'}
+            >
+              {sort.dir === 'asc' ? '▲' : '▼'}
+            </button>
+          </>
+        )}
         <span className="sort" style={{ marginLeft: 'auto' }}>
-          {total} notes
+          {folded ? total : `${total} notes`}
         </span>
         {onNewNote && (
           <button
@@ -184,6 +202,14 @@ export function NoteList({
           )}
         </div>
       </div>
+      <button
+        className="pane-toggle"
+        onClick={onToggle}
+        title={`ノート一覧を${folded ? '隠す' : '畳む'} (⌘/Ctrl+Shift+B)`}
+        aria-label="ノート一覧の表示を切り替える"
+      >
+        «
+      </button>
     </section>
   )
 }

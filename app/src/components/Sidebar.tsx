@@ -155,7 +155,7 @@ export function Sidebar({
         (onPickStorage || onShowHelp || onShowPreferences || onImportArchive || onExportArchive) && (
         <div className="side-section" style={{ marginTop: 'auto' }}>
           {onPickStorage && (
-            <button className="btn-ghost" onClick={onPickStorage}>
+            <button className="btn-ghost" onClick={onPickStorage} title="ストレージを追加">
               <Plus className="icon" size={14} aria-hidden /> <span className="side-label">ストレージを追加</span>
             </button>
           )}
@@ -178,7 +178,7 @@ export function Sidebar({
             </button>
           )}
           {onShowHelp && (
-            <button className="btn-ghost" onClick={onShowHelp}>
+            <button className="btn-ghost" onClick={onShowHelp} title="ショートカット">
               <Keyboard className="icon" size={14} aria-hidden /> <span className="side-label">ショートカット</span>
             </button>
           )}

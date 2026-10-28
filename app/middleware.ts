@@ -54,7 +54,16 @@ const BASE_HEADERS = {
   'Referrer-Policy': 'no-referrer'
 }
 
+// 認証の外に出すもの。中身はノートでも鍵でもなく、公開リポジトリにあるものだけ。
+// ホーム画面への追加（iOS）やアイコン・Service Worker の取得は、資格情報を付けずに
+// 取りに来ることがあり、401 を返すとアイコンが出ない・登録に失敗する
+const PUBLIC_PATHS = new Set(['/manifest.webmanifest', '/sw.js'])
+export function isPublicPath(pathname: string): boolean {
+  return PUBLIC_PATHS.has(pathname) || /^\/icons\/[\w.-]+\.png$/.test(pathname)
+}
+
 export default function middleware(request: Request) {
+  if (isPublicPath(new URL(request.url).pathname)) return next()
   const result = checkBasicAuth(
     request.headers.get('authorization'),
     process.env.BASIC_AUTH_USER,

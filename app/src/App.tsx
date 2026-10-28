@@ -114,7 +114,10 @@ export default function App() {
         ? 'PC のフォルダ（デスクトップ版と同じストレージ）で使うよう切り替えて、読み込み直します。ブラウザの中のノートは消えずに残り、戻せばまた使えます。'
         : 'このブラウザの中に保存するよう切り替えて、読み込み直します。フォルダのノートは消えずに残り、戻せばまた使えます。'
     if (!window.confirm(message)) return
-    setStorageMode(mode)
+    if (!setStorageMode(mode)) {
+      window.alert('切り替えを保存できませんでした。このブラウザがサイトのデータの保存を止めている可能性があります（プライベートウィンドウなど）。')
+      return
+    }
     window.location.reload()
   }
   const archiveInput = useRef<HTMLInputElement | null>(null)

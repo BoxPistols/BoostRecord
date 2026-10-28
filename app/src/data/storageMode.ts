@@ -12,12 +12,16 @@ export function getStorageMode(): StorageMode {
   }
 }
 
-/** 切り替えは読み込み直してから効く（保存先ごとにノートを読み直すため） */
-export function setStorageMode(mode: StorageMode) {
+/**
+ * 切り替えは読み込み直してから効く（保存先ごとにノートを読み直すため）。
+ * 保存できなければ false（読み込み直しても元の保存先のままになる）
+ */
+export function setStorageMode(mode: StorageMode): boolean {
   try {
     localStorage.setItem(STORAGE_MODE, mode)
+    return true
   } catch {
-    // 保存できなければ切り替えない
+    return false
   }
 }
 

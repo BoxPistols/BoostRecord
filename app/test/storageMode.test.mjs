@@ -17,5 +17,8 @@ test('フォルダを選べないブラウザでは、フォルダの指定が�
 
 test('保存先がどちらも無ければ見本データ', () => {
   assert.equal(chooseBrowserStorage({ fsa: false, opfs: false, mode: 'browser' }), 'memory')
+})
+
+test('ブラウザの中を選んでいても OPFS が無ければ、見本より保存できるフォルダを使う', () => {
   assert.equal(chooseBrowserStorage({ fsa: true, opfs: false, mode: 'browser' }), 'folder')
 })

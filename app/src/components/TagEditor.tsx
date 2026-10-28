@@ -1,3 +1,4 @@
+import { X } from 'lucide-react'
 import { useState } from 'react'
 import { addTag, removeTag } from '../data/tags'
 
@@ -34,15 +35,16 @@ export function TagEditor({ tags, onChange }: Props) {
             className="tag-x"
             onClick={() => onChange(removeTag(tags, tag))}
             title="タグを削除"
+            aria-label={`タグ ${tag} を削除`}
           >
-            ×
+            <X size={12} aria-hidden />
           </button>
         </span>
       ))}
       <input
         className="tag-input"
         value={draft}
-        placeholder="＋ タグ"
+        placeholder="タグを追加"
         onChange={e => setDraft(e.target.value)}
         onKeyDown={onKeyDown}
         onBlur={commit}

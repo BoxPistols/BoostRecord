@@ -1,3 +1,4 @@
+import { ArrowDown, ArrowUp, ChevronsLeft, Code, FileText, Plus } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Note } from '../types'
 import { sortNotes, SORT_LABELS } from '../data/sort'
@@ -30,7 +31,7 @@ interface Props {
   folded?: boolean
   /** 隠す。検索文字列とスクロール位置を失わないよう、外さずに display:none にする */
   hidden?: boolean
-  /** 左下の « ボタン（Cmd/Ctrl+Shift+B と同じ巡回） */
+  /** 左下の開閉ボタン（Cmd/Ctrl+Shift+B と同じ巡回） */
   onToggle: () => void
 }
 
@@ -143,7 +144,11 @@ export function NoteList({
               }
               title={sort.dir === 'asc' ? '昇順' : '降順'}
             >
-              {sort.dir === 'asc' ? '▲' : '▼'}
+              {sort.dir === 'asc' ? (
+                <ArrowUp size={13} aria-hidden />
+              ) : (
+                <ArrowDown size={13} aria-hidden />
+              )}
             </button>
           </>
         )}
@@ -155,8 +160,9 @@ export function NoteList({
             className="head-btn"
             onClick={onNewNote}
             title="新規ノート (⌘/Ctrl+N)"
+            aria-label="新規ノート"
           >
-            ＋
+            <Plus size={14} aria-hidden />
           </button>
         )}
       </div>
@@ -182,9 +188,11 @@ export function NoteList({
                 onClick={() => onSelect(note.key)}
               >
                 <div className="note-title">
-                  <span className="ic">
-                    {note.type === 'SNIPPET_NOTE' ? '〈〉' : '▤'}
-                  </span>
+                  {note.type === 'SNIPPET_NOTE' ? (
+                    <Code className="ic" size={14} role="img" aria-label="スニペット" />
+                  ) : (
+                    <FileText className="ic" size={14} role="img" aria-label="Markdown ノート" />
+                  )}
                   {note.title || 'Untitled'}
                 </div>
                 <div className="note-meta">
@@ -208,7 +216,7 @@ export function NoteList({
         title={`ノート一覧を${folded ? '隠す' : '畳む'} (⌘/Ctrl+Shift+B)`}
         aria-label="ノート一覧の表示を切り替える"
       >
-        «
+        <ChevronsLeft size={16} aria-hidden />
       </button>
     </section>
   )

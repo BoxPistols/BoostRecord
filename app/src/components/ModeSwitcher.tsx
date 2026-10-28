@@ -1,10 +1,12 @@
+import { Columns2, Eye, Pencil } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import type { ViewMode } from '../layout'
 
 // デスクトップ版の ModeSwitcher（Editor / Split / Preview の 3 つで 1 つの部品）と同じ並び
-const MODES: { key: ViewMode; icon: string; label: string }[] = [
-  { key: 'EDITOR', icon: '✎', label: 'エディタだけ' },
-  { key: 'SPLIT', icon: '◫', label: 'エディタとプレビュー' },
-  { key: 'PREVIEW', icon: '👁', label: 'プレビューだけ' }
+const MODES: { key: ViewMode; Icon: LucideIcon; label: string }[] = [
+  { key: 'EDITOR', Icon: Pencil, label: 'エディタだけ' },
+  { key: 'SPLIT', Icon: Columns2, label: 'エディタとプレビュー' },
+  { key: 'PREVIEW', Icon: Eye, label: 'プレビューだけ' }
 ]
 
 interface Props {
@@ -24,7 +26,7 @@ export function ModeSwitcher({ mode, onChange }: Props) {
           aria-pressed={mode === m.key}
           onClick={() => onChange(m.key)}
         >
-          {m.icon}
+          <m.Icon size={15} aria-hidden />
         </button>
       ))}
     </div>

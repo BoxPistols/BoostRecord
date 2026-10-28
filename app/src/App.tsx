@@ -1,4 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ChevronsRight,
+  Download,
+  Folder,
+  FolderOpen,
+  Plus,
+  RotateCcw,
+  Star,
+  Trash2,
+  TriangleAlert,
+  X
+} from 'lucide-react'
 import type { Note, Selection, Storage } from './types'
 import { createRepository } from './data/repository'
 import { filterByQuery } from './data/search'
@@ -467,8 +479,9 @@ export default function App() {
               className="pane-toggle"
               onClick={cycleNav}
               title="サイドバーを出す (⌘/Ctrl+B)"
+              aria-label="サイドバーを出す"
             >
-              »
+              <ChevronsRight size={16} aria-hidden />
             </button>
           )}
           {layout.listMode === 'HIDDEN' && (
@@ -476,8 +489,9 @@ export default function App() {
               className="pane-toggle"
               onClick={cycleList}
               title="ノート一覧を出す (⌘/Ctrl+Shift+B)"
+              aria-label="ノート一覧を出す"
             >
-              »
+              <ChevronsRight size={16} aria-hidden />
             </button>
           )}
         </div>
@@ -487,7 +501,7 @@ export default function App() {
           <div className="detail-head">
             {canMove && !active.isTrashed ? (
               <label className="folder">
-                📁{' '}
+                <Folder className="icon" size={15} aria-hidden />
                 <select
                   className="folder-select"
                   value={active.folder}
@@ -502,11 +516,13 @@ export default function App() {
                 </select>
               </label>
             ) : (
-              <span className="folder">📁 {folderName}</span>
+              <span className="folder">
+                <Folder className="icon" size={15} aria-hidden /> {folderName}
+              </span>
             )}
             {saveError && (
               <span className="save-error" title={saveError}>
-                ⚠ 保存に失敗しました
+                <TriangleAlert className="icon" size={13} aria-hidden /> 保存に失敗しました
               </span>
             )}
             {isSample && (
@@ -529,7 +545,7 @@ export default function App() {
                   onClick={() => setTrashed(false)}
                   title="復元"
                 >
-                  ♻ 復元
+                  <RotateCcw className="icon" size={13} aria-hidden /> 復元
                 </button>
                 {repository.deleteNote && (
                   <button
@@ -537,27 +553,32 @@ export default function App() {
                     onClick={deleteActiveForever}
                     title="完全に削除"
                   >
-                    ✕ 完全削除
+                    <X className="icon" size={13} aria-hidden /> 完全削除
                   </button>
                 )}
               </>
             ) : (
               <>
-                <span
-                  className={`star ${active.isStarred ? 'on' : ''}`}
-                  style={{ cursor: 'pointer' }}
+                <button
+                  className={`head-icon star ${active.isStarred ? 'on' : ''}`}
                   onClick={toggleStar}
                   title="Star"
+                  aria-label="Star"
+                  aria-pressed={active.isStarred}
                 >
-                  ★
-                </span>
+                  <Star
+                    size={16}
+                    fill={active.isStarred ? 'currentColor' : 'none'}
+                    aria-hidden
+                  />
+                </button>
                 {canExport && (
                   <button
                     className="head-btn"
                     onClick={handleExport}
                     title="Markdown でエクスポート"
                   >
-                    ⬇ md
+                    <Download className="icon" size={13} aria-hidden /> md
                   </button>
                 )}
                 {repository.saveNote && (
@@ -565,8 +586,9 @@ export default function App() {
                     className="head-btn"
                     onClick={() => setTrashed(true)}
                     title="ゴミ箱へ移動"
+                    aria-label="ゴミ箱へ移動"
                   >
-                    🗑
+                    <Trash2 size={14} aria-hidden />
                   </button>
                 )}
               </>
@@ -629,7 +651,7 @@ export default function App() {
                 あるフォルダ）を開くと、ノートが読み込まれます。
               </div>
               <button className="btn-primary" onClick={handlePickStorage}>
-                📂 ストレージフォルダを開く
+                <FolderOpen className="icon" size={15} aria-hidden /> ストレージフォルダを開く
               </button>
               {pickError && (
                 <div style={{ color: 'var(--accent)', marginTop: 10 }}>
@@ -653,7 +675,7 @@ export default function App() {
               )}
               {canCreate && (
                 <button className="btn-primary" onClick={handleNewNote}>
-                  ＋ 新規ノート
+                  <Plus className="icon" size={15} aria-hidden /> 新規ノート
                 </button>
               )}
             </div>

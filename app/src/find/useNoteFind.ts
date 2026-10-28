@@ -41,6 +41,8 @@ export function useNoteFind(opts: {
   const findRef = useRef(find)
   findRef.current = find
   const view = useRef<EditorView | null>(null)
+  // エディタを作り直したら探し直す（検索を開いた後にエディタができた場合も件数を出す）
+  const [viewTick, setViewTick] = useState(0)
   const matches = useRef<Match[]>([])
   const ranges = useRef<Range[]>([])
   const pending = useRef<Pending | null>(null)
@@ -90,7 +92,7 @@ export function useNoteFind(opts: {
     paint(index, !!p?.scroll)
     setFind(f => (f && (f.index !== index || f.count !== count) ? { ...f, index, count } : f))
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, query, content, noteKey, target])
+  }, [open, query, content, noteKey, target, viewTick])
 
   function paint(index: number, scroll: boolean) {
     if (target === 'EDITOR') {
@@ -141,6 +143,11 @@ export function useNoteFind(opts: {
     }))
   }, [])
 
+  const onView = useCallback((v: EditorView | null) => {
+    view.current = v
+    if (v) setViewTick(t => t + 1)
+  }, [])
+
   const close = () => {
     setFind(null)
     // 閉じたら本文へ戻す。フォーカスが宙に浮くと次の操作が効かない
@@ -157,8 +164,6 @@ export function useNoteFind(opts: {
     setQuery: (q: string) => setFind(f => (f ? { ...f, query: q } : f)),
     setReplace: (r: string) => setFind(f => (f ? { ...f, replace: r } : f)),
     toggleReplace: () => setFind(f => (f ? { ...f, replaceOpen: !f.replaceOpen } : f)),
-    onView: (v: EditorView | null) => {
-      view.current = v
-    }
+    onView
   }
 }

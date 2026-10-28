@@ -49,6 +49,8 @@ export function FindBar(props: Props) {
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Escape') {
+      // 変換中の Esc は変換の取り消し。バーは閉じない
+      if (isComposing(e, composing)) return
       e.preventDefault()
       onClose()
       return
@@ -69,6 +71,7 @@ export function FindBar(props: Props) {
   // Enter で今の一致を置換、⌘/Ctrl+Enter ですべて置換
   const onReplaceKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
+      if (isComposing(e, replaceComposing)) return
       e.preventDefault()
       onClose()
       return

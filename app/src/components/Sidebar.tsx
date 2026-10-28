@@ -5,6 +5,7 @@ import {
   Keyboard,
   Notebook,
   Plus,
+  Settings,
   Star,
   Trash2,
   Upload
@@ -22,6 +23,8 @@ interface Props {
   onEmptyTrash?: () => void
   /** Opens the keyboard-shortcut help overlay. */
   onShowHelp?: () => void
+  /** 設定を開く（デスクトップ版のサイドバー下の設定ボタンと同じ） */
+  onShowPreferences?: () => void
   /** ブラウザの中に保存しているとき（OPFS）、zip を取り込む */
   onImportArchive?: () => void
   /** ブラウザの中に保存しているとき（OPFS）、zip で書き出す */
@@ -41,6 +44,7 @@ export function Sidebar({
   onPickStorage,
   onEmptyTrash,
   onShowHelp,
+  onShowPreferences,
   onImportArchive,
   onExportArchive,
   folded = false,
@@ -71,9 +75,9 @@ export function Sidebar({
       <div className="side-section">
         {(
           [
-            ['all', Notebook, 'All Notes', counts.all],
-            ['starred', Star, 'Starred', counts.starred],
-            ['trashed', Trash2, 'Trash', counts.trashed]
+            ['all', Notebook, 'すべてのノート', counts.all],
+            ['starred', Star, 'スター付き', counts.starred],
+            ['trashed', Trash2, 'ゴミ箱', counts.trashed]
           ] as const
         ).map(([value, Icon, label, count]) => (
           <div
@@ -135,7 +139,7 @@ export function Sidebar({
 
       {!folded && tags.length > 0 && (
         <div className="side-section">
-          <div className="side-head">Tags</div>
+          <div className="side-head">タグ</div>
           <div style={{ padding: '2px 8px' }}>
             {tags.map(tag => (
               <span
@@ -151,7 +155,7 @@ export function Sidebar({
       )}
 
       {!folded &&
-        (onPickStorage || onShowHelp || onImportArchive || onExportArchive) && (
+        (onPickStorage || onShowHelp || onShowPreferences || onImportArchive || onExportArchive) && (
         <div className="side-section" style={{ marginTop: 'auto' }}>
           {onPickStorage && (
             <button className="btn-ghost" onClick={onPickStorage}>
@@ -179,6 +183,11 @@ export function Sidebar({
           {onShowHelp && (
             <button className="btn-ghost" onClick={onShowHelp}>
               <Keyboard className="icon" size={14} aria-hidden /> ショートカット
+            </button>
+          )}
+          {onShowPreferences && (
+            <button className="btn-ghost" onClick={onShowPreferences} title="設定 (⌘/Ctrl+,)">
+              <Settings className="icon" size={14} aria-hidden /> 設定
             </button>
           )}
         </div>

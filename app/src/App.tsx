@@ -9,6 +9,7 @@ import {
   Star,
   Trash2,
   TriangleAlert,
+  Upload,
   X
 } from 'lucide-react'
 import type { Note, Selection, Storage } from './types'
@@ -23,6 +24,10 @@ import { ShortcutHelp } from './components/ShortcutHelp'
 import { Splitter } from './components/Splitter'
 import { ModeSwitcher } from './components/ModeSwitcher'
 import { FindBar } from './components/FindBar'
+import { Preferences } from './components/Preferences'
+import type { PrefTab } from './components/Preferences'
+import { THEMES, parseConfig, themeVariables } from './config'
+import type { Config } from './config'
 import { useNoteFind } from './find/useNoteFind'
 import {
   NAV,
@@ -39,6 +44,15 @@ import {
 import type { Layout } from './layout'
 
 const LAYOUT_STORE = 'boostrecord.layout'
+const CONFIG_STORE = 'boostrecord.config'
+
+function loadConfig(): Config {
+  try {
+    return parseConfig(localStorage.getItem(CONFIG_STORE))
+  } catch {
+    return parseConfig(null)
+  }
+}
 
 function loadLayout(): Layout {
   try {
@@ -70,6 +84,9 @@ export default function App() {
   const [saveError, setSaveError] = useState<string | null>(null)
   const [showHelp, setShowHelp] = useState(false)
   const [layout, setLayout] = useState(loadLayout)
+  const [config, setConfig] = useState(loadConfig)
+  const [prefsTab, setPrefsTab] = useState<PrefTab | null>(null)
+  const isDark = THEMES[config.ui.theme].dark
   const appRef = useRef<HTMLDivElement | null>(null)
   const splitRef = useRef<HTMLDivElement | null>(null)
   // ドラッグ中は保存しない（離したときに 1 回だけ書く）
@@ -155,6 +172,11 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.altKey) return
       const key = e.key.toLowerCase()
+      if (key === ',' && !e.shiftKey) {
+        e.preventDefault()
+        setPrefsTab(t => t ?? 'UI')
+        return
+      }
       // デスクトップ版と同じく ⌘/Ctrl+F はノート内検索。Shift 付きは横取りしない
       if (key === 'f' && !e.shiftKey && openFindRef.current?.()) {
         e.preventDefault()
@@ -187,6 +209,19 @@ export default function App() {
       // 保存できなくても、今の画面では効く
     }
   }, [layout])
+
+  // テーマとフォントは :root の CSS 変数で当てる。部品は var(--*) を読むだけ
+  useEffect(() => {
+    const root = document.documentElement
+    for (const [k, v] of Object.entries(themeVariables(config))) root.style.setProperty(k, v)
+    root.style.colorScheme = isDark ? 'dark' : 'light'
+    root.dataset.theme = config.ui.theme
+    try {
+      localStorage.setItem(CONFIG_STORE, JSON.stringify(config))
+    } catch {
+      // 保存できなくても、今の画面では効く
+    }
+  }, [config, isDark])
 
   function endResize() {
     resizing.current = false
@@ -442,6 +477,7 @@ export default function App() {
               : undefined
           }
           onShowHelp={() => setShowHelp(true)}
+          onShowPreferences={() => setPrefsTab('UI')}
           onImportArchive={
             canArchive ? () => archiveInput.current?.click() : undefined
           }
@@ -588,8 +624,8 @@ export default function App() {
                 <button
                   className={`head-icon star ${active.isStarred ? 'on' : ''}`}
                   onClick={toggleStar}
-                  title="Star"
-                  aria-label="Star"
+                  title="お気に入り"
+                  aria-label="お気に入り"
                   aria-pressed={active.isStarred}
                 >
                   <Star
@@ -642,6 +678,7 @@ export default function App() {
                 value={active.content}
                 onChange={updateActiveContent}
                 onView={noteFind.onView}
+                settings={{ ...config.editor, dark: isDark }}
               />
             </div>
             {layout.viewMode === 'SPLIT' && (
@@ -663,7 +700,7 @@ export default function App() {
                 onEnd={endResize}
               />
             )}
-            <Preview content={active.content} rootRef={previewRef} />
+            <Preview content={active.content} rootRef={previewRef} breaks={config.preview.breaks} />
             {noteFind.find && (
               <FindBar
                 query={noteFind.find.query}
@@ -729,6 +766,58 @@ export default function App() {
         </div>
       )}
       <ShortcutHelp open={showHelp} onClose={() => setShowHelp(false)} />
+      <Preferences
+        open={prefsTab !== null}
+        initialTab={prefsTab ?? 'UI'}
+        config={config}
+        onChange={setConfig}
+        onClose={() => setPrefsTab(null)}
+        storageSummary={
+          <>
+            <p>
+              {isSample
+                ? 'このブラウザには保存先がありません。見本のノートで動いていて、編集しても再読み込みで消えます。Chrome・Edge・Firefox で開くと、自分のノートを保存できます。'
+                : canArchive
+                  ? 'ノートはこのブラウザの中（Origin Private File System）に保存しています。サイトのデータを消すと消えるので、zip で書き出して残してください。展開するとデスクトップ版のストレージとして開けます。'
+                  : canPick
+                    ? '選んだストレージフォルダに直接読み書きしています。デスクトップ版と同じフォルダを開けます。'
+                    : 'デスクトップ版のストレージを読み書きしています。'}
+            </p>
+            {storages.length > 0 && (
+              <table className="shortcut-table">
+                <tbody>
+                  {storages.map(s => (
+                    <tr key={s.key}>
+                      <td className="shortcut-keys">{s.name}</td>
+                      <td>
+                        フォルダ {s.folders.length} 件・ノート{' '}
+                        {notes.filter(n => n.storage === s.key && !n.isTrashed).length} 件
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            <div className="prefs-actions">
+              {canPick && (
+                <button className="btn-ghost-inline" onClick={handlePickStorage}>
+                  <FolderOpen className="icon" size={14} aria-hidden /> ストレージを追加
+                </button>
+              )}
+              {canArchive && (
+                <>
+                  <button className="btn-ghost-inline" onClick={handleExportArchive}>
+                    <Download className="icon" size={14} aria-hidden /> zip で書き出す
+                  </button>
+                  <button className="btn-ghost-inline" onClick={() => archiveInput.current?.click()}>
+                    <Upload className="icon" size={14} aria-hidden /> zip を取り込む
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        }
+      />
     </div>
   )
 }

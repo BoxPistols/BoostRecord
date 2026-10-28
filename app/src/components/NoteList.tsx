@@ -79,10 +79,14 @@ export function NoteList({
   const [scrollTop, setScrollTop] = useState(0)
   const [viewport, setViewport] = useState(800)
 
-  // Cmd/Ctrl+F focuses the search box (no native browser find in Electron).
+  // 一覧の検索へ移る。デスクトップ版と同じく Ctrl+L（エディタで打っているときは除く）。
+  // ⌘/Ctrl+F はノート内検索（App.tsx）が先に取り、ノートを開いていないときだけここへ来る
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+      const inEditor = !!(e.target as Element | null)?.closest?.('.cm-editor')
+      const ctrlL = e.ctrlKey && !e.metaKey && e.key === 'l' && !inEditor
+      const modF = (e.metaKey || e.ctrlKey) && e.key === 'f' && !e.shiftKey
+      if (ctrlL || modF) {
         e.preventDefault()
         searchRef.current?.focus()
         searchRef.current?.select()
@@ -117,7 +121,7 @@ export function NoteList({
           ref={searchRef}
           className="search-input"
           type="search"
-          placeholder="検索…  (⌘/Ctrl+F)"
+          placeholder="検索…  (Ctrl+L)"
           value={query}
           onChange={e => onQueryChange(e.target.value)}
         />

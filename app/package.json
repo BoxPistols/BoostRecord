@@ -25,7 +25,8 @@
     "package:dir": "npm run build && electron-builder --dir"
   },
   "dependencies": {
-    "cson-parser": "^4.0.9"
+    "cson-parser": "^4.0.9",
+    "lucide-react": "1.56.0"
   },
   "devDependencies": {
     "@codemirror/commands": "^6.10.4",

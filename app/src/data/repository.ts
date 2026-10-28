@@ -6,6 +6,7 @@ import {
   isFileSystemAccessSupported
 } from './fileSystemAccess'
 import { createOpfsRepository, isOpfsSupported } from './opfs'
+import { chooseBrowserStorage, getStorageMode } from './storageMode'
 
 /**
  * The data-layer seam. The renderer only ever talks to a NotesRepository;
@@ -132,15 +133,24 @@ export function createElectronRepository(): NotesRepository {
  * 3. OPFS が使えるブラウザ（Safari / Firefox）— ブラウザの中に保存し、zip で出し入れする
  * 4. それ以外 — 見本データ（読むだけ）
  */
+/**
+ * ブラウザの中と PC のフォルダを切り替えられるか。両方使えるとき（Chrome・Edge）だけ。
+ * 片方しか無ければ選び方（chooseBrowserStorage）は切り替えても同じ方を返す
+ */
+export function canSwitchBrowserStorage(): boolean {
+  return isFileSystemAccessSupported() && isOpfsSupported()
+}
+
 export function createRepository(): NotesRepository {
   if (typeof window !== 'undefined' && window.boostnote) {
     return createElectronRepository()
   }
-  if (isFileSystemAccessSupported()) {
-    return createFileSystemAccessRepository()
-  }
-  if (isOpfsSupported()) {
-    return createOpfsRepository()
-  }
+  const choice = chooseBrowserStorage({
+    fsa: isFileSystemAccessSupported(),
+    opfs: isOpfsSupported(),
+    mode: getStorageMode()
+  })
+  if (choice === 'folder') return createFileSystemAccessRepository()
+  if (choice === 'browser') return createOpfsRepository()
   return createInMemoryRepository()
 }

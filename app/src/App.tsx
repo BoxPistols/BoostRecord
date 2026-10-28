@@ -13,7 +13,9 @@ import {
   X
 } from 'lucide-react'
 import type { Note, Selection, Storage } from './types'
-import { createRepository } from './data/repository'
+import { canSwitchBrowserStorage, createRepository } from './data/repository'
+import { getStorageMode, setStorageMode } from './data/storageMode'
+import type { StorageMode } from './data/storageMode'
 import { filterByQuery } from './data/search'
 import { Sidebar } from './components/Sidebar'
 import { NoteList } from './components/NoteList'
@@ -70,6 +72,8 @@ function firstTitle(content: string, fallback: string) {
 
 // The data-layer seam: real `.cson` files in Electron, sample data in browser.
 const repository = createRepository()
+// このタブが起動時に選んだ保存先。別のタブで切り替えても、このタブの repository は変わらない
+const storageModeAtStart = getStorageMode()
 
 export default function App() {
   const [notes, setNotes] = useState<Note[]>([])
@@ -102,6 +106,29 @@ export default function App() {
   // 保存先が無いブラウザ（Safari 18 以前など）は見本データで動く。編集しても
   // 再読み込みで消えるので、そのことを常に出しておく
   const isSample = typeof repository.saveNote !== 'function'
+  // Chrome・Edge では、ブラウザの中と PC のフォルダを切り替えられる（デスクトップ版の中では出さない）
+  const canSwitchStorage = !window.boostnote && canSwitchBrowserStorage()
+  const storageMode = storageModeAtStart
+
+  async function switchStorage(mode: StorageMode) {
+    const message =
+      mode === 'folder'
+        ? 'PC のフォルダ（デスクトップ版と同じストレージ）で使うよう切り替えて、読み込み直します。ブラウザの中のノートは消えずに残り、戻せばまた使えます。'
+        : 'このブラウザの中に保存するよう切り替えて、読み込み直します。フォルダのノートは消えずに残り、戻せばまた使えます。'
+    if (!window.confirm(message)) return
+    // 読み込み直す前に、打ちかけの編集を書き終える。書けなければ切り替えない
+    try {
+      await flushSaves()
+    } catch (e) {
+      window.alert(`ノートを保存できなかったので、切り替えを止めました。${e instanceof Error ? e.message : String(e)}`)
+      return
+    }
+    if (!setStorageMode(mode)) {
+      window.alert('切り替えを保存できませんでした。このブラウザがサイトのデータの保存を止めている可能性があります（プライベートウィンドウなど）。')
+      return
+    }
+    window.location.reload()
+  }
   const archiveInput = useRef<HTMLInputElement | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const newNoteRef = useRef<() => void>(() => {})
@@ -110,19 +137,40 @@ export default function App() {
   const previewRef = useRef<HTMLDivElement | null>(null)
 
   // Persist a note; failures surface in the header rather than being swallowed.
-  function persist(note: Note) {
-    if (!repository.saveNote) return
-    repository.saveNote(note).then(
+  // 書き込み中のもの。保存先を切り替える前に待つ
+  const inflight = useRef<Set<Promise<void>>>(new Set())
+  const pendingSave = useRef<Note | null>(null)
+
+  function persist(note: Note): Promise<void> {
+    if (!repository.saveNote) return Promise.resolve()
+    const p = repository.saveNote(note)
+    inflight.current.add(p)
+    p.then(
       () => setSaveError(null),
       e => setSaveError(e instanceof Error ? e.message : String(e))
-    )
+    ).finally(() => inflight.current.delete(p))
+    return p
   }
 
   // Debounced autosave for rapid edits (typing); coalesces to the latest note.
   function scheduleSave(note: Note) {
     if (!repository.saveNote) return
     if (saveTimer.current) clearTimeout(saveTimer.current)
-    saveTimer.current = setTimeout(() => persist(note), 600)
+    pendingSave.current = note
+    saveTimer.current = setTimeout(() => {
+      pendingSave.current = null
+      persist(note)
+    }, 600)
+  }
+
+  /** 待っている自動保存をすぐ書き、書き込み中のものと合わせて終わるまで待つ。失敗は投げる */
+  async function flushSaves() {
+    if (saveTimer.current) clearTimeout(saveTimer.current)
+    saveTimer.current = null
+    const note = pendingSave.current
+    pendingSave.current = null
+    if (note) persist(note)
+    await Promise.all([...inflight.current])
   }
 
   async function handlePickStorage() {
@@ -736,6 +784,13 @@ export default function App() {
               <button className="btn-primary" onClick={handlePickStorage}>
                 <FolderOpen className="icon" size={15} aria-hidden /> ストレージフォルダを開く
               </button>
+              {canSwitchStorage && (
+                <div style={{ marginTop: 10 }}>
+                  <button className="btn-ghost-inline" onClick={() => switchStorage('browser')}>
+                    フォルダを使わず、このブラウザの中に書く
+                  </button>
+                </div>
+              )}
               {pickError && (
                 <div style={{ color: 'var(--accent)', marginTop: 10 }}>
                   {pickError}
@@ -746,8 +801,9 @@ export default function App() {
             <div style={{ textAlign: 'center', maxWidth: 360 }}>
               {canArchive && notes.length === 0 && (
                 <div style={{ marginBottom: 14 }}>
-                  このブラウザではフォルダを直接開けないため、ノートはブラウザの中に保存します。デスクトップ版のストレージフォルダを
-                  zip にして「zip を取り込む」から入れられます。
+                  {canSwitchStorage
+                    ? 'ノートはこのブラウザの中に保存します。デスクトップ版と同じフォルダで使うときは、設定の「ストレージ」から切り替えられます。'
+                    : 'このブラウザではフォルダを直接開けないため、ノートはブラウザの中に保存します。デスクトップ版のストレージフォルダを zip にして「zip を取り込む」から入れられます。'}
                 </div>
               )}
               <div style={{ marginBottom: 12 }}>ノートを選択してください</div>
@@ -799,6 +855,16 @@ export default function App() {
               </table>
             )}
             <div className="prefs-actions">
+              {canSwitchStorage && (
+                <button
+                  className="btn-ghost-inline"
+                  onClick={() => switchStorage(storageMode === 'folder' ? 'browser' : 'folder')}
+                >
+                  {storageMode === 'folder'
+                    ? 'このブラウザの中に保存する'
+                    : 'PC のフォルダで使う（デスクトップ版と同じストレージ）'}
+                </button>
+              )}
               {canPick && (
                 <button className="btn-ghost-inline" onClick={handlePickStorage}>
                   <FolderOpen className="icon" size={14} aria-hidden /> ストレージを追加

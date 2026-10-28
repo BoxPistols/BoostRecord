@@ -37,7 +37,9 @@ async function fetchOk(path, init) {
 async function cacheShell() {
   const list = await fetchOk('/sw-assets.json', { cache: 'no-cache' })
   if (!list) return
-  const assets = await list.json()
+  // 途中で切れた応答などで読めなければ、今のキャッシュを残して何もしない
+  const assets = await list.json().catch(() => null)
+  if (!Array.isArray(assets) || !assets.every(p => typeof p === 'string' && p.startsWith('/assets/'))) return
   const cache = await caches.open(CACHE)
   const html = await fetchOk('/', { cache: 'no-cache' })
   if (html) await cache.put('/', html)

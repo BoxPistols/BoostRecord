@@ -9,7 +9,9 @@ import path from 'node:path'
 const cfg = JSON.parse(
   fs.readFileSync(path.join(import.meta.dirname, '..', 'vercel.json'), 'utf8')
 )
-const all = cfg.headers.find(h => h.source === '/(.*)').headers
+const rule = cfg.headers.find(h => h.source === '/(.*)')
+if (!rule) throw new Error('vercel.json に全パス（/(.*)）のヘッダー規則がありません')
+const all = rule.headers
 const header = key => all.find(h => h.key.toLowerCase() === key.toLowerCase())?.value
 const csp = Object.fromEntries(
   header('Content-Security-Policy')

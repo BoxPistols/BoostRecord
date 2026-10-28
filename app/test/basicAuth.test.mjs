@@ -30,7 +30,11 @@ test('環境変数が無いときは素通しにせず、設定されていな�
 
 test('middleware は 401 / 503 を返し、通すときは次へ渡す', () => {
   const req = auth => new Request('https://boost-record.vercel.app/', { headers: auth ? { authorization: auth } : {} })
-  const env = { ...process.env }
+  // process.env は差し替えず、触ったキーだけ戻す（丸ごと代入すると文字列化の挙動が失われる）
+  const saved = {
+    BASIC_AUTH_USER: process.env.BASIC_AUTH_USER,
+    BASIC_AUTH_PASSWORD: process.env.BASIC_AUTH_PASSWORD
+  }
   try {
     delete process.env.BASIC_AUTH_USER
     delete process.env.BASIC_AUTH_PASSWORD
@@ -48,6 +52,9 @@ test('middleware は 401 / 503 を返し、通すときは次へ渡す', () => {
     // next() は「次へ渡す」印の付いた応答を返す
     assert.equal(passed.headers.get('x-middleware-next'), '1')
   } finally {
-    process.env = env
+    for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k]
+      else process.env[k] = v
+    }
   }
 })

@@ -25,6 +25,7 @@
     "package:dir": "npm run build && electron-builder --dir"
   },
   "dependencies": {
+    "@vercel/functions": "3.10.1",
     "cson-parser": "^4.0.9"
   },
   "devDependencies": {

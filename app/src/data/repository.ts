@@ -133,9 +133,12 @@ export function createElectronRepository(): NotesRepository {
  * 3. OPFS が使えるブラウザ（Safari / Firefox）— ブラウザの中に保存し、zip で出し入れする
  * 4. それ以外 — 見本データ（読むだけ）
  */
-/** PC のフォルダを選べるブラウザか（Chrome・Edge） */
-export function canUseFolder(): boolean {
-  return isFileSystemAccessSupported()
+/**
+ * ブラウザの中と PC のフォルダを切り替えられるか。両方使えるとき（Chrome・Edge）だけ。
+ * 片方しか無ければ選び方（chooseBrowserStorage）は切り替えても同じ方を返す
+ */
+export function canSwitchBrowserStorage(): boolean {
+  return isFileSystemAccessSupported() && isOpfsSupported()
 }
 
 export function createRepository(): NotesRepository {

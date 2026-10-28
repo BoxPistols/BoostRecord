@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react'
+import type { RefObject } from 'react'
 import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
 import katexModule from '@vscode/markdown-it-katex'
@@ -23,8 +24,16 @@ const katexPlugin = (
  * $$…$$) is rendered with KaTeX (output: 'html' so the markup is plain spans
  * that survive sanitization); a sanitize test guards against regressions.
  */
-export function Preview({ content }: { content: string }) {
-  const host = useRef<HTMLDivElement>(null)
+export function Preview({
+  content,
+  rootRef
+}: {
+  content: string
+  /** ノート内検索がプレビューの文字を探すのに使う */
+  rootRef?: RefObject<HTMLDivElement | null>
+}) {
+  const own = useRef<HTMLDivElement>(null)
+  const host = rootRef ?? own
   const md = useMemo(() => {
     const m = new MarkdownIt({
       html: false,
@@ -41,7 +50,7 @@ export function Preview({ content }: { content: string }) {
     const clean = DOMPurify.sanitize(md.render(content))
     const frag = document.createRange().createContextualFragment(clean)
     host.current.replaceChildren(frag)
-  }, [content, md])
+  }, [content, md, host])
 
   return <div ref={host} className="pane preview" />
 }

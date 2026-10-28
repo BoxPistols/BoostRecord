@@ -10,6 +10,9 @@
   --accent: #ff2d75;
   --accent-2: #14b8a6;
   --border: #2c313a;
+  /* ノート内検索の一致と現在地 */
+  --find-match: rgba(250, 204, 21, 0.28);
+  --find-active: #fb923c;
   --sel: #ff2d75;
   --radius: 6px;
   color-scheme: dark;
@@ -191,7 +194,49 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 }
 .head-btn:hover { background: #2a2e36; color: var(--fg); }
 .head-btn.danger:hover { background: var(--accent); color: #fff; border-color: transparent; }
-.split { flex: 1; display: flex; min-height: 0; }
+.split { flex: 1; display: flex; min-height: 0; position: relative; }
+
+/* ノート内検索。本文の幅を変えない（読んでいた場所を見失う）ので浮かせる */
+.find-bar {
+  position: absolute; top: 8px; right: 16px; z-index: 20;
+  display: flex; flex-direction: column; gap: 4px;
+  max-width: calc(100% - 32px); box-sizing: border-box;
+  padding: 5px 6px 5px 10px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg-elev);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.find-row { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.find-icon { flex: none; color: var(--faint); }
+.find-input {
+  flex: 1 1 auto; min-width: 0; width: 190px; box-sizing: border-box;
+  padding: 3px 6px; resize: none; overflow-y: auto; white-space: pre;
+  font: inherit; font-size: 13px; line-height: 1.4; color: var(--fg);
+  background: transparent; border: 1px solid transparent; border-radius: 5px; outline: none;
+}
+.find-input::placeholder { color: var(--faint); }
+.find-input:focus { border-color: var(--accent-2); }
+/* 0 件は入力欄の色で伝える。文言を足すと横に伸びて本文を隠す */
+.find-input.is-empty:focus { border-color: var(--accent); }
+.find-replace { margin-left: 30px; white-space: nowrap; }
+.find-count { flex: none; min-width: 52px; text-align: right; font-size: 12px; font-variant-numeric: tabular-nums; color: var(--faint); }
+.find-count.is-empty { color: var(--accent); }
+.find-step {
+  flex: none; width: 24px; height: 24px; padding: 0; display: inline-flex; align-items: center; justify-content: center;
+  border: none; border-radius: 5px; background: transparent; color: var(--muted); cursor: pointer;
+}
+.find-step:hover:not(:disabled) { color: var(--fg); background: rgba(128, 128, 128, 0.18); }
+.find-step:disabled { opacity: 0.35; cursor: default; }
+.find-action {
+  flex: none; height: 24px; padding: 0 8px; font-size: 12px; white-space: nowrap; cursor: pointer;
+  border: 1px solid var(--border); border-radius: 5px; background: transparent; color: var(--fg);
+}
+.find-action:hover:not(:disabled) { background: rgba(128, 128, 128, 0.18); }
+.find-action:disabled { opacity: 0.35; cursor: default; }
+/* いまどちらを探しているか（エディタ / プレビュー） */
+.find-target { flex: none; padding: 0 4px; font-size: 12px; color: var(--faint); white-space: nowrap; }
+.find-step:focus-visible, .find-action:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
+::highlight(tb-find-all) { background-color: var(--find-match); }
+::highlight(tb-find-active) { background-color: var(--find-active); color: #111; }
 .pane { flex: 1; min-width: 0; overflow: auto; }
 .view-editor .preview, .view-preview .pane.editor { display: none; }
 

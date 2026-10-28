@@ -3,7 +3,8 @@ import { useEffect } from 'react'
 /** Keyboard shortcuts shown in the in-app help overlay (mirrors the README). */
 const SHORTCUTS: { keys: string; desc: string }[] = [
   { keys: '⌘/Ctrl + N', desc: '新規ノート' },
-  { keys: '⌘/Ctrl + F', desc: '検索にフォーカス' },
+  { keys: '⌘/Ctrl + F', desc: 'このノート内を検索（Enter で次、Shift + Enter で前）' },
+  { keys: 'Ctrl + L', desc: 'ノート一覧の検索にフォーカス' },
   { keys: '⌘/Ctrl + B', desc: 'サイドバーを 展開 → 畳む → 隠す' },
   { keys: '⌘/Ctrl + Shift + B', desc: 'ノート一覧を 展開 → 畳む → 隠す' },
   { keys: '⌘/Ctrl + E', desc: 'エディタとプレビュー ↔ プレビューだけ' },

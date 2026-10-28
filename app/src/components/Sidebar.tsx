@@ -84,18 +84,19 @@ export function Sidebar({
             key={value}
             className={`side-item ${isSmart(value) ? 'active' : ''}`}
             onClick={() => onSelect({ kind: 'smart', value })}
-            title={folded ? `${label} (${count})` : undefined}
+            title={`${label} (${count})`}
           >
             <Icon className="icon" size={16} aria-hidden />
             {!folded && (
               <>
-                {label} <span className="count">{count}</span>
+                <span className="side-label">{label}</span>
+                <span className="count">{count}</span>
               </>
             )}
           </div>
         ))}
         {!folded && onEmptyTrash && counts.trashed > 0 && (
-          <button className="empty-trash" onClick={onEmptyTrash}>
+          <button className="empty-trash" onClick={onEmptyTrash} title="ゴミ箱を空にする">
             ゴミ箱を空にする
           </button>
         )}
@@ -104,9 +105,9 @@ export function Sidebar({
       {storages.map(storage => (
         <div className="side-section" key={storage.key}>
           {!folded && (
-            <div className="side-storage">
+            <div className="side-storage" title={storage.name}>
               <ChevronDown className="icon" size={14} aria-hidden />
-              {storage.name}
+              <span className="side-label">{storage.name}</span>
             </div>
           )}
           {storage.folders.map(folder => {
@@ -116,16 +117,12 @@ export function Sidebar({
                 key={folder.key}
                 className={`side-item ${isFolder(key) ? 'active' : ''}`}
                 onClick={() => onSelect({ kind: 'folder', value: key })}
-                title={
-                  folded
-                    ? `${storage.name} / ${folder.name} (${folderCount(storage.key, folder.key)})`
-                    : undefined
-                }
+                title={`${storage.name} / ${folder.name} (${folderCount(storage.key, folder.key)})`}
               >
                 <span className="dot" style={{ background: folder.color }} />
                 {!folded && (
                   <>
-                    {folder.name}
+                    <span className="side-label">{folder.name}</span>
                     <span className="count">
                       {folderCount(storage.key, folder.key)}
                     </span>
@@ -159,7 +156,7 @@ export function Sidebar({
         <div className="side-section" style={{ marginTop: 'auto' }}>
           {onPickStorage && (
             <button className="btn-ghost" onClick={onPickStorage}>
-              <Plus className="icon" size={14} aria-hidden /> ストレージを追加
+              <Plus className="icon" size={14} aria-hidden /> <span className="side-label">ストレージを追加</span>
             </button>
           )}
           {onExportArchive && (
@@ -168,7 +165,7 @@ export function Sidebar({
               onClick={onExportArchive}
               title="このブラウザに保存しているノートを zip にして保存します。展開するとデスクトップ版のストレージとして開けます"
             >
-              <Download className="icon" size={14} aria-hidden /> zip で書き出す
+              <Download className="icon" size={14} aria-hidden /> <span className="side-label">zip で書き出す</span>
             </button>
           )}
           {onImportArchive && (
@@ -177,17 +174,17 @@ export function Sidebar({
               onClick={onImportArchive}
               title="ストレージフォルダを zip にしたものを取り込みます。このブラウザに今あるノートは置き換わります"
             >
-              <Upload className="icon" size={14} aria-hidden /> zip を取り込む
+              <Upload className="icon" size={14} aria-hidden /> <span className="side-label">zip を取り込む</span>
             </button>
           )}
           {onShowHelp && (
             <button className="btn-ghost" onClick={onShowHelp}>
-              <Keyboard className="icon" size={14} aria-hidden /> ショートカット
+              <Keyboard className="icon" size={14} aria-hidden /> <span className="side-label">ショートカット</span>
             </button>
           )}
           {onShowPreferences && (
             <button className="btn-ghost" onClick={onShowPreferences} title="設定 (⌘/Ctrl+,)">
-              <Settings className="icon" size={14} aria-hidden /> 設定
+              <Settings className="icon" size={14} aria-hidden /> <span className="side-label">設定</span>
             </button>
           )}
         </div>

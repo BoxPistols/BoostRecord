@@ -189,9 +189,9 @@ export function NoteList({
               >
                 <div className="note-title">
                   {note.type === 'SNIPPET_NOTE' ? (
-                    <Code className="ic" size={14} aria-hidden />
+                    <Code className="ic" size={14} role="img" aria-label="スニペット" />
                   ) : (
-                    <FileText className="ic" size={14} aria-hidden />
+                    <FileText className="ic" size={14} role="img" aria-label="Markdown ノート" />
                   )}
                   {note.title || 'Untitled'}
                 </div>

@@ -13,7 +13,9 @@ import {
   X
 } from 'lucide-react'
 import type { Note, Selection, Storage } from './types'
-import { createRepository } from './data/repository'
+import { canUseFolder, createRepository } from './data/repository'
+import { getStorageMode, setStorageMode } from './data/storageMode'
+import type { StorageMode } from './data/storageMode'
 import { filterByQuery } from './data/search'
 import { Sidebar } from './components/Sidebar'
 import { NoteList } from './components/NoteList'
@@ -102,6 +104,19 @@ export default function App() {
   // 保存先が無いブラウザ（Safari 18 以前など）は見本データで動く。編集しても
   // 再読み込みで消えるので、そのことを常に出しておく
   const isSample = typeof repository.saveNote !== 'function'
+  // Chrome・Edge では、ブラウザの中と PC のフォルダを切り替えられる（デスクトップ版の中では出さない）
+  const canSwitchStorage = !window.boostnote && canUseFolder()
+  const storageMode = getStorageMode()
+
+  function switchStorage(mode: StorageMode) {
+    const message =
+      mode === 'folder'
+        ? 'PC のフォルダ（デスクトップ版と同じストレージ）で使うよう切り替えて、読み込み直します。ブラウザの中のノートは消えずに残り、戻せばまた使えます。'
+        : 'このブラウザの中に保存するよう切り替えて、読み込み直します。フォルダのノートは消えずに残り、戻せばまた使えます。'
+    if (!window.confirm(message)) return
+    setStorageMode(mode)
+    window.location.reload()
+  }
   const archiveInput = useRef<HTMLInputElement | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const newNoteRef = useRef<() => void>(() => {})
@@ -736,6 +751,13 @@ export default function App() {
               <button className="btn-primary" onClick={handlePickStorage}>
                 <FolderOpen className="icon" size={15} aria-hidden /> ストレージフォルダを開く
               </button>
+              {canSwitchStorage && (
+                <div style={{ marginTop: 10 }}>
+                  <button className="btn-ghost-inline" onClick={() => switchStorage('browser')}>
+                    フォルダを使わず、このブラウザの中に書く
+                  </button>
+                </div>
+              )}
               {pickError && (
                 <div style={{ color: 'var(--accent)', marginTop: 10 }}>
                   {pickError}
@@ -746,8 +768,9 @@ export default function App() {
             <div style={{ textAlign: 'center', maxWidth: 360 }}>
               {canArchive && notes.length === 0 && (
                 <div style={{ marginBottom: 14 }}>
-                  このブラウザではフォルダを直接開けないため、ノートはブラウザの中に保存します。デスクトップ版のストレージフォルダを
-                  zip にして「zip を取り込む」から入れられます。
+                  {canSwitchStorage
+                    ? 'ノートはこのブラウザの中に保存します。デスクトップ版と同じフォルダで使うときは、設定の「ストレージ」から切り替えられます。'
+                    : 'このブラウザではフォルダを直接開けないため、ノートはブラウザの中に保存します。デスクトップ版のストレージフォルダを zip にして「zip を取り込む」から入れられます。'}
                 </div>
               )}
               <div style={{ marginBottom: 12 }}>ノートを選択してください</div>
@@ -799,6 +822,16 @@ export default function App() {
               </table>
             )}
             <div className="prefs-actions">
+              {canSwitchStorage && (
+                <button
+                  className="btn-ghost-inline"
+                  onClick={() => switchStorage(storageMode === 'folder' ? 'browser' : 'folder')}
+                >
+                  {storageMode === 'folder'
+                    ? 'このブラウザの中に保存する'
+                    : 'PC のフォルダで使う（デスクトップ版と同じストレージ）'}
+                </button>
+              )}
               {canPick && (
                 <button className="btn-ghost-inline" onClick={handlePickStorage}>
                   <FolderOpen className="icon" size={14} aria-hidden /> ストレージを追加

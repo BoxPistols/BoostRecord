@@ -91,7 +91,7 @@ grid-cols-[2fr_16px_1fr_16px_1fr_2.4fr_140px]
     isTrashed: false,
     createdAt: t('2025-11-20'),
     updatedAt: t('2025-12-01T12:00:00'),
-    content: `# SE / SEO\n\n| 項目 | 状態 |\n|---|---|\n| title | ✅ |\n| description | ✅ |\n| OGP | ⏳ |\n`
+    content: `# SE / SEO\n\n| 項目 | 状態 |\n|---|---|\n| title | 済 |\n| description | 済 |\n| OGP | 作業中 |\n`
   },
   {
     key: 'n-aim-api',

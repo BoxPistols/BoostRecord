@@ -1,3 +1,14 @@
+import {
+  ChevronDown,
+  ChevronsLeft,
+  Download,
+  Keyboard,
+  Notebook,
+  Plus,
+  Star,
+  Trash2,
+  Upload
+} from 'lucide-react'
 import type { Note, Selection, Storage } from '../types'
 
 interface Props {
@@ -18,7 +29,7 @@ interface Props {
   /** 畳んだ表示（アイコンだけ）。名前は title で出す */
   folded?: boolean
   width: number
-  /** 左下の « » ボタン（Cmd/Ctrl+B と同じ巡回） */
+  /** 左下の開閉ボタン（Cmd/Ctrl+B と同じ巡回） */
   onToggle: () => void
 }
 
@@ -60,18 +71,18 @@ export function Sidebar({
       <div className="side-section">
         {(
           [
-            ['all', '📒', 'All Notes', counts.all],
-            ['starred', '★', 'Starred', counts.starred],
-            ['trashed', '🗑', 'Trash', counts.trashed]
+            ['all', Notebook, 'All Notes', counts.all],
+            ['starred', Star, 'Starred', counts.starred],
+            ['trashed', Trash2, 'Trash', counts.trashed]
           ] as const
-        ).map(([value, icon, label, count]) => (
+        ).map(([value, Icon, label, count]) => (
           <div
             key={value}
             className={`side-item ${isSmart(value) ? 'active' : ''}`}
             onClick={() => onSelect({ kind: 'smart', value })}
             title={folded ? `${label} (${count})` : undefined}
           >
-            <span>{icon}</span>
+            <Icon className="icon" size={16} aria-hidden />
             {!folded && (
               <>
                 {label} <span className="count">{count}</span>
@@ -88,7 +99,12 @@ export function Sidebar({
 
       {storages.map(storage => (
         <div className="side-section" key={storage.key}>
-          {!folded && <div className="side-storage">▾ {storage.name}</div>}
+          {!folded && (
+            <div className="side-storage">
+              <ChevronDown className="icon" size={14} aria-hidden />
+              {storage.name}
+            </div>
+          )}
           {storage.folders.map(folder => {
             const key = `${storage.key}|${folder.key}`
             return (
@@ -139,7 +155,7 @@ export function Sidebar({
         <div className="side-section" style={{ marginTop: 'auto' }}>
           {onPickStorage && (
             <button className="btn-ghost" onClick={onPickStorage}>
-              ＋ ストレージを追加
+              <Plus className="icon" size={14} aria-hidden /> ストレージを追加
             </button>
           )}
           {onExportArchive && (
@@ -148,7 +164,7 @@ export function Sidebar({
               onClick={onExportArchive}
               title="このブラウザに保存しているノートを zip にして保存します。展開するとデスクトップ版のストレージとして開けます"
             >
-              ⬇ zip で書き出す
+              <Download className="icon" size={14} aria-hidden /> zip で書き出す
             </button>
           )}
           {onImportArchive && (
@@ -157,12 +173,12 @@ export function Sidebar({
               onClick={onImportArchive}
               title="ストレージフォルダを zip にしたものを取り込みます。このブラウザに今あるノートは置き換わります"
             >
-              ⬆ zip を取り込む
+              <Upload className="icon" size={14} aria-hidden /> zip を取り込む
             </button>
           )}
           {onShowHelp && (
             <button className="btn-ghost" onClick={onShowHelp}>
-              ⌨ ショートカット
+              <Keyboard className="icon" size={14} aria-hidden /> ショートカット
             </button>
           )}
         </div>
@@ -173,7 +189,7 @@ export function Sidebar({
         title={`サイドバーを${folded ? '隠す' : '畳む'} (⌘/Ctrl+B)`}
         aria-label="サイドバーの表示を切り替える"
       >
-        «
+        <ChevronsLeft size={16} aria-hidden />
       </button>
     </nav>
   )

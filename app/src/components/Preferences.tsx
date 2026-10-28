@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { DEFAULT_CONFIG, FONT_SIZE, INDENT_SIZES, THEMES } from '../config'
@@ -38,22 +38,58 @@ export function Preferences({ open, initialTab = 'UI', config, onChange, onClose
   useEffect(() => {
     if (open) setTab(initialTab)
   }, [open, initialTab])
+  // 開いたらダイアログの中へフォーカスを移し、閉じたら開く前の場所（多くはエディタ）へ戻す。
+  // エディタに残ると Tab が字下げに取られ、キーボードで設定を操作できない
+  const dialog = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const before = document.activeElement as HTMLElement | null
+    dialog.current?.querySelector<HTMLElement>('.prefs-tab.active')?.focus()
+    return () => before?.focus?.()
+  }, [open])
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      // 変換中の Esc は変換の取り消し
+      if (e.key === 'Escape' && !e.isComposing) onClose()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [open, onClose])
   if (!open) return null
 
+  // 表示中は Tab をダイアログの中で回す
+  const trapTab = (e: React.KeyboardEvent) => {
+    if (e.key !== 'Tab' || !dialog.current) return
+    const items = [...dialog.current.querySelectorAll<HTMLElement>('button, select, input, a[href]')].filter(
+      el => !(el as HTMLButtonElement).disabled
+    )
+    if (items.length === 0) return
+    const first = items[0]
+    const last = items[items.length - 1]
+    if (e.shiftKey && document.activeElement === first) {
+      e.preventDefault()
+      last.focus()
+    } else if (!e.shiftKey && document.activeElement === last) {
+      e.preventDefault()
+      first.focus()
+    }
+  }
+
   const set = <S extends keyof Config>(section: S, patch: Partial<Config[S]>) =>
     onChange({ ...config, [section]: { ...config[section], ...patch } })
 
   return (
     <div className="overlay" onClick={onClose}>
-      <div className="prefs" role="dialog" aria-label="設定" onClick={e => e.stopPropagation()}>
+      <div
+        ref={dialog}
+        className="prefs"
+        role="dialog"
+        aria-modal="true"
+        aria-label="設定"
+        onClick={e => e.stopPropagation()}
+        onKeyDown={trapTab}
+      >
         <nav className="prefs-nav" aria-label="設定の項目">
           <div className="prefs-title">設定</div>
           {TABS.map(t => (
@@ -244,16 +280,27 @@ function FontInput({ value, placeholder, onCommit }: { value: string; placeholde
   )
 }
 
+// 範囲内の値になった時点で当てる。打ちかけ（空や 1 桁目）は下書きとして持ち、
+// 離れたときに範囲外なら今の値へ戻す（消して打ち直せるように）
 function SizeInput({ value, onCommit }: { value: number; onCommit: (v: number) => void }) {
+  const [draft, setDraft] = useState(String(value))
+  useEffect(() => setDraft(String(value)), [value])
+  const valid = (raw: string) => {
+    const n = Number(raw)
+    return raw.trim() !== '' && Number.isFinite(n) && n >= FONT_SIZE.min && n <= FONT_SIZE.max
+  }
   return (
     <input
       type="number"
       min={FONT_SIZE.min}
       max={FONT_SIZE.max}
-      value={value}
+      value={draft}
       onChange={e => {
-        const n = Number(e.target.value)
-        if (Number.isFinite(n) && n >= FONT_SIZE.min && n <= FONT_SIZE.max) onCommit(Math.round(n))
+        setDraft(e.target.value)
+        if (valid(e.target.value)) onCommit(Math.round(Number(e.target.value)))
+      }}
+      onBlur={() => {
+        if (!valid(draft)) setDraft(String(value))
       }}
     />
   )

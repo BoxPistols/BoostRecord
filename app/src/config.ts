@@ -142,7 +142,9 @@ export function parseConfig(raw: string | null): Config {
   const indentSize = Number(ed.indentSize)
   return {
     ui: {
-      theme: typeof ui.theme === 'string' && ui.theme in THEMES ? (ui.theme as ThemeName) : d.ui.theme
+      // in だと constructor など継承したキーも通るので、自前のキーだけを見る
+      theme:
+        typeof ui.theme === 'string' && Object.hasOwn(THEMES, ui.theme) ? (ui.theme as ThemeName) : d.ui.theme
     },
     editor: {
       fontFamily: font(ed.fontFamily, d.editor.fontFamily),

@@ -36,6 +36,10 @@ test('範囲外・知らない値は既定値か範囲の端', () => {
   assert.equal(c.editor.indentSize, DEFAULT_CONFIG.editor.indentSize)
   assert.equal(c.editor.indentType, 'space')
   assert.equal(c.preview.fontSize, FONT_SIZE.min)
+  // 継承したキーはテーマ名として通さない
+  for (const t of ['constructor', 'toString', '__proto__']) {
+    assert.equal(parseConfig(JSON.stringify({ ui: { theme: t } })).ui.theme, DEFAULT_CONFIG.ui.theme, t)
+  }
 })
 
 test('フォント名に CSS の宣言を閉じる文字があれば捨てる', () => {

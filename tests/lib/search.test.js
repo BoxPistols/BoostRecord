@@ -53,3 +53,15 @@ test('it can find notes by tags and words', () => {
     ).toBe(true)
   })
 })
+
+test('it does not throw on malformed snippet notes', () => {
+  const malformedSnippet = dummyNote({
+    type: 'SNIPPET_NOTE',
+    tags: ['tag1'],
+    description: null,
+    snippets: [{ name: null, content: undefined }, null]
+  })
+  const found = searchFromNotes([malformedSnippet], 'tag1')
+  expect(found).toHaveLength(1)
+  expect(() => searchFromNotes([malformedSnippet], 'content1')).not.toThrow()
+})

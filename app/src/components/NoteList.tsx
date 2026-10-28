@@ -157,7 +157,7 @@ export function NoteList({
           </>
         )}
         <span className="sort" style={{ marginLeft: 'auto' }}>
-          {folded ? total : `${total} notes`}
+          {folded ? total : `${total} 件`}
         </span>
         {onNewNote && (
           <button
@@ -197,7 +197,7 @@ export function NoteList({
                   ) : (
                     <FileText className="ic" size={14} role="img" aria-label="Markdown ノート" />
                   )}
-                  {note.title || 'Untitled'}
+                  {note.title || '無題'}
                 </div>
                 <div className="note-meta">
                   {shortDate(note.updatedAt)}

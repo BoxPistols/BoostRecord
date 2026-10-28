@@ -1,18 +1,6 @@
 import { useEffect } from 'react'
+import { SHORTCUTS } from '../shortcuts'
 
-/** Keyboard shortcuts shown in the in-app help overlay (mirrors the README). */
-const SHORTCUTS: { keys: string; desc: string }[] = [
-  { keys: '⌘/Ctrl + N', desc: '新規ノート' },
-  { keys: '⌘/Ctrl + F', desc: 'このノート内を検索（Enter で次、Shift + Enter で前）' },
-  { keys: 'Ctrl + L', desc: 'ノート一覧の検索にフォーカス' },
-  { keys: '⌘/Ctrl + B', desc: 'サイドバーを 展開 → 畳む → 隠す' },
-  { keys: '⌘/Ctrl + Shift + B', desc: 'ノート一覧を 展開 → 畳む → 隠す' },
-  { keys: '⌘/Ctrl + E', desc: 'エディタとプレビュー ↔ プレビューだけ' },
-  { keys: '⌘/Ctrl + Shift + E', desc: 'エディタだけ → 両方 → プレビューだけ' },
-  { keys: '⌘/Ctrl + I', desc: '斜体（選択をトグル）' },
-  { keys: '⌘/Ctrl + K', desc: 'リンク化' },
-  { keys: 'Esc', desc: 'このヘルプを閉じる' }
-]
 
 interface Props {
   open: boolean

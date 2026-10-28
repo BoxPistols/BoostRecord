@@ -1,7 +1,8 @@
 import { useEffect, useRef } from 'react'
-import { EditorView, keymap, lineNumbers } from '@codemirror/view'
-import { EditorState } from '@codemirror/state'
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
+import { EditorView, keymap, lineNumbers, scrollPastEnd } from '@codemirror/view'
+import { Compartment, EditorState } from '@codemirror/state'
+import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
+import { indentUnit } from '@codemirror/language'
 import { markdown } from '@codemirror/lang-markdown'
 import { toggleWrap, makeLink } from '../markdown/format'
 import type { FormatResult } from '../markdown/format'
@@ -28,9 +29,12 @@ const formatKeymap = keymap.of([
   { key: 'Mod-k', run: formatCommand(makeLink) }
 ])
 
-const darkTheme = EditorView.theme(
+// 色とフォントは CSS 変数で読むので、テーマを変えても作り直さなくてよい。
+// dark の旗（選択色などの既定）だけは明るいテーマと分ける
+const editorTheme = (dark: boolean) => EditorView.theme(
   {
     '&': { backgroundColor: 'var(--bg)', color: 'var(--fg)', height: '100%' },
+    '.cm-scroller': { fontFamily: 'var(--editor-font)', fontSize: 'var(--editor-font-size)' },
     '.cm-gutters': {
       backgroundColor: 'var(--bg-list)',
       color: 'var(--faint)',
@@ -43,8 +47,27 @@ const darkTheme = EditorView.theme(
     '.cm-find-match': { backgroundColor: 'var(--find-match)', borderRadius: '2px' },
     '.cm-find-active': { backgroundColor: 'var(--find-active)', color: '#111' }
   },
-  { dark: true }
+  { dark }
 )
+
+/** 設定の「エディタ」。デスクトップ版の editor.* と同じ項目 */
+export interface EditorSettings {
+  indentType: 'space' | 'tab'
+  indentSize: number
+  displayLineNumbers: boolean
+  scrollPastEnd: boolean
+  dark: boolean
+}
+
+function settingsExtensions(s: EditorSettings) {
+  return [
+    s.displayLineNumbers ? lineNumbers() : [],
+    s.scrollPastEnd ? scrollPastEnd() : [],
+    EditorState.tabSize.of(s.indentSize),
+    indentUnit.of(s.indentType === 'tab' ? '\t' : ' '.repeat(s.indentSize)),
+    editorTheme(s.dark)
+  ]
+}
 
 interface Props {
   /** Editing identity: re-mounts the editor state when the note changes. */
@@ -53,6 +76,7 @@ interface Props {
   onChange: (value: string) => void
   /** 作り直すたびに今の EditorView を渡す（ノート内検索が塗りと置換に使う） */
   onView?: (view: EditorView | null) => void
+  settings: EditorSettings
 }
 
 /**
@@ -60,25 +84,29 @@ interface Props {
  * `onChange` lifts edits to React. Switching `noteKey` rebuilds the state so
  * each note edits independently (the collab build swaps this doc for a Y.Text).
  */
-export function MarkdownEditor({ noteKey, value, onChange, onView }: Props) {
+export function MarkdownEditor({ noteKey, value, onChange, onView, settings }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
   const onViewRef = useRef(onView)
   onViewRef.current = onView
+  // 設定は作り直さずに差し替える（元に戻す履歴とカーソルを失わない）
+  const compartment = useRef(new Compartment())
+  const settingsRef = useRef(settings)
+  settingsRef.current = settings
 
   useEffect(() => {
     if (!host.current) return
     const state = EditorState.create({
       doc: value,
       extensions: [
-        lineNumbers(),
+        compartment.current.of(settingsExtensions(settingsRef.current)),
         history(),
         formatKeymap,
-        keymap.of([...defaultKeymap, ...historyKeymap]),
+        // Tab で字下げ（デスクトップ版と同じ）。Esc の直後の Tab はフォーカス移動に使える
+        keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         markdown(),
-        darkTheme,
         findMarks,
         EditorView.lineWrapping,
         EditorView.updateListener.of(u => {
@@ -96,6 +124,15 @@ export function MarkdownEditor({ noteKey, value, onChange, onView }: Props) {
     // Rebuild only when the note identity changes, not on every keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteKey])
+
+  const { indentType, indentSize, displayLineNumbers, scrollPastEnd: pastEnd, dark } = settings
+  useEffect(() => {
+    view.current?.dispatch({
+      effects: compartment.current.reconfigure(
+        settingsExtensions({ indentType, indentSize, displayLineNumbers, scrollPastEnd: pastEnd, dark })
+      )
+    })
+  }, [indentType, indentSize, displayLineNumbers, pastEnd, dark])
 
   return <div ref={host} style={{ height: '100%' }} />
 }

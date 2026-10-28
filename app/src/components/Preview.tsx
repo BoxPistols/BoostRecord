@@ -26,9 +26,12 @@ const katexPlugin = (
  */
 export function Preview({
   content,
-  rootRef
+  rootRef,
+  breaks = true
 }: {
   content: string
+  /** Markdown 中の改行でプレビューも改行する（設定。デスクトップ版の preview.breaks） */
+  breaks?: boolean
   /** ノート内検索がプレビューの文字を探すのに使う */
   rootRef?: RefObject<HTMLDivElement | null>
 }) {
@@ -38,12 +41,12 @@ export function Preview({
     const m = new MarkdownIt({
       html: false,
       linkify: true,
-      breaks: true,
+      breaks,
       highlight: highlightCode
     })
     m.use(katexPlugin, { throwOnError: false, output: 'html' })
     return m
-  }, [])
+  }, [breaks])
 
   useEffect(() => {
     if (!host.current) return

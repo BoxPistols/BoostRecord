@@ -30,6 +30,10 @@ export default function searchFromNotes(notes, search) {
   return foundNotes
 }
 
+function toLowerText(value) {
+  return typeof value === 'string' ? value.toLowerCase() : ''
+}
+
 // 語句は並びのまま探す。空白と改行の違いは問わない（複数行を貼り付けた検索のため）
 function findByPhrase(notes, phrase) {
   const source = phrase
@@ -39,43 +43,47 @@ function findByPhrase(notes, phrase) {
   const phraseRegExp = new RegExp(source, 'i')
   return notes.filter(note => {
     if (note.type === 'SNIPPET_NOTE') {
+      const description = toLowerText(note.description)
+      const snippets = _.isArray(note.snippets) ? note.snippets : []
       return (
-        phraseRegExp.test(note.description || '') ||
-        (note.snippets || []).some(
+        phraseRegExp.test(description) ||
+        snippets.some(
           snippet =>
-            phraseRegExp.test(snippet.name || '') ||
-            phraseRegExp.test(snippet.content || '')
+            phraseRegExp.test(toLowerText(snippet && snippet.name)) ||
+            phraseRegExp.test(toLowerText(snippet && snippet.content))
         )
       )
     } else if (note.type === 'MARKDOWN_NOTE') {
-      return phraseRegExp.test(note.content || '')
+      return phraseRegExp.test(toLowerText(note.content))
     }
     return false
   })
 }
 
 function findByWordOrTag(notes, block) {
-  let tag = block
-  if (tag.match(/^#.+/)) {
-    tag = tag.match(/#(.+)/)[1]
-  }
-  const tagRegExp = new RegExp(_.escapeRegExp(tag), 'i')
-  const wordRegExp = new RegExp(_.escapeRegExp(block), 'i')
+  const lowerBlock = toLowerText(block)
+  const tag = lowerBlock.match(/^#.+/) ? lowerBlock.slice(1) : lowerBlock
   return notes.filter(note => {
-    if (_.isArray(note.tags) && note.tags.some(_tag => _tag.match(tagRegExp))) {
+    if (
+      _.isArray(note.tags) &&
+      note.tags.some(_tag => toLowerText(_tag).includes(tag))
+    ) {
       return true
     }
     if (note.type === 'SNIPPET_NOTE') {
+      const description = toLowerText(note.description)
+      const snippets = _.isArray(note.snippets) ? note.snippets : []
       return (
-        note.description.match(wordRegExp) ||
-        note.snippets.some(snippet => {
+        description.includes(lowerBlock) ||
+        snippets.some(snippet => {
           return (
-            snippet.name.match(wordRegExp) || snippet.content.match(wordRegExp)
+            toLowerText(snippet && snippet.name).includes(lowerBlock) ||
+            toLowerText(snippet && snippet.content).includes(lowerBlock)
           )
         })
       )
     } else if (note.type === 'MARKDOWN_NOTE') {
-      return note.content.match(wordRegExp)
+      return toLowerText(note.content).includes(lowerBlock)
     }
     return false
   })

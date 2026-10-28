@@ -5,6 +5,7 @@ import { defaultKeymap, history, historyKeymap } from '@codemirror/commands'
 import { markdown } from '@codemirror/lang-markdown'
 import { toggleWrap, makeLink } from '../markdown/format'
 import type { FormatResult } from '../markdown/format'
+import { findMarks } from '../find/editorFind'
 
 /** Build a CodeMirror command that applies a pure FormatResult transform. */
 function formatCommand(transform: (selected: string) => FormatResult) {
@@ -37,7 +38,10 @@ const darkTheme = EditorView.theme(
     },
     '.cm-activeLineGutter': { backgroundColor: 'transparent' },
     '.cm-content': { caretColor: 'var(--accent)' },
-    '&.cm-focused .cm-cursor': { borderLeftColor: 'var(--accent)' }
+    '&.cm-focused .cm-cursor': { borderLeftColor: 'var(--accent)' },
+    // ノート内検索。選択色より先に目に入るよう、現在地だけ濃くする
+    '.cm-find-match': { backgroundColor: 'var(--find-match)', borderRadius: '2px' },
+    '.cm-find-active': { backgroundColor: 'var(--find-active)', color: '#111' }
   },
   { dark: true }
 )
@@ -47,6 +51,8 @@ interface Props {
   noteKey: string
   value: string
   onChange: (value: string) => void
+  /** 作り直すたびに今の EditorView を渡す（ノート内検索が塗りと置換に使う） */
+  onView?: (view: EditorView | null) => void
 }
 
 /**
@@ -54,11 +60,13 @@ interface Props {
  * `onChange` lifts edits to React. Switching `noteKey` rebuilds the state so
  * each note edits independently (the collab build swaps this doc for a Y.Text).
  */
-export function MarkdownEditor({ noteKey, value, onChange }: Props) {
+export function MarkdownEditor({ noteKey, value, onChange, onView }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
   onChangeRef.current = onChange
+  const onViewRef = useRef(onView)
+  onViewRef.current = onView
 
   useEffect(() => {
     if (!host.current) return
@@ -71,6 +79,7 @@ export function MarkdownEditor({ noteKey, value, onChange }: Props) {
         keymap.of([...defaultKeymap, ...historyKeymap]),
         markdown(),
         darkTheme,
+        findMarks,
         EditorView.lineWrapping,
         EditorView.updateListener.of(u => {
           if (u.docChanged) onChangeRef.current(u.state.doc.toString())
@@ -79,7 +88,11 @@ export function MarkdownEditor({ noteKey, value, onChange }: Props) {
     })
     const v = new EditorView({ state, parent: host.current })
     view.current = v
-    return () => v.destroy()
+    onViewRef.current?.(v)
+    return () => {
+      onViewRef.current?.(null)
+      v.destroy()
+    }
     // Rebuild only when the note identity changes, not on every keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteKey])

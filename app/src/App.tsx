@@ -22,6 +22,8 @@ import { TagEditor } from './components/TagEditor'
 import { ShortcutHelp } from './components/ShortcutHelp'
 import { Splitter } from './components/Splitter'
 import { ModeSwitcher } from './components/ModeSwitcher'
+import { FindBar } from './components/FindBar'
+import { useNoteFind } from './find/useNoteFind'
 import {
   NAV,
   SPLIT,
@@ -86,6 +88,9 @@ export default function App() {
   const archiveInput = useRef<HTMLInputElement | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const newNoteRef = useRef<() => void>(() => {})
+  // ⌘/Ctrl+F。ノートを開いているときだけノート内検索を開く（無ければ一覧の検索へ任せる）
+  const openFindRef = useRef<(() => boolean) | null>(null)
+  const previewRef = useRef<HTMLDivElement | null>(null)
 
   // Persist a note; failures surface in the header rather than being swallowed.
   function persist(note: Note) {
@@ -150,6 +155,12 @@ export default function App() {
     const onKey = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey) || e.altKey) return
       const key = e.key.toLowerCase()
+      // デスクトップ版と同じく ⌘/Ctrl+F はノート内検索。Shift 付きは横取りしない
+      if (key === 'f' && !e.shiftKey && openFindRef.current?.()) {
+        e.preventDefault()
+        e.stopPropagation()
+        return
+      }
       let change: ((l: Layout) => Layout) | null = null
       if (key === 'b' && !e.shiftKey)
         change = l => ({ ...l, navMode: nextPaneMode(l.navMode) })
@@ -210,6 +221,21 @@ export default function App() {
   }, [notes, selection, query])
 
   const active = notes.find(n => n.key === activeKey) ?? null
+
+  // 表示していない面は探さない（デスクトップ版と同じく、全面プレビューのときだけプレビューを探す）
+  const findTarget = layout.viewMode === 'PREVIEW' ? 'PREVIEW' : 'EDITOR'
+  const noteFind = useNoteFind({
+    noteKey: active?.key ?? null,
+    content: active?.content ?? '',
+    target: findTarget,
+    previewRef
+  })
+  openFindRef.current = active
+    ? () => {
+        noteFind.openFind()
+        return true
+      }
+    : null
 
   function selectView(s: Selection) {
     setSelection(s)
@@ -615,6 +641,7 @@ export default function App() {
                 noteKey={active.key}
                 value={active.content}
                 onChange={updateActiveContent}
+                onView={noteFind.onView}
               />
             </div>
             {layout.viewMode === 'SPLIT' && (
@@ -636,7 +663,26 @@ export default function App() {
                 onEnd={endResize}
               />
             )}
-            <Preview content={active.content} />
+            <Preview content={active.content} rootRef={previewRef} />
+            {noteFind.find && (
+              <FindBar
+                query={noteFind.find.query}
+                index={noteFind.find.index}
+                count={noteFind.find.count}
+                focusToken={noteFind.find.focusToken}
+                target={findTarget === 'PREVIEW' ? 'プレビュー' : 'エディタ'}
+                onChange={noteFind.setQuery}
+                onStep={noteFind.step}
+                onClose={noteFind.close}
+                replaceOpen={noteFind.find.replaceOpen}
+                replaceValue={noteFind.find.replace}
+                onToggleReplace={noteFind.toggleReplace}
+                onReplaceChange={noteFind.setReplace}
+                {...(findTarget === 'EDITOR'
+                  ? { onReplace: noteFind.replace, onReplaceAll: noteFind.replaceAll }
+                  : {})}
+              />
+            )}
           </div>
         </section>
       ) : (

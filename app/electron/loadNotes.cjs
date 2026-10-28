@@ -10,8 +10,46 @@ const path = require('node:path')
 const crypto = require('node:crypto')
 const CSON = require('cson-parser')
 
+const MAX_NOTE_FILE_BYTES = 1024 * 1024 * 2 // 2 MiB
+const MAX_NOTES_PER_STORAGE = 10000
+
 function readJson(file) {
   return JSON.parse(fs.readFileSync(file, 'utf8'))
+}
+
+function safeReadNote(file) {
+  let stat
+  try {
+    stat = fs.statSync(file)
+  } catch {
+    return null
+  }
+  if (!stat.isFile() || stat.size > MAX_NOTE_FILE_BYTES) return null
+  try {
+    const raw = CSON.parse(fs.readFileSync(file, 'utf8'))
+    return raw && typeof raw === 'object' ? raw : null
+  } catch {
+    return null
+  }
+}
+
+function toEditable(field, value) {
+  switch (field) {
+    case 'title':
+    case 'content':
+    case 'folder':
+    case 'updatedAt':
+      return typeof value === 'string' ? value : undefined
+    case 'tags':
+      return Array.isArray(value)
+        ? value.filter(tag => typeof tag === 'string').slice(0, 200)
+        : undefined
+    case 'isStarred':
+    case 'isTrashed':
+      return typeof value === 'boolean' ? value : undefined
+    default:
+      return undefined
+  }
 }
 
 function toNote(raw, key, storageKey) {
@@ -52,10 +90,14 @@ function loadStorage(rootDir, storageKey) {
   const notesDir = path.join(rootDir, 'notes')
   const notes = []
   if (fs.existsSync(notesDir)) {
-    for (const file of fs.readdirSync(notesDir)) {
-      if (!file.endsWith('.cson')) continue
-      const raw = CSON.parse(fs.readFileSync(path.join(notesDir, file), 'utf8'))
-      notes.push(toNote(raw, file.replace(/\.cson$/, ''), key))
+    let count = 0
+    for (const entry of fs.readdirSync(notesDir, { withFileTypes: true })) {
+      if (count >= MAX_NOTES_PER_STORAGE) break
+      if (!entry.isFile() || !entry.name.endsWith('.cson')) continue
+      const raw = safeReadNote(path.join(notesDir, entry.name))
+      if (!raw) continue
+      notes.push(toNote(raw, entry.name.replace(/\.cson$/, ''), key))
+      count++
     }
   }
   return { storage, notes }
@@ -94,15 +136,20 @@ function saveNote(roots, note) {
     if (path.dirname(file) !== notesDir) continue // reject traversal
     if (!fs.existsSync(file)) continue
 
-    const raw = CSON.parse(fs.readFileSync(file, 'utf8'))
-    const merged = { ...raw }
-    for (const f of EDITABLE) {
-      if (note[f] !== undefined) merged[f] = note[f]
+    try {
+      const raw = CSON.parse(fs.readFileSync(file, 'utf8'))
+      const merged = { ...raw }
+      for (const f of EDITABLE) {
+        const value = toEditable(f, note[f])
+        if (value !== undefined) merged[f] = value
+      }
+      const tmp = `${file}.tmp`
+      fs.writeFileSync(tmp, CSON.stringify(merged, null, 2))
+      fs.renameSync(tmp, file) // atomic replace
+      return { ok: true, file }
+    } catch {
+      return { ok: false, error: `failed to write note "${key}"` }
     }
-    const tmp = `${file}.tmp`
-    fs.writeFileSync(tmp, CSON.stringify(merged, null, 2))
-    fs.renameSync(tmp, file) // atomic replace
-    return { ok: true, file }
   }
   return { ok: false, error: `note "${key}" not found in any storage` }
 }

@@ -90,3 +90,20 @@ test('loadStorages aggregates and skips non-storage roots', () => {
   fs.rmSync(b, { recursive: true, force: true })
   fs.rmSync(empty, { recursive: true, force: true })
 })
+
+test('loadStorage skips malformed .cson files instead of failing entire storage', () => {
+  const root = makeStorage()
+  fs.writeFileSync(path.join(root, 'notes', 'broken.cson'), "title: 'x'\ncontent: '''")
+  const { notes } = loadStorage(root)
+  assert.equal(notes.length, 2)
+  fs.rmSync(root, { recursive: true, force: true })
+})
+
+test('loadStorage skips oversized note files', () => {
+  const root = makeStorage()
+  const large = `content: '${'x'.repeat(1024 * 1024 * 2)}'`
+  fs.writeFileSync(path.join(root, 'notes', 'large.cson'), large)
+  const { notes } = loadStorage(root)
+  assert.equal(notes.length, 2)
+  fs.rmSync(root, { recursive: true, force: true })
+})

@@ -102,3 +102,42 @@ test('saveNote returns ok:false when the note is in no storage', () => {
   assert.match(res.error, /not found/)
   fs.rmSync(root, { recursive: true, force: true })
 })
+
+test('saveNote ignores invalid editable field types', () => {
+  const root = makeStorage({
+    type: 'MARKDOWN_NOTE',
+    folder: 'f1',
+    title: 'Old',
+    content: 'Body',
+    tags: ['a'],
+    isStarred: false,
+    isTrashed: false,
+    updatedAt: '2025-01-01T00:00:00.000Z'
+  })
+  const res = saveNote([root], {
+    key: 'n1',
+    title: 10,
+    tags: [1, 'ok', null],
+    isStarred: 'yes'
+  })
+  assert.equal(res.ok, true)
+  const raw = CSON.parse(fs.readFileSync(path.join(root, 'notes', 'n1.cson'), 'utf8'))
+  assert.equal(raw.title, 'Old')
+  assert.deepEqual(raw.tags, ['ok'])
+  assert.equal(raw.isStarred, false)
+  fs.rmSync(root, { recursive: true, force: true })
+})
+
+test('saveNote returns ok:false when existing file is malformed', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bn-save-'))
+  fs.writeFileSync(
+    path.join(root, 'boostnote.json'),
+    JSON.stringify({ name: 'S', folders: [{ key: 'f1', name: 'Inbox' }] })
+  )
+  fs.mkdirSync(path.join(root, 'notes'))
+  fs.writeFileSync(path.join(root, 'notes', 'n1.cson'), "title: 'broken")
+  const res = saveNote([root], { key: 'n1', content: 'x' })
+  assert.equal(res.ok, false)
+  assert.match(res.error, /failed to write note/)
+  fs.rmSync(root, { recursive: true, force: true })
+})

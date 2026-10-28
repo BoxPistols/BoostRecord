@@ -11,10 +11,20 @@ export function queryTerms(query: string): string[] {
   return query.trim().toLowerCase().split(/\s+/).filter(Boolean)
 }
 
+const hayCache = new WeakMap<Note, string>()
+
+function normalizedHay(note: Note): string {
+  const cached = hayCache.get(note)
+  if (cached) return cached
+  const hay = `${note.title}\n${note.content}\n${note.tags.join(' ')}`.toLowerCase()
+  hayCache.set(note, hay)
+  return hay
+}
+
 /** True when the note contains every term across title, content and tags. */
 export function noteMatches(note: Note, terms: string[]): boolean {
   if (terms.length === 0) return true
-  const hay = `${note.title}\n${note.content}\n${note.tags.join(' ')}`.toLowerCase()
+  const hay = normalizedHay(note)
   return terms.every(term => hay.includes(term))
 }
 

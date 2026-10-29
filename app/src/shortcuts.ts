@@ -9,6 +9,10 @@ export const SHORTCUTS: { keys: string; desc: string }[] = [
   { keys: '⌘/Ctrl + Shift + E', desc: 'エディタだけ → 両方 → プレビューだけ' },
   { keys: '⌘/Ctrl + I', desc: '斜体（選択をトグル）' },
   { keys: '⌘/Ctrl + K', desc: 'リンク化' },
+  { keys: '⌘/Ctrl + /', desc: '今日の日付を入れる' },
+  { keys: '⌘ + Option + /（Windows・Linux は Ctrl + Shift + /）', desc: '今の日時を入れる' },
+  { keys: '⌘/Ctrl + Shift + F', desc: 'Markdown を整える（prettier）' },
+  { keys: '⌘/Ctrl + Shift + S', desc: '選んだ行を並べ替える' },
   { keys: '⌘/Ctrl + ,', desc: '設定を開く' },
   { keys: 'Esc', desc: '開いている画面を閉じる' }
 ]

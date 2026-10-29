@@ -7,6 +7,7 @@ import { markdown } from '@codemirror/lang-markdown'
 import { toggleWrap, makeLink } from '../markdown/format'
 import type { FormatResult } from '../markdown/format'
 import { findMarks } from '../find/editorFind'
+import { insertDate, insertDateTime, prettifyMarkdown, sortLines } from '../markdown/editorCommands'
 
 /** Build a CodeMirror command that applies a pure FormatResult transform. */
 function formatCommand(transform: (selected: string) => FormatResult) {
@@ -56,10 +57,12 @@ export interface EditorSettings {
   indentSize: number
   displayLineNumbers: boolean
   scrollPastEnd: boolean
+  /** 日付の挿入で ISO 8601 を使う（作り直さず、押したときに読む） */
+  dateFormatISO8601: boolean
   dark: boolean
 }
 
-function settingsExtensions(s: EditorSettings) {
+function settingsExtensions(s: Omit<EditorSettings, 'dateFormatISO8601'>) {
   return [
     s.displayLineNumbers ? lineNumbers() : [],
     s.scrollPastEnd ? scrollPastEnd() : [],
@@ -95,6 +98,7 @@ export function MarkdownEditor({ noteKey, value, onChange, onView, settings }: P
   const compartment = useRef(new Compartment())
   const settingsRef = useRef(settings)
   settingsRef.current = settings
+  const iso = () => settingsRef.current.dateFormatISO8601
 
   useEffect(() => {
     if (!host.current) return
@@ -104,6 +108,13 @@ export function MarkdownEditor({ noteKey, value, onChange, onView, settings }: P
         compartment.current.of(settingsExtensions(settingsRef.current)),
         history(),
         formatKeymap,
+        // デスクトップ版の既定のホットキー。⌘/ は既定のコメント切り替えより先に取る
+        keymap.of([
+          { key: 'Mod-/', run: insertDate(iso) },
+          { key: 'Ctrl-Shift-/', mac: 'Mod-Alt-/', run: insertDateTime(iso) },
+          { key: 'Mod-Shift-f', run: prettifyMarkdown },
+          { key: 'Mod-Shift-s', run: sortLines }
+        ]),
         // Tab で字下げ（デスクトップ版と同じ）。Esc の直後の Tab はフォーカス移動に使える
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         markdown(),

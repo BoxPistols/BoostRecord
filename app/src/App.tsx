@@ -306,6 +306,9 @@ export default function App() {
   }, [notes, selection, query])
 
   const active = notes.find(n => n.key === activeKey) ?? null
+  // 本文を Markdown として解析するので、本文が変わったときだけ数え直す
+  const activeContent = active?.content ?? ''
+  const activeTodo = useMemo(() => todoStatus(activeContent), [activeContent])
 
   // 表示していない面は探さない（デスクトップ版と同じく、全面プレビューのときだけプレビューを探す）
   const findTarget = layout.viewMode === 'PREVIEW' ? 'PREVIEW' : 'EDITOR'
@@ -646,7 +649,7 @@ export default function App() {
               </span>
             )}
             <span className="spacer" />
-            <TodoStatus {...todoStatus(active.content)} bar />
+            <TodoStatus {...activeTodo} bar />
             <ModeSwitcher
               mode={layout.viewMode}
               onChange={viewMode => setLayout(l => ({ ...l, viewMode }))}

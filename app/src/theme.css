@@ -70,16 +70,19 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .sidebar.folded .side-item { justify-content: center; padding: 6px 0; margin: 1px 4px; gap: 0; }
 .side-section { padding: 6px 12px; }
 .side-item {
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center; gap: 10px; min-width: 0;
   padding: 6px 12px; cursor: pointer; border-radius: var(--radius);
   margin: 1px 6px; color: var(--fg);
 }
 .side-item:hover { background: var(--hover); }
 .side-item.active { background: var(--side-active); color: var(--fg); }
-.side-item .count { margin-left: auto; color: var(--muted); font-size: 12px; }
+.side-item .count { margin-left: auto; color: var(--muted); font-size: 12px; flex: none; }
+/* 幅が足りないときは 1 行のまま「…」で省略する（縦に折り返すと項目の高さが揃わない）。全文は title で出す */
+.side-label { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side-item .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; }
 .empty-trash {
   display: block; margin: 2px 12px 4px auto; font: inherit; font-size: 11px;
+  max-width: calc(100% - 12px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   cursor: pointer; color: var(--muted); background: transparent;
   border: 1px solid var(--border); border-radius: var(--radius); padding: 2px 8px;
 }
@@ -90,7 +93,7 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
   padding: 10px 14px 4px; color: var(--muted);
   font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
 }
-.side-storage { display: flex; align-items: center; gap: 4px; padding: 8px 14px 2px; color: var(--fg); font-weight: 600; }
+.side-storage { display: flex; align-items: center; gap: 4px; padding: 8px 14px 2px; color: var(--fg); font-weight: 600; min-width: 0; }
 .side-storage .icon { color: var(--muted); }
 .side-item .icon { color: var(--muted); }
 .side-item.active .icon { color: var(--fg); }
@@ -284,7 +287,7 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 }
 .btn-primary { background: var(--accent); color: var(--on-accent); border-color: transparent; }
 .btn-primary:hover { filter: brightness(1.08); }
-.btn-ghost { background: transparent; color: var(--muted); width: 100%; }
+.btn-ghost { background: transparent; color: var(--muted); width: 100%; min-width: 0; white-space: nowrap; }
 .btn-ghost:hover { background: var(--hover); color: var(--fg); }
 
 /* ---- Overlay / modal -------------------------------------------------- */

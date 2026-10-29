@@ -1,14 +1,15 @@
 import { useEffect } from 'react'
-import { SHORTCUTS } from '../shortcuts'
-
+import { HOTKEYS, displayCombo, jumpLabel } from '../hotkeys'
+import type { Bindings, JumpModifier } from '../hotkeys'
 
 interface Props {
   open: boolean
   onClose: () => void
+  hotkey: Bindings & { jumpModifier: JumpModifier }
 }
 
 /** Modal overlay listing keyboard shortcuts. Closes on Esc or backdrop click. */
-export function ShortcutHelp({ open, onClose }: Props) {
+export function ShortcutHelp({ open, onClose, hotkey }: Props) {
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
@@ -31,14 +32,23 @@ export function ShortcutHelp({ open, onClose }: Props) {
         <div className="overlay-title">キーボードショートカット</div>
         <table className="shortcut-table">
           <tbody>
-            {SHORTCUTS.map(s => (
-              <tr key={s.keys}>
-                <td className="shortcut-keys">{s.keys}</td>
-                <td>{s.desc}</td>
+            {HOTKEYS.map(h => (
+              <tr key={h.id}>
+                <td className="shortcut-keys">{displayCombo(hotkey[h.id])}</td>
+                <td>{h.desc}</td>
               </tr>
             ))}
+            <tr>
+              <td className="shortcut-keys">{jumpLabel(hotkey.jumpModifier)}</td>
+              <td>一覧の上から N 番目のノートへ（押し続けると番号が出る。0 は 10 番目）</td>
+            </tr>
+            <tr>
+              <td className="shortcut-keys">Esc</td>
+              <td>開いている画面を閉じる</td>
+            </tr>
           </tbody>
         </table>
+        <p className="prefs-note">キーは設定の「ホットキー」で変えられます。</p>
       </div>
     </div>
   )

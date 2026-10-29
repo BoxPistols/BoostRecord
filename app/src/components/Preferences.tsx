@@ -3,7 +3,8 @@ import type { ReactNode } from 'react'
 import { X } from 'lucide-react'
 import { DEFAULT_CONFIG, FONT_SIZE, INDENT_SIZES, THEMES } from '../config'
 import type { Config, ThemeName } from '../config'
-import { SHORTCUTS } from '../shortcuts'
+import { HOTKEYS, JUMP_MODIFIERS, comboFromEvent, defaultBindings, defaultJumpModifier, displayCombo, problemOf, recording, IS_MAC, jumpLabel } from '../hotkeys'
+import type { HotkeyId, JumpModifier } from '../hotkeys'
 
 // タブの並びと名前はデスクトップ版の設定（PreferencesModal）と同じ。
 // Web 版に無い機能（AI・画像・スニペット・エクスポート）のタブは出さない。
@@ -27,6 +28,84 @@ interface Props {
   onClose: () => void
   /** ストレージのタブに出す、今の保存先の説明 */
   storageSummary: ReactNode
+}
+
+/** 1 つのショートカット。押して登録する。登録できないキー・ほかと重なるキーはその場で断る */
+function HotkeyRow({
+  id,
+  desc,
+  value,
+  others,
+  onChange
+}: {
+  id: HotkeyId
+  desc: string
+  value: string
+  others: { combo: string; desc: string }[]
+  onChange: (combo: string) => void
+}) {
+  const [listening, setListening] = useState(false)
+  const [error, setError] = useState('')
+  const def = defaultBindings()[id]
+  useEffect(() => {
+    if (!listening) return
+    recording.active = true
+    const onKey = (e: KeyboardEvent) => {
+      // ほかのショートカットや、設定を閉じる Esc に渡さない
+      e.preventDefault()
+      e.stopPropagation()
+      if (e.key === 'Escape' && !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey) {
+        setListening(false)
+        return
+      }
+      const combo = comboFromEvent(e)
+      if (!combo) return // 修飾キーだけ。続けて押すキーを待つ
+      const problem = problemOf(combo)
+      const dup = others.find(o => o.combo === combo)
+      if (problem?.level === 'block') setError(`${displayCombo(combo)}: ${problem.reason}`)
+      else if (dup) setError(`${displayCombo(combo)} は「${dup.desc}」で使っています`)
+      else {
+        setError('')
+        onChange(combo)
+      }
+      setListening(false)
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => {
+      recording.active = false
+      window.removeEventListener('keydown', onKey, true)
+    }
+  }, [listening, others, onChange])
+  const warn = problemOf(value)
+  return (
+    <tr>
+      <td className="shortcut-keys">
+        <button
+          className={`hotkey-btn ${listening ? 'listening' : ''}`}
+          onClick={() => {
+            setError('')
+            setListening(l => !l)
+          }}
+          onBlur={() => setListening(false)}
+          aria-label={`${desc} のキーを変える（今は ${displayCombo(value)}）`}
+        >
+          {listening ? 'キーを押してください' : displayCombo(value)}
+        </button>
+      </td>
+      <td>
+        {desc}
+        {error && <div className="hotkey-error" role="alert">{error}</div>}
+        {!error && warn?.level === 'warn' && <div className="hotkey-warn">{warn.reason}</div>}
+      </td>
+      <td>
+        {value !== def && (
+          <button className="btn-ghost-inline" onClick={() => onChange(def)} title={`既定の ${displayCombo(def)} に戻す`}>
+            既定に戻す
+          </button>
+        )}
+      </td>
+    </tr>
+  )
 }
 
 /**
@@ -118,17 +197,49 @@ export function Preferences({ open, initialTab = 'UI', config, onChange, onClose
           {tab === 'HOTKEY' && (
             <section>
               <h2 className="prefs-h">ホットキー</h2>
-              <table className="shortcut-table">
+              <p className="prefs-note">キーの欄を押してから、割り当てたいキーを押します。Esc でやめます。OS やブラウザが先に使うキー（画面の撮影の ⌘⇧3〜5、タブを閉じる ⌘W など）は登録できません。</p>
+              <table className="shortcut-table hotkey-table">
                 <tbody>
-                  {SHORTCUTS.map(s => (
-                    <tr key={s.keys}>
-                      <td className="shortcut-keys">{s.keys}</td>
-                      <td>{s.desc}</td>
-                    </tr>
+                  {HOTKEYS.map(h => (
+                    <HotkeyRow
+                      key={h.id}
+                      id={h.id}
+                      desc={h.desc}
+                      value={config.hotkey[h.id]}
+                      others={HOTKEYS.filter(x => x.id !== h.id).map(x => ({ combo: config.hotkey[x.id], desc: x.desc }))}
+                      onChange={combo => set('hotkey', { [h.id]: combo } as Partial<Config['hotkey']>)}
+                    />
                   ))}
+                  <tr>
+                    <td className="shortcut-keys">
+                      <select
+                        value={config.hotkey.jumpModifier}
+                        onChange={e => set('hotkey', { jumpModifier: e.target.value as JumpModifier })}
+                        aria-label="番号でノートへ飛ぶときに押すキー"
+                      >
+                        {JUMP_MODIFIERS.map(m => (
+                          <option key={m} value={m}>
+                            {jumpLabel(m)}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td>
+                      一覧の上から N 番目のノートへ（押し続けると番号が出る。0 は 10 番目）
+                      {(config.hotkey.jumpModifier === 'Mod') && (
+                        <div className="hotkey-warn">タブで開いているときはブラウザのタブ切り替えと重なります</div>
+                      )}
+                    </td>
+                    <td />
+                  </tr>
                 </tbody>
               </table>
-              <p className="prefs-note">Web 版ではキーの割り当ては変えられません。ブラウザが先に使うキー（⌘/Ctrl+T・W など）と重ならないよう固定しています。</p>
+              <button
+                className="btn-ghost-inline"
+                onClick={() => set('hotkey', { ...defaultBindings(), jumpModifier: defaultJumpModifier(IS_MAC) })}
+              >
+                すべて既定に戻す
+              </button>
             </section>
           )}
 

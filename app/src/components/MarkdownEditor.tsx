@@ -7,6 +7,8 @@ import { markdown } from '@codemirror/lang-markdown'
 import { toggleWrap, makeLink } from '../markdown/format'
 import type { FormatResult } from '../markdown/format'
 import { findMarks } from '../find/editorFind'
+import { toCodeMirror } from '../hotkeys'
+import type { Bindings } from '../hotkeys'
 import { insertDate, insertDateTime, prettifyMarkdown, sortLines } from '../markdown/editorCommands'
 
 /** Build a CodeMirror command that applies a pure FormatResult transform. */
@@ -23,15 +25,29 @@ function formatCommand(transform: (selected: string) => FormatResult) {
   }
 }
 
-// ⌘/Ctrl+I italic, +K link. Placed before defaultKeymap to win.
-// ⌘/Ctrl+B はデスクトップ版と同じくサイドバーの開閉に使う（App.tsx）
 // 外から取り込んだ変更の印。onChange へ送り返さない
 const external = Annotation.define<boolean>()
 
-const formatKeymap = keymap.of([
-  { key: 'Mod-i', run: formatCommand(s => toggleWrap(s, '*')) },
-  { key: 'Mod-k', run: formatCommand(makeLink) }
-])
+/** エディタのショートカット。設定で変えたキーで作り直す。defaultKeymap より先に置いて勝たせる */
+export type EditorKeys = Pick<Bindings, 'italic' | 'link' | 'insertDate' | 'insertDateTime' | 'prettify' | 'sortLines'>
+
+function editorKeymap(keys: EditorKeys, iso: () => boolean) {
+  const commands: [string, (view: EditorView) => boolean][] = [
+    [keys.italic, formatCommand(s => toggleWrap(s, '*'))],
+    [keys.link, formatCommand(makeLink)],
+    // ⌘/ は既定のコメント切り替えより先に取る
+    [keys.insertDate, insertDate(iso)],
+    [keys.insertDateTime, insertDateTime(iso)],
+    [keys.prettify, prettifyMarkdown],
+    [keys.sortLines, sortLines]
+  ]
+  return keymap.of(
+    commands.flatMap(([combo, run]) => {
+      const key = toCodeMirror(combo)
+      return key ? [{ key, run }] : []
+    })
+  )
+}
 
 // 色とフォントは CSS 変数で読むので、テーマを変えても作り直さなくてよい。
 // dark の旗（選択色などの既定）だけは明るいテーマと分ける
@@ -83,6 +99,7 @@ interface Props {
   /** 作り直すたびに今の EditorView を渡す（ノート内検索が塗りと置換に使う） */
   onView?: (view: EditorView | null) => void
   settings: EditorSettings
+  keys: EditorKeys
 }
 
 /**
@@ -90,7 +107,7 @@ interface Props {
  * `onChange` lifts edits to React. Switching `noteKey` rebuilds the state so
  * each note edits independently (the collab build swaps this doc for a Y.Text).
  */
-export function MarkdownEditor({ noteKey, value, onChange, onView, settings }: Props) {
+export function MarkdownEditor({ noteKey, value, onChange, onView, settings, keys }: Props) {
   const host = useRef<HTMLDivElement>(null)
   const view = useRef<EditorView | null>(null)
   const onChangeRef = useRef(onChange)
@@ -102,6 +119,9 @@ export function MarkdownEditor({ noteKey, value, onChange, onView, settings }: P
   const settingsRef = useRef(settings)
   settingsRef.current = settings
   const iso = () => settingsRef.current.dateFormatISO8601
+  const keysCompartment = useRef(new Compartment())
+  const keysRef = useRef(keys)
+  keysRef.current = keys
 
   useEffect(() => {
     if (!host.current) return
@@ -110,14 +130,7 @@ export function MarkdownEditor({ noteKey, value, onChange, onView, settings }: P
       extensions: [
         compartment.current.of(settingsExtensions(settingsRef.current)),
         history(),
-        formatKeymap,
-        // デスクトップ版の既定のホットキー。⌘/ は既定のコメント切り替えより先に取る
-        keymap.of([
-          { key: 'Mod-/', run: insertDate(iso) },
-          { key: 'Ctrl-Shift-/', mac: 'Mod-Alt-/', run: insertDateTime(iso) },
-          { key: 'Mod-Shift-f', run: prettifyMarkdown },
-          { key: 'Mod-Shift-s', run: sortLines }
-        ]),
+        keysCompartment.current.of(editorKeymap(keysRef.current, iso)),
         // Tab で字下げ（デスクトップ版と同じ）。Esc の直後の Tab はフォーカス移動に使える
         keymap.of([...defaultKeymap, ...historyKeymap, indentWithTab]),
         markdown(),
@@ -161,6 +174,14 @@ export function MarkdownEditor({ noteKey, value, onChange, onView, settings }: P
       annotations: external.of(true)
     })
   }, [value])
+
+  // キーの割り当てを変えたら keymap だけ差し替える
+  const keysKey = JSON.stringify(keys)
+  useEffect(() => {
+    view.current?.dispatch({
+      effects: keysCompartment.current.reconfigure(editorKeymap(keysRef.current, () => settingsRef.current.dateFormatISO8601))
+    })
+  }, [keysKey])
 
   const { indentType, indentSize, displayLineNumbers, scrollPastEnd: pastEnd, dark } = settings
   useEffect(() => {

@@ -4,6 +4,7 @@ import MarkdownIt from 'markdown-it'
 import DOMPurify from 'dompurify'
 import katexModule from '@vscode/markdown-it-katex'
 import { highlightCode } from '../markdown/highlight'
+import { taskListPlugin } from '../markdown/taskList'
 import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github-dark.css'
 
@@ -27,9 +28,12 @@ const katexPlugin = (
 export function Preview({
   content,
   rootRef,
-  breaks = true
+  breaks = true,
+  onToggleTask
 }: {
   content: string
+  /** チェックボックスを押したとき。引数は元の Markdown の行番号（0 始まり） */
+  onToggleTask?: (line: number) => void
   /** Markdown 中の改行でプレビューも改行する（設定。デスクトップ版の preview.breaks） */
   breaks?: boolean
   /** ノート内検索がプレビューの文字を探すのに使う */
@@ -45,6 +49,7 @@ export function Preview({
       highlight: highlightCode
     })
     m.use(katexPlugin, { throwOnError: false, output: 'html' })
+    m.use(taskListPlugin)
     return m
   }, [breaks])
 
@@ -55,5 +60,18 @@ export function Preview({
     host.current.replaceChildren(frag)
   }, [content, md, host])
 
-  return <div ref={host} className="pane preview" />
+  return (
+    <div
+      ref={host}
+      className="pane preview"
+      onClick={e => {
+        const box = (e.target as Element).closest?.('input.task-checkbox')
+        if (!box) return
+        // 表示は Markdown を書き換えた結果で描き直す。ここで切り替わらないように止める
+        e.preventDefault()
+        const line = Number(box.getAttribute('data-line'))
+        if (onToggleTask && Number.isInteger(line)) onToggleTask(line)
+      }}
+    />
+  )
 }

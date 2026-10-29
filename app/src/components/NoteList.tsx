@@ -3,6 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import type { Note } from '../types'
 import { sortNotes, SORT_LABELS } from '../data/sort'
 import type { SortKey, SortDir } from '../data/sort'
+import { todoStatus } from '../markdown/taskList'
+import { TodoStatus } from './TodoStatus'
 
 const SORT_STORE = 'boostrecord_sort'
 
@@ -203,6 +205,7 @@ export function NoteList({
                   {shortDate(note.updatedAt)}
                   {note.tags.length > 0 &&
                     ` · ${note.tags.map(t => `#${t}`).join(' ')}`}
+                  <TodoStatus {...todoStatus(note.content)} />
                 </div>
               </div>
             )

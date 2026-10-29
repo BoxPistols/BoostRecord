@@ -26,6 +26,8 @@ import { ShortcutHelp } from './components/ShortcutHelp'
 import { Splitter } from './components/Splitter'
 import { ModeSwitcher } from './components/ModeSwitcher'
 import { FindBar } from './components/FindBar'
+import { TodoStatus } from './components/TodoStatus'
+import { todoStatus, toggleTaskLine } from './markdown/taskList'
 import { Preferences } from './components/Preferences'
 import type { PrefTab } from './components/Preferences'
 import { THEMES, parseConfig, themeVariables } from './config'
@@ -644,6 +646,7 @@ export default function App() {
               </span>
             )}
             <span className="spacer" />
+            <TodoStatus {...todoStatus(active.content)} bar />
             <ModeSwitcher
               mode={layout.viewMode}
               onChange={viewMode => setLayout(l => ({ ...l, viewMode }))}
@@ -748,7 +751,16 @@ export default function App() {
                 onEnd={endResize}
               />
             )}
-            <Preview content={active.content} rootRef={previewRef} breaks={config.preview.breaks} />
+            <Preview
+              content={active.content}
+              rootRef={previewRef}
+              breaks={config.preview.breaks}
+              onToggleTask={
+                active.isTrashed
+                  ? undefined
+                  : line => updateActiveContent(toggleTaskLine(active.content, line))
+              }
+            />
             {noteFind.find && (
               <FindBar
                 query={noteFind.find.query}

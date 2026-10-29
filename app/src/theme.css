@@ -357,3 +357,17 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
   font-family: 'SFMono-Regular', Menlo, monospace; color: var(--muted);
   white-space: nowrap; padding-right: 18px !important;
 }
+
+/* ---- Task list (- [ ] / - [x]) ----------------------------------------- */
+.preview li.task-item { list-style: none; }
+.preview .task-label { margin-left: -1.6em; cursor: pointer; }
+.preview .task-checkbox { margin: 0 6px 0 0; vertical-align: -1px; cursor: pointer; accent-color: var(--accent); }
+/* デスクトップ版の preview.lineThroughCheckbox（既定で有効）と同じ見た目 */
+.preview li.task-item.checked > .task-label,
+.preview li.task-item.checked > p > .task-label { text-decoration: line-through; opacity: 0.55; }
+.todo-status { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.note-meta .todo-status { margin-left: 6px; vertical-align: bottom; }
+.note-row.active .todo-status { color: var(--on-accent); }
+.todo-bar { display: inline-block; width: 48px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; margin-left: 2px; }
+.todo-bar > span { display: block; height: 100%; background: var(--accent); }
+.detail-head .todo-status { margin-right: 8px; }

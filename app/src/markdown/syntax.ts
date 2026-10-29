@@ -89,18 +89,20 @@ function frontMatter(md: MarkdownIt) {
 function headingsAndToc(md: MarkdownIt) {
   md.core.ruler.push('heading_ids_and_toc', state => {
     const tokens = state.tokens
-    const used = new Map<string, number>()
+    const used = new Set<string>()
     const headings: { level: number; text: string; id: string }[] = []
     for (let i = 0; i < tokens.length - 1; i++) {
       if (tokens[i].type !== 'heading_open') continue
+      // 絵文字（:smile:）も見出しに出る文字なので含める
       const text = (tokens[i + 1].children ?? [])
-        .filter(t => t.type === 'text' || t.type === 'code_inline')
+        .filter(t => t.type === 'text' || t.type === 'code_inline' || t.type === 'emoji')
         .map(t => t.content)
         .join('')
       const base = slugify(text) || 'section'
-      const n = used.get(base) ?? 0
-      used.set(base, n + 1)
-      const id = n === 0 ? base : `${base}-${n}`
+      // 「foo」「foo-1」「foo」のように書いても重ならないよう、付けた id 全体を見て番号を決める
+      let id = base
+      for (let n = 1; used.has(id); n++) id = `${base}-${n}`
+      used.add(id)
       tokens[i].attrSet('id', id)
       headings.push({ level: Number(tokens[i].tag.slice(1)), text, id })
     }

@@ -71,6 +71,14 @@ test('見出しの文字に HTML を書いても目次やidに入らない', () 
   assert.doesNotMatch(html, /<[^>]*\sonerror=/)
 })
 
+test('見出しの絵文字も目次に入り、生成済みの id と重ならない', () => {
+  const html = render('[TOC]\n\n# :smile: 笑顔\n\n# foo\n\n# foo-1\n\n# foo')
+  assert.match(html, /<a href="#[^"]+">😄 笑顔<\/a>/)
+  const ids = [...html.matchAll(/<h1 id="([^"]+)"/g)].map(m => m[1])
+  assert.equal(new Set(ids).size, ids.length)
+  assert.deepEqual(ids.slice(1), ['foo', 'foo-1', 'foo-2'])
+})
+
 test('段落の途中の [TOC] はそのまま', () => {
   assert.match(render('ここに [TOC] と書く'), /\[TOC\]/)
 })

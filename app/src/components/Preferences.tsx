@@ -49,7 +49,7 @@ function HotkeyRow({
   const def = defaultBindings()[id]
   useEffect(() => {
     if (!listening) return
-    recording.active = true
+    recording.count++
     const onKey = (e: KeyboardEvent) => {
       // ほかのショートカットや、設定を閉じる Esc に渡さない
       e.preventDefault()
@@ -72,7 +72,7 @@ function HotkeyRow({
     }
     window.addEventListener('keydown', onKey, true)
     return () => {
-      recording.active = false
+      recording.count--
       window.removeEventListener('keydown', onKey, true)
     }
   }, [listening, others, onChange])
@@ -226,8 +226,8 @@ export function Preferences({ open, initialTab = 'UI', config, onChange, onClose
                     </td>
                     <td>
                       一覧の上から N 番目のノートへ（押し続けると番号が出る。0 は 10 番目）
-                      {(config.hotkey.jumpModifier === 'Mod') && (
-                        <div className="hotkey-warn">タブで開いているときはブラウザのタブ切り替えと重なります</div>
+                      {problemOf(`${config.hotkey.jumpModifier}+1`)?.level === 'warn' && (
+                        <div className="hotkey-warn">{problemOf(`${config.hotkey.jumpModifier}+1`)!.reason}</div>
                       )}
                     </td>
                     <td />

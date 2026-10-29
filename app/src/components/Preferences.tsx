@@ -200,6 +200,11 @@ export function Preferences({ open, initialTab = 'UI', config, onChange, onClose
                 checked={config.editor.scrollPastEnd}
                 onChange={v => set('editor', { scrollPastEnd: v })}
               />
+              <Check
+                label="日付ショートカットで ISO 8601 形式を使う"
+                checked={config.editor.dateFormatISO8601}
+                onChange={v => set('editor', { dateFormatISO8601: v })}
+              />
 
               <h2 className="prefs-h">プレビュー</h2>
               <Row label="プレビュー時フォント">

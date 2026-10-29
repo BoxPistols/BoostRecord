@@ -27,7 +27,8 @@
   "dependencies": {
     "@vercel/functions": "3.10.1",
     "cson-parser": "^4.0.9",
-    "lucide-react": "1.56.0"
+    "lucide-react": "1.56.0",
+    "prettier": "^3.9.10"
   },
   "devDependencies": {
     "@codemirror/commands": "^6.10.4",

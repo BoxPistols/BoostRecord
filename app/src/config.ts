@@ -87,6 +87,8 @@ export interface Config {
     indentSize: 1 | 2 | 4 | 8
     displayLineNumbers: boolean
     scrollPastEnd: boolean
+    /** ⌘/Ctrl + / などで入れる日付を ISO 8601 にする */
+    dateFormatISO8601: boolean
   }
   preview: {
     fontFamily: string
@@ -108,7 +110,8 @@ export const DEFAULT_CONFIG: Config = {
     indentType: 'space',
     indentSize: 2,
     displayLineNumbers: true,
-    scrollPastEnd: false
+    scrollPastEnd: false,
+    dateFormatISO8601: false
   },
   preview: { fontFamily: '', fontSize: 13, breaks: true }
 }
@@ -154,7 +157,8 @@ export function parseConfig(raw: string | null): Config {
         ? (indentSize as Config['editor']['indentSize'])
         : d.editor.indentSize,
       displayLineNumbers: bool(ed.displayLineNumbers, d.editor.displayLineNumbers),
-      scrollPastEnd: bool(ed.scrollPastEnd, d.editor.scrollPastEnd)
+      scrollPastEnd: bool(ed.scrollPastEnd, d.editor.scrollPastEnd),
+      dateFormatISO8601: bool(ed.dateFormatISO8601, d.editor.dateFormatISO8601)
     },
     preview: {
       fontFamily: font(pv.fontFamily, d.preview.fontFamily),

@@ -13,8 +13,8 @@ const md = new MarkdownIt({ html: false, linkify: true, breaks: true }).use(task
 
 test('[ ] と [x] のリスト項目がチェックボックスになり、元の行番号を持つ', () => {
   const html = md.render('# t\n\n- [ ] 買い物\n- [x] 掃除\n- 普通の項目')
-  assert.match(html, /<li class="task-item"><label class="task-label"><input type="checkbox" class="task-checkbox" data-line="2"> 買い物<\/label><\/li>/)
-  assert.match(html, /<li class="task-item checked"><label[^>]*><input[^>]*data-line="3" checked> 掃除/)
+  assert.match(html, /<li class="task-item"><label class="task-label"><input type="checkbox" class="task-checkbox" data-line="2">買い物<\/label><\/li>/)
+  assert.match(html, /<li class="task-item checked"><label[^>]*><input[^>]*data-line="3" checked>掃除/)
   assert.match(html, /<li>普通の項目<\/li>/)
   assert.doesNotMatch(html, /\[ \]|\[x\]/)
 })

@@ -2,7 +2,8 @@ import type { EditorView } from '@codemirror/view'
 import { isolateHistory } from '@codemirror/commands'
 import { formatDate, formatDateTime, sortLinesText } from './editorText'
 
-let prettifying = false
+// 整形中のエディタ。別のノートのエディタでは整形を受け付ける
+const prettifying = new WeakSet<EditorView>()
 
 export function insertDate(iso: () => boolean) {
   return (view: EditorView) => {
@@ -43,11 +44,11 @@ export function sortLines(view: EditorView) {
  * 空白を足さず、表の幅も全角を 2 桁で数えるので、デスクトップ版の後処理は要らない
  */
 export function prettifyMarkdown(view: EditorView) {
-  if (prettifying) return true
+  if (prettifying.has(view)) return true
 
   const before = view.state.doc.toString()
   const cursor = view.state.selection.main.head
-  prettifying = true
+  prettifying.add(view)
   void (async () => {
     const [prettier, markdown] = await Promise.all([
       import('prettier/standalone'),
@@ -73,7 +74,7 @@ export function prettifyMarkdown(view: EditorView) {
       annotations: isolateHistory.of('full')
     })
   })().catch(err => console.warn('prettify failed', err)).finally(() => {
-    prettifying = false
+    prettifying.delete(view)
   })
   return true
 }

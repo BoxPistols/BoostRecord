@@ -18,3 +18,8 @@ test('sortLinesText は行を並べ替え、末尾の改行を残す', () => {
   assert.equal(sortLinesText('c\na\nb'), 'a\nb\nc')
   assert.equal(sortLinesText('b\na\n'), 'a\nb\n')
 })
+
+test('sortLinesText は行頭の字下げを消さない', () => {
+  assert.equal(sortLinesText('  - b\n  - a'), '  - a\n  - b')
+  assert.equal(sortLinesText('    - only'), '    - only')
+})

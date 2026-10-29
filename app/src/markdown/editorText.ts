@@ -21,8 +21,9 @@ export function formatDateTime(now: Date, iso: boolean): string {
   )
 }
 
-/** 行を並べ替える。末尾の改行は残す（デスクトップ版と同じ） */
+/** 行を並べ替える。末尾の改行は残す。行頭の字下げは消さない（入れ子のリストが崩れる） */
 export function sortLinesText(text: string): string {
   const trailing = /\n$/.test(text)
-  return text.trim().split('\n').sort().join('\n') + (trailing ? '\n' : '')
+  const body = trailing ? text.slice(0, -1) : text
+  return body.split('\n').sort().join('\n') + (trailing ? '\n' : '')
 }

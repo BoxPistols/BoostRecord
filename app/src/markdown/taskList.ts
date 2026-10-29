@@ -1,12 +1,27 @@
-import type MarkdownIt from 'markdown-it'
+import MarkdownIt from 'markdown-it'
+import type Token from 'markdown-it/lib/token.mjs'
 
 // デスクトップ版（browser/lib/markdown.js・getTodoStatus.js・MarkdownEditor の
 // handleCheckboxClick）と同じ書式を扱う。`- [ ] 本文` / `- [x] 本文`
 
 const TASK_HEAD = /^\[([ xX])\] /
-const CHECKED_LINE = /^(\s*>?)*\s*[+\-*] \[x]/i
-const UNCHECKED_LINE = /^(\s*>?)*\s*[+\-*] \[ ]/
-const FENCE = /^\s*(```|~~~)/
+const md = new MarkdownIt()
+
+function isTaskListItem(tokens: Token[], index: number) {
+  const inline = tokens[index]
+  if (
+    inline.type !== 'inline' ||
+    tokens[index - 1]?.type !== 'paragraph_open' ||
+    tokens[index - 2]?.type !== 'list_item_open' ||
+    !'-*+'.includes(tokens[index - 2].markup) ||
+    !inline.children?.length
+  ) {
+    return null
+  }
+  const first = inline.children[0]
+  const match = first.type === 'text' ? TASK_HEAD.exec(first.content) : null
+  return match ? { inline, match } : null
+}
 
 /**
  * リスト項目の先頭の `[ ]` / `[x]` をチェックボックスにする。
@@ -17,20 +32,11 @@ export function taskListPlugin(md: MarkdownIt) {
     const tokens = state.tokens
     for (let i = 2; i < tokens.length; i++) {
       const inline = tokens[i]
-      if (
-        inline.type !== 'inline' ||
-        tokens[i - 1].type !== 'paragraph_open' ||
-        tokens[i - 2].type !== 'list_item_open' ||
-        // 番号付きリストはデスクトップ版でも数えず、切り替えもしない
-        !'-*+'.includes(tokens[i - 2].markup) ||
-        !inline.map ||
-        !inline.children?.length
-      ) {
-        continue
-      }
-      const first = inline.children[0]
-      const m = first.type === 'text' ? TASK_HEAD.exec(first.content) : null
-      if (!m) continue
+      const task = isTaskListItem(tokens, i)
+      if (!task || !inline.map) continue
+      const children = inline.children!
+      const first = children[0]
+      const m = task.match
       const checked = m[1] !== ' '
       first.content = first.content.slice(m[0].length)
       const open = new state.Token('html_inline', '', 0)
@@ -39,8 +45,8 @@ export function taskListPlugin(md: MarkdownIt) {
         ` data-line="${inline.map[0]}"${checked ? ' checked' : ''}> `
       const close = new state.Token('html_inline', '', 0)
       close.content = '</label>'
-      inline.children.unshift(open)
-      inline.children.push(close)
+      children.unshift(open)
+      children.push(close)
       tokens[i - 2].attrJoin('class', checked ? 'task-item checked' : 'task-item')
     }
   })
@@ -49,11 +55,21 @@ export function taskListPlugin(md: MarkdownIt) {
 /** 指定した行（0 始まり）のチェックを反転する。タスク行でなければそのまま返す */
 export function toggleTaskLine(content: string, line: number): string {
   const lines = content.split('\n')
-  const target = lines[line]
-  if (target === undefined) return content
-  if (CHECKED_LINE.test(target)) lines[line] = target.replace(/\[x]/i, '[ ]')
-  else if (UNCHECKED_LINE.test(target)) lines[line] = target.replace('[ ]', '[x]')
-  else return content
+  if (lines[line] === undefined) return content
+  const tokens = md.parse(content, {})
+  let markerIndex = -1
+  for (let i = 2; i < tokens.length; i++) {
+    const task = isTaskListItem(tokens, i)
+    if (task?.inline.map?.[0] !== line) continue
+    markerIndex = lines[line].indexOf(task.match[0].slice(0, 3))
+    if (markerIndex >= 0) break
+  }
+  if (markerIndex < 0) return content
+  const checked = lines[line][markerIndex + 1].toLowerCase() === 'x'
+  lines[line] =
+    lines[line].slice(0, markerIndex) +
+    `[${checked ? ' ' : 'x'}]` +
+    lines[line].slice(markerIndex + 3)
   return lines.join('\n')
 }
 
@@ -61,16 +77,12 @@ export function toggleTaskLine(content: string, line: number): string {
 export function todoStatus(content: string): { total: number; completed: number } {
   let total = 0
   let completed = 0
-  let inFence = false
-  for (const raw of content.split('\n')) {
-    if (FENCE.test(raw)) {
-      inFence = !inFence
-      continue
-    }
-    if (inFence) continue
-    const line = raw.trim().replace(/^(>\s*)*/, '')
-    if (/^[+\-*] \[(\s|x)] ./i.test(line)) total++
-    if (/^[+\-*] \[x] ./i.test(line)) completed++
+  const tokens = md.parse(content, {})
+  for (let i = 2; i < tokens.length; i++) {
+    const task = isTaskListItem(tokens, i)
+    if (!task) continue
+    total++
+    if (task.match[1].toLowerCase() === 'x') completed++
   }
   return { total, completed }
 }

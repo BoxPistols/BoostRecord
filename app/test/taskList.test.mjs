@@ -46,8 +46,15 @@ test('toggleTaskLine は指定行のチェックだけを反転する', () => {
   assert.equal(toggleTaskLine(src, 99), src)
 })
 
+test('toggleTaskLine は可変のリスト区切りと継続行を切り替える', () => {
+  const src = '-  [ ] a\n-\n  [x] b\n> -\n>   [ ] c'
+  assert.equal(toggleTaskLine(src, 0), '-  [x] a\n-\n  [x] b\n> -\n>   [ ] c')
+  assert.equal(toggleTaskLine(src, 2), '-  [ ] a\n-\n  [ ] b\n> -\n>   [ ] c')
+  assert.equal(toggleTaskLine(src, 4), '-  [ ] a\n-\n  [x] b\n> -\n>   [x] c')
+})
+
 test('todoStatus は件数と完了数を数え、コードブロックの中は数えない', () => {
-  const src = '- [ ] a\n  - [x] b\n> + [X] c\n```\n- [ ] x\n```\n- [ ]\n1. [ ] d'
+  const src = '- [ ] a\n  - [x] b\n> + [X] c\n````\n```\n- [ ] x\n````\n~~~\n- [ ] y\n~~~\n    - [ ] z\n- [ ]\n1. [ ] d'
   assert.deepEqual(todoStatus(src), { total: 3, completed: 2 })
   assert.deepEqual(todoStatus('なし'), { total: 0, completed: 0 })
 })

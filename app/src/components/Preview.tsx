@@ -65,7 +65,10 @@ export function Preview({
       ref={host}
       className="pane preview"
       onClick={e => {
-        const box = (e.target as Element).closest?.('input.task-checkbox')
+        const target = e.target
+        if (!(target instanceof Element)) return
+        const label = target.closest('label.task-label')
+        const box = label?.querySelector('input.task-checkbox')
         if (!box) return
         // 表示は Markdown を書き換えた結果で描き直す。ここで切り替わらないように止める
         e.preventDefault()

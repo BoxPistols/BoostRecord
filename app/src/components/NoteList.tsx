@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ChevronsLeft, Code, FileText, Plus } from 'lucide-react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { Note } from '../types'
 import { sortNotes, SORT_LABELS } from '../data/sort'
 import type { SortKey, SortDir } from '../data/sort'
@@ -44,6 +44,47 @@ function shortDate(iso: string) {
   const d = new Date(iso)
   return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`
 }
+
+const NoteRow = memo(function NoteRow({
+  note,
+  active,
+  top,
+  onSelect
+}: {
+  note: Note
+  active: boolean
+  top: number
+  onSelect: (key: string) => void
+}) {
+  const status = useMemo(() => todoStatus(note.content), [note.content])
+  return (
+    <div
+      className={`note-row ${active ? 'active' : ''}`}
+      style={{
+        position: 'absolute',
+        top,
+        left: 0,
+        right: 0,
+        height: ROW_H
+      }}
+      onClick={() => onSelect(note.key)}
+    >
+      <div className="note-title">
+        {note.type === 'SNIPPET_NOTE' ? (
+          <Code className="ic" size={14} role="img" aria-label="スニペット" />
+        ) : (
+          <FileText className="ic" size={14} role="img" aria-label="Markdown ノート" />
+        )}
+        {note.title || '無題'}
+      </div>
+      <div className="note-meta">
+        {shortDate(note.updatedAt)}
+        {note.tags.length > 0 && ` · ${note.tags.map(t => `#${t}`).join(' ')}`}
+        <TodoStatus {...status} />
+      </div>
+    </div>
+  )
+})
 
 /**
  * Virtualized note list: only the rows in (and just around) the viewport are
@@ -181,33 +222,13 @@ export function NoteList({
           {windowed.map((note, idx) => {
             const i = start + idx
             return (
-              <div
+              <NoteRow
                 key={note.key}
-                className={`note-row ${note.key === activeKey ? 'active' : ''}`}
-                style={{
-                  position: 'absolute',
-                  top: i * ROW_H,
-                  left: 0,
-                  right: 0,
-                  height: ROW_H
-                }}
-                onClick={() => onSelect(note.key)}
-              >
-                <div className="note-title">
-                  {note.type === 'SNIPPET_NOTE' ? (
-                    <Code className="ic" size={14} role="img" aria-label="スニペット" />
-                  ) : (
-                    <FileText className="ic" size={14} role="img" aria-label="Markdown ノート" />
-                  )}
-                  {note.title || '無題'}
-                </div>
-                <div className="note-meta">
-                  {shortDate(note.updatedAt)}
-                  {note.tags.length > 0 &&
-                    ` · ${note.tags.map(t => `#${t}`).join(' ')}`}
-                  <TodoStatus {...todoStatus(note.content)} />
-                </div>
-              </div>
+                note={note}
+                active={note.key === activeKey}
+                top={i * ROW_H}
+                onSelect={onSelect}
+              />
             )
           })}
           {total === 0 && (

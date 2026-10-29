@@ -839,6 +839,11 @@ export default function App() {
                     ? '選んだストレージフォルダに直接読み書きしています。デスクトップ版と同じフォルダを開けます。'
                     : 'デスクトップ版のストレージを読み書きしています。'}
             </p>
+            {canArchive && (
+              <p className="prefs-note">
+                iPhone・iPad では、Safari の共有メニューから「ホーム画面に追加」して使ってください。Safari のタブのままだと、しばらく開かない間にサイトのデータごとノートが消されることがあります。ホーム画面のアプリと Safari のタブは保存場所が別なので、移すときは zip で書き出して取り込みます。
+              </p>
+            )}
             {storages.length > 0 && (
               <table className="shortcut-table">
                 <tbody>

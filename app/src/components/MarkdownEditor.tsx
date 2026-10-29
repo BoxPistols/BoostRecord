@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { EditorView, keymap, lineNumbers, scrollPastEnd } from '@codemirror/view'
-import { Compartment, EditorState } from '@codemirror/state'
+import { Annotation, Compartment, EditorState } from '@codemirror/state'
 import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands'
 import { indentUnit } from '@codemirror/language'
 import { markdown } from '@codemirror/lang-markdown'
@@ -25,6 +25,9 @@ function formatCommand(transform: (selected: string) => FormatResult) {
 
 // ⌘/Ctrl+I italic, +K link. Placed before defaultKeymap to win.
 // ⌘/Ctrl+B はデスクトップ版と同じくサイドバーの開閉に使う（App.tsx）
+// 外から取り込んだ変更の印。onChange へ送り返さない
+const external = Annotation.define<boolean>()
+
 const formatKeymap = keymap.of([
   { key: 'Mod-i', run: formatCommand(s => toggleWrap(s, '*')) },
   { key: 'Mod-k', run: formatCommand(makeLink) }
@@ -121,7 +124,8 @@ export function MarkdownEditor({ noteKey, value, onChange, onView, settings }: P
         findMarks,
         EditorView.lineWrapping,
         EditorView.updateListener.of(u => {
-          if (u.docChanged) onChangeRef.current(u.state.doc.toString())
+          if (u.docChanged && !u.transactions.some(t => t.annotation(external)))
+            onChangeRef.current(u.state.doc.toString())
         })
       ]
     })
@@ -135,6 +139,28 @@ export function MarkdownEditor({ noteKey, value, onChange, onView, settings }: P
     // Rebuild only when the note identity changes, not on every keystroke.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [noteKey])
+
+  // プレビューのチェックボックスなど、エディタの外で本文が変わったときに取り込む。
+  // 変わった範囲だけ差し替えるので、元に戻す履歴とカーソルが残る
+  useEffect(() => {
+    const v = view.current
+    if (!v) return
+    const cur = v.state.doc.toString()
+    if (cur === value) return
+    let from = 0
+    while (from < cur.length && from < value.length && cur[from] === value[from]) from++
+    let end = 0
+    while (
+      end < cur.length - from &&
+      end < value.length - from &&
+      cur[cur.length - 1 - end] === value[value.length - 1 - end]
+    )
+      end++
+    v.dispatch({
+      changes: { from, to: cur.length - end, insert: value.slice(from, value.length - end) },
+      annotations: external.of(true)
+    })
+  }, [value])
 
   const { indentType, indentSize, displayLineNumbers, scrollPastEnd: pastEnd, dark } = settings
   useEffect(() => {

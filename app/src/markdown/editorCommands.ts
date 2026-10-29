@@ -2,6 +2,8 @@ import type { EditorView } from '@codemirror/view'
 import { isolateHistory } from '@codemirror/commands'
 import { formatDate, formatDateTime, sortLinesText } from './editorText'
 
+let prettifying = false
+
 export function insertDate(iso: () => boolean) {
   return (view: EditorView) => {
     view.dispatch(view.state.replaceSelection(formatDate(new Date(), iso())), { scrollIntoView: true })
@@ -41,8 +43,11 @@ export function sortLines(view: EditorView) {
  * 空白を足さず、表の幅も全角を 2 桁で数えるので、デスクトップ版の後処理は要らない
  */
 export function prettifyMarkdown(view: EditorView) {
+  if (prettifying) return true
+
   const before = view.state.doc.toString()
   const cursor = view.state.selection.main.head
+  prettifying = true
   void (async () => {
     const [prettier, markdown] = await Promise.all([
       import('prettier/standalone'),
@@ -67,6 +72,8 @@ export function prettifyMarkdown(view: EditorView) {
       // 直前に打った分と混ぜず、⌘Z 1 回で整形だけを戻せるようにする
       annotations: isolateHistory.of('full')
     })
-  })().catch(err => console.warn('prettify failed', err))
+  })().catch(err => console.warn('prettify failed', err)).finally(() => {
+    prettifying = false
+  })
   return true
 }

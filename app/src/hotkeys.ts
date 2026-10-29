@@ -136,11 +136,17 @@ export function jumpIndex(e: KeyboardEvent, mod: JumpModifier, mac = IS_MAC): nu
   return n === 0 ? 9 : n - 1
 }
 
-/** 修飾キーそのものが押されたか（押し続けで番号を出すため） */
+/** 修飾キーそのものが押されたか（押し続けで番号を出すため）。ほかの修飾キーも押していれば違う */
 export function isJumpModifierKey(e: KeyboardEvent, mod: JumpModifier, mac = IS_MAC): boolean {
-  const last = mod.split('+').pop() as Mod
-  const name = last === 'Mod' ? (mac ? 'Meta' : 'Control') : last === 'Ctrl' ? 'Control' : 'Alt'
-  return e.key === name
+  const name = (m: Mod) => (m === 'Mod' ? (mac ? 'Meta' : 'Control') : m === 'Ctrl' ? 'Control' : m === 'Alt' ? 'Alt' : 'Shift')
+  const want = [...parseCombo(`${mod}+X`)!.mods]
+  if (!want.some(m => name(m) === e.key)) return false
+  const has = new Set<Mod>()
+  if (mac ? e.metaKey : e.ctrlKey) has.add('Mod')
+  if (mac && e.ctrlKey) has.add('Ctrl')
+  if (e.altKey) has.add('Alt')
+  if (e.shiftKey) has.add('Shift')
+  return has.size === want.length && want.every(m => has.has(m))
 }
 
 /** CodeMirror の keymap の書き方へ（"Mod+Shift+F" → "Mod-Shift-f"） */
@@ -153,6 +159,7 @@ export function toCodeMirror(combo: string): string | null {
 
 /** 画面に出す表記。Mac は ⌘ ⌥ ⇧ ⌃ */
 export function displayCombo(combo: string, mac = IS_MAC): string {
+  if (!combo) return '未設定'
   const c = parseCombo(combo)
   if (!c) return combo
   const names: Record<Mod, string> = mac
@@ -190,8 +197,13 @@ export function problemOf(combo: string, mac = IS_MAC): Problem | null {
   return null
 }
 
-/** 設定でキーを登録している間は、ほかのショートカットを動かさない */
-export const recording = { active: false }
+/** 設定でキーを登録している間は、ほかのショートカットを動かさない。登録待ちの数を数える */
+export const recording = {
+  count: 0,
+  get active() {
+    return this.count > 0
+  }
+}
 
 /** 番号ジャンプの表記（例 ⌃ 0〜9） */
 export function jumpLabel(mod: JumpModifier, mac = IS_MAC) {

@@ -184,9 +184,10 @@ function parseHotkeys(hk: Loose, d: Config['hotkey']): Config['hotkey'] {
   for (const h of HOTKEYS) {
     const v = hk[h.id]
     const ok = typeof v === 'string' && parseCombo(v) && problemOf(v)?.level !== 'block'
-    const combo = ok ? formatCombo(parseCombo(v as string)!) : d[h.id]
-    out[h.id] = used.has(combo) ? d[h.id] : combo
-    used.add(out[h.id])
+    const wanted = ok ? formatCombo(parseCombo(v as string)!) : d[h.id]
+    // 重なったら既定値へ。既定値もほかが使っていれば割り当てなし（空）にする
+    out[h.id] = !used.has(wanted) ? wanted : !used.has(d[h.id]) ? d[h.id] : ''
+    if (out[h.id]) used.add(out[h.id])
   }
   out.jumpModifier = JUMP_MODIFIERS.includes(hk.jumpModifier as JumpModifier)
     ? (hk.jumpModifier as JumpModifier)

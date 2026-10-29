@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
-  comboFromEvent, defaultBindings, displayCombo, jumpIndex, matches, parseCombo, problemOf, toCodeMirror, formatCombo
+  comboFromEvent, defaultBindings, displayCombo, isJumpModifierKey, jumpIndex, matches, parseCombo, problemOf, toCodeMirror, formatCombo
 } from '../src/hotkeys.ts'
 import { DEFAULT_CONFIG, parseConfig } from '../src/config.ts'
 
@@ -67,7 +67,7 @@ test('番号ジャンプ: 1〜9 が 0〜8 番、0 が 9 番。修飾キーが違
 
 test('設定: 変えたキーは残り、登録できないキー・重なるキー・壊れた値は既定に戻す', () => {
   const c = parseConfig(JSON.stringify({ hotkey: {
-    nextNote: 'Mod+Alt+J', prevNote: 'Mod+Shift+3', newNote: 'Mod+Alt+J', link: 42, jumpModifier: 'Hyper'
+    nextNote: 'Mod+Alt+J', prevNote: 'Mod+W', newNote: 'Mod+Alt+J', link: 42, jumpModifier: 'Hyper'
   } }))
   // 並び順で先の newNote が Mod+Alt+J を取り、重なった nextNote は既定に戻る
   assert.equal(c.hotkey.newNote, 'Mod+Alt+J')
@@ -75,6 +75,21 @@ test('設定: 変えたキーは残り、登録できないキー・重なるキ
   assert.equal(c.hotkey.prevNote, DEFAULT_CONFIG.hotkey.prevNote)
   assert.equal(c.hotkey.link, DEFAULT_CONFIG.hotkey.link)
   assert.equal(c.hotkey.jumpModifier, DEFAULT_CONFIG.hotkey.jumpModifier)
+})
+
+test('設定: 重なって既定値もふさがっていれば、割り当てなしにして重ならせない', () => {
+  // newNote が togglePreview の既定（Mod+E）を取り、togglePreview も同じキーを書かれている
+  const c = parseConfig(JSON.stringify({ hotkey: { newNote: 'Mod+E', togglePreview: 'Mod+E' } }))
+  assert.equal(c.hotkey.newNote, 'Mod+E')
+  assert.equal(c.hotkey.togglePreview, '')
+  const set = Object.entries(c.hotkey).filter(([k, v]) => k !== 'jumpModifier' && v).map(([, v]) => v)
+  assert.equal(new Set(set).size, set.length)
+})
+
+test('押し続けの判定はほかの修飾キーが一緒なら番号を出さない', () => {
+  assert.ok(isJumpModifierKey(ev('ControlLeft', { ctrlKey: true }, 'Control'), 'Ctrl', true))
+  assert.ok(!isJumpModifierKey(ev('ControlLeft', { ctrlKey: true, shiftKey: true }, 'Control'), 'Ctrl', true))
+  assert.ok(isJumpModifierKey(ev('AltLeft', { metaKey: true, altKey: true }, 'Alt'), 'Mod+Alt', true))
 })
 
 test('parseCombo と formatCombo は往復する', () => {

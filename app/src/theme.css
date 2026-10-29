@@ -359,12 +359,29 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 }
 
 /* ---- Task list (- [ ] / - [x]) ----------------------------------------- */
-.preview li.task-item { list-style: none; }
-.preview .task-label { margin-left: -1.6em; cursor: pointer; }
-.preview .task-checkbox { margin: 0 6px 0 0; vertical-align: -1px; cursor: pointer; accent-color: var(--accent); }
+.preview li.task-item { list-style: none; margin: 4px 0; }
+/* 本文は普通の項目と同じ位置から始め、チェックボックスは「・」の位置に置く。折り返しても本文の左端は揃う */
+.preview .task-label { display: block; position: relative; cursor: pointer; }
+/* em と lh は本文のフォントで測る（入力要素の既定フォントで測ると、文字の大きさを変えたときにずれる） */
+.preview .task-checkbox, .preview .task-check {
+  position: absolute; margin: 0; font: inherit;
+  width: 16px; height: 16px; left: calc(-1.1em - 8px); top: 2px; top: calc(0.5lh - 8px);
+}
+.preview .task-checkbox {
+  appearance: none; border: 1.5px solid var(--muted); border-radius: 4px; background: transparent; cursor: pointer;
+}
+/* 押せる範囲を横にだけ広げる（縦に広げると、文字が小さいとき隣の項目と重なる） */
+.preview .task-checkbox::after { content: ''; position: absolute; inset: 0 -6px; }
+.preview .task-label:hover .task-checkbox { border-color: var(--accent); }
+.preview .task-checkbox:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.preview .task-checkbox:checked { border-color: var(--accent); background: var(--accent); }
+/* チェックの形を型抜きにし、色はテーマの --on-accent で塗る（アクセントが白いテーマでも見える） */
+.preview .task-check { display: none; pointer-events: none; background: var(--on-accent);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / 12px no-repeat; }
+.preview .task-checkbox:checked + .task-check { display: block; }
 /* デスクトップ版の preview.lineThroughCheckbox（既定で有効）と同じ見た目 */
 .preview li.task-item.checked > .task-label,
-.preview li.task-item.checked > p > .task-label { text-decoration: line-through; opacity: 0.55; }
+.preview li.task-item.checked > p > .task-label { text-decoration: line-through; color: var(--muted); }
 .todo-status { display: inline-flex; align-items: center; gap: 4px; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .note-meta .todo-status { margin-left: 6px; vertical-align: bottom; }
 .note-row.active .todo-status { color: var(--on-accent); }

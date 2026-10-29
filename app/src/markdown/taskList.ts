@@ -42,7 +42,7 @@ export function taskListPlugin(md: MarkdownIt) {
       const open = new state.Token('html_inline', '', 0)
       open.content =
         `<label class="task-label"><input type="checkbox" class="task-checkbox"` +
-        ` data-line="${inline.map[0]}"${checked ? ' checked' : ''}> `
+        ` data-line="${inline.map[0]}"${checked ? ' checked' : ''}><span class="task-check"></span>`
       const close = new state.Token('html_inline', '', 0)
       close.content = '</label>'
       children.unshift(open)

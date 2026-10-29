@@ -1,7 +1,7 @@
 // 公開中の Web 版にかける Basic 認証（middleware.ts）
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import middleware, { checkBasicAuth } from '../middleware.ts'
+import middleware, { checkBasicAuth, isPublicPath } from '../middleware.ts'
 
 const basic = (user, pass) => 'Basic ' + Buffer.from(`${user}:${pass}`).toString('base64')
 
@@ -53,6 +53,29 @@ test('middleware は 401 / 503 を返し、通すときは次へ渡す', () => {
     assert.equal(passed.headers.get('x-middleware-next'), '1')
   } finally {
     for (const [k, v] of Object.entries(saved)) {
+      if (v === undefined) delete process.env[k]
+      else process.env[k] = v
+    }
+  }
+})
+
+test('認証の外に出すのは PWA の manifest・Service Worker・アイコンだけ', () => {
+  for (const p of ['/manifest.webmanifest', '/sw.js', '/icons/icon-192.png', '/icons/apple-touch-icon.png']) {
+    assert.equal(isPublicPath(p), true, p)
+  }
+  // ページ・アプリ本体・資産の一覧は認証の中
+  for (const p of ['/', '/index.html', '/sw-assets.json', '/assets/index-abc.js', '/icons/../index.html', '/icons/x.svg', '/sw.js.map', '/manifest.webmanifest/x']) {
+    assert.equal(isPublicPath(p), false, p)
+  }
+  // 認証なしでも manifest は通る
+  const prev = { u: process.env.BASIC_AUTH_USER, p: process.env.BASIC_AUTH_PASSWORD }
+  process.env.BASIC_AUTH_USER = 'u'
+  process.env.BASIC_AUTH_PASSWORD = 'p'
+  try {
+    assert.equal(middleware(new Request('https://x.test/manifest.webmanifest')).headers.get('x-middleware-next'), '1')
+    assert.equal(middleware(new Request('https://x.test/')).status, 401)
+  } finally {
+    for (const [k, v] of [['BASIC_AUTH_USER', prev.u], ['BASIC_AUTH_PASSWORD', prev.p]]) {
       if (v === undefined) delete process.env[k]
       else process.env[k] = v
     }

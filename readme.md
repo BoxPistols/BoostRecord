@@ -27,15 +27,29 @@
 | `docs/` | モダナイゼーション設計判断書（[スタック選定・脅威モデル](docs/MODERNIZATION-2026-stack-selection.md)・[As-Built アーキテクチャ](docs/MODERNIZATION-2026-app-architecture.md)） | — |
 | `.claude/skills/boostnote-modernize` | アーキテクチャ判断・作業方針をまとめた Claude Code スキル | — |
 
-### キーボードショートカット（モダンアプリ）
+### キーボードショートカット（モダンアプリ・ブラウザ版）
+
+アプリ内ではサイドバー下の「ショートカット」ボタンと、設定の「ホットキー」で同じ一覧を見られます（`app/src/shortcuts.ts`）。
 
 | キー | 動作 |
 |---|---|
 | ⌘/Ctrl + N | 新規ノート |
-| ⌘/Ctrl + F | 検索にフォーカス |
-| ⌘/Ctrl + B | 太字（選択をトグル） |
+| ⌘/Ctrl + F | このノート内を検索（Enter で次、Shift + Enter で前） |
+| Ctrl + L | ノート一覧の検索にフォーカス |
+| ⌘/Ctrl + B | サイドバーを 展開 → 畳む → 隠す |
+| ⌘/Ctrl + Shift + B | ノート一覧を 展開 → 畳む → 隠す |
+| ⌘/Ctrl + E | エディタとプレビュー ↔ プレビューだけ |
+| ⌘/Ctrl + Shift + E | エディタだけ → 両方 → プレビューだけ |
 | ⌘/Ctrl + I | 斜体（選択をトグル） |
 | ⌘/Ctrl + K | リンク化 |
+| ⌘/Ctrl + / | 今日の日付を入れる |
+| ⌘ + Option + /（Windows・Linux は Ctrl + Shift + /） | 今の日時を入れる |
+| ⌘/Ctrl + Shift + F | Markdown を整える（prettier） |
+| ⌘/Ctrl + Shift + S | 選んだ行を並べ替える |
+| ⌘/Ctrl + , | 設定を開く |
+| Esc | 開いている画面を閉じる |
+
+日付は設定の「日付ショートカットで ISO 8601 形式を使う」で `2026-10-30` の形にできます。
 
 ## 開発
 
@@ -49,10 +63,11 @@ pnpm test                       # AVA + Jest
 pnpm run lint                   # ESLint
 pnpm run dist                   # 配布ビルド（compile + electron-builder + ad-hoc 署名）
 
-# モダンアプリ（Node 22）
+# モダンアプリ・ブラウザ版（Node 22）
+pnpm run dev:web   # リポジトリ直下から起動（http://localhost:5173/）。中身は app/ の npm run dev
 cd app
 npm install
-npm run dev        # ブラウザ（サンプルデータ）
+npm run dev        # ブラウザで起動（ノートはブラウザ内に保存。PWA は開発中は動かない）
 npm test           # .cson データ層テスト
 npm run build      # 型チェック付き本番ビルド
 BOOSTNOTE_STORAGE="/path/to/storage" npm run electron  # 実 .cson を読むデスクトップ起動
@@ -108,6 +123,16 @@ cd poc/collab-core && npm install && npm test
 ### BoostRecord Next（モダン土台 `app/`・実験的）
 
 Vite + React 19 + CodeMirror 6 の次世代土台（機能は限定）。タグ `app-v*` の push で [release.yml](.github/workflows/release.yml) がビルドし、`BoostRecord-Next-*` として配布されます。
+
+### ブラウザ版（`app/` を Vercel で公開）
+
+`app/` はそのままブラウザでも動きます。`main` にマージすると Vercel（プロジェクト boost-record、Root Directory `app`）へ自動で公開されます。
+
+- 入口には Basic 認証があります。ID とパスワードは Vercel の環境変数 `BASIC_AUTH_USER` / `BASIC_AUTH_PASSWORD` で決まり、リポジトリには書きません（公開リポジトリのため）
+- クラウドとの通信や AI 機能はありません。CSP で通信先を自分のサイトだけに絞っています（`app/vercel.json`）
+- ノートはブラウザ内（OPFS）に保存します。Chrome・Edge では設定から手元のフォルダ保存にも切り替えられます。zip での書き出し・取り込みもできます
+- PWA なので、ホーム画面（iPhone は Safari の共有 → ホーム画面に追加）や Chrome のアプリとして入れられ、オフラインでも開けます。iPhone の Safari はしばらく開かないサイトのデータを消すことがあるため、iPhone ではホーム画面に追加して使ってください
+- エディタとプレビューの機能: ノート内検索（置換つき）、KaTeX 数式、コードのハイライト、タスクリスト（`- [ ]` をプレビューで押して切り替え、完了数を見出しと一覧に表示）、10 種のテーマ、フォント・字下げなどの設定
 
 ### リリース手順（メンテナ向け）
 

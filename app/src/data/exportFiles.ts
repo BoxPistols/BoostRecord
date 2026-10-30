@@ -74,9 +74,12 @@ async function saveFile(blob: Blob, filename: string): Promise<boolean> {
   return true
 }
 
+// フォント名は設定に打ち込んだ文字なので、規則や <style> の外へ出る文字を除く
+const cssValue = (v: string) => v.replace(/[<>{};\\]/g, '')
+
 function pageCss(theme: Record<string, string>): string {
   const vars = Object.entries(theme)
-    .map(([k, v]) => `${k}: ${v};`)
+    .map(([k, v]) => `${k}: ${cssValue(v)};`)
     .join(' ')
   return [
     `:root { ${vars} }`,
@@ -120,7 +123,7 @@ async function collectPreviewCss(withFonts: boolean): Promise<string> {
 /** KaTeX の字形を data: URL にして、ファイル 1 つで数式が崩れないようにする */
 async function inlineKatexFont(rule: CSSFontFaceRule, base: string): Promise<string | null> {
   const family = rule.style.getPropertyValue('font-family')
-  if (!/KaTeX/.test(family)) return null
+  if (!/^["']?KaTeX_[\w-]+["']?$/.test(family)) return null
   const url = /url\(\s*["']?([^"')]+\.woff2(?:\?[^"')]*)?)["']?\s*\)/.exec(rule.style.getPropertyValue('src'))?.[1]
   if (!url) return null
   const res = await fetch(new URL(url, base))
@@ -153,8 +156,14 @@ async function printNotes(notes: Note[], ctx: ExportContext): Promise<boolean> {
   document.body.append(root)
   document.documentElement.classList.add('printing')
   document.title = notes.length === 1 ? notes[0].title || 'untitled' : `BoostRecord ${notes.length} 件`
+  // Chrome は print() が戻る前に afterprint を出すので、2 度目は何もしない
+  let finished = false
   const done = () => {
+    if (finished) return
+    finished = true
     window.removeEventListener('afterprint', done)
+    window.removeEventListener('pointerdown', done)
+    window.removeEventListener('keydown', done)
     root.remove()
     document.documentElement.classList.remove('printing')
     document.title = title
@@ -162,5 +171,9 @@ async function printNotes(notes: Note[], ctx: ExportContext): Promise<boolean> {
   window.addEventListener('afterprint', done)
   await document.fonts?.ready
   window.print()
+  // afterprint が来ないブラウザでも、印刷画面を閉じて次に触ったときに戻す
+  // （時間で戻すと、印刷画面を開いている間に中身が消える）
+  window.addEventListener('pointerdown', done)
+  window.addEventListener('keydown', done)
   return true
 }

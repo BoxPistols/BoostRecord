@@ -67,3 +67,13 @@ test('HTML は題をエスケープし、スクリプトを止める CSP を入�
   assert.doesNotMatch(html, /<\/style><script>/)
   assert.match(html, /<div class="preview">\n<p>本文<\/p>\n<\/div>/)
 })
+
+test('すべてでも 1 件だけならディレクトリを付けない（そのファイルを渡す）', () => {
+  assert.deepEqual(planExport([note('a', 'A')], storages, { kind: 'all' }, 'md').map(i => i.path), ['A.md'])
+})
+
+test('「.」「..」という名前のフォルダは、zip の外を指さない名前にする', () => {
+  const odd = [{ key: 's1', name: 'Main', folders: [{ key: 'f1', name: '..' }, { key: 'f2', name: '...' }] }]
+  const paths = planExport([note('a', '..'), note('b', 'B', { folder: 'f2' })], odd, { kind: 'all' }, 'md').map(i => i.path)
+  assert.deepEqual(paths, ['folder/untitled.md', '.../B.md'])
+})

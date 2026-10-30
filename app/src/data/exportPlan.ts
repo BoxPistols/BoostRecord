@@ -43,6 +43,7 @@ export function planExport(
   scope: ExportScope,
   format: Exclude<ExportFormat, 'pdf'>
 ): ExportItem[] {
+  const scoped = notesInScope(notes, scope)
   // 大文字と小文字を区別しない OS（macOS・Windows）でも重ならないように比べる
   const taken = new Set<string>()
   const unique = (dir: string, note: Note) => {
@@ -56,13 +57,14 @@ export function planExport(
     }
   }
   const dirOf = (note: Note) => {
-    if (scope.kind !== 'all') return ''
+    // 1 件だけならファイルそのものを渡すので、ディレクトリは付けない
+    if (scope.kind !== 'all' || scoped.length === 1) return ''
     const storage = storages.find(s => s.key === note.storage)
     const folder = storage?.folders.find(f => f.key === note.folder)
     const folderDir = safeName(folder?.name ?? note.folder, 'folder')
     return storages.length > 1 ? `${safeName(storage?.name ?? note.storage, 'storage')}/${folderDir}` : folderDir
   }
-  return notesInScope(notes, scope).map(note => ({ path: unique(dirOf(note), note), note }))
+  return scoped.map(note => ({ path: unique(dirOf(note), note), note }))
 }
 
 /** 複数のノートをまとめた zip の名前 */

@@ -12,7 +12,8 @@ export function safeName(text: string, fallback = 'untitled'): string {
     .trim()
     .slice(0, 80)
     .trim()
-  return base || fallback
+  // 「.」「..」は zip を展開したときに今の場所・親の場所を指すので使わない
+  return base && !/^\.\.?$/.test(base) ? base : fallback
 }
 
 /** Derive a safe filename from a note's title (`.md` unless another extension is given). */

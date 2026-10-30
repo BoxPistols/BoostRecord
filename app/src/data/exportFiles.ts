@@ -173,7 +173,9 @@ async function printNotes(notes: Note[], ctx: ExportContext): Promise<boolean> {
   window.print()
   // afterprint が来ないブラウザでも、印刷画面を閉じて次に触ったときに戻す
   // （時間で戻すと、印刷画面を開いている間に中身が消える）
-  window.addEventListener('pointerdown', done)
-  window.addEventListener('keydown', done)
+  if (!finished) {
+    window.addEventListener('pointerdown', done)
+    window.addEventListener('keydown', done)
+  }
   return true
 }

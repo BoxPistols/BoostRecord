@@ -450,3 +450,36 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .hotkey-error { margin-top: 3px; color: #ef4444; font-size: 12px; }
 .hotkey-warn { margin-top: 3px; color: var(--muted); font-size: 12px; }
 .hotkey-table td:last-child { white-space: nowrap; text-align: right; }
+
+/* ---- エクスポート。範囲と形式を選び、書き出すファイルを押す前に見せる ---- */
+.export-dialog { width: min(520px, calc(100vw - 32px)); }
+.export-dialog fieldset { border: none; margin: 0 0 12px; padding: 0; }
+.export-dialog legend { padding: 0; margin-bottom: 4px; color: var(--muted); font-size: 12px; }
+.export-dialog label { display: flex; align-items: center; gap: 8px; padding: 3px 0; cursor: pointer; }
+.export-dialog input[type="radio"] { margin: 0; accent-color: var(--accent); }
+.export-dialog .count { margin-left: auto; color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.export-out p { margin: 0 0 6px; }
+.export-out code { font-family: 'SFMono-Regular', Menlo, monospace; font-size: 12px; overflow-wrap: anywhere; }
+.export-files {
+  max-height: 160px; overflow: auto; margin: 0; padding: 6px 10px; list-style: none;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg);
+  font-family: 'SFMono-Regular', Menlo, monospace; font-size: 12px;
+}
+.export-error { color: #ef4444; }
+.export-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; }
+
+/* PDF は印刷で作る。印刷の間だけアプリを隠し、書き出すノートを並べる */
+.print-root { display: none; }
+@page { margin: 16mm 14mm; }
+@media print {
+  html.printing, html.printing body { height: auto; overflow: visible; background: #fff; }
+  html.printing #root { display: none; }
+  /* 紙は白のまま。コードや注意書きの面の色だけは落とさずに刷る */
+  html.printing .print-root {
+    display: block; color: var(--fg);
+    print-color-adjust: exact; -webkit-print-color-adjust: exact;
+  }
+  .print-root > .preview { padding: 0; }
+  .print-root > .preview + .preview { break-before: page; }
+  .print-root .preview pre { white-space: pre-wrap; overflow: visible; }
+}

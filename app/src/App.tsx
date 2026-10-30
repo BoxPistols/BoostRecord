@@ -23,6 +23,9 @@ import { MarkdownEditor } from './components/MarkdownEditor'
 import { Preview } from './components/Preview'
 import { TagEditor } from './components/TagEditor'
 import { ShortcutHelp } from './components/ShortcutHelp'
+import { ExportDialog } from './components/ExportDialog'
+import { runExport } from './data/exportFiles'
+import type { ExportFormat, ExportScope } from './data/exportPlan'
 import { Splitter } from './components/Splitter'
 import { ModeSwitcher } from './components/ModeSwitcher'
 import { FindBar } from './components/FindBar'
@@ -91,6 +94,8 @@ export default function App() {
   const [query, setQuery] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
   const [showHelp, setShowHelp] = useState(false)
+  // エクスポートのダイアログ。開いたときに選んでおく範囲を持つ
+  const [exportScope, setExportScope] = useState<ExportScope | null>(null)
   const [layout, setLayout] = useState(loadLayout)
   const [config, setConfig] = useState(loadConfig)
   // キーの割り当ては設定で変わる。キー入力の処理は付け直さず、いつも今の値を見る
@@ -105,7 +110,6 @@ export default function App() {
 
   const canPick = typeof repository.pickStorage === 'function'
   const canCreate = typeof repository.createNote === 'function'
-  const canExport = typeof repository.exportNote === 'function'
   // OPFS（ブラウザの中に保存）のときだけ、zip で出し入れする
   const canArchive =
     typeof repository.importArchive === 'function' &&
@@ -467,14 +471,30 @@ export default function App() {
     setActiveKey(null) // the note leaves the current view
   }
 
-  async function handleExport() {
-    if (!active || !repository.exportNote) return
-    try {
-      setSaveError(null)
-      await repository.exportNote(active)
-    } catch (e) {
-      setSaveError(e instanceof Error ? e.message : String(e))
+  async function handleExport(scope: ExportScope, format: ExportFormat) {
+    // 1 件の Markdown は、これまでどおり保存先の書き出しを使う（デスクトップ版の中では OS の保存ダイアログ）
+    const one = scope.kind === 'note' ? notes.find(n => n.key === scope.key) : undefined
+    if (one && format === 'md' && repository.exportNote) return repository.exportNote(one)
+    return runExport(scope, format, {
+      notes,
+      storages,
+      breaks: config.preview.breaks,
+      theme: themeVariables(config),
+      printTheme: themeVariables({ ...config, ui: { ...config.ui, theme: 'white' } })
+    })
+  }
+
+  // ダイアログの Esc を付け直さないよう、閉じる関数は作り直さない
+  const closeExport = useMemo(() => () => setExportScope(null), [])
+
+  /** 選んでいるフォルダ・タグがあればその範囲、無ければすべて */
+  function selectionScope(): ExportScope {
+    if (selection.kind === 'folder') {
+      const [storage, folder] = selection.value.split('|')
+      return { kind: 'folder', storage, folder }
     }
+    if (selection.kind === 'tag') return { kind: 'tag', tag: selection.value }
+    return { kind: 'all' }
   }
 
   async function handleExportArchive() {
@@ -586,6 +606,7 @@ export default function App() {
             canArchive ? () => archiveInput.current?.click() : undefined
           }
           onExportArchive={canArchive ? handleExportArchive : undefined}
+          onExport={scope => setExportScope(scope ?? selectionScope())}
         />
       )}
       {layout.navMode === 'EXPANDED' && (
@@ -741,15 +762,13 @@ export default function App() {
                     aria-hidden
                   />
                 </button>
-                {canExport && (
-                  <button
-                    className="head-btn"
-                    onClick={handleExport}
-                    title="Markdown でエクスポート"
-                  >
-                    <Download className="icon" size={13} aria-hidden /> md
-                  </button>
-                )}
+                <button
+                  className="head-btn"
+                  onClick={() => setExportScope({ kind: 'note', key: active.key })}
+                  title="エクスポート（txt・md・html・pdf）"
+                >
+                  <Download className="icon" size={13} aria-hidden /> エクスポート
+                </button>
                 {repository.saveNote && (
                   <button
                     className="head-btn"
@@ -891,6 +910,21 @@ export default function App() {
         </div>
       )}
       <ShortcutHelp open={showHelp} onClose={() => setShowHelp(false)} hotkey={config.hotkey} />
+      {exportScope && (
+        <ExportDialog
+          initial={exportScope}
+          notes={notes}
+          storages={storages}
+          active={active}
+          folder={(() => {
+            const scope = selectionScope()
+            return scope.kind === 'folder' ? { storage: scope.storage, folder: scope.folder } : null
+          })()}
+          tag={selection.kind === 'tag' ? selection.value : null}
+          onExport={handleExport}
+          onClose={closeExport}
+        />
+      )}
       <Preferences
         open={prefsTab !== null}
         initialTab={prefsTab ?? 'UI'}

@@ -2,6 +2,7 @@ import {
   ChevronDown,
   ChevronsLeft,
   Download,
+  FileDown,
   Keyboard,
   Notebook,
   Plus,
@@ -11,6 +12,7 @@ import {
   Upload
 } from 'lucide-react'
 import type { Note, Selection, Storage } from '../types'
+import type { ExportScope } from '../data/exportPlan'
 
 interface Props {
   /** キーの案内（設定の「ホットキー」で変わる） */
@@ -31,6 +33,8 @@ interface Props {
   onImportArchive?: () => void
   /** ブラウザの中に保存しているとき（OPFS）、zip で書き出す */
   onExportArchive?: () => void
+  /** エクスポートのダイアログを開く。範囲を渡さなければ、選んでいるフォルダ・タグ（無ければすべて） */
+  onExport?: (scope?: ExportScope) => void
   /** 畳んだ表示（アイコンだけ）。名前は title で出す */
   folded?: boolean
   width: number
@@ -49,6 +53,7 @@ export function Sidebar({
   onShowPreferences,
   onImportArchive,
   onExportArchive,
+  onExport,
   folded = false,
   width,
   onToggle,
@@ -120,6 +125,14 @@ export function Sidebar({
                 key={folder.key}
                 className={`side-item ${isFolder(key) ? 'active' : ''}`}
                 onClick={() => onSelect({ kind: 'folder', value: key })}
+                // デスクトップ版と同じく、右クリックでそのフォルダを書き出せる
+                onContextMenu={
+                  onExport &&
+                  (e => {
+                    e.preventDefault()
+                    onExport({ kind: 'folder', storage: storage.key, folder: folder.key })
+                  })
+                }
                 title={`${storage.name} / ${folder.name} (${folderCount(storage.key, folder.key)})`}
               >
                 <span className="dot" style={{ background: folder.color }} />
@@ -146,6 +159,13 @@ export function Sidebar({
                 key={tag}
                 className={`tag-chip ${isTag(tag) ? 'active' : ''}`}
                 onClick={() => onSelect({ kind: 'tag', value: tag })}
+                onContextMenu={
+                  onExport &&
+                  (e => {
+                    e.preventDefault()
+                    onExport({ kind: 'tag', tag })
+                  })
+                }
               >
                 #{tag}
               </span>
@@ -155,11 +175,20 @@ export function Sidebar({
       )}
 
       {!folded &&
-        (onPickStorage || onShowHelp || onShowPreferences || onImportArchive || onExportArchive) && (
+        (onPickStorage || onShowHelp || onShowPreferences || onImportArchive || onExportArchive || onExport) && (
         <div className="side-section" style={{ marginTop: 'auto' }}>
           {onPickStorage && (
             <button className="btn-ghost" onClick={onPickStorage} title="ストレージを追加">
               <Plus className="icon" size={14} aria-hidden /> <span className="side-label">ストレージを追加</span>
+            </button>
+          )}
+          {onExport && (
+            <button
+              className="btn-ghost"
+              onClick={() => onExport()}
+              title="ノートを txt・md・html・pdf で書き出します。フォルダやタグは右クリックでも書き出せます"
+            >
+              <FileDown className="icon" size={14} aria-hidden /> <span className="side-label">エクスポート</span>
             </button>
           )}
           {onExportArchive && (

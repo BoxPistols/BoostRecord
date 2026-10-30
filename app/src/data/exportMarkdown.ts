@@ -1,16 +1,21 @@
 import type { Note } from '../types'
 
 /**
- * Derive a safe `.md` filename from a note's title: filesystem-reserved
- * characters are replaced, whitespace is collapsed, length is capped, and an
- * empty title falls back to `untitled`.
+ * Make a string safe as a file or folder name: filesystem-reserved characters
+ * are replaced, whitespace is collapsed, length is capped, and an empty result
+ * falls back to `fallback`.
  */
-export function exportFilename(note: Pick<Note, 'title'>): string {
-  const base = note.title
+export function safeName(text: string, fallback = 'untitled'): string {
+  const base = text
     .replace(/[/\\:*?"<>|]/g, '_') // filesystem-reserved characters
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 80)
     .trim()
-  return `${base || 'untitled'}.md`
+  return base || fallback
+}
+
+/** Derive a safe filename from a note's title (`.md` unless another extension is given). */
+export function exportFilename(note: Pick<Note, 'title'>, ext = 'md'): string {
+  return `${safeName(note.title)}.${ext}`
 }

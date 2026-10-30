@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import type { RefObject } from 'react'
 import { createMarkdown, renderMarkdown } from '../markdown/render'
+import { noteKeyFromLink } from '../noteUrl'
 import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github-dark.css'
 
@@ -15,11 +16,14 @@ export function Preview({
   content,
   rootRef,
   breaks = true,
-  onToggleTask
+  onToggleTask,
+  onOpenNote
 }: {
   content: string
   /** チェックボックスを押したとき。引数は元の Markdown の行番号（0 始まり） */
   onToggleTask?: (line: number) => void
+  /** `[題](:note:キー)` のリンクを押したとき（デスクトップ版の「Copy Note Link」で作るリンク） */
+  onOpenNote?: (key: string) => void
   /** Markdown 中の改行でプレビューも改行する（設定。デスクトップ版の preview.breaks） */
   breaks?: boolean
   /** ノート内検索がプレビューの文字を探すのに使う */
@@ -43,6 +47,14 @@ export function Preview({
       onClick={e => {
         const target = e.target
         if (!(target instanceof Element)) return
+        // ほかのノートへのリンク。そのままだとページの相対 URL として開いてしまう
+        const noteAnchor = target.closest('a[href^=":note:"]')
+        if (noteAnchor) {
+          e.preventDefault()
+          const key = noteKeyFromLink(noteAnchor.getAttribute('href')!)
+          if (key) onOpenNote?.(key)
+          return
+        }
         // 脚注や目次のページ内リンクは、アドレスを変えずにプレビューの中だけを動かす
         const link = target.closest('a[href^="#"]')
         if (link && host.current) {

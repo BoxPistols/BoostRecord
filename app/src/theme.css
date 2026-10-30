@@ -389,29 +389,6 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .todo-bar > span { display: block; height: 100%; background: var(--accent); }
 .detail-head .todo-status { margin-right: 8px; }
 
-/* 番号ジャンプ。修飾キーを押し続けている間だけ、一覧の行の右上に番号を出す */
-.jump-badge {
-  position: absolute; top: 8px; right: 10px; min-width: 18px; height: 18px; padding: 0 4px;
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 4px; background: var(--accent); color: var(--on-accent);
-  font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1;
-}
-.note-row.active .jump-badge { background: var(--on-accent); color: var(--accent); }
-
-/* 設定の「ホットキー」。キーの欄は押すと登録待ちになる */
-.hotkey-table td { vertical-align: top; }
-.hotkey-btn {
-  min-width: 96px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px;
-  background: var(--bg-elev); color: var(--fg); font: inherit; font-family: 'SFMono-Regular', Menlo, monospace;
-  font-size: 12px; text-align: left; cursor: pointer;
-}
-.hotkey-btn:hover { border-color: var(--accent); }
-.hotkey-btn.listening { border-color: var(--accent); color: var(--accent); font-family: inherit; }
-.hotkey-table select { font: inherit; font-size: 12px; padding: 2px 4px; background: var(--bg-elev); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; }
-.hotkey-error { margin-top: 3px; color: #ef4444; font-size: 12px; }
-.hotkey-warn { margin-top: 3px; color: var(--muted); font-size: 12px; }
-.hotkey-table td:last-child { white-space: nowrap; text-align: right; }
-||||||| da2d67fe
 /* ---- デスクトップ版の記法（kbd・注意書き・定義リスト・脚注・目次） ------------------ */
 .preview kbd {
   display: inline-block; padding: 2px 5px; font-size: 0.85em; line-height: 1.2;
@@ -449,3 +426,26 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .preview nav.toc ul { margin: 0; padding-left: 1.4em; list-style: none; }
 .preview nav.toc li { margin: 2px 0; }
 .preview nav.toc a { text-decoration: none; }
+
+/* 番号ジャンプ。修飾キーを押し続けている間だけ、一覧の行の右上に番号を出す */
+.jump-badge {
+  position: absolute; top: 8px; right: 10px; min-width: 18px; height: 18px; padding: 0 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 4px; background: var(--accent); color: var(--on-accent);
+  font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1;
+}
+.note-row.active .jump-badge { background: var(--on-accent); color: var(--accent); }
+
+/* 設定の「ホットキー」。キーの欄は押すと登録待ちになる */
+.hotkey-table td { vertical-align: top; }
+.hotkey-btn {
+  min-width: 96px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px;
+  background: var(--bg-elev); color: var(--fg); font: inherit; font-family: 'SFMono-Regular', Menlo, monospace;
+  font-size: 12px; text-align: left; cursor: pointer;
+}
+.hotkey-btn:hover { border-color: var(--accent); }
+.hotkey-btn.listening { border-color: var(--accent); color: var(--accent); font-family: inherit; }
+.hotkey-table select { font: inherit; font-size: 12px; padding: 2px 4px; background: var(--bg-elev); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; }
+.hotkey-error { margin-top: 3px; color: #ef4444; font-size: 12px; }
+.hotkey-warn { margin-top: 3px; color: var(--muted); font-size: 12px; }
+.hotkey-table td:last-child { white-space: nowrap; text-align: right; }

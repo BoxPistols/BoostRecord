@@ -389,3 +389,64 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .todo-bar > span { display: block; height: 100%; background: var(--accent); }
 .detail-head .todo-status { margin-right: 8px; }
 .prefs-status { margin-top: 10px; font-size: 13px; color: var(--fg); }
+
+/* ---- デスクトップ版の記法（kbd・注意書き・定義リスト・脚注・目次） ------------------ */
+.preview kbd {
+  display: inline-block; padding: 2px 5px; font-size: 0.85em; line-height: 1.2;
+  font-family: 'SFMono-Regular', Menlo, monospace;
+  border: 1px solid var(--border); border-radius: 4px; background: var(--bg-elev);
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+.preview abbr[title] { text-decoration: underline dotted; cursor: help; }
+/* 種類は題の文字色と面の色で示す（片側だけの太い帯は使わない） */
+.preview .admonition {
+  --adm: #0288d1;
+  margin: 1em 0; padding: 0 12px 1px; border: 1px solid color-mix(in srgb, var(--adm) 45%, transparent);
+  border-radius: var(--radius); background: color-mix(in srgb, var(--adm) 8%, transparent);
+}
+.preview .admonition-title { margin: 0 -12px; padding: 6px 12px; font-weight: 600; color: var(--adm);
+  background: color-mix(in srgb, var(--adm) 14%, transparent); border-radius: var(--radius) var(--radius) 0 0; }
+.preview .admonition > p:not(.admonition-title) { margin: 0.6em 0; }
+.preview .admonition.hint { --adm: #009688; }
+.preview .admonition.attention { --adm: #78909c; }
+.preview .admonition.caution { --adm: #f59e0b; }
+.preview .admonition.danger { --adm: #e11d74; }
+.preview .admonition.error { --adm: #ef4444; }
+.preview .admonition.quote { --adm: #9e9e9e; }
+.preview .admonition.abstract { --adm: #0ea5e9; }
+.preview .admonition.question { --adm: #65a30d; }
+.preview dl { display: grid; grid-template-columns: minmax(6em, 20%) 1fr; margin: 1em 0; border-top: 1px solid var(--border); }
+.preview dt, .preview dd { margin: 0; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.preview dt { font-weight: 600; text-align: right; background: var(--bg-elev); }
+.preview dd + dd { grid-column: 2; }
+.preview .footnotes-sep { border: none; border-top: 1px solid var(--border); margin-top: 2em; }
+.preview .footnotes { font-size: 0.9em; color: var(--muted); }
+.preview .footnote-ref a, .preview .footnote-backref { text-decoration: none; }
+.preview nav.toc { display: inline-block; min-width: 14em; margin: 0.5em 0 1em; padding: 8px 14px 8px 0;
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elev); }
+.preview nav.toc ul { margin: 0; padding-left: 1.4em; list-style: none; }
+.preview nav.toc li { margin: 2px 0; }
+.preview nav.toc a { text-decoration: none; }
+
+/* 番号ジャンプ。修飾キーを押し続けている間だけ、一覧の行の右上に番号を出す */
+.jump-badge {
+  position: absolute; top: 8px; right: 10px; min-width: 18px; height: 18px; padding: 0 4px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 4px; background: var(--accent); color: var(--on-accent);
+  font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1;
+}
+.note-row.active .jump-badge { background: var(--on-accent); color: var(--accent); }
+
+/* 設定の「ホットキー」。キーの欄は押すと登録待ちになる */
+.hotkey-table td { vertical-align: top; }
+.hotkey-btn {
+  min-width: 96px; padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px;
+  background: var(--bg-elev); color: var(--fg); font: inherit; font-family: 'SFMono-Regular', Menlo, monospace;
+  font-size: 12px; text-align: left; cursor: pointer;
+}
+.hotkey-btn:hover { border-color: var(--accent); }
+.hotkey-btn.listening { border-color: var(--accent); color: var(--accent); font-family: inherit; }
+.hotkey-table select { font: inherit; font-size: 12px; padding: 2px 4px; background: var(--bg-elev); color: var(--fg); border: 1px solid var(--border); border-radius: 4px; }
+.hotkey-error { margin-top: 3px; color: #ef4444; font-size: 12px; }
+.hotkey-warn { margin-top: 3px; color: var(--muted); font-size: 12px; }
+.hotkey-table td:last-child { white-space: nowrap; text-align: right; }

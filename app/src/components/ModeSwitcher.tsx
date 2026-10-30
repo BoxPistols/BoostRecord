@@ -12,16 +12,18 @@ const MODES: { key: ViewMode; Icon: LucideIcon; label: string }[] = [
 interface Props {
   mode: ViewMode
   onChange: (mode: ViewMode) => void
+  /** キーの案内（設定の「ホットキー」で変わる） */
+  hint: string
 }
 
-export function ModeSwitcher({ mode, onChange }: Props) {
+export function ModeSwitcher({ mode, onChange, hint }: Props) {
   return (
     <div className="mode-switcher" role="group" aria-label="表示の切り替え">
       {MODES.map(m => (
         <button
           key={m.key}
           className={`mode-seg ${mode === m.key ? 'active' : ''}`}
-          title={`${m.label}（⌘/Ctrl+E でプレビューと切り替え、⌘/Ctrl+Shift+E で順に切り替え）`}
+          title={`${m.label}（${hint}）`}
           aria-label={m.label}
           aria-pressed={mode === m.key}
           onClick={() => onChange(m.key)}

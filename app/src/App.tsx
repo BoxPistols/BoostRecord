@@ -46,6 +46,7 @@ import {
   togglePreview
 } from './layout'
 import type { Layout } from './layout'
+import { displayCombo, matches, recording } from './hotkeys'
 
 const LAYOUT_STORE = 'boostrecord.layout'
 const CONFIG_STORE = 'boostrecord.config'
@@ -92,6 +93,9 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false)
   const [layout, setLayout] = useState(loadLayout)
   const [config, setConfig] = useState(loadConfig)
+  // キーの割り当ては設定で変わる。キー入力の処理は付け直さず、いつも今の値を見る
+  const hotkeyRef = useRef(config.hotkey)
+  hotkeyRef.current = config.hotkey
   const [prefsTab, setPrefsTab] = useState<PrefTab | null>(null)
   const isDark = THEMES[config.ui.theme].dark
   const appRef = useRef<HTMLDivElement | null>(null)
@@ -232,48 +236,38 @@ export default function App() {
     }
   }, [])
 
-  // Cmd/Ctrl+N creates a new note (ref keeps the handler fresh without re-binding).
+  // 設定の「ホットキー」のキー。エディタにフォーカスがあっても効くよう capture で拾う
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+      if (recording.active) return
+      const k = hotkeyRef.current
+      const on = (combo: string) => matches(e, combo)
+      const take = () => {
         e.preventDefault()
-        newNoteRef.current()
+        e.stopPropagation()
       }
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [])
-
-  // デスクトップ版と同じキー。エディタにフォーカスがあっても効くよう capture で拾う
-  //   ⌘/Ctrl+B サイドバー、⌘/Ctrl+Shift+B ノート一覧（どちらも 展開→畳む→隠す）
-  //   ⌘/Ctrl+E Split と全面プレビュー、⌘/Ctrl+Shift+E Editor→Split→Preview
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (!(e.metaKey || e.ctrlKey) || e.altKey) return
-      const key = e.key.toLowerCase()
-      if (key === ',' && !e.shiftKey) {
-        e.preventDefault()
+      if (on(k.newNote)) {
+        take()
+        newNoteRef.current()
+        return
+      }
+      if (on(k.openPrefs)) {
+        take()
         setPrefsTab(t => t ?? 'UI')
         return
       }
-      // デスクトップ版と同じく ⌘/Ctrl+F はノート内検索。Shift 付きは横取りしない
-      if (key === 'f' && !e.shiftKey && openFindRef.current?.()) {
-        e.preventDefault()
-        e.stopPropagation()
+      // ノートを開いていないときは、一覧の検索（NoteList）へ回す
+      if (on(k.findInNote) && openFindRef.current?.()) {
+        take()
         return
       }
       let change: ((l: Layout) => Layout) | null = null
-      if (key === 'b' && !e.shiftKey)
-        change = l => ({ ...l, navMode: nextPaneMode(l.navMode) })
-      else if (key === 'b')
-        change = l => ({ ...l, listMode: nextPaneMode(l.listMode) })
-      else if (key === 'e' && !e.shiftKey)
-        change = l => ({ ...l, viewMode: togglePreview(l.viewMode) })
-      else if (key === 'e')
-        change = l => ({ ...l, viewMode: nextViewMode(l.viewMode) })
+      if (on(k.toggleSidebar)) change = l => ({ ...l, navMode: nextPaneMode(l.navMode) })
+      else if (on(k.toggleNoteList)) change = l => ({ ...l, listMode: nextPaneMode(l.listMode) })
+      else if (on(k.togglePreview)) change = l => ({ ...l, viewMode: togglePreview(l.viewMode) })
+      else if (on(k.cycleView)) change = l => ({ ...l, viewMode: nextViewMode(l.viewMode) })
       if (!change) return
-      e.preventDefault()
-      e.stopPropagation()
+      take()
       setLayout(change)
     }
     window.addEventListener('keydown', onKey, true)
@@ -545,6 +539,7 @@ export default function App() {
     <div className="app" ref={appRef}>
       {layout.navMode !== 'HIDDEN' && (
         <Sidebar
+          keys={{ prefs: displayCombo(config.hotkey.openPrefs), toggle: displayCombo(config.hotkey.toggleSidebar) }}
           width={navWidth}
           folded={layout.navMode === 'FOLDED'}
           onToggle={cycleNav}
@@ -604,6 +599,7 @@ export default function App() {
         folded={layout.listMode === 'FOLDED'}
         hidden={layout.listMode === 'HIDDEN'}
         onToggle={cycleList}
+        hotkey={config.hotkey}
       />
       {layout.listMode !== 'HIDDEN' && (
         <Splitter
@@ -622,7 +618,7 @@ export default function App() {
             <button
               className="pane-toggle"
               onClick={cycleNav}
-              title="サイドバーを出す (⌘/Ctrl+B)"
+              title={`サイドバーを出す (${displayCombo(config.hotkey.toggleSidebar)})`}
               aria-label="サイドバーを出す"
             >
               <ChevronsRight size={16} aria-hidden />
@@ -632,7 +628,7 @@ export default function App() {
             <button
               className="pane-toggle"
               onClick={cycleList}
-              title="ノート一覧を出す (⌘/Ctrl+Shift+B)"
+              title={`ノート一覧を出す (${displayCombo(config.hotkey.toggleNoteList)})`}
               aria-label="ノート一覧を出す"
             >
               <ChevronsRight size={16} aria-hidden />
@@ -682,6 +678,7 @@ export default function App() {
             <ModeSwitcher
               mode={layout.viewMode}
               onChange={viewMode => setLayout(l => ({ ...l, viewMode }))}
+              hint={`${displayCombo(config.hotkey.togglePreview)} でプレビューと切り替え、${displayCombo(config.hotkey.cycleView)} で順に切り替え`}
             />
             {active.isTrashed ? (
               <>
@@ -762,6 +759,7 @@ export default function App() {
                 onChange={updateActiveContent}
                 onView={noteFind.onView}
                 settings={{ ...config.editor, dark: isDark }}
+                keys={config.hotkey}
               />
             </div>
             {layout.viewMode === 'SPLIT' && (
@@ -865,7 +863,7 @@ export default function App() {
           )}
         </div>
       )}
-      <ShortcutHelp open={showHelp} onClose={() => setShowHelp(false)} />
+      <ShortcutHelp open={showHelp} onClose={() => setShowHelp(false)} hotkey={config.hotkey} />
       <Preferences
         open={prefsTab !== null}
         initialTab={prefsTab ?? 'UI'}

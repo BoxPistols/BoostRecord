@@ -12,6 +12,7 @@ export type HotkeyId =
   | 'togglePreview'
   | 'cycleView'
   | 'openPrefs'
+  | 'copyNoteLink'
   | 'nextNote'
   | 'prevNote'
   | 'italic'
@@ -40,6 +41,7 @@ export const HOTKEYS: HotkeyDef[] = [
   { id: 'nextNote', desc: '一覧の次のノートへ', scope: 'app', def: () => 'Mod+Alt+ArrowDown' },
   { id: 'prevNote', desc: '一覧の前のノートへ', scope: 'app', def: () => 'Mod+Alt+ArrowUp' },
   { id: 'openPrefs', desc: '設定を開く', scope: 'app', def: () => 'Mod+,' },
+  { id: 'copyNoteLink', desc: 'このノートへのリンクをコピー（ほかのノートに貼るとリンクになる）', scope: 'app', def: () => 'Mod+Shift+K' },
   { id: 'italic', desc: '斜体（選択をトグル）', scope: 'editor', def: () => 'Mod+I' },
   { id: 'link', desc: 'リンク化', scope: 'editor', def: () => 'Mod+K' },
   { id: 'insertDate', desc: '今日の日付を入れる', scope: 'editor', def: () => 'Mod+/' },
@@ -193,6 +195,7 @@ export function problemOf(combo: string, mac = IS_MAC): Problem | null {
   if (m('Mod') && /^\d$/.test(k)) return { level: 'warn', reason: 'タブで開いているときはブラウザのタブ切り替えと重なります' }
   if (m('Mod') && ['[', ']'].includes(k)) return { level: 'warn', reason: 'ブラウザの「戻る・進む」と重なります' }
   if (m('Mod') && ['R', 'L', 'D', 'P', 'O', 'H', 'M'].includes(k)) return { level: 'warn', reason: 'ブラウザや OS の操作（再読み込み・アドレス欄・ブックマーク・印刷など）と重なります' }
+  if ((m('Mod', 'Shift') || m('Mod', 'Alt')) && k === 'C') return { level: 'warn', reason: 'ブラウザの開発ツール（要素の選択）と重なります' }
   if (m('Mod', 'Alt') && ['ArrowLeft', 'ArrowRight', 'I', 'J'].includes(k)) return { level: 'warn', reason: 'ブラウザのタブ切り替えや開発ツールと重なります' }
   return null
 }

@@ -447,7 +447,9 @@ export default function App() {
   useEffect(() => {
     const onPop = () => {
       const key = noteKeyFromHash(location.hash)
+      // ノートを指さない履歴（ノートを閉じたとき）に戻ったら、ノートも閉じて URL とそろえる
       if (key) openNoteRef.current(key)
+      else setActiveKey(null)
     }
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)

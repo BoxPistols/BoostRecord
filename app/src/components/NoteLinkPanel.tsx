@@ -9,10 +9,11 @@ import { hashForNote, noteLink } from '../noteUrl'
  * そのノートへ飛べる。URL はブラウザで開くとこのノートが開く
  */
 export function NoteLinkPanel({ note }: { note: Note }) {
-  const rows = [
-    { id: 'md', label: 'Markdown のリンク', value: noteLink(note) },
-    { id: 'url', label: 'URL', value: `${location.origin}${location.pathname}${hashForNote(note.key)}` }
-  ]
+  const rows = [{ id: 'md', label: 'Markdown のリンク', value: noteLink(note) }]
+  // デスクトップ版の中はファイルから開いているので、URL はほかで開けない。ブラウザのときだけ出す
+  if (!window.boostnote) {
+    rows.push({ id: 'url', label: 'URL', value: `${location.origin}${location.pathname}${hashForNote(note.key)}` })
+  }
   const [copied, setCopied] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -21,6 +22,8 @@ export function NoteLinkPanel({ note }: { note: Note }) {
       await navigator.clipboard.writeText(value)
       setError(null)
       setCopied(id)
+      // 続けてコピーしたときも分かるよう、しばらくしたら戻す
+      setTimeout(() => setCopied(c => (c === id ? null : c)), 2000)
     } catch {
       setError('クリップボードに書き込めませんでした。欄を選んでコピーしてください')
     }

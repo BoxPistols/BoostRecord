@@ -66,10 +66,8 @@ export function ExportDialog({ initial, notes, storages, active, folder, tag, on
     setBusy(true)
     setError(null)
     try {
-      // 印刷の画面にこのダイアログが写らないよう、先に閉じる
-      if (format === 'pdf') onClose()
-      const ok = await onExport(scope, format)
-      if (ok && format !== 'pdf') onClose()
+      // 印刷の間はアプリごと隠れるので、PDF でもダイアログは写らない。失敗はここに出す
+      if (await onExport(scope, format)) onClose()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))
     } finally {

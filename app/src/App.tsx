@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ChevronsRight,
   Download,
+  Link2,
   Folder,
   FolderOpen,
   Plus,
@@ -24,6 +25,8 @@ import { Preview } from './components/Preview'
 import { TagEditor } from './components/TagEditor'
 import { ShortcutHelp } from './components/ShortcutHelp'
 import { ExportDialog } from './components/ExportDialog'
+import { NoteLinkPanel } from './components/NoteLinkPanel'
+import { hashForNote, noteKeyFromHash, noteLink } from './noteUrl'
 import { runExport } from './data/exportFiles'
 import type { ExportFormat, ExportScope } from './data/exportPlan'
 import { Splitter } from './components/Splitter'
@@ -96,6 +99,10 @@ export default function App() {
   const [showHelp, setShowHelp] = useState(false)
   // エクスポートのダイアログ。開いたときに選んでおく範囲を持つ
   const [exportScope, setExportScope] = useState<ExportScope | null>(null)
+  // ノートの見出しの「リンク」で開く欄
+  const [linkOpen, setLinkOpen] = useState(false)
+  // リンクのコピーや、リンク先が無かったことを一時的に知らせる
+  const [notice, setNotice] = useState<string | null>(null)
   const [layout, setLayout] = useState(loadLayout)
   const [config, setConfig] = useState(loadConfig)
   // キーの割り当ては設定で変わる。キー入力の処理は付け直さず、いつも今の値を見る
@@ -198,6 +205,14 @@ export default function App() {
   const newNoteRef = useRef<() => void>(() => {})
   // ⌘/Ctrl+F。ノートを開いているときだけノート内検索を開く（無ければ一覧の検索へ任せる）
   const openFindRef = useRef<(() => boolean) | null>(null)
+  // ⌘/Ctrl+Shift+K。ノートを開いているときだけ、そのノートへのリンクをコピーする
+  const copyLinkRef = useRef<(() => boolean) | null>(null)
+  // 戻る・進むはいつも今の一覧とノートで開く（popstate は一度だけ付ける）
+  const openNoteRef = useRef<(key: string) => void>(() => {})
+  // 読み込みが終わるまでは、URL の # を消さない
+  const hashReady = useRef(false)
+  // 直前に開いていたノート。ノートからノートへ移ったときだけ履歴を足す
+  const shownKey = useRef<string | null>(null)
   const previewRef = useRef<HTMLDivElement | null>(null)
 
   // Persist a note; failures surface in the header rather than being swallowed.
@@ -260,7 +275,13 @@ export default function App() {
       if (!alive || first !== repository) return
       setStorages(storages)
       setNotes(notes)
-      setActiveKey(prev => prev ?? notes[0]?.key ?? null)
+      // URL の # がノートを指していれば、そのノートを開く
+      const start = noteKeyFromHash(location.hash)
+      const target = start ? notes.find(n => n.key === start) : undefined
+      if (start && !target) setNotice('URL のノートが見つかりません。別のストレージにあるか、消されています')
+      if (target?.isTrashed) setSelection({ kind: 'smart', value: 'trashed' })
+      setActiveKey(prev => prev ?? target?.key ?? notes[0]?.key ?? null)
+      hashReady.current = true
     })
     return () => {
       alive = false
@@ -285,6 +306,10 @@ export default function App() {
       if (on(k.openPrefs)) {
         take()
         setPrefsTab(t => t ?? 'UI')
+        return
+      }
+      if (on(k.copyNoteLink) && copyLinkRef.current?.()) {
+        take()
         return
       }
       // ノートを開いていないときは、一覧の検索（NoteList）へ回す
@@ -390,6 +415,62 @@ export default function App() {
           : visible[0]
     if (next) setActiveKey(next.key)
   }
+
+  /** キーでノートを開く（本文の :note: リンク、ブラウザの戻る・進む）。今の一覧に無ければ、出る面に切り替える */
+  function openNote(key: string) {
+    const note = notes.find(n => n.key === key)
+    if (!note) {
+      setNotice('リンク先のノートが見つかりません。別のストレージにあるか、消されています')
+      return
+    }
+    if (!visible.some(n => n.key === key)) {
+      setSelection({ kind: 'smart', value: note.isTrashed ? 'trashed' : 'all' })
+      setQuery('')
+    }
+    setActiveKey(key)
+  }
+  openNoteRef.current = openNote
+
+  // 開いているノートを URL の # に書く。ノートを移るたびに履歴を足すので、ブラウザの戻る・進むで行き来できる。
+  // 起動直後の選択とノートを閉じたときは履歴を足さずに書き換える
+  useEffect(() => {
+    const prev = shownKey.current
+    shownKey.current = activeKey
+    if (!hashReady.current) return
+    const target = activeKey ? hashForNote(activeKey) : ''
+    if (location.hash === target) return
+    const url = target || location.pathname + location.search
+    if (prev && activeKey) history.pushState(null, '', url)
+    else history.replaceState(null, '', url)
+  }, [activeKey])
+
+  useEffect(() => {
+    const onPop = () => {
+      const key = noteKeyFromHash(location.hash)
+      // ノートを指さない履歴（ノートを閉じたとき）に戻ったら、ノートも閉じて URL とそろえる
+      if (key) openNoteRef.current(key)
+      else setActiveKey(null)
+    }
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  useEffect(() => {
+    if (!notice) return
+    const t = setTimeout(() => setNotice(null), 5000)
+    return () => clearTimeout(t)
+  }, [notice])
+
+  copyLinkRef.current = active
+    ? () => {
+        const text = noteLink(active)
+        navigator.clipboard.writeText(text).then(
+          () => setNotice(`コピーしました: ${text}`),
+          () => setNotice('クリップボードに書き込めませんでした。見出しの「リンク」から選んでコピーしてください')
+        )
+        return true
+      }
+    : null
 
   function updateActiveContent(content: string) {
     if (!active) return
@@ -763,6 +844,14 @@ export default function App() {
                   />
                 </button>
                 <button
+                  className={`head-btn ${linkOpen ? 'active' : ''}`}
+                  onClick={() => setLinkOpen(o => !o)}
+                  title="このノートへのリンクと URL"
+                  aria-expanded={linkOpen}
+                >
+                  <Link2 className="icon" size={13} aria-hidden /> リンク
+                </button>
+                <button
                   className="head-btn"
                   onClick={() => setExportScope({ kind: 'note', key: active.key })}
                   title="エクスポート（txt・md・html・pdf）"
@@ -782,6 +871,7 @@ export default function App() {
               </>
             )}
           </div>
+          {linkOpen && <NoteLinkPanel note={active} />}
           {!active.isTrashed && (
             <TagEditor
               key={active.key}
@@ -831,6 +921,7 @@ export default function App() {
               content={active.content}
               rootRef={previewRef}
               breaks={config.preview.breaks}
+              onOpenNote={openNote}
               onToggleTask={
                 active.isTrashed
                   ? undefined
@@ -907,6 +998,11 @@ export default function App() {
               )}
             </div>
           )}
+        </div>
+      )}
+      {notice && (
+        <div className="app-notice" role="status">
+          {notice}
         </div>
       )}
       <ShortcutHelp open={showHelp} onClose={() => setShowHelp(false)} hotkey={config.hotkey} />

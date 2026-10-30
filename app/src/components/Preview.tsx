@@ -60,7 +60,11 @@ export function Preview({
         if (link && host.current) {
           e.preventDefault()
           const id = link.getAttribute('href')!.slice(1)
-          const dest = [...host.current.querySelectorAll('[id]')].find(el => el.id === id)
+          const ids = [...host.current.querySelectorAll('[id]')]
+          // 見出しの ID はデスクトップ版と同じく大文字を残す。GitHub のように小文字で書いたリンクでも飛べるよう、
+          // 同じものが無いときだけ大文字と小文字を区別せずに探す
+          const dest =
+            ids.find(el => el.id === id) ?? ids.find(el => el.id.toLowerCase() === id.toLowerCase())
           dest?.scrollIntoView({ block: 'start' })
           return
         }

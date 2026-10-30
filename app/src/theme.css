@@ -388,6 +388,7 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .todo-bar { display: inline-block; width: 48px; height: 4px; border-radius: 2px; background: var(--border); overflow: hidden; margin-left: 2px; }
 .todo-bar > span { display: block; height: 100%; background: var(--accent); }
 .detail-head .todo-status { margin-right: 8px; }
+.prefs-status { margin-top: 10px; font-size: 13px; color: var(--fg); }
 
 /* ---- デスクトップ版の記法（kbd・注意書き・定義リスト・脚注・目次） ------------------ */
 .preview kbd {

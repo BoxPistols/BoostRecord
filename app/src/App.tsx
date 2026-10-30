@@ -74,8 +74,9 @@ function firstTitle(content: string, fallback: string) {
 }
 
 // The data-layer seam: real `.cson` files in Electron, sample data in browser.
-const repository = createRepository()
-// このタブが起動時に選んだ保存先。別のタブで切り替えても、このタブの repository は変わらない
+// 設定で保存先を切り替えると差し替える（ページは読み込み直さない）。
+// 別のタブで切り替えても、このタブの repository は変わらない
+let repository = createRepository()
 const storageModeAtStart = getStorageMode()
 
 export default function App() {
@@ -114,26 +115,79 @@ export default function App() {
   const isSample = typeof repository.saveNote !== 'function'
   // Chrome・Edge では、ブラウザの中と PC のフォルダを切り替えられる（デスクトップ版の中では出さない）
   const canSwitchStorage = !window.boostnote && canSwitchBrowserStorage()
-  const storageMode = storageModeAtStart
+  const [storageMode, setStorageModeState] = useState<StorageMode>(storageModeAtStart)
+  // 切り替えた結果を設定の「ストレージ」に出す（何が起きたかを伝える）
+  const [switchNotice, setSwitchNotice] = useState<string | null>(null)
 
+  /**
+   * 保存先を切り替える。ページは読み込み直さず、その場でノートを読み直す。
+   * どちらのノートも消えずに残り、戻せばまた使える。
+   * PC のフォルダへは、フォルダを選ぶ（または前回のフォルダを許可する）まで切り替えない
+   */
+  const switching = useRef(false)
   async function switchStorage(mode: StorageMode) {
-    const message =
-      mode === 'folder'
-        ? 'PC のフォルダ（デスクトップ版と同じストレージ）で使うよう切り替えて、読み込み直します。ブラウザの中のノートは消えずに残り、戻せばまた使えます。'
-        : 'このブラウザの中に保存するよう切り替えて、読み込み直します。フォルダのノートは消えずに残り、戻せばまた使えます。'
-    if (!window.confirm(message)) return
-    // 読み込み直す前に、打ちかけの編集を書き終える。書けなければ切り替えない
+    // 続けて押されても、切り替えは 1 つずつ行う
+    if (switching.current) return
+    switching.current = true
+    try {
+      await switchStorageOnce(mode)
+    } finally {
+      switching.current = false
+    }
+  }
+  async function switchStorageOnce(mode: StorageMode) {
+    setSwitchNotice(null)
+    // 切り替える前に、打ちかけの編集を今の保存先へ書き終える。書けなければ切り替えない
     try {
       await flushSaves()
     } catch (e) {
-      window.alert(`ノートを保存できなかったので、切り替えを止めました。${e instanceof Error ? e.message : String(e)}`)
+      setSwitchNotice(`ノートを保存できなかったので、切り替えを止めました。${e instanceof Error ? e.message : String(e)}`)
       return
     }
+    const previous = getStorageMode()
     if (!setStorageMode(mode)) {
-      window.alert('切り替えを保存できませんでした。このブラウザがサイトのデータの保存を止めている可能性があります（プライベートウィンドウなど）。')
+      setSwitchNotice('切り替えを保存できませんでした。このブラウザがサイトのデータの保存を止めている可能性があります（プライベートウィンドウなど）。')
       return
     }
-    window.location.reload()
+    const next = createRepository()
+    let loaded: { storages: Storage[]; notes: Note[] } | null
+    try {
+      loaded = mode === 'folder' && next.pickStorage ? await next.pickStorage() : await next.load()
+    } catch (e) {
+      loaded = null
+      setSwitchNotice(`開けませんでした。${e instanceof Error ? e.message : String(e)}`)
+    }
+    // ブラウザの中の保存は、開けないと空の一覧を返す（開ければ保存先が必ず 1 つある）
+    if (loaded && mode === 'browser' && loaded.storages.length === 0) {
+      loaded = null
+      setSwitchNotice('このブラウザの中の保存先を開けなかったので、切り替えを止めました。')
+    }
+    // 読み込みを待つ間に打った編集も、元の保存先へ書き終えてから差し替える
+    if (loaded) {
+      try {
+        while (pendingSave.current || inflight.current.size) await flushSaves()
+      } catch (e) {
+        loaded = null
+        setSwitchNotice(`ノートを保存できなかったので、切り替えを止めました。${e instanceof Error ? e.message : String(e)}`)
+      }
+    }
+    if (!loaded) {
+      // フォルダを選ぶのをやめた・開けなかった。元の保存先のまま
+      setStorageMode(previous)
+      return
+    }
+    repository = next
+    setStorages(loaded.storages)
+    setNotes(loaded.notes)
+    setSelection({ kind: 'smart', value: 'all' })
+    setActiveKey(loaded.notes[0]?.key ?? null)
+    setPickError(null)
+    setStorageModeState(mode)
+    setSwitchNotice(
+      mode === 'folder'
+        ? `PC のフォルダ「${loaded.storages[0]?.name ?? ''}」に切り替えました。ブラウザの中のノートは残っていて、戻せばまた使えます。`
+        : 'このブラウザの中の保存に切り替えました。フォルダのノートはそのまま残っていて、戻せばまた使えます。'
+    )
   }
   const archiveInput = useRef<HTMLInputElement | null>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -196,8 +250,10 @@ export default function App() {
 
   useEffect(() => {
     let alive = true
-    repository.load().then(({ storages, notes }) => {
-      if (!alive) return
+    const first = repository
+    first.load().then(({ storages, notes }) => {
+      // 読み終わる前に保存先を切り替えていたら、古い保存先の結果は捨てる
+      if (!alive || first !== repository) return
       setStorages(storages)
       setNotes(notes)
       setActiveKey(prev => prev ?? notes[0]?.key ?? null)
@@ -899,6 +955,18 @@ export default function App() {
                 </>
               )}
             </div>
+            {canSwitchStorage && !switchNotice && (
+              <p className="prefs-note">
+                {storageMode === 'folder'
+                  ? '切り替えると、ブラウザの中のノートをその場で読み込みます。フォルダのノートは消えません。'
+                  : '切り替えると、フォルダを選んでから、そのノートをその場で読み込みます。ブラウザの中のノートは消えません。'}
+              </p>
+            )}
+            {switchNotice && (
+              <p className="prefs-status" role="status">
+                {switchNotice}
+              </p>
+            )}
           </>
         }
       />

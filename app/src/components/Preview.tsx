@@ -5,6 +5,7 @@ import DOMPurify from 'dompurify'
 import katexModule from '@vscode/markdown-it-katex'
 import { highlightCode } from '../markdown/highlight'
 import { taskListPlugin } from '../markdown/taskList'
+import { desktopSyntaxPlugin } from '../markdown/syntax'
 import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github-dark.css'
 
@@ -45,10 +46,13 @@ export function Preview({
     const m = new MarkdownIt({
       html: false,
       linkify: true,
+      // デスクトップ版の preview.smartQuotes（既定で有効）
+      typographer: true,
       breaks,
       highlight: highlightCode
     })
     m.use(katexPlugin, { throwOnError: false, output: 'html' })
+    m.use(desktopSyntaxPlugin)
     m.use(taskListPlugin)
     return m
   }, [breaks])
@@ -67,6 +71,15 @@ export function Preview({
       onClick={e => {
         const target = e.target
         if (!(target instanceof Element)) return
+        // 脚注や目次のページ内リンクは、アドレスを変えずにプレビューの中だけを動かす
+        const link = target.closest('a[href^="#"]')
+        if (link && host.current) {
+          e.preventDefault()
+          const id = link.getAttribute('href')!.slice(1)
+          const dest = [...host.current.querySelectorAll('[id]')].find(el => el.id === id)
+          dest?.scrollIntoView({ block: 'start' })
+          return
+        }
         const label = target.closest('label.task-label')
         const box = label?.querySelector('input.task-checkbox')
         if (!box) return

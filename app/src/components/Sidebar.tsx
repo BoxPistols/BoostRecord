@@ -13,6 +13,8 @@ import {
 import type { Note, Selection, Storage } from '../types'
 
 interface Props {
+  /** キーの案内（設定の「ホットキー」で変わる） */
+  keys: { prefs: string; toggle: string }
   storages: Storage[]
   notes: Note[]
   selection: Selection
@@ -49,7 +51,8 @@ export function Sidebar({
   onExportArchive,
   folded = false,
   width,
-  onToggle
+  onToggle,
+  keys
 }: Props) {
   const live = notes.filter(n => !n.isTrashed)
   const counts = {
@@ -183,7 +186,7 @@ export function Sidebar({
             </button>
           )}
           {onShowPreferences && (
-            <button className="btn-ghost" onClick={onShowPreferences} title="設定 (⌘/Ctrl+,)">
+            <button className="btn-ghost" onClick={onShowPreferences} title={`設定 (${keys.prefs})`}>
               <Settings className="icon" size={14} aria-hidden /> <span className="side-label">設定</span>
             </button>
           )}
@@ -192,7 +195,7 @@ export function Sidebar({
       <button
         className="pane-toggle"
         onClick={onToggle}
-        title={`サイドバーを${folded ? '隠す' : '畳む'} (⌘/Ctrl+B)`}
+        title={`サイドバーを${folded ? '隠す' : '畳む'} (${keys.toggle})`}
         aria-label="サイドバーの表示を切り替える"
       >
         <ChevronsLeft size={16} aria-hidden />

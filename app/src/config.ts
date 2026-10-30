@@ -3,6 +3,9 @@
 // Web 版で効かない項目（AI・画像・スニペットの登録など）はここに置かない
 
 /** インターフェースのテーマ。デスクトップ版の 9 種と、Web 版のこれまでの配色 */
+import { HOTKEYS, IS_MAC, JUMP_MODIFIERS, defaultBindings, defaultJumpModifier, formatCombo, parseCombo, problemOf } from './hotkeys.ts'
+import type { Bindings, JumpModifier } from './hotkeys.ts'
+
 export const THEMES = {
   boostrecord: { label: 'BoostRecord', dark: true },
   dark: { label: 'Dark', dark: true },
@@ -96,6 +99,8 @@ export interface Config {
     /** Markdown 中の改行でプレビューも改行する（markdown-it の breaks） */
     breaks: boolean
   }
+  /** ショートカット。設定の「ホットキー」で書き換える */
+  hotkey: Bindings & { jumpModifier: JumpModifier }
 }
 
 export const FONT_SIZE = { min: 8, max: 32 }
@@ -113,7 +118,8 @@ export const DEFAULT_CONFIG: Config = {
     scrollPastEnd: false,
     dateFormatISO8601: false
   },
-  preview: { fontFamily: '', fontSize: 13, breaks: true }
+  preview: { fontFamily: '', fontSize: 13, breaks: true },
+  hotkey: { ...defaultBindings(), jumpModifier: defaultJumpModifier(IS_MAC) }
 }
 
 type Loose = Record<string, unknown>
@@ -141,6 +147,7 @@ export function parseConfig(raw: string | null): Config {
   const ui = obj(v.ui)
   const ed = obj(v.editor)
   const pv = obj(v.preview)
+  const hk = obj(v.hotkey)
   const d = DEFAULT_CONFIG
   const indentSize = Number(ed.indentSize)
   return {
@@ -164,8 +171,28 @@ export function parseConfig(raw: string | null): Config {
       fontFamily: font(pv.fontFamily, d.preview.fontFamily),
       fontSize: size(pv.fontSize, d.preview.fontSize),
       breaks: bool(pv.breaks, d.preview.breaks)
-    }
+    },
+    hotkey: parseHotkeys(hk, d.hotkey)
   }
+}
+
+// 読めないキーや、OS・ブラウザが先に取るキー（block）は既定値に戻す。同じキーが 2 つの操作に
+// 付いていたら、後のほうを既定値に戻す（既定値どうしは重ならない）
+function parseHotkeys(hk: Loose, d: Config['hotkey']): Config['hotkey'] {
+  const out = { ...d }
+  const used = new Set<string>()
+  for (const h of HOTKEYS) {
+    const v = hk[h.id]
+    const ok = typeof v === 'string' && parseCombo(v) && problemOf(v)?.level !== 'block'
+    const wanted = ok ? formatCombo(parseCombo(v as string)!) : d[h.id]
+    // 重なったら既定値へ。既定値もほかが使っていれば割り当てなし（空）にする
+    out[h.id] = !used.has(wanted) ? wanted : !used.has(d[h.id]) ? d[h.id] : ''
+    if (out[h.id]) used.add(out[h.id])
+  }
+  out.jumpModifier = JUMP_MODIFIERS.includes(hk.jumpModifier as JumpModifier)
+    ? (hk.jumpModifier as JumpModifier)
+    : d.jumpModifier
+  return out
 }
 
 /** テーマとフォントを CSS 変数として当てる。各部品は var(--*) で読む */

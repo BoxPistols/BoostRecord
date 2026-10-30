@@ -124,7 +124,18 @@ export default function App() {
    * どちらのノートも消えずに残り、戻せばまた使える。
    * PC のフォルダへは、フォルダを選ぶ（または前回のフォルダを許可する）まで切り替えない
    */
+  const switching = useRef(false)
   async function switchStorage(mode: StorageMode) {
+    // 続けて押されても、切り替えは 1 つずつ行う
+    if (switching.current) return
+    switching.current = true
+    try {
+      await switchStorageOnce(mode)
+    } finally {
+      switching.current = false
+    }
+  }
+  async function switchStorageOnce(mode: StorageMode) {
     setSwitchNotice(null)
     // 切り替える前に、打ちかけの編集を今の保存先へ書き終える。書けなければ切り替えない
     try {
@@ -145,6 +156,20 @@ export default function App() {
     } catch (e) {
       loaded = null
       setSwitchNotice(`開けませんでした。${e instanceof Error ? e.message : String(e)}`)
+    }
+    // ブラウザの中の保存は、開けないと空の一覧を返す（開ければ保存先が必ず 1 つある）
+    if (loaded && mode === 'browser' && loaded.storages.length === 0) {
+      loaded = null
+      setSwitchNotice('このブラウザの中の保存先を開けなかったので、切り替えを止めました。')
+    }
+    // 読み込みを待つ間に打った編集も、元の保存先へ書き終えてから差し替える
+    if (loaded) {
+      try {
+        while (pendingSave.current || inflight.current.size) await flushSaves()
+      } catch (e) {
+        loaded = null
+        setSwitchNotice(`ノートを保存できなかったので、切り替えを止めました。${e instanceof Error ? e.message : String(e)}`)
+      }
     }
     if (!loaded) {
       // フォルダを選ぶのをやめた・開けなかった。元の保存先のまま
@@ -225,8 +250,10 @@ export default function App() {
 
   useEffect(() => {
     let alive = true
-    repository.load().then(({ storages, notes }) => {
-      if (!alive) return
+    const first = repository
+    first.load().then(({ storages, notes }) => {
+      // 読み終わる前に保存先を切り替えていたら、古い保存先の結果は捨てる
+      if (!alive || first !== repository) return
       setStorages(storages)
       setNotes(notes)
       setActiveKey(prev => prev ?? notes[0]?.key ?? null)

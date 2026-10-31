@@ -1,9 +1,12 @@
 import { useMemo } from 'react'
 import { X } from 'lucide-react'
+import type MarkdownIt from 'markdown-it'
 import { extractHeadings } from '../markdown/headings'
 
 interface Props {
   content: string
+  /** プレビューと同じ変換。同じ解析結果から拾うので、プレビューの見出しと食い違わない */
+  md: MarkdownIt
   minLevel: number
   maxLevel: number
   /** 見出しの行（0 始まり）へ、プレビューとエディタを動かす */
@@ -13,10 +16,10 @@ interface Props {
 }
 
 /** 目次。デスクトップ版の TocPane と同じく、プレビューの右に置いて行番号で飛ぶ */
-export function TocPane({ content, minLevel, maxLevel, onJump, onClose, closeHint }: Props) {
+export function TocPane({ content, md, minLevel, maxLevel, onJump, onClose, closeHint }: Props) {
   const headings = useMemo(
-    () => extractHeadings(content, { minLevel, maxLevel }),
-    [content, minLevel, maxLevel]
+    () => extractHeadings(md.parse(content, {}), { minLevel, maxLevel }),
+    [content, md, minLevel, maxLevel]
   )
   // 一番浅い見出しを基準に字下げする。H2 から始まるノートで全部が一段下がって見えないように
   const base = Math.min(...headings.map(h => h.level))

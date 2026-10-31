@@ -1,4 +1,5 @@
 import type MarkdownIt from 'markdown-it'
+import { headingText } from './headings.ts'
 import { full as emoji } from 'markdown-it-emoji'
 import footnote from 'markdown-it-footnote'
 import sub from 'markdown-it-sub'
@@ -93,11 +94,7 @@ function headingsAndToc(md: MarkdownIt) {
     const headings: { level: number; text: string; id: string }[] = []
     for (let i = 0; i < tokens.length - 1; i++) {
       if (tokens[i].type !== 'heading_open') continue
-      // 絵文字（:smile:）も見出しに出る文字なので含める
-      const text = (tokens[i + 1].children ?? [])
-        .filter(t => t.type === 'text' || t.type === 'code_inline' || t.type === 'emoji')
-        .map(t => t.content)
-        .join('')
+      const text = headingText(tokens[i + 1])
       const base = slugify(text) || 'section'
       // 「foo」「foo-1」「foo」のように書いても重ならないよう、付けた id 全体を見て番号を決める
       let id = base

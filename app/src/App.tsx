@@ -28,6 +28,7 @@ import { ShortcutHelp } from './components/ShortcutHelp'
 import { ExportDialog } from './components/ExportDialog'
 import { NoteLinkPanel } from './components/NoteLinkPanel'
 import { TocPane } from './components/TocPane'
+import { createMarkdown } from './markdown/render'
 import { EditorView } from '@codemirror/view'
 import { hashForNote, noteKeyFromHash, noteLink } from './noteUrl'
 import { runExport } from './data/exportFiles'
@@ -87,6 +88,17 @@ function firstTitle(content: string, fallback: string) {
 // 別のタブで切り替えても、このタブの repository は変わらない
 let repository = createRepository()
 const storageModeAtStart = getStorageMode()
+
+/**
+ * 読み込んだノートのうち、最初に開くもの。URL の # が指すノートがあればそれ、無ければ先頭。
+ * # が指すノートが無いときは別のノートを開かない（URL を書き換えて、別のノートへ移ったように見えるため）
+ */
+function startNote(notes: Note[]): { key: string | null; trashed: boolean; missing: boolean } {
+  const want = noteKeyFromHash(location.hash)
+  if (!want) return { key: notes[0]?.key ?? null, trashed: false, missing: false }
+  const hit = notes.find(n => n.key === want)
+  return { key: hit?.key ?? null, trashed: !!hit?.isTrashed, missing: !hit }
+}
 
 const toggleToc = (c: Config): Config => ({ ...c, preview: { ...c.preview, showToc: !c.preview.showToc } })
 
@@ -220,6 +232,8 @@ export default function App() {
   const hashReady = useRef(false)
   // 直前に開いていたノート。ノートからノートへ移ったときだけ履歴を足す
   const shownKey = useRef<string | null>(null)
+  // URL の # が指すノートが見つからなかった。ほかのノートを開くまで # を消さない
+  const keepHash = useRef(false)
   const previewRef = useRef<HTMLDivElement | null>(null)
 
   // Persist a note; failures surface in the header rather than being swallowed.
@@ -259,6 +273,15 @@ export default function App() {
     await Promise.all([...inflight.current])
   }
 
+  /** 読み込んだノートから最初に開くものを決める（URL の # が指すノートを優先） */
+  function openStart(list: Note[]) {
+    const start = startNote(list)
+    keepHash.current = start.missing
+    if (start.missing) setNotice('URL のノートが見つかりません。別のストレージにあるか、フォルダの許可がまだのときは許可すると開きます')
+    if (start.trashed) setSelection({ kind: 'smart', value: 'trashed' })
+    setActiveKey(start.key)
+  }
+
   async function handlePickStorage() {
     if (!repository.pickStorage) return
     try {
@@ -268,7 +291,8 @@ export default function App() {
       setStorages(res.storages)
       setNotes(res.notes)
       setSelection({ kind: 'smart', value: 'all' })
-      setActiveKey(res.notes[0]?.key ?? null)
+      // フォルダの許可を待っていた間に URL で指したノートがあれば、それを開く
+      openStart(res.notes)
     } catch (e) {
       setPickError(e instanceof Error ? e.message : String(e))
     }
@@ -282,12 +306,7 @@ export default function App() {
       if (!alive || first !== repository) return
       setStorages(storages)
       setNotes(notes)
-      // URL の # がノートを指していれば、そのノートを開く
-      const start = noteKeyFromHash(location.hash)
-      const target = start ? notes.find(n => n.key === start) : undefined
-      if (start && !target) setNotice('URL のノートが見つかりません。別のストレージにあるか、消されています')
-      if (target?.isTrashed) setSelection({ kind: 'smart', value: 'trashed' })
-      setActiveKey(prev => prev ?? target?.key ?? notes[0]?.key ?? null)
+      openStart(notes)
       hashReady.current = true
     })
     return () => {
@@ -397,6 +416,8 @@ export default function App() {
   }, [notes, selection, query])
 
   const active = notes.find(n => n.key === activeKey) ?? null
+  // 目次はプレビューと同じ変換の解析結果から見出しを拾う
+  const tocMarkdown = useMemo(() => createMarkdown(config.preview.breaks), [config.preview.breaks])
   // 本文を Markdown として解析するので、本文が変わったときだけ数え直す
   const activeContent = active?.content ?? ''
   const activeTodo = useMemo(() => todoStatus(activeContent), [activeContent])
@@ -449,6 +470,8 @@ export default function App() {
     const prev = shownKey.current
     shownKey.current = activeKey
     if (!hashReady.current) return
+    if (activeKey) keepHash.current = false
+    else if (keepHash.current) return
     const target = activeKey ? hashForNote(activeKey) : ''
     if (location.hash === target) return
     const url = target || location.pathname + location.search
@@ -870,7 +893,7 @@ export default function App() {
                   title={`目次（${displayCombo(config.hotkey.toggleToc)}）`}
                   aria-pressed={config.preview.showToc}
                 >
-                  <ListTree className="icon" size={13} aria-hidden /> 目次
+                  <ListTree className="icon" size={13} aria-hidden /> <span className="head-label">目次</span>
                 </button>
                 <button
                   className={`head-btn ${linkOpen ? 'active' : ''}`}
@@ -878,14 +901,14 @@ export default function App() {
                   title="このノートへのリンクと URL"
                   aria-expanded={linkOpen}
                 >
-                  <Link2 className="icon" size={13} aria-hidden /> リンク
+                  <Link2 className="icon" size={13} aria-hidden /> <span className="head-label">リンク</span>
                 </button>
                 <button
                   className="head-btn"
                   onClick={() => setExportScope({ kind: 'note', key: active.key })}
                   title="エクスポート（txt・md・html・pdf）"
                 >
-                  <Download className="icon" size={13} aria-hidden /> エクスポート
+                  <Download className="icon" size={13} aria-hidden /> <span className="head-label">エクスポート</span>
                 </button>
                 {repository.saveNote && (
                   <button
@@ -908,83 +931,87 @@ export default function App() {
               onChange={updateTags}
             />
           )}
-          <div
-            className={`split view-${layout.viewMode.toLowerCase()} ${config.preview.showToc ? 'has-toc' : ''}`}
-            ref={splitRef}
-          >
-            {/* 全面プレビューでもエディタは外さない（元に戻す履歴を失わない） */}
+          {/* 目次はエディタとプレビューを分ける領域の外に置く（分割の割合は目次を除いた幅で決まる） */}
+          <div className="detail-body">
             <div
-              className="pane editor"
-              style={
-                layout.viewMode === 'SPLIT'
-                  ? { flex: `0 0 ${layout.editorPercent}%` }
-                  : undefined
-              }
+              className={`split view-${layout.viewMode.toLowerCase()}`}
+              ref={splitRef}
             >
-              <MarkdownEditor
-                noteKey={active.key}
-                value={active.content}
-                onChange={updateActiveContent}
-                onView={v => {
-                  editorViewRef.current = v
-                  noteFind.onView(v)
-                }}
-                settings={{ ...config.editor, dark: isDark }}
-                keys={config.hotkey}
+              {/* 全面プレビューでもエディタは外さない（元に戻す履歴を失わない） */}
+              <div
+                className="pane editor"
+                style={
+                  layout.viewMode === 'SPLIT'
+                    ? { flex: `0 0 ${layout.editorPercent}%` }
+                    : undefined
+                }
+              >
+                <MarkdownEditor
+                  noteKey={active.key}
+                  value={active.content}
+                  onChange={updateActiveContent}
+                  onView={v => {
+                    editorViewRef.current = v
+                    noteFind.onView(v)
+                  }}
+                  settings={{ ...config.editor, dark: isDark }}
+                  keys={config.hotkey}
+                />
+              </div>
+              {layout.viewMode === 'SPLIT' && (
+                <Splitter
+                  label="エディタとプレビューの幅"
+                  onDrag={x => {
+                    const rect = splitRef.current?.getBoundingClientRect()
+                    if (!rect || rect.width === 0) return
+                    resizing.current = true
+                    setLayout(l => ({
+                      ...l,
+                      editorPercent: clamp(
+                        ((x - rect.left) / rect.width) * 100,
+                        SPLIT.min,
+                        SPLIT.max
+                      )
+                    }))
+                  }}
+                  onEnd={endResize}
+                />
+              )}
+              <Preview
+                content={active.content}
+                rootRef={previewRef}
+                breaks={config.preview.breaks}
+                onOpenNote={openNote}
+                onToggleTask={
+                  active.isTrashed
+                    ? undefined
+                    : line => updateActiveContent(toggleTaskLine(active.content, line))
+                }
               />
+              {noteFind.find && (
+                <FindBar
+                  query={noteFind.find.query}
+                  index={noteFind.find.index}
+                  count={noteFind.find.count}
+                  focusToken={noteFind.find.focusToken}
+                  target={findTarget === 'PREVIEW' ? 'プレビュー' : 'エディタ'}
+                  onChange={noteFind.setQuery}
+                  onStep={noteFind.step}
+                  onClose={noteFind.close}
+                  replaceOpen={noteFind.find.replaceOpen}
+                  replaceValue={noteFind.find.replace}
+                  onToggleReplace={noteFind.toggleReplace}
+                  onReplaceChange={noteFind.setReplace}
+                  {...(findTarget === 'EDITOR'
+                    ? { onReplace: noteFind.replace, onReplaceAll: noteFind.replaceAll }
+                    : {})}
+                />
+              )}
             </div>
-            {layout.viewMode === 'SPLIT' && (
-              <Splitter
-                label="エディタとプレビューの幅"
-                onDrag={x => {
-                  const rect = splitRef.current?.getBoundingClientRect()
-                  if (!rect || rect.width === 0) return
-                  resizing.current = true
-                  setLayout(l => ({
-                    ...l,
-                    editorPercent: clamp(
-                      ((x - rect.left) / rect.width) * 100,
-                      SPLIT.min,
-                      SPLIT.max
-                    )
-                  }))
-                }}
-                onEnd={endResize}
-              />
-            )}
-            <Preview
-              content={active.content}
-              rootRef={previewRef}
-              breaks={config.preview.breaks}
-              onOpenNote={openNote}
-              onToggleTask={
-                active.isTrashed
-                  ? undefined
-                  : line => updateActiveContent(toggleTaskLine(active.content, line))
-              }
-            />
-            {noteFind.find && (
-              <FindBar
-                query={noteFind.find.query}
-                index={noteFind.find.index}
-                count={noteFind.find.count}
-                focusToken={noteFind.find.focusToken}
-                target={findTarget === 'PREVIEW' ? 'プレビュー' : 'エディタ'}
-                onChange={noteFind.setQuery}
-                onStep={noteFind.step}
-                onClose={noteFind.close}
-                replaceOpen={noteFind.find.replaceOpen}
-                replaceValue={noteFind.find.replace}
-                onToggleReplace={noteFind.toggleReplace}
-                onReplaceChange={noteFind.setReplace}
-                {...(findTarget === 'EDITOR'
-                  ? { onReplace: noteFind.replace, onReplaceAll: noteFind.replaceAll }
-                  : {})}
-              />
-            )}
             {config.preview.showToc && (
               <TocPane
                 content={active.content}
+                md={tocMarkdown}
                 minLevel={config.preview.tocMinLevel}
                 maxLevel={config.preview.tocMaxLevel}
                 onJump={jumpToLine}

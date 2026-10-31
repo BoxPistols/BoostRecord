@@ -516,6 +516,19 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 }
 .note-link-row .btn-ghost-inline { padding: 4px 10px; font-size: 12px; }
 .note-link-error { color: #ef4444; font-size: 12px; }
+.info-panel {
+  margin: 0; padding: 8px 16px; border-bottom: 1px solid var(--border);
+  display: flex; flex-wrap: wrap; gap: 6px 24px;
+}
+.info-row { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.info-row dt { color: var(--muted); font-size: 12px; white-space: nowrap; }
+.info-row dd { margin: 0; font-size: 13px; color: var(--fg); white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* 狭い画面では 1 項目 1 行にして、項目名を値の上に置き、値を切らない */
+@container detail (max-width: 640px) {
+  .info-panel { flex-direction: column; }
+  .info-row { flex-direction: column; gap: 0; }
+  .info-row dd { white-space: normal; overflow-wrap: anywhere; }
+}
 .app-notice {
   position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 90; max-width: calc(100vw - 32px);
   padding: 8px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg-elev); color: var(--fg);

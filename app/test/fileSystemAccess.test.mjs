@@ -244,3 +244,44 @@ test('すでに開いている時のフォルダ選択は前回の復帰に吸�
   const res = await repo.pickStorage()
   assert.equal(res, null)
 })
+
+test('フォルダを作ると boostnote.json の folders に足し、ほかの項目は残す', async () => {
+  const root = makeStorage({})
+  root.files['boostnote.json'] = makeFile(JSON.stringify({ name: 'メモ', version: '1.0', folders: [{ key: 'f1', name: '受信箱', color: '#E10051', pinned: true }] }))
+  const repo = createFileSystemAccessRepository(root)
+  await repo.load()
+  const { storage, key } = await repo.createFolder('MyStorage', { name: ' 仕事 / 2026 ', color: '#2BA5F7' })
+  assert.match(key, /^[0-9a-f]{20}$/)
+  assert.deepEqual(storage.folders.map(f => f.name), ['受信箱', '仕事/2026'])
+  const meta = JSON.parse(root.files['boostnote.json'].text)
+  assert.equal(meta.version, '1.0')
+  assert.equal(meta.name, 'メモ')
+  assert.equal(meta.folders[0].pinned, true)
+  assert.deepEqual(meta.folders[1], { key, color: '#2BA5F7', name: '仕事/2026' })
+})
+
+test('フォルダの改名は書く直前に読み直し、デスクトップ版が足したフォルダを消さない', async () => {
+  const root = makeStorage({})
+  const repo = createFileSystemAccessRepository(root)
+  await repo.load()
+  // 読み込んだあとに、別のアプリがフォルダを足した
+  root.files['boostnote.json'].text = JSON.stringify({ folders: [{ key: 'f1', name: '受信箱' }, { key: 'f2', name: '受信箱/後で' }] })
+  const { storage } = await repo.renameFolder('MyStorage', 'f1', '届いたもの')
+  assert.deepEqual(storage.folders.map(f => f.name), ['届いたもの', '届いたもの/後で'])
+  assert.deepEqual(JSON.parse(root.files['boostnote.json'].text).folders.map(f => f.key), ['f1', 'f2'])
+})
+
+test('フォルダの作成・改名の失敗は書かずに理由を返す', async () => {
+  const root = makeStorage({})
+  const repo = createFileSystemAccessRepository(root)
+  await repo.load()
+  const before = root.files['boostnote.json'].text
+  await assert.rejects(repo.createFolder('MyStorage', { name: '受信箱', color: '#000' }), /同じ名前/)
+  await assert.rejects(repo.renameFolder('MyStorage', 'f1', ' / '), /名前を入れて/)
+  await assert.rejects(repo.renameFolder('Other', 'f1', 'x'), /ストレージが見つかりません/)
+  assert.equal(root.files['boostnote.json'].text, before)
+  // 読めない boostnote.json へは書かない（すべてのフォルダの記録が消えるため）
+  root.files['boostnote.json'].text = '{broken'
+  await assert.rejects(repo.createFolder('MyStorage', { name: 'x', color: '#000' }), /読めない/)
+  assert.equal(root.files['boostnote.json'].text, '{broken')
+})

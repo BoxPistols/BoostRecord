@@ -3,7 +3,8 @@ import { sampleNotes, sampleStorages } from './sampleNotes'
 import { exportFilename } from './exportMarkdown'
 import {
   createFileSystemAccessRepository,
-  isFileSystemAccessSupported
+  isFileSystemAccessSupported,
+  type FolderChange
 } from './fileSystemAccess'
 import { createOpfsRepository, isOpfsSupported } from './opfs'
 import { chooseBrowserStorage, getStorageMode } from './storageMode'
@@ -33,6 +34,10 @@ export interface NotesRepository {
   importArchive?(file: Blob): Promise<{ storages: Storage[]; notes: Note[] }>
   /** ストレージを zip で書き出す（OPFS のときだけ） */
   exportArchive?(): Promise<boolean>
+  /** フォルダを作る（ブラウザのとき）。変えたあとのストレージと、作ったフォルダのキーを返す */
+  createFolder?(storage: string, input: { name: string; color: string }): Promise<FolderChange>
+  /** フォルダの名前を変える（ブラウザのとき）。子孫のフォルダも付け替える */
+  renameFolder?(storage: string, folder: string, name: string): Promise<FolderChange>
 }
 
 // Deterministic (no Math.random) generator so the list reaches realistic

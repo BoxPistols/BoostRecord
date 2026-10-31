@@ -137,7 +137,8 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .search-input::placeholder { color: var(--faint); }
 .search-input:focus { outline: none; border-color: var(--accent); }
 .notelist-head {
-  display: flex; align-items: center; gap: 8px;
+  /* 一覧を狭めても、並び順と表示の切り替えが一覧の外へはみ出さないように折り返す */
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px;
   padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--muted);
 }
 .notelist-head .sort { font-size: 12px; }
@@ -170,9 +171,13 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .note-title-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 /* 1 行の表示。題の右に日付だけを小さく出す（デスクトップ版の Compressed View） */
 .note-row.small { padding: 0 14px; display: flex; align-items: center; }
+.notelist.folded .note-row.small { padding: 0 8px; }
 .note-row.small .note-title { flex: 1; min-width: 0; }
 .note-date { flex: none; color: var(--muted); font-size: 11px; }
 .note-row.active .note-date { color: var(--on-accent); }
+/* 狭めた・畳んだ一覧では、題の幅を残すため日付を出さない */
+.notelist { container: notelist / inline-size; }
+@container notelist (max-width: 200px) { .note-date { display: none; } }
 .list-style { display: inline-flex; }
 .list-style .sort-dir + .sort-dir { margin-left: 2px; }
 .sort-dir.active { color: var(--fg); background: var(--hover); border-color: var(--accent); }

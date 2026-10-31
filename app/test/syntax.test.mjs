@@ -58,9 +58,9 @@ test('front matter は表示しない', () => {
 
 test('見出しに id が付き、[TOC] が見出しの一覧になる', () => {
   const html = render('[TOC]\n\n# はじめに\n\n## 準備 する\n\n## 準備 する\n\n# 終わり')
-  assert.match(html, /<h1 id="%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB">/)
-  assert.match(html, new RegExp(`<h2 id="${slugify('準備 する')}">`))
-  assert.match(html, new RegExp(`<h2 id="${slugify('準備 する')}-1">`))
+  assert.match(html, /<h1 id="%E3%81%AF%E3%81%98%E3%82%81%E3%81%AB"[ >]/)
+  assert.match(html, new RegExp(`<h2 id="${slugify('準備 する')}"[ >]`))
+  assert.match(html, new RegExp(`<h2 id="${slugify('準備 する')}-1"[ >]`))
   assert.match(html, /<nav class="toc"><ul><li><a href="#[^"]+">はじめに<\/a><ul><li><a[^>]*>準備 する<\/a><\/li><li><a[^>]*>準備 する<\/a><\/li><\/ul><\/li><li><a[^>]*>終わり<\/a><\/li><\/ul><\/nav>/)
   assert.doesNotMatch(html, /\[TOC\]/)
 })

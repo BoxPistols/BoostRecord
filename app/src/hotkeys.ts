@@ -13,6 +13,7 @@ export type HotkeyId =
   | 'cycleView'
   | 'openPrefs'
   | 'copyNoteLink'
+  | 'toggleToc'
   | 'nextNote'
   | 'prevNote'
   | 'italic'
@@ -41,6 +42,7 @@ export const HOTKEYS: HotkeyDef[] = [
   { id: 'nextNote', desc: '一覧の次のノートへ', scope: 'app', def: () => 'Mod+Alt+ArrowDown' },
   { id: 'prevNote', desc: '一覧の前のノートへ', scope: 'app', def: () => 'Mod+Alt+ArrowUp' },
   { id: 'openPrefs', desc: '設定を開く', scope: 'app', def: () => 'Mod+,' },
+  { id: 'toggleToc', desc: '目次を出す・隠す', scope: 'app', def: () => 'Mod+Shift+O' },
   { id: 'copyNoteLink', desc: 'このノートへのリンクをコピー（ほかのノートに貼るとリンクになる）', scope: 'app', def: () => 'Mod+Shift+K' },
   { id: 'italic', desc: '斜体（選択をトグル）', scope: 'editor', def: () => 'Mod+I' },
   { id: 'link', desc: 'リンク化', scope: 'editor', def: () => 'Mod+K' },

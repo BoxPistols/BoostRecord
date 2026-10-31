@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { X } from 'lucide-react'
-import { DEFAULT_CONFIG, FONT_SIZE, INDENT_SIZES, THEMES } from '../config'
+import { DEFAULT_CONFIG, FONT_SIZE, INDENT_SIZES, THEMES, TOC_LEVELS } from '../config'
 import type { Config, ThemeName } from '../config'
 import { HOTKEYS, JUMP_MODIFIERS, comboFromEvent, defaultBindings, defaultJumpModifier, displayCombo, problemOf, recording, IS_MAC, jumpLabel } from '../hotkeys'
 import type { HotkeyId, JumpModifier } from '../hotkeys'
@@ -333,6 +333,36 @@ export function Preferences({ open, initialTab = 'UI', config, onChange, onClose
                 checked={config.preview.breaks}
                 onChange={v => set('preview', { breaks: v })}
               />
+              <Check
+                label="プレビューの右に目次を出す"
+                checked={config.preview.showToc}
+                onChange={v => set('preview', { showToc: v })}
+              />
+              <Row label="目次に出す見出し">
+                <select
+                  value={config.preview.tocMinLevel}
+                  aria-label="目次に出す見出し（上）"
+                  onChange={e => set('preview', { tocMinLevel: Number(e.target.value) })}
+                >
+                  {TOC_LEVELS.map(n => (
+                    <option key={n} value={n}>
+                      H{n}
+                    </option>
+                  ))}
+                </select>
+                〜
+                <select
+                  value={config.preview.tocMaxLevel}
+                  aria-label="目次に出す見出し（下）"
+                  onChange={e => set('preview', { tocMaxLevel: Number(e.target.value) })}
+                >
+                  {TOC_LEVELS.map(n => (
+                    <option key={n} value={n}>
+                      H{n}
+                    </option>
+                  ))}
+                </select>
+              </Row>
 
               <div className="prefs-actions">
                 <button className="btn-ghost-inline" onClick={() => onChange(DEFAULT_CONFIG)}>

@@ -104,6 +104,9 @@ function headingsAndToc(md: MarkdownIt) {
       for (let n = 1; used.has(id); n++) id = `${base}-${n}`
       used.add(id)
       tokens[i].attrSet('id', id)
+      // 目次から行番号で飛ぶ（markdown/headings.ts）
+      const map = tokens[i].map
+      if (map) tokens[i].attrSet('data-line', String(map[0]))
       headings.push({ level: Number(tokens[i].tag.slice(1)), text, id })
     }
     for (let i = 1; i < tokens.length - 1; i++) {

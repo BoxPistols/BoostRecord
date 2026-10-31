@@ -23,10 +23,11 @@ export function noteKeyFromLink(href: string): string | null {
   return LINK.exec(href)?.[1] ?? null
 }
 
-// 旧 Boostnote のリンク（#ストレージキー-ノートキー）。デスクトップ版（regexIsLegacyNoteLink）も開ける
-const LEGACY = /^#(.{20})-(.{20})$/
+// 旧 Boostnote のリンク（ストレージキー-ノートキー）。デスクトップ版（regexIsLegacyNoteLink）は # なしの形を開く。
+// # を付けて書かれたものも同じノートを指すので開く
+const LEGACY = /^#?([A-Za-z0-9]{20})-([A-Za-z0-9]{20})$/
 
-/** `#ストレージキー-ノートキー` の古いリンクなら、ノートのキー */
+/** `ストレージキー-ノートキー`（# があってもよい）の古いリンクなら、ノートのキー */
 export function noteKeyFromLegacyLink(href: string): string | null {
   return LEGACY.exec(href)?.[2] ?? null
 }

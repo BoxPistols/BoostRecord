@@ -41,6 +41,7 @@ test('プレビューで見出しになるものは目次にも出る（字下�
   assert.deepEqual(texts('   # Indented'), ['Indented'])
   assert.deepEqual(texts('> # Quoted'), ['Quoted'])
   assert.deepEqual(texts('Title\n=====\n\nSub\n---'), ['Title', 'Sub'])
+  assert.deepEqual(texts('# ![概要](logo.png)'), ['概要'])
 })
 
 test('字下げ 4 つのフェンスや、閉じに文字が続く行でフェンスを取り違えない', () => {

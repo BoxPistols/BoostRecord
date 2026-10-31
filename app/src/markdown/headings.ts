@@ -30,10 +30,11 @@ export function normalizeLevelRange(min: unknown, max: unknown): { min: number; 
   return lo <= hi ? { min: lo, max: hi } : { min: hi, max: lo }
 }
 
-/** 見出しに見えている文字。絵文字（:smile:）も見出しに出るので含める */
+/** 見出しに見えている文字。絵文字（:smile:）と画像の代替テキストも見出しに出るので含める */
 export function headingText(inline: Token | undefined): string {
   return (inline?.children ?? [])
-    .filter(t => t.type === 'text' || t.type === 'code_inline' || t.type === 'emoji')
+    .filter(t => t.type === 'text' || t.type === 'code_inline' || t.type === 'emoji' || t.type === 'image')
+    // 画像の content は代替テキスト
     .map(t => t.content)
     .join('')
     .trim()

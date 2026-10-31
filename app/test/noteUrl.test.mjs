@@ -32,8 +32,10 @@ test('コピーするリンクは、題に ] があってもそのノートへ�
   assert.match(html, />a \] b \[c\] \\<\/a>/)
 })
 
-test('旧 Boostnote の #ストレージキー-ノートキー からノートのキーを取る（デスクトップ版と同じ形だけ）', () => {
+test('旧 Boostnote の ストレージキー-ノートキー からノートのキーを取る（# の有無どちらも）', () => {
+  assert.equal(noteKeyFromLegacyLink('877f99c3268608328037-1c211eb7dcb463de6490'), '1c211eb7dcb463de6490')
   assert.equal(noteKeyFromLegacyLink('#877f99c3268608328037-1c211eb7dcb463de6490'), '1c211eb7dcb463de6490')
+  assert.equal(noteKeyFromLegacyLink('https://a.example/877f99c3268608328037-1c211eb7dcb463de6490'), null)
   assert.equal(noteKeyFromLegacyLink('#877f99c3268608328037-1c211eb7'), null)
   assert.equal(noteKeyFromLegacyLink('#fn1'), null)
 })

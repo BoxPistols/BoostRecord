@@ -48,11 +48,12 @@ export function Preview({
         const target = e.target
         if (!(target instanceof Element)) return
         // ほかのノートへのリンク。そのままだとページの相対 URL として開いてしまう
-        const noteAnchor = target.closest('a[href^=":note:"]')
-        if (noteAnchor) {
+        const anchor = target.closest('a[href]')
+        const href = anchor?.getAttribute('href') ?? ''
+        const noteKey = noteKeyFromLink(href) ?? (href.startsWith('#') ? null : noteKeyFromLegacyLink(href))
+        if (anchor && (href.startsWith(':note:') || noteKey)) {
           e.preventDefault()
-          const key = noteKeyFromLink(noteAnchor.getAttribute('href')!)
-          if (key) onOpenNote?.(key)
+          if (noteKey) onOpenNote?.(noteKey)
           return
         }
         // 脚注や目次のページ内リンクは、アドレスを変えずにプレビューの中だけを動かす

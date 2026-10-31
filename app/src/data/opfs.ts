@@ -7,7 +7,7 @@
 // fileSystemAccess.ts の実装をそのまま使う。ここは「どのフォルダを使うか」と
 // zip の出し入れ、ダウンロードだけを持つ。
 import type { Note, Storage } from '../types'
-import { createFileSystemAccessRepository } from './fileSystemAccess.ts'
+import { createFileSystemAccessRepository, type FolderChange } from './fileSystemAccess.ts'
 import { exportFilename } from './exportMarkdown.ts'
 import {
   exportStorageZip,
@@ -66,6 +66,11 @@ function withDisplayName(res: { storages: Storage[]; notes: Note[] }) {
   }
 }
 
+const displayed = (change: FolderChange): FolderChange => ({
+  ...change,
+  storage: withDisplayName({ storages: [change.storage], notes: [] }).storages[0]
+})
+
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -93,6 +98,8 @@ export interface OpfsRepository {
   exportNote(note: Note): Promise<boolean>
   importArchive(file: Blob): Promise<{ storages: Storage[]; notes: Note[] }>
   exportArchive(): Promise<boolean>
+  createFolder(storage: string, input: { name: string; color: string }): Promise<FolderChange>
+  renameFolder(storage: string, folder: string, name: string): Promise<FolderChange>
 }
 
 /**
@@ -142,6 +149,12 @@ export function createOpfsRepository(
     },
     async deleteNote(key) {
       return (await open()).inner.deleteNote(key)
+    },
+    async createFolder(storage, input) {
+      return displayed(await (await open()).inner.createFolder(storage, input))
+    },
+    async renameFolder(storage, folder, name) {
+      return displayed(await (await open()).inner.renameFolder(storage, folder, name))
     },
     async exportNote(note) {
       // showSaveFilePicker が無いブラウザ向けなので、ダウンロードで渡す

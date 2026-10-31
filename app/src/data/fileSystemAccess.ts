@@ -10,6 +10,7 @@
 import type { Note, Storage } from '../types'
 import { parseNoteCson, stringifyNoteCson, updateNoteCson } from './cson.ts'
 import { exportFilename } from './exportMarkdown.ts'
+import { createFolder, renameFolder, FOLDER_ERROR_TEXT, type RawFolder } from './folders.ts'
 
 const DB_NAME = 'boostrecord-web'
 const DB_VERSION = 1
@@ -158,23 +159,26 @@ export interface StorageContents {
   mtimes: Map<string, number>
 }
 
-export async function readStorage(
-  root: FileSystemDirectoryHandle
-): Promise<StorageContents> {
-  const meta = JSON.parse((await readText(root, 'boostnote.json')).text) as {
-    name?: string
-    folders?: { key: string; name: string; color?: string }[]
-  }
-  const key = root.name
-  const storage: Storage = {
-    key,
-    name: meta.name || root.name,
+type StorageMeta = { name?: string; folders?: { key: string; name: string; color?: string }[] }
+
+function toStorage(meta: StorageMeta, rootName: string): Storage {
+  return {
+    key: rootName,
+    name: meta.name || rootName,
     folders: (meta.folders || []).map(f => ({
       key: f.key,
       name: f.name,
       color: f.color
     }))
   }
+}
+
+export async function readStorage(
+  root: FileSystemDirectoryHandle
+): Promise<StorageContents> {
+  const meta = JSON.parse((await readText(root, 'boostnote.json')).text) as StorageMeta
+  const key = root.name
+  const storage = toStorage(meta, key)
 
   const notes: Note[] = []
   const mtimes = new Map<string, number>()
@@ -234,6 +238,14 @@ export interface FileSystemAccessRepository {
   createNote(opts: { storage?: string; folder?: string }): Promise<Note>
   deleteNote(key: string): Promise<void>
   exportNote(note: Note): Promise<boolean>
+  createFolder(storage: string, input: { name: string; color: string }): Promise<FolderChange>
+  renameFolder(storage: string, folder: string, name: string): Promise<FolderChange>
+}
+
+/** フォルダを変えたあとのストレージと、作った・改名したフォルダのキー */
+export interface FolderChange {
+  storage: Storage
+  key: string
 }
 
 /**
@@ -252,6 +264,33 @@ export function createFileSystemAccessRepository(
   const notesDir = async (create = false) => {
     if (!root) throw new Error('ストレージが開かれていません')
     return root.getDirectoryHandle('notes', { create })
+  }
+
+  /**
+   * boostnote.json の folders だけを差し替える。書く直前に読み直すので、デスクトップ版が
+   * 同じフォルダで変えたフォルダも消さない。ほかの項目と、各フォルダの知らない項目は残す
+   */
+  const editFolders = async (
+    storageKey: string,
+    edit: (folders: RawFolder[]) => ReturnType<typeof createFolder>
+  ): Promise<FolderChange> => {
+    if (!root) throw new Error('ストレージが開かれていません')
+    if (storageKey !== root.name) throw new Error('ストレージが見つかりません。読み込み直してください')
+    let meta: Record<string, unknown>
+    try {
+      meta = JSON.parse((await readText(root, 'boostnote.json')).text)
+    } catch {
+      meta = {}
+    }
+    // 読めない boostnote.json へ書くと、すべてのフォルダの記録が消える（デスクトップ版と同じく断る）
+    if (!meta || typeof meta !== 'object' || !Array.isArray(meta.folders)) {
+      throw new Error('boostnote.json を読めないため、フォルダを変えられません')
+    }
+    const res = edit(meta.folders as RawFolder[])
+    if (!res.ok) throw new Error(FOLDER_ERROR_TEXT[res.error])
+    const next = { ...meta, folders: res.folders }
+    await writeText(root, 'boostnote.json', JSON.stringify(next, null, 2))
+    return { storage: toStorage(next as StorageMeta, root.name), key: res.key }
   }
 
   const adopt = async (handle: FileSystemDirectoryHandle) => {
@@ -379,6 +418,14 @@ export function createFileSystemAccessRepository(
       const dir = await notesDir()
       await dir.removeEntry(`${key}.cson`)
       mtimes.delete(key)
+    },
+
+    createFolder(storage, input) {
+      return editFolders(storage, folders => createFolder(folders, input))
+    },
+
+    renameFolder(storage, folder, name) {
+      return editFolders(storage, folders => renameFolder(folders, folder, name))
     },
 
     async exportNote(note) {

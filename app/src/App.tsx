@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   ChevronsRight,
   Download,
+  Info,
   Link2,
   ListTree,
   Folder,
@@ -27,6 +28,7 @@ import { TagEditor } from './components/TagEditor'
 import { ShortcutHelp } from './components/ShortcutHelp'
 import { ExportDialog } from './components/ExportDialog'
 import { NoteLinkPanel } from './components/NoteLinkPanel'
+import { InfoPanel } from './components/InfoPanel'
 import { TocPane } from './components/TocPane'
 import { createMarkdown } from './markdown/render'
 import { EditorView } from '@codemirror/view'
@@ -118,6 +120,7 @@ export default function App() {
   const [exportScope, setExportScope] = useState<ExportScope | null>(null)
   // ノートの見出しの「リンク」で開く欄
   const [linkOpen, setLinkOpen] = useState(false)
+  const [infoOpen, setInfoOpen] = useState(false)
   // リンクのコピーや、リンク先が無かったことを一時的に知らせる
   const [notice, setNotice] = useState<string | null>(null)
   const [layout, setLayout] = useState(loadLayout)
@@ -858,6 +861,14 @@ export default function App() {
               onChange={viewMode => setLayout(l => ({ ...l, viewMode }))}
               hint={`${displayCombo(config.hotkey.togglePreview)} でプレビューと切り替え、${displayCombo(config.hotkey.cycleView)} で順に切り替え`}
             />
+            <button
+              className={`head-btn ${infoOpen ? 'active' : ''}`}
+              onClick={() => setInfoOpen(o => !o)}
+              title="ノートの情報（日時・場所・文字数）"
+              aria-expanded={infoOpen}
+            >
+              <Info className="icon" size={13} aria-hidden /> <span className="head-label">情報</span>
+            </button>
             {active.isTrashed ? (
               <>
                 <button
@@ -928,6 +939,13 @@ export default function App() {
               </>
             )}
           </div>
+          {infoOpen && (
+            <InfoPanel
+              note={active}
+              storageName={storages.find(s => s.key === active.storage)?.name ?? active.storage}
+              folderName={folderName}
+            />
+          )}
           {linkOpen && <NoteLinkPanel note={active} />}
           {!active.isTrashed && (
             <TagEditor

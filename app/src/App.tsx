@@ -3,6 +3,7 @@ import {
   ChevronsRight,
   Download,
   Link2,
+  ListTree,
   Folder,
   FolderOpen,
   Plus,
@@ -26,6 +27,8 @@ import { TagEditor } from './components/TagEditor'
 import { ShortcutHelp } from './components/ShortcutHelp'
 import { ExportDialog } from './components/ExportDialog'
 import { NoteLinkPanel } from './components/NoteLinkPanel'
+import { TocPane } from './components/TocPane'
+import { EditorView } from '@codemirror/view'
 import { hashForNote, noteKeyFromHash, noteLink } from './noteUrl'
 import { runExport } from './data/exportFiles'
 import type { ExportFormat, ExportScope } from './data/exportPlan'
@@ -84,6 +87,8 @@ function firstTitle(content: string, fallback: string) {
 // 別のタブで切り替えても、このタブの repository は変わらない
 let repository = createRepository()
 const storageModeAtStart = getStorageMode()
+
+const toggleToc = (c: Config): Config => ({ ...c, preview: { ...c.preview, showToc: !c.preview.showToc } })
 
 export default function App() {
   const [notes, setNotes] = useState<Note[]>([])
@@ -207,6 +212,8 @@ export default function App() {
   const openFindRef = useRef<(() => boolean) | null>(null)
   // ⌘/Ctrl+Shift+K。ノートを開いているときだけ、そのノートへのリンクをコピーする
   const copyLinkRef = useRef<(() => boolean) | null>(null)
+  // 目次から飛ぶときに、エディタのカーソルも見出しの行へ動かす
+  const editorViewRef = useRef<EditorView | null>(null)
   // 戻る・進むはいつも今の一覧とノートで開く（popstate は一度だけ付ける）
   const openNoteRef = useRef<(key: string) => void>(() => {})
   // 読み込みが終わるまでは、URL の # を消さない
@@ -306,6 +313,11 @@ export default function App() {
       if (on(k.openPrefs)) {
         take()
         setPrefsTab(t => t ?? 'UI')
+        return
+      }
+      if (on(k.toggleToc)) {
+        take()
+        setConfig(toggleToc)
         return
       }
       if (on(k.copyNoteLink) && copyLinkRef.current?.()) {
@@ -471,6 +483,15 @@ export default function App() {
         return true
       }
     : null
+
+  /** 目次の見出し（行番号）へ、プレビューとエディタの両方を動かす */
+  function jumpToLine(line: number) {
+    previewRef.current?.querySelector(`[data-line="${line}"]`)?.scrollIntoView({ block: 'start' })
+    const view = editorViewRef.current
+    if (!view || line >= view.state.doc.lines) return
+    const pos = view.state.doc.line(line + 1).from
+    view.dispatch({ selection: { anchor: pos }, effects: EditorView.scrollIntoView(pos, { y: 'start' }) })
+  }
 
   function updateActiveContent(content: string) {
     if (!active) return
@@ -844,6 +865,14 @@ export default function App() {
                   />
                 </button>
                 <button
+                  className={`head-btn ${config.preview.showToc ? 'active' : ''}`}
+                  onClick={() => setConfig(toggleToc)}
+                  title={`目次（${displayCombo(config.hotkey.toggleToc)}）`}
+                  aria-pressed={config.preview.showToc}
+                >
+                  <ListTree className="icon" size={13} aria-hidden /> 目次
+                </button>
+                <button
                   className={`head-btn ${linkOpen ? 'active' : ''}`}
                   onClick={() => setLinkOpen(o => !o)}
                   title="このノートへのリンクと URL"
@@ -879,7 +908,10 @@ export default function App() {
               onChange={updateTags}
             />
           )}
-          <div className={`split view-${layout.viewMode.toLowerCase()}`} ref={splitRef}>
+          <div
+            className={`split view-${layout.viewMode.toLowerCase()} ${config.preview.showToc ? 'has-toc' : ''}`}
+            ref={splitRef}
+          >
             {/* 全面プレビューでもエディタは外さない（元に戻す履歴を失わない） */}
             <div
               className="pane editor"
@@ -893,7 +925,10 @@ export default function App() {
                 noteKey={active.key}
                 value={active.content}
                 onChange={updateActiveContent}
-                onView={noteFind.onView}
+                onView={v => {
+                  editorViewRef.current = v
+                  noteFind.onView(v)
+                }}
                 settings={{ ...config.editor, dark: isDark }}
                 keys={config.hotkey}
               />
@@ -945,6 +980,16 @@ export default function App() {
                 {...(findTarget === 'EDITOR'
                   ? { onReplace: noteFind.replace, onReplaceAll: noteFind.replaceAll }
                   : {})}
+              />
+            )}
+            {config.preview.showToc && (
+              <TocPane
+                content={active.content}
+                minLevel={config.preview.tocMinLevel}
+                maxLevel={config.preview.tocMaxLevel}
+                onJump={jumpToLine}
+                onClose={() => setConfig(c => ({ ...c, preview: { ...c.preview, showToc: false } }))}
+                closeHint={displayCombo(config.hotkey.toggleToc)}
               />
             )}
           </div>

@@ -5,6 +5,9 @@
 /** インターフェースのテーマ。デスクトップ版の 9 種と、Web 版のこれまでの配色 */
 import { HOTKEYS, IS_MAC, JUMP_MODIFIERS, defaultBindings, defaultJumpModifier, formatCombo, parseCombo, problemOf } from './hotkeys.ts'
 import type { Bindings, JumpModifier } from './hotkeys.ts'
+import { MAX_LEVEL, MIN_LEVEL, normalizeLevelRange } from './markdown/headings.ts'
+
+export const TOC_LEVELS = Array.from({ length: MAX_LEVEL - MIN_LEVEL + 1 }, (_, i) => MIN_LEVEL + i)
 
 export const THEMES = {
   boostrecord: { label: 'BoostRecord', dark: true },
@@ -98,6 +101,11 @@ export interface Config {
     fontSize: number
     /** Markdown 中の改行でプレビューも改行する（markdown-it の breaks） */
     breaks: boolean
+    /** プレビューの右に目次を出す（デスクトップ版の preview.showToc） */
+    showToc: boolean
+    /** 目次に出す見出しのレベル（preview.tocMinLevel / tocMaxLevel） */
+    tocMinLevel: number
+    tocMaxLevel: number
   }
   /** ショートカット。設定の「ホットキー」で書き換える */
   hotkey: Bindings & { jumpModifier: JumpModifier }
@@ -118,7 +126,7 @@ export const DEFAULT_CONFIG: Config = {
     scrollPastEnd: false,
     dateFormatISO8601: false
   },
-  preview: { fontFamily: '', fontSize: 13, breaks: true },
+  preview: { fontFamily: '', fontSize: 13, breaks: true, showToc: true, tocMinLevel: 1, tocMaxLevel: 3 },
   hotkey: { ...defaultBindings(), jumpModifier: defaultJumpModifier(IS_MAC) }
 }
 
@@ -170,7 +178,9 @@ export function parseConfig(raw: string | null): Config {
     preview: {
       fontFamily: font(pv.fontFamily, d.preview.fontFamily),
       fontSize: size(pv.fontSize, d.preview.fontSize),
-      breaks: bool(pv.breaks, d.preview.breaks)
+      breaks: bool(pv.breaks, d.preview.breaks),
+      showToc: bool(pv.showToc, d.preview.showToc),
+      ...(({ min, max }) => ({ tocMinLevel: min, tocMaxLevel: max }))(normalizeLevelRange(pv.tocMinLevel, pv.tocMaxLevel))
     },
     hotkey: parseHotkeys(hk, d.hotkey)
   }

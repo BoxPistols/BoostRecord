@@ -1,7 +1,11 @@
-// 目次に出す見出しを本文から拾う。デスクトップ版の browser/lib/markdownHeadings.js と同じ規則。
+import type Token from 'markdown-it/lib/token.mjs'
+
+// 目次に出す見出しを拾う。デスクトップ版（browser/lib/markdownHeadings.js）と同じく行番号で飛ぶ。
+// 見出しの id は作り方が少しずれると静かに一致しなくなり、押しても何も起きない形で壊れる。
 //
-// ジャンプは見出しの id ではなく行番号で行う。id は作り方が少しずれると静かに一致しなくなり、
-// 押しても何も起きない形で壊れる。プレビューの見出しには data-line（元の行番号）を付けてある
+// 本文を自前の正規表現で読むと、プレビューと「どこが見出しか」が食い違う（字下げ・引用の中・
+// 下線の見出し・改行コード・フェンスの閉じ方など）。プレビューと同じ markdown-it の解析結果から
+// 拾い、プレビューの見出しに付けた data-line と同じ行番号を使う
 
 export const MIN_LEVEL = 1
 export const MAX_LEVEL = 6
@@ -12,11 +16,6 @@ export interface Heading {
   /** 0 始まり */
   line: number
 }
-
-// ATX 見出し。閉じの # は出さない
-const ATX = /^(#{1,6})\s+(.*?)\s*#*\s*$/
-// ``` または ~~~ のフェンス。同じ記号・同じ長さ以上で閉じる
-const FENCE = /^([ \t]*)(`{3,}|~{3,})(.*)$/
 
 function clampLevel(value: unknown, fallback: number) {
   const n = parseInt(String(value), 10)
@@ -31,39 +30,26 @@ export function normalizeLevelRange(min: unknown, max: unknown): { min: number; 
   return lo <= hi ? { min: lo, max: hi } : { min: hi, max: lo }
 }
 
-export function extractHeadings(content: string, options: { minLevel?: number; maxLevel?: number } = {}): Heading[] {
-  if (!content) return []
+/** 見出しに見えている文字。絵文字（:smile:）も見出しに出るので含める */
+export function headingText(inline: Token | undefined): string {
+  return (inline?.children ?? [])
+    .filter(t => t.type === 'text' || t.type === 'code_inline' || t.type === 'emoji')
+    .map(t => t.content)
+    .join('')
+    .trim()
+}
+
+/** md.parse() の結果から、設定のレベルの見出しを拾う */
+export function extractHeadings(tokens: Token[], options: { minLevel?: number; maxLevel?: number } = {}): Heading[] {
   const { min, max } = normalizeLevelRange(options.minLevel, options.maxLevel)
-  const lines = content.split('\n')
   const out: Heading[] = []
-  let fence: { marker: string; length: number } | null = null
-  // 先頭の front matter（--- で囲んだ部分）はプレビューに出ないので、その中の # も拾わない
-  let start = 0
-  if (lines[0] === '---') {
-    const end = lines.indexOf('---', 1)
-    if (end > 0) start = end + 1
-  }
-  for (let index = start; index < lines.length; index++) {
-    const line = lines[index]
-    const fenceMatch = FENCE.exec(line)
-    if (fenceMatch) {
-      const marker = fenceMatch[2][0]
-      const length = fenceMatch[2].length
-      // 情報文字列（```js など）が付くのは開くほうだけ
-      if (!fence) fence = { marker, length }
-      else if (marker === fence.marker && length >= fence.length) fence = null
-      continue
-    }
-    // フェンスの中の # は見出しではない（コード例でよく出る）
-    if (fence) continue
-    // 4 文字以上の字下げはコードブロック
-    if (/^( {4,}|\t)/.test(line)) continue
-    const m = ATX.exec(line)
-    if (!m) continue
-    const level = m[1].length
+  for (let i = 0; i < tokens.length; i++) {
+    const t = tokens[i]
+    if (t.type !== 'heading_open' || !t.map) continue
+    const level = Number(t.tag.slice(1))
     if (level < min || level > max) continue
-    const text = m[2].trim()
-    if (text) out.push({ level, text, line: index })
+    const text = headingText(tokens[i + 1])
+    if (text) out.push({ level, text, line: t.map[0] })
   }
   return out
 }

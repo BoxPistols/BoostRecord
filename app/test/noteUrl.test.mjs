@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import MarkdownIt from 'markdown-it'
-import { hashForNote, noteKeyFromHash, noteKeyFromLink, noteLink } from '../src/noteUrl.ts'
+import { hashForNote, noteKeyFromHash, noteKeyFromLegacyLink, noteKeyFromLink, noteLink } from '../src/noteUrl.ts'
 
 const hex20 = '1c211eb7dcb463de6490'
 const uuid = '7dd23275-f2b4-49cb-9e93-3454daf1af9c'
@@ -30,4 +30,10 @@ test('コピーするリンクは、題に ] があってもそのノートへ�
   const html = md.renderInline(link)
   assert.match(html, new RegExp(`href=":note:${web}"`))
   assert.match(html, />a \] b \[c\] \\<\/a>/)
+})
+
+test('旧 Boostnote の #ストレージキー-ノートキー からノートのキーを取る（デスクトップ版と同じ形だけ）', () => {
+  assert.equal(noteKeyFromLegacyLink('#877f99c3268608328037-1c211eb7dcb463de6490'), '1c211eb7dcb463de6490')
+  assert.equal(noteKeyFromLegacyLink('#877f99c3268608328037-1c211eb7'), null)
+  assert.equal(noteKeyFromLegacyLink('#fn1'), null)
 })

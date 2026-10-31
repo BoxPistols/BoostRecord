@@ -23,6 +23,14 @@ export function noteKeyFromLink(href: string): string | null {
   return LINK.exec(href)?.[1] ?? null
 }
 
+// 旧 Boostnote のリンク（#ストレージキー-ノートキー）。デスクトップ版（regexIsLegacyNoteLink）も開ける
+const LEGACY = /^#(.{20})-(.{20})$/
+
+/** `#ストレージキー-ノートキー` の古いリンクなら、ノートのキー */
+export function noteKeyFromLegacyLink(href: string): string | null {
+  return LEGACY.exec(href)?.[2] ?? null
+}
+
 /** デスクトップ版の「Copy Note Link」と同じ書式。ほかのノートに貼るとそのノートへのリンクになる */
 export function noteLink(note: Pick<Note, 'key' | 'title'>): string {
   // 題の ] と \ はリンクの文字を閉じてしまうので逃がす

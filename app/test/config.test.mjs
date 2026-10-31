@@ -63,3 +63,10 @@ test('デスクトップ版のテーマ名がすべて選べる', () => {
     assert.ok(t in THEMES, t)
   }
 })
+
+test('一覧の表示は 2 行か 1 行。知らない値は 2 行に戻す', () => {
+  assert.equal(DEFAULT_CONFIG.ui.listStyle, 'DEFAULT')
+  assert.equal(parseConfig('{"ui":{"listStyle":"SMALL"}}').ui.listStyle, 'SMALL')
+  assert.equal(parseConfig('{"ui":{"listStyle":"small"}}').ui.listStyle, 'DEFAULT')
+  assert.equal(parseConfig('{"ui":{"theme":"nord"}}').ui.listStyle, 'DEFAULT')
+})

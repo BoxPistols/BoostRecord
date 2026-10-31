@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import type { RefObject } from 'react'
 import { createMarkdown, renderMarkdown } from '../markdown/render'
-import { noteKeyFromLink } from '../noteUrl'
+import { noteKeyFromLegacyLink, noteKeyFromLink } from '../noteUrl'
 import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github-dark.css'
 
@@ -48,11 +48,12 @@ export function Preview({
         const target = e.target
         if (!(target instanceof Element)) return
         // ほかのノートへのリンク。そのままだとページの相対 URL として開いてしまう
-        const noteAnchor = target.closest('a[href^=":note:"]')
-        if (noteAnchor) {
+        const anchor = target.closest('a[href]')
+        const href = anchor?.getAttribute('href') ?? ''
+        const noteKey = noteKeyFromLink(href) ?? (href.startsWith('#') ? null : noteKeyFromLegacyLink(href))
+        if (anchor && (href.startsWith(':note:') || noteKey)) {
           e.preventDefault()
-          const key = noteKeyFromLink(noteAnchor.getAttribute('href')!)
-          if (key) onOpenNote?.(key)
+          if (noteKey) onOpenNote?.(noteKey)
           return
         }
         // 脚注や目次のページ内リンクは、アドレスを変えずにプレビューの中だけを動かす
@@ -65,7 +66,12 @@ export function Preview({
           // 同じものが無いときだけ大文字と小文字を区別せずに探す
           const dest =
             ids.find(el => el.id === id) ?? ids.find(el => el.id.toLowerCase() === id.toLowerCase())
-          dest?.scrollIntoView({ block: 'start' })
+          if (dest) dest.scrollIntoView({ block: 'start' })
+          else {
+            // ページ内に無ければ、旧 Boostnote のノートへのリンク（#ストレージキー-ノートキー）かもしれない
+            const legacy = noteKeyFromLegacyLink(link.getAttribute('href')!)
+            if (legacy) onOpenNote?.(legacy)
+          }
           return
         }
         const label = target.closest('label.task-label')

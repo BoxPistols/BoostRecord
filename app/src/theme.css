@@ -173,6 +173,8 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .detail { display: flex; flex-direction: column; min-width: 0; }
 .detail-head {
   display: flex; align-items: center; gap: 10px;
+  /* スマートフォンの幅で操作が入りきらないときは、横に送って届くようにする */
+  overflow-x: auto; scrollbar-width: thin;
   padding: 9px 14px; border-bottom: 1px solid var(--border); color: var(--muted);
 }
 .detail-head .folder { color: var(--fg); font-weight: 600; }
@@ -536,5 +538,7 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 @container detail (max-width: 640px) {
   .toc-pane { position: absolute; top: 0; right: 0; bottom: 0; width: 200px; z-index: 15; box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25); }
   .head-btn .head-label { display: none; }
+  /* 重ねた目次の上にノート内検索の欄が乗らないよう、目次の左へ寄せる */
+  .detail-body:has(> .toc-pane) .find-bar { right: 216px; }
 }
 .detail-body > .split { min-width: 0; }

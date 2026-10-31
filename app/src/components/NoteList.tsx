@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowUp, ChevronsLeft, Code, FileText, Plus } from 'lucide-react'
+import { ArrowDown, ArrowUp, ChevronsLeft, Code, FileText, List, Plus, Rows2 } from 'lucide-react'
 import { memo, useEffect, useMemo, useRef, useState } from 'react'
 import type { Note } from '../types'
 import { sortNotes, SORT_LABELS } from '../data/sort'
@@ -7,6 +7,7 @@ import { todoStatus } from '../markdown/taskList'
 import { TodoStatus } from './TodoStatus'
 import { displayCombo, isJumpModifierKey, jumpIndex, matches, recording } from '../hotkeys'
 import type { Bindings, JumpModifier } from '../hotkeys'
+import type { ListStyle } from '../config'
 
 const SORT_STORE = 'boostrecord_sort'
 
@@ -39,12 +40,16 @@ interface Props {
   onToggle: () => void
   /** 設定の「ホットキー」 */
   hotkey: Bindings & { jumpModifier: JumpModifier }
+  /** 2 行（題と日付）か 1 行（題だけ）か。デスクトップ版の Default / Compressed */
+  listStyle: ListStyle
+  onListStyleChange: (style: ListStyle) => void
 }
 
 // 修飾キーをこの時間押し続けたら番号を出す。⌃L などを押すたびに番号がちらつかないように
 const HOLD_MS = 300
 
-const ROW_H = 58 // fixed row height enables simple, fast windowing
+// 行の高さを固定して、見えている行だけを描く（2 行と 1 行で高さが違う）
+const ROW_HEIGHT: Record<ListStyle, number> = { DEFAULT: 58, SMALL: 30 }
 const OVERSCAN = 6
 
 function shortDate(iso: string) {
@@ -58,26 +63,31 @@ const NoteRow = memo(function NoteRow({
   note,
   active,
   top,
+  height,
+  small,
   onSelect,
   badge
 }: {
   note: Note
   active: boolean
   top: number
+  height: number
+  /** 1 行の表示。題の右に日付だけを小さく出す */
+  small: boolean
   onSelect: (key: string) => void
   /** 修飾キーを押し続けている間に出す番号（押すとこのノートへ飛ぶ） */
   badge?: string
 }) {
-  const status = useMemo(() => todoStatus(note.content), [note.content])
+  const status = useMemo(() => (small ? null : todoStatus(note.content)), [note.content, small])
   return (
     <div
-      className={`note-row ${active ? 'active' : ''}`}
+      className={`note-row ${small ? 'small' : ''} ${active ? 'active' : ''}`}
       style={{
         position: 'absolute',
         top,
         left: 0,
         right: 0,
-        height: ROW_H
+        height
       }}
       onClick={() => onSelect(note.key)}
     >
@@ -92,13 +102,16 @@ const NoteRow = memo(function NoteRow({
         ) : (
           <FileText className="ic" size={14} role="img" aria-label="Markdown ノート" />
         )}
-        {note.title || '無題'}
+        <span className="note-title-text">{note.title || '無題'}</span>
+        {small && <span className="note-date">{shortDate(note.updatedAt)}</span>}
       </div>
-      <div className="note-meta">
-        {shortDate(note.updatedAt)}
-        {note.tags.length > 0 && ` · ${note.tags.map(t => `#${t}`).join(' ')}`}
-        <TodoStatus {...status} />
-      </div>
+      {status && (
+        <div className="note-meta">
+          {shortDate(note.updatedAt)}
+          {note.tags.length > 0 && ` · ${note.tags.map(t => `#${t}`).join(' ')}`}
+          <TodoStatus {...status} />
+        </div>
+      )}
     </div>
   )
 })
@@ -118,8 +131,11 @@ export function NoteList({
   folded = false,
   hidden = false,
   onToggle,
-  hotkey
+  hotkey,
+  listStyle,
+  onListStyleChange
 }: Props) {
+  const rowH = ROW_HEIGHT[listStyle]
   const [sort, setSort] = useState(loadSort)
   const sorted = useMemo(
     () => sortNotes(notes, sort.key, sort.dir),
@@ -141,8 +157,8 @@ export function NoteList({
   const [viewport, setViewport] = useState(800)
 
   // キー入力の処理は付け直さず、いつも今の値を見る
-  const latest = useRef({ hotkey, sorted, activeKey, onSelect, hidden, scrollTop })
-  latest.current = { hotkey, sorted, activeKey, onSelect, hidden, scrollTop }
+  const latest = useRef({ hotkey, sorted, activeKey, onSelect, hidden, scrollTop, rowH })
+  latest.current = { hotkey, sorted, activeKey, onSelect, hidden, scrollTop, rowH }
   const [showBadges, setShowBadges] = useState(false)
 
   useEffect(() => {
@@ -156,13 +172,14 @@ export function NoteList({
     const reveal = (index: number) => {
       const el = scrollRef.current
       if (!el) return
-      const top = index * ROW_H
+      const h = latest.current.rowH
+      const top = index * h
       if (top < el.scrollTop) el.scrollTop = top
-      else if (top + ROW_H > el.scrollTop + el.clientHeight) el.scrollTop = top + ROW_H - el.clientHeight
+      else if (top + h > el.scrollTop + el.clientHeight) el.scrollTop = top + h - el.clientHeight
     }
     const onKey = (e: KeyboardEvent) => {
       if (recording.active) return
-      const { hotkey: k, sorted: list, activeKey: current, onSelect: select, hidden: off, scrollTop: st } = latest.current
+      const { hotkey: k, sorted: list, activeKey: current, onSelect: select, hidden: off, scrollTop: st, rowH: h } = latest.current
       if (isJumpModifierKey(e, k.jumpModifier)) {
         if (!e.repeat && !timer) timer = setTimeout(() => setShowBadges(true), HOLD_MS)
         return
@@ -171,7 +188,7 @@ export function NoteList({
       // 番号は上から見えている順。1〜9 が 1〜9 番目、0 が 10 番目
       const n = off ? null : jumpIndex(e, k.jumpModifier)
       if (n !== null) {
-        const index = Math.ceil(st / ROW_H) + n
+        const index = Math.ceil(st / h) + n
         if (list[index]) {
           e.preventDefault()
           e.stopPropagation()
@@ -233,10 +250,10 @@ export function NoteList({
   }, [])
 
   const total = sorted.length
-  const start = Math.max(0, Math.floor(scrollTop / ROW_H) - OVERSCAN)
-  const end = Math.min(total, Math.ceil((scrollTop + viewport) / ROW_H) + OVERSCAN)
+  const start = Math.max(0, Math.floor(scrollTop / rowH) - OVERSCAN)
+  const end = Math.min(total, Math.ceil((scrollTop + viewport) / rowH) + OVERSCAN)
   const windowed = sorted.slice(start, end)
-  const firstVisible = Math.ceil(scrollTop / ROW_H)
+  const firstVisible = Math.ceil(scrollTop / rowH)
 
   return (
     <section
@@ -281,6 +298,24 @@ export function NoteList({
                 <ArrowDown size={13} aria-hidden />
               )}
             </button>
+            <span className="list-style" role="group" aria-label="一覧の表示">
+              <button
+                className={`sort-dir ${listStyle === 'DEFAULT' ? 'active' : ''}`}
+                onClick={() => onListStyleChange('DEFAULT')}
+                title="2 行で表示（題と日付・タグ）"
+                aria-pressed={listStyle === 'DEFAULT'}
+              >
+                <Rows2 size={13} aria-hidden />
+              </button>
+              <button
+                className={`sort-dir ${listStyle === 'SMALL' ? 'active' : ''}`}
+                onClick={() => onListStyleChange('SMALL')}
+                title="1 行で表示（題だけ）"
+                aria-pressed={listStyle === 'SMALL'}
+              >
+                <List size={13} aria-hidden />
+              </button>
+            </span>
           </>
         )}
         <span className="sort" style={{ marginLeft: 'auto' }}>
@@ -302,7 +337,7 @@ export function NoteList({
         ref={scrollRef}
         onScroll={e => setScrollTop(e.currentTarget.scrollTop)}
       >
-        <div style={{ height: total * ROW_H, position: 'relative' }}>
+        <div style={{ height: total * rowH, position: 'relative' }}>
           {windowed.map((note, idx) => {
             const i = start + idx
             return (
@@ -310,7 +345,9 @@ export function NoteList({
                 key={note.key}
                 note={note}
                 active={note.key === activeKey}
-                top={i * ROW_H}
+                top={i * rowH}
+                height={rowH}
+                small={listStyle === 'SMALL'}
                 onSelect={onSelect}
                 badge={showBadges ? badgeOf(i - firstVisible) : undefined}
               />

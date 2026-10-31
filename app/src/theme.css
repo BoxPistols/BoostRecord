@@ -167,6 +167,15 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 }
 .note-title .ic { color: var(--faint); flex: none; }
 .note-row.active .note-title .ic { color: var(--on-accent); }
+.note-title-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+/* 1 行の表示。題の右に日付だけを小さく出す（デスクトップ版の Compressed View） */
+.note-row.small { padding: 0 14px; display: flex; align-items: center; }
+.note-row.small .note-title { flex: 1; min-width: 0; }
+.note-date { flex: none; color: var(--muted); font-size: 11px; }
+.note-row.active .note-date { color: var(--on-accent); }
+.list-style { display: inline-flex; }
+.list-style .sort-dir + .sort-dir { margin-left: 2px; }
+.sort-dir.active { color: var(--fg); background: var(--hover); border-color: var(--accent); }
 .note-meta { color: var(--muted); font-size: 11px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* ---- Detail (editor + preview) --------------------------------------- */

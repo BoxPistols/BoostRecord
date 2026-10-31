@@ -85,7 +85,8 @@ const PALETTES: Record<ThemeName, Tokens> = {
 }
 
 export interface Config {
-  ui: { theme: ThemeName }
+  /** listStyle はノート一覧の表示。DEFAULT は題と日付の 2 行、SMALL は題だけの 1 行（デスクトップ版の listStyle） */
+  ui: { theme: ThemeName; listStyle: ListStyle }
   editor: {
     fontFamily: string
     fontSize: number
@@ -111,12 +112,14 @@ export interface Config {
   hotkey: Bindings & { jumpModifier: JumpModifier }
 }
 
+export type ListStyle = 'DEFAULT' | 'SMALL'
+
 export const FONT_SIZE = { min: 8, max: 32 }
 export const INDENT_SIZES = [1, 2, 4, 8] as const
 
 // 見た目はこれまでの Web 版のまま。フォントは空なら OS の既定（等幅 / 本文）
 export const DEFAULT_CONFIG: Config = {
-  ui: { theme: 'boostrecord' },
+  ui: { theme: 'boostrecord', listStyle: 'DEFAULT' },
   editor: {
     fontFamily: '',
     fontSize: 13,
@@ -162,7 +165,8 @@ export function parseConfig(raw: string | null): Config {
     ui: {
       // in だと constructor など継承したキーも通るので、自前のキーだけを見る
       theme:
-        typeof ui.theme === 'string' && Object.hasOwn(THEMES, ui.theme) ? (ui.theme as ThemeName) : d.ui.theme
+        typeof ui.theme === 'string' && Object.hasOwn(THEMES, ui.theme) ? (ui.theme as ThemeName) : d.ui.theme,
+      listStyle: ui.listStyle === 'SMALL' || ui.listStyle === 'DEFAULT' ? ui.listStyle : d.ui.listStyle
     },
     editor: {
       fontFamily: font(ed.fontFamily, d.editor.fontFamily),

@@ -773,6 +773,8 @@ export default function App() {
         hidden={layout.listMode === 'HIDDEN'}
         onToggle={cycleList}
         hotkey={config.hotkey}
+        listStyle={config.ui.listStyle}
+        onListStyleChange={listStyle => setConfig(c => ({ ...c, ui: { ...c.ui, listStyle } }))}
       />
       {layout.listMode !== 'HIDDEN' && (
         <Splitter

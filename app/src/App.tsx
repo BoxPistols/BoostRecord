@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import type { Note, Selection, Storage } from './types'
 import { canSwitchBrowserStorage, createRepository } from './data/repository'
+import { FOLDER_COLORS } from './data/folders'
 import { getStorageMode, setStorageMode } from './data/storageMode'
 import type { StorageMode } from './data/storageMode'
 import { filterByQuery } from './data/search'
@@ -455,6 +456,34 @@ export default function App() {
     if (next) setActiveKey(next.key)
   }
 
+  /** フォルダを作る・名前を変えたあと、そのストレージだけを差し替える */
+  function adoptFolders(storage: Storage) {
+    setStorages(list => list.map(s => (s.key === storage.key ? storage : s)))
+  }
+
+  async function handleCreateFolder(storage: string, name: string): Promise<string | null> {
+    try {
+      // デスクトップ版と同じく、色は 12 色から選ぶ（あとで変えられる）
+      const color = FOLDER_COLORS[Math.floor(Math.random() * FOLDER_COLORS.length)]
+      const res = await repository.createFolder!(storage, { name, color })
+      adoptFolders(res.storage)
+      // 作ったフォルダを開き、そのまま新規ノートを作れるようにする
+      setSelection({ kind: 'folder', value: `${storage}|${res.key}` })
+      return null
+    } catch (e) {
+      return e instanceof Error ? e.message : String(e)
+    }
+  }
+
+  async function handleRenameFolder(storage: string, folder: string, name: string): Promise<string | null> {
+    try {
+      adoptFolders((await repository.renameFolder!(storage, folder, name)).storage)
+      return null
+    } catch (e) {
+      return e instanceof Error ? e.message : String(e)
+    }
+  }
+
   /** キーでノートを開く（本文の :note: リンク、ブラウザの戻る・進む）。今の一覧に無ければ、出る面に切り替える */
   function openNote(key: string) {
     const note = notes.find(n => n.key === key)
@@ -737,6 +766,8 @@ export default function App() {
             canArchive ? () => archiveInput.current?.click() : undefined
           }
           onExportArchive={canArchive ? handleExportArchive : undefined}
+          onCreateFolder={repository.createFolder ? handleCreateFolder : undefined}
+          onRenameFolder={repository.renameFolder ? handleRenameFolder : undefined}
           onExport={scope => setExportScope(scope ?? selectionScope())}
         />
       )}

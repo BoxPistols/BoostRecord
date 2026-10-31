@@ -1,5 +1,8 @@
+import { useEffect, useRef, useState } from 'react'
 import {
   ChevronDown,
+  FolderPlus,
+  Pencil,
   ChevronsLeft,
   Download,
   FileDown,
@@ -35,6 +38,10 @@ interface Props {
   onExportArchive?: () => void
   /** エクスポートのダイアログを開く。範囲を渡さなければ、選んでいるフォルダ・タグ（無ければすべて） */
   onExport?: (scope?: ExportScope) => void
+  /** フォルダを作る。失敗したら理由を返す（入力欄に出す） */
+  onCreateFolder?: (storage: string, name: string) => Promise<string | null>
+  /** フォルダの名前を変える。失敗したら理由を返す */
+  onRenameFolder?: (storage: string, folder: string, name: string) => Promise<string | null>
   /** 畳んだ表示（アイコンだけ）。名前は title で出す */
   folded?: boolean
   width: number
@@ -54,6 +61,8 @@ export function Sidebar({
   onImportArchive,
   onExportArchive,
   onExport,
+  onCreateFolder,
+  onRenameFolder,
   folded = false,
   width,
   onToggle,
@@ -74,6 +83,13 @@ export function Sidebar({
   const isFolder = (key: string) =>
     selection.kind === 'folder' && selection.value === key
   const isTag = (t: string) => selection.kind === 'tag' && selection.value === t
+
+  // 名前を入れている欄。folder が無ければ新しいフォルダ
+  const [editing, setEditing] = useState<{ storage: string; folder?: string } | null>(null)
+  // フォルダの右クリックのメニュー
+  const [menu, setMenu] = useState<{ x: number; y: number; storage: string; folder: string } | null>(null)
+  const isEditing = (storage: string, folder?: string) =>
+    editing?.storage === storage && editing.folder === folder
 
   return (
     <nav
@@ -116,22 +132,45 @@ export function Sidebar({
             <div className="side-storage" title={storage.name}>
               <ChevronDown className="icon" size={14} aria-hidden />
               <span className="side-label">{storage.name}</span>
+              {onCreateFolder && (
+                <button
+                  className="side-storage-add"
+                  onClick={() => setEditing({ storage: storage.key })}
+                  title="フォルダを作る"
+                  aria-label={`${storage.name} にフォルダを作る`}
+                >
+                  <FolderPlus size={14} aria-hidden />
+                </button>
+              )}
             </div>
           )}
           {storage.folders.map(folder => {
             const key = `${storage.key}|${folder.key}`
+            if (!folded && onRenameFolder && isEditing(storage.key, folder.key)) {
+              return (
+                <FolderNameInput
+                  key={folder.key}
+                  color={folder.color}
+                  initial={folder.name}
+                  label={`「${folder.name}」の新しい名前`}
+                  onSubmit={name => onRenameFolder(storage.key, folder.key, name)}
+                  onDone={() => setEditing(null)}
+                />
+              )
+            }
             return (
               <div
                 key={folder.key}
                 className={`side-item ${isFolder(key) ? 'active' : ''}`}
                 onClick={() => onSelect({ kind: 'folder', value: key })}
-                // デスクトップ版と同じく、右クリックでそのフォルダを書き出せる
+                // デスクトップ版と同じく、右クリックで名前の変更と書き出しを選べる
                 onContextMenu={
-                  onExport &&
-                  (e => {
-                    e.preventDefault()
-                    onExport({ kind: 'folder', storage: storage.key, folder: folder.key })
-                  })
+                  onExport || onRenameFolder
+                    ? e => {
+                        e.preventDefault()
+                        setMenu({ x: e.clientX, y: e.clientY, storage: storage.key, folder: folder.key })
+                      }
+                    : undefined
                 }
                 title={`${storage.name} / ${folder.name} (${folderCount(storage.key, folder.key)})`}
               >
@@ -147,8 +186,31 @@ export function Sidebar({
               </div>
             )
           })}
+          {!folded && onCreateFolder && isEditing(storage.key) && (
+            <FolderNameInput
+              initial=""
+              label="新しいフォルダの名前"
+              placeholder="フォルダ名（/ で区切ると子フォルダ）"
+              onSubmit={name => onCreateFolder(storage.key, name)}
+              onDone={() => setEditing(null)}
+            />
+          )}
         </div>
       ))}
+      {menu && (
+        <FolderMenu x={menu.x} y={menu.y} onClose={() => setMenu(null)}>
+          {onRenameFolder && (
+            <button role="menuitem" onClick={() => { setMenu(null); setEditing({ storage: menu.storage, folder: menu.folder }) }}>
+              <Pencil className="icon" size={13} aria-hidden /> 名前を変える
+            </button>
+          )}
+          {onExport && (
+            <button role="menuitem" onClick={() => { setMenu(null); onExport({ kind: 'folder', storage: menu.storage, folder: menu.folder }) }}>
+              <FileDown className="icon" size={13} aria-hidden /> エクスポート
+            </button>
+          )}
+        </FolderMenu>
+      )}
 
       {!folded && tags.length > 0 && (
         <div className="side-section">
@@ -230,5 +292,112 @@ export function Sidebar({
         <ChevronsLeft size={16} aria-hidden />
       </button>
     </nav>
+  )
+}
+
+/**
+ * フォルダ名を入れる欄。Enter で決め、Esc でやめる。欄から外れたときは、変えていれば決め、
+ * 変えていなければやめる。決められなかったら理由を出して欄を残す
+ */
+function FolderNameInput({
+  initial,
+  label,
+  placeholder,
+  color,
+  onSubmit,
+  onDone
+}: {
+  initial: string
+  label: string
+  placeholder?: string
+  color?: string
+  onSubmit: (name: string) => Promise<string | null>
+  onDone: () => void
+}) {
+  const [value, setValue] = useState(initial)
+  const [error, setError] = useState<string | null>(null)
+  const busy = useRef(false)
+  const input = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    input.current?.focus()
+    input.current?.select()
+  }, [])
+
+  async function submit() {
+    if (busy.current) return
+    if (value.trim() === initial.trim()) return onDone()
+    busy.current = true
+    const err = await onSubmit(value)
+    busy.current = false
+    if (err) {
+      setError(err)
+      input.current?.focus()
+    } else onDone()
+  }
+
+  return (
+    <div className="side-item folder-edit">
+      <span className="dot" style={{ background: color ?? 'var(--muted)' }} />
+      <div className="folder-edit-body">
+        <input
+          ref={input}
+          value={value}
+          aria-label={label}
+          aria-invalid={!!error}
+          placeholder={placeholder}
+          onChange={e => {
+            setValue(e.target.value)
+            setError(null)
+          }}
+          onKeyDown={e => {
+            // 日本語の変換を決める Enter では決めない
+            if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+              e.preventDefault()
+              submit()
+            } else if (e.key === 'Escape') {
+              e.preventDefault()
+              onDone()
+            }
+          }}
+          onBlur={() => {
+            if (!value.trim()) onDone()
+            else if (!error) submit()
+          }}
+        />
+        {error && <div className="folder-edit-error" role="alert">{error}</div>}
+      </div>
+    </div>
+  )
+}
+
+/** 右クリックの位置に出すメニュー。外を押す・Esc・スクロールで閉じる */
+function FolderMenu({ x, y, onClose, children }: { x: number; y: number; onClose: () => void; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    ref.current?.querySelector('button')?.focus()
+    const close = (e: Event) => {
+      if (e instanceof KeyboardEvent && e.key !== 'Escape') return
+      if (e.type === 'pointerdown' && ref.current?.contains(e.target as Node)) return
+      onClose()
+    }
+    window.addEventListener('pointerdown', close, true)
+    window.addEventListener('keydown', close, true)
+    window.addEventListener('resize', close)
+    window.addEventListener('scroll', close, true)
+    return () => {
+      window.removeEventListener('pointerdown', close, true)
+      window.removeEventListener('keydown', close, true)
+      window.removeEventListener('resize', close)
+      window.removeEventListener('scroll', close, true)
+    }
+  }, [onClose])
+  // 画面の端からはみ出さないように寄せる
+  const left = Math.min(x, window.innerWidth - 180)
+  const top = Math.min(y, window.innerHeight - 90)
+  return (
+    <div ref={ref} className="folder-menu" role="menu" style={{ left, top }}>
+      {children}
+    </div>
   )
 }

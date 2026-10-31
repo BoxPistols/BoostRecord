@@ -95,6 +95,33 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 }
 .side-storage { display: flex; align-items: center; gap: 4px; padding: 8px 14px 2px; color: var(--fg); font-weight: 600; min-width: 0; }
 .side-storage .icon { color: var(--muted); }
+.side-storage-add {
+  margin-left: auto; flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; padding: 0; color: var(--muted); background: transparent;
+  border: 0; border-radius: var(--radius); cursor: pointer;
+}
+.side-storage-add:hover, .side-storage-add:focus-visible { color: var(--fg); background: var(--hover); }
+.folder-edit { cursor: default; align-items: flex-start; }
+.folder-edit .dot { margin-top: 8px; }
+.folder-edit-body { flex: 1; min-width: 0; }
+.folder-edit input {
+  width: 100%; font: inherit; font-size: 13px; padding: 2px 6px; color: var(--fg);
+  background: var(--bg-elev); border: 1px solid var(--accent); border-radius: var(--radius);
+}
+.folder-edit input:focus { outline: none; }
+.folder-edit input[aria-invalid="true"] { border-color: #ef4444; }
+.folder-edit-error { color: #ef4444; font-size: 11px; margin-top: 3px; white-space: normal; }
+.folder-menu {
+  position: fixed; z-index: 50; min-width: 160px; padding: 4px;
+  background: var(--bg-elev); border: 1px solid var(--border); border-radius: var(--radius);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); display: grid;
+}
+.folder-menu button {
+  display: flex; align-items: center; gap: 8px; text-align: left; font: inherit; font-size: 13px;
+  padding: 6px 10px; color: var(--fg); background: transparent; border: 0; border-radius: var(--radius); cursor: pointer;
+}
+.folder-menu button:hover, .folder-menu button:focus-visible { background: var(--hover); outline: none; }
+.folder-menu .icon { color: var(--muted); }
 .side-item .icon { color: var(--muted); }
 .side-item.active .icon { color: var(--fg); }
 .tag-chip {

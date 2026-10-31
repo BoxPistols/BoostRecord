@@ -256,6 +256,9 @@ export default function App() {
   function scheduleSave(note: Note) {
     if (!repository.saveNote) return
     if (saveTimer.current) clearTimeout(saveTimer.current)
+    // 別のノートの保存を待っていたら、それは今すぐ書く（まとめると前のノートの編集が消える）
+    const prev = pendingSave.current
+    if (prev && (prev.key !== note.key || prev.storage !== note.storage)) persist(prev)
     pendingSave.current = note
     saveTimer.current = setTimeout(() => {
       pendingSave.current = null

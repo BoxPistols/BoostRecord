@@ -315,6 +315,18 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
 .preview > :first-child { margin-top: 0; }
 .preview h1, .preview h2, .preview h3 { border-bottom: 1px solid var(--border); padding-bottom: 4px; font-weight: 600; }
 .preview a { color: var(--link); }
+/* 画像はプレビューの幅に収める（縦横比は保つ）。押すと拡大する（デスクトップ版と同じ） */
+.preview img { max-width: 100%; height: auto; cursor: zoom-in; }
+.preview a img, .preview img.attachment-missing { cursor: inherit; }
+/* 続けて並べた画像は横に並べ、狭いときは折り返す（デスクトップ版の imageRow） */
+.preview p.image-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-start; }
+.preview p.image-row br { display: none; }
+.preview p.image-row img { flex: 1 1 0; min-width: 140px; object-fit: contain; }
+.preview p.image-row img[width] { flex: 0 1 auto; }
+.preview p.image-row a { flex: 1 1 0; min-width: 140px; }
+.preview p.image-row a img { width: 100%; }
+/* 開けない添付は、代替テキストを枠で囲んで見せる */
+.preview img.attachment-missing { display: inline-block; padding: 2px 6px; border: 1px dashed var(--muted); border-radius: var(--radius); color: var(--muted); font-size: 12px; }
 .preview pre { background: var(--bg-elev); padding: 10px 12px; border-radius: var(--radius); overflow: auto; }
 .preview code { background: var(--bg-elev); padding: 1px 5px; border-radius: 4px; font-family: 'SFMono-Regular', Menlo, monospace; }
 .preview pre code { background: none; padding: 0; }
@@ -596,3 +608,39 @@ body.is-resizing .preview, body.is-resizing .cm-editor { pointer-events: none; }
   .detail-body:has(> .toc-pane) .find-bar { right: 216px; }
 }
 .detail-body > .split { min-width: 0; }
+
+/* ---- 画像の拡大（デスクトップ版の imageLightbox と同じ見た目。テーマによらず暗い地） ---- */
+.lightbox {
+  position: fixed; inset: 0; z-index: 100; display: grid; grid-template-rows: 56px minmax(0, 1fr) auto;
+  background: rgba(14, 15, 18, 0.86); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  color: rgba(255, 255, 255, 0.92); cursor: zoom-out; outline: none; user-select: none;
+}
+.lightbox-bar { display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 20px; }
+.lightbox-counter { font-size: 13px; font-variant-numeric: tabular-nums; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.72); }
+.lightbox-stage { position: relative; display: flex; align-items: center; justify-content: center; min-height: 0; padding: 0 76px 16px; }
+.lightbox-image { display: block; max-width: 100%; max-height: 100%; object-fit: contain; cursor: default; box-shadow: 0 8px 40px rgba(0, 0, 0, 0.45); }
+.lightbox-button {
+  display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0;
+  border: none; border-radius: 50%; background: rgba(255, 255, 255, 0.08); color: inherit; cursor: pointer;
+}
+.lightbox-button:hover { background: rgba(255, 255, 255, 0.18); }
+.lightbox-button:focus-visible, .lightbox-thumb:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.9); outline-offset: 2px; }
+.lightbox-prev, .lightbox-next { position: absolute; top: 50%; margin-top: -30px; }
+.lightbox-prev { left: 16px; }
+.lightbox-next { right: 16px; }
+.lightbox-thumbs {
+  display: flex; gap: 8px; justify-content: safe center; overflow-x: auto;
+  padding: 12px 16px 16px; background: rgba(0, 0, 0, 0.28); scrollbar-width: thin; cursor: default;
+}
+.lightbox-thumb {
+  flex: 0 0 auto; width: 72px; height: 52px; padding: 0; border: none; border-radius: 4px;
+  background: none; cursor: pointer; opacity: 0.45;
+}
+.lightbox-thumb:hover { opacity: 0.8; }
+.lightbox-thumb[aria-current="true"] { opacity: 1; outline: 2px solid rgba(255, 255, 255, 0.9); outline-offset: 2px; }
+.lightbox-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+@media (max-width: 640px) {
+  .lightbox-stage { padding: 0 8px 12px; }
+  .lightbox-prev { left: 4px; }
+  .lightbox-next { right: 4px; }
+}

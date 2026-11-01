@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import type { RefObject } from 'react'
 import { createMarkdown, renderMarkdown } from '../markdown/render'
 import { noteKeyFromLegacyLink, noteKeyFromLink } from '../noteUrl'
+import { attachmentPath, attachmentUrlKind } from '../data/attachments'
+import { markImageRows } from '../markdown/imageRows'
+import { ImageLightbox, type LightboxImage } from './ImageLightbox'
 import 'katex/dist/katex.min.css'
 import 'highlight.js/styles/github-dark.css'
 
@@ -17,9 +20,15 @@ export function Preview({
   rootRef,
   breaks = true,
   onToggleTask,
-  onOpenNote
+  onOpenNote,
+  readAttachment
 }: {
   content: string
+  /**
+   * 添付ファイル（`:storage/ノートのキー/ファイル名`）を読む。読めるストレージのときだけ渡す。
+   * ストレージが変わったら別の関数を渡すこと（読んだものを捨てて読み直す）
+   */
+  readAttachment?: (path: string[]) => Promise<Blob>
   /** チェックボックスを押したとき。引数は元の Markdown の行番号（0 始まり） */
   onToggleTask?: (line: number) => void
   /** `[題](:note:キー)` のリンクを押したとき（デスクトップ版の「Copy Note Link」で作るリンク） */
@@ -32,21 +41,79 @@ export function Preview({
   const own = useRef<HTMLDivElement>(null)
   const host = rootRef ?? own
   const md = useMemo(() => createMarkdown(breaks), [breaks])
+  // 読んだ添付の blob: URL。入力のたびに描き直すので、同じファイルは読み直さない
+  const urls = useRef(new Map<string, Promise<string | null>>())
+  const [lightbox, setLightbox] = useState<{ images: LightboxImage[]; index: number } | null>(null)
+
+  // ストレージが変わったら（関数が変わったら）、作った URL を捨てる
+  useEffect(() => {
+    const cache = urls.current
+    return () => {
+      for (const p of cache.values()) p.then(u => u?.startsWith('blob:') && URL.revokeObjectURL(u))
+      cache.clear()
+    }
+  }, [readAttachment])
 
   useEffect(() => {
     if (!host.current) return
     const clean = renderMarkdown(md, content)
     const frag = document.createRange().createContextualFragment(clean)
+    // :storage の参照は、ページの中に入れる前に外す。そのままだとこのサイトの
+    // /:storage/... を取りに行ってしまう
+    const pending = takeAttachments(frag)
+    markImageRows(frag)
     host.current.replaceChildren(frag)
-  }, [content, md, host])
+    for (const { el, path } of pending) {
+      const id = path.join('/')
+      const purpose = el instanceof HTMLImageElement ? 'image' : 'file'
+      // 同じファイルでも、画像として出すときと保存させるときで URL の作り方が違う
+      const cacheKey = `${purpose}:${id}`
+      let url = urls.current.get(cacheKey)
+      if (!url) {
+        url = readAttachment
+          ? readAttachment(path).then(
+              blob => attachmentUrl(blob, path[path.length - 1], purpose),
+              () => null
+            )
+          : Promise.resolve(null)
+        urls.current.set(cacheKey, url)
+      }
+      url.then(u => {
+        // 読めなかったものは覚えない。あとから置いたファイルも次の描き直しで出る
+        if (!u && urls.current.get(cacheKey) === url) urls.current.delete(cacheKey)
+        // 読み終わる前に描き直したら、古い要素には付けない
+        if (!el.isConnected) return
+        if (!u) {
+          el.classList.add('attachment-missing')
+          el.setAttribute('title', `添付ファイルを開けません: ${id}`)
+        } else if (el instanceof HTMLImageElement) {
+          el.src = u
+        } else {
+          // 新しいタブでは開かずに保存する。SVG などをこのサイトの中で開かせない
+          el.setAttribute('href', u)
+          el.setAttribute('download', path[path.length - 1])
+        }
+      })
+    }
+  }, [content, md, host, readAttachment])
 
   return (
+    <>
     <div
       ref={host}
       className="pane preview"
       onClick={e => {
         const target = e.target
         if (!(target instanceof Element)) return
+        // 画像を押すと拡大する（デスクトップ版と同じ）。リンクの中の画像はリンクとして開く
+        if (target instanceof HTMLImageElement && host.current) {
+          const images = zoomableImages(host.current)
+          const index = images.indexOf(target)
+          if (index >= 0) {
+            setLightbox({ images: images.map(img => ({ src: img.currentSrc || img.src, alt: img.alt })), index })
+            return
+          }
+        }
         // ほかのノートへのリンク。そのままだとページの相対 URL として開いてしまう
         const anchor = target.closest('a[href]')
         const href = anchor?.getAttribute('href') ?? ''
@@ -83,5 +150,43 @@ export function Preview({
         if (onToggleTask && Number.isInteger(line)) onToggleTask(line)
       }}
     />
+    {lightbox && (
+      <ImageLightbox images={lightbox.images} start={lightbox.index} onClose={() => setLightbox(null)} />
+    )}
+    </>
   )
+}
+
+/** 添付を指す img と a から参照を外し、あとで差し込む先として返す */
+function takeAttachments(root: DocumentFragment) {
+  const out: { el: HTMLElement; path: string[] }[] = []
+  for (const el of root.querySelectorAll<HTMLElement>('img[src], a[href]')) {
+    const attr = el instanceof HTMLImageElement ? 'src' : 'href'
+    const path = attachmentPath(el.getAttribute(attr) ?? '')
+    if (!path) continue
+    el.removeAttribute(attr)
+    el.classList.add('attachment')
+    out.push({ el, path })
+  }
+  return out
+}
+
+/** 拡大できる画像（読み込めたもの。リンクの中のものは除く）を並び順で */
+function zoomableImages(root: HTMLElement) {
+  return Array.from(root.querySelectorAll('img')).filter(img => img.naturalWidth > 0 && !img.closest('a[href]'))
+}
+
+/** 読んだ添付を、種類に合わせた URL にする（attachmentUrlKind を参照） */
+async function attachmentUrl(blob: Blob, name: string, purpose: 'image' | 'file'): Promise<string> {
+  const how = attachmentUrlKind(name, purpose)
+  if (how.kind === 'svg') {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result))
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(new Blob([blob], { type: 'image/svg+xml' }))
+    })
+  }
+  const type = how.kind === 'raster' ? how.type : 'application/octet-stream'
+  return URL.createObjectURL(new Blob([blob], { type }))
 }

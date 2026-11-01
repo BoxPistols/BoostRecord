@@ -38,6 +38,8 @@ export interface NotesRepository {
   createFolder?(storage: string, input: { name: string; color: string }): Promise<FolderChange>
   /** フォルダの名前を変える（ブラウザのとき）。子孫のフォルダも付け替える */
   renameFolder?(storage: string, folder: string, name: string): Promise<FolderChange>
+  /** 添付ファイルを読む（ブラウザのとき）。path は attachments/ からの区切りごとの配列 */
+  readAttachment?(storage: string, path: string[]): Promise<Blob>
 }
 
 // Deterministic (no Math.random) generator so the list reaches realistic

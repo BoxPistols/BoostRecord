@@ -727,6 +727,20 @@ export default function App() {
     }
   }
 
+  // 開いているノートのストレージの添付を読む。保存先の切り替え・フォルダの選び直しで作り直す
+  // （プレビューが読んだものを捨てる）。repository は作り直しても再描画されないので、変わるときに一緒に変わる値で見る
+  const activeStorage = active?.storage
+  const readAttachment = useMemo(
+    () => {
+      const repo = repository
+      return repo.readAttachment && activeStorage
+        ? (path: string[]) => repo.readAttachment!(activeStorage, path)
+        : undefined
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- storageMode と storages は repository を差し替えたしるし
+    [storageMode, storages, activeStorage]
+  )
+
   const activeFolders = active
     ? (storages.find(s => s.key === active.storage)?.folders ?? [])
     : []
@@ -1036,6 +1050,7 @@ export default function App() {
                 rootRef={previewRef}
                 breaks={config.preview.breaks}
                 onOpenNote={openNote}
+                readAttachment={readAttachment}
                 onToggleTask={
                   active.isTrashed
                     ? undefined

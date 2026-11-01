@@ -10,8 +10,8 @@ import 'highlight.js/styles/github-dark.css'
 
 /**
  * Markdown preview. Reuses the legacy app's pipeline (markdown-it) but renders
- * safely: raw HTML is disabled, output is sanitized with DOMPurify and injected
- * via a parsed fragment + replaceChildren (no innerHTML). LaTeX math ($…$ and
+ * safely: raw HTML is disabled, output is sanitized with DOMPurify, parsed in an
+ * inert document (DOMParser) and moved in with replaceChildren (no innerHTML). LaTeX math ($…$ and
  * $$…$$) is rendered with KaTeX (output: 'html' so the markup is plain spans
  * that survive sanitization); a sanitize test guards against regressions.
  */
@@ -57,12 +57,13 @@ export function Preview({
   useEffect(() => {
     if (!host.current) return
     const clean = renderMarkdown(md, content)
-    const frag = document.createRange().createContextualFragment(clean)
-    // :storage の参照は、ページの中に入れる前に外す。そのままだとこのサイトの
-    // /:storage/... を取りに行ってしまう
-    const pending = takeAttachments(frag)
-    markImageRows(frag)
-    host.current.replaceChildren(frag)
+    // 何も読み込まない文書（DOMParser）で組み立て、:storage の参照を外してからページへ移す。
+    // このページの文書で要素を作る createContextualFragment では、Safari などが作った時点で画像を
+    // 取りに行き、外す前の /:storage/... をこのサイトへ問い合わせてしまう
+    const parsed = new DOMParser().parseFromString(clean, 'text/html').body
+    const pending = takeAttachments(parsed)
+    markImageRows(parsed)
+    host.current.replaceChildren(...parsed.childNodes)
     for (const { el, path } of pending) {
       const id = path.join('/')
       const purpose = el instanceof HTMLImageElement ? 'image' : 'file'
@@ -158,7 +159,7 @@ export function Preview({
 }
 
 /** 添付を指す img と a から参照を外し、あとで差し込む先として返す */
-function takeAttachments(root: DocumentFragment) {
+function takeAttachments(root: ParentNode) {
   const out: { el: HTMLElement; path: string[] }[] = []
   for (const el of root.querySelectorAll<HTMLElement>('img[src], a[href]')) {
     const attr = el instanceof HTMLImageElement ? 'src' : 'href'

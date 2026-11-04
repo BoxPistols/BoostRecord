@@ -100,6 +100,7 @@ export interface OpfsRepository {
   exportArchive(): Promise<boolean>
   createFolder(storage: string, input: { name: string; color: string }): Promise<FolderChange>
   renameFolder(storage: string, folder: string, name: string): Promise<FolderChange>
+  readAttachment(storage: string, path: string[]): Promise<File>
 }
 
 /**
@@ -155,6 +156,9 @@ export function createOpfsRepository(
     },
     async renameFolder(storage, folder, name) {
       return displayed(await (await open()).inner.renameFolder(storage, folder, name))
+    },
+    async readAttachment(storage, path) {
+      return (await open()).inner.readAttachment(storage, path)
     },
     async exportNote(note) {
       // showSaveFilePicker が無いブラウザ向けなので、ダウンロードで渡す

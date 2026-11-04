@@ -79,7 +79,10 @@ describe('buildFolderTree', () => {
   })
 
   it('兄弟が同じ親を共有する（親を重複して作らない）', () => {
-    const tree = buildFolderTree([f('a', 'ACME/spec'), f('b', 'ACME/onboarding')])
+    const tree = buildFolderTree([
+      f('a', 'ACME/spec'),
+      f('b', 'ACME/onboarding')
+    ])
     expect(tree).toHaveLength(1)
     expect(tree[0].children.map(n => n.name)).toEqual(['spec', 'onboarding'])
   })

@@ -240,6 +240,7 @@ export interface FileSystemAccessRepository {
   exportNote(note: Note): Promise<boolean>
   createFolder(storage: string, input: { name: string; color: string }): Promise<FolderChange>
   renameFolder(storage: string, folder: string, name: string): Promise<FolderChange>
+  readAttachment(storage: string, path: string[]): Promise<File>
 }
 
 /** フォルダを変えたあとのストレージと、作った・改名したフォルダのキー */
@@ -426,6 +427,18 @@ export function createFileSystemAccessRepository(
 
     renameFolder(storage, folder, name) {
       return editFolders(storage, folders => renameFolder(folders, folder, name))
+    },
+
+    /** attachments/ の下のファイル。path は attachmentPath() で確かめたもの（. や .. を含まない） */
+    async readAttachment(storage, path) {
+      if (!root) throw new Error('ストレージが開かれていません')
+      if (storage !== root.name) throw new Error('ストレージが見つかりません')
+      if (!path.length || path.some(p => !p || p === '.' || p === '..' || /[/\\]/.test(p))) {
+        throw new Error('添付ファイルのパスが不正です')
+      }
+      let dir = await root.getDirectoryHandle('attachments')
+      for (const part of path.slice(0, -1)) dir = await dir.getDirectoryHandle(part)
+      return (await dir.getFileHandle(path[path.length - 1])).getFile()
     },
 
     async exportNote(note) {

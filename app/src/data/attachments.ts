@@ -4,6 +4,11 @@
 
 const PREFIX = /^\/?:storage(?=[/\\]|%5C)/i
 
+/** 添付の書き方（`:storage/...`）か。中身が正しいかは見ない（attachmentPath で確かめる） */
+export function isAttachmentRef(ref: string): boolean {
+  return PREFIX.test(ref)
+}
+
 /**
  * `:storage/...` の参照を、attachments/ からの相対パスの区切りごとの配列にする。
  * 添付の参照でなければ null。. や .. などストレージの外を指しうるものも null

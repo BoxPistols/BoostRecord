@@ -1,7 +1,7 @@
 // 添付の参照（:storage/ノートのキー/ファイル名）を読む
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { attachmentPath, attachmentUrlKind } from '../src/data/attachments.ts'
+import { attachmentPath, attachmentUrlKind, isAttachmentRef } from '../src/data/attachments.ts'
 
 test('デスクトップ版の書き方を、attachments/ からのパスにする', () => {
   assert.deepEqual(attachmentPath(':storage/bbff3c9c-c85d-420b-b3b2-dbb6e8f6c1c6/909cde7f.png'), ['bbff3c9c-c85d-420b-b3b2-dbb6e8f6c1c6', '909cde7f.png'])
@@ -39,4 +39,12 @@ test('リンクから保存させるものは、画像でも表示しない形�
   for (const name of ['a.png', 'a.svg', 'a.html']) {
     assert.deepEqual(attachmentUrlKind(name, 'file'), { kind: 'binary' }, name)
   }
+})
+
+test('ストレージの外を指す参照も、添付の書き方としては見分ける（元の参照のまま残さないため）', () => {
+  assert.equal(attachmentPath(':storage/../x.png'), null)
+  assert.equal(isAttachmentRef(':storage/../x.png'), true)
+  assert.equal(isAttachmentRef('/:storage%5C..%5Cx.png'), true)
+  assert.equal(isAttachmentRef('https://example.com/a.png'), false)
+  assert.equal(isAttachmentRef('images/a.png'), false)
 })

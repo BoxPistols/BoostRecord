@@ -9,8 +9,6 @@ import EventEmitter from 'browser/main/lib/eventEmitter'
 
 const electron = require('electron')
 const { ipcRenderer } = electron
-const remote = require('@electron/remote')
-const { dialog } = remote
 
 const zoomOptions = [
   0.8,
@@ -48,17 +46,10 @@ class StatusBar extends React.Component {
     EventEmitter.off('status:zoomreset', this.handleZoomResetMenuItem)
   }
 
+  // 手で確かめたのと同じ扱いにして、更新の方法によらず確認のダイアログを出す
+  // （lib/app-updater.js）。開き直す前に聞かないと、押し間違いで画面が閉じる
   updateApp() {
-    const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
-      type: 'warning',
-      message: i18n.__('Update BoostRecord'),
-      detail: i18n.__('New BoostRecord is ready to be installed.'),
-      buttons: [i18n.__('Restart & Install'), i18n.__('Not Now')]
-    })
-
-    if (index === 0) {
-      ipcRenderer.send('update-app-confirm')
-    }
+    ipcRenderer.send('update-check', 'manual')
   }
 
   handleZoomButtonClick(e) {
@@ -108,9 +99,21 @@ class StatusBar extends React.Component {
         </button>
 
         {status.updateReady ? (
-          <button onClick={this.updateApp} styleName='update'>
+          <button
+            onClick={this.updateApp}
+            styleName='update'
+            disabled={!!status.updateBusy}
+            title={status.updateError || undefined}
+          >
             <i styleName='update-icon' className='fa fa-cloud-download' />{' '}
-            {i18n.__('Ready to Update!')}
+            {status.updateBusy
+              ? i18n.__('Preparing the update…')
+              : status.updateVersion
+              ? i18n.__('Update to %s', status.updateVersion)
+              : i18n.__('Ready to Update!')}
+            {status.updateError && !status.updateBusy
+              ? ' ' + i18n.__('(will retry later)')
+              : null}
           </button>
         ) : null}
       </div>

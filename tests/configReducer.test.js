@@ -64,14 +64,44 @@ describe('config reducer', () => {
 describe('status reducer', () => {
   it('defaults to not-ready', () => {
     expect(status(undefined, { type: '@@INIT' })).toEqual({
-      updateReady: false
+      updateReady: false,
+      updateVersion: null,
+      updateBusy: false,
+      updateError: null
     })
   })
 
   it('UPDATE_AVAILABLE marks the update ready', () => {
     expect(status(defaultStatus, { type: 'UPDATE_AVAILABLE' })).toEqual({
-      updateReady: true
+      updateReady: true,
+      updateVersion: null,
+      updateBusy: false,
+      updateError: null
     })
+  })
+
+  it('UPDATE_AVAILABLEはバージョンと進み具合と失敗の理由を持つ', () => {
+    expect(
+      status(defaultStatus, {
+        type: 'UPDATE_AVAILABLE',
+        version: '9.4.2',
+        busy: true,
+        error: 'サンプルの失敗'
+      })
+    ).toEqual({
+      updateReady: true,
+      updateVersion: '9.4.2',
+      updateBusy: true,
+      updateError: 'サンプルの失敗'
+    })
+  })
+
+  it('UPDATE_CLEAREDで知らせを消す', () => {
+    const ready = status(defaultStatus, {
+      type: 'UPDATE_AVAILABLE',
+      version: '9.4.2'
+    })
+    expect(status(ready, { type: 'UPDATE_CLEARED' })).toEqual(defaultStatus)
   })
 
   it('returns the same state for an unknown action', () => {

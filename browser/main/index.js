@@ -19,6 +19,8 @@ require('../lib/customMeta')
 import i18n from 'browser/lib/i18n'
 import ConfigManager from './lib/ConfigManager'
 import { saveLastRoute, readLastRoute } from './lib/lastRoute'
+import { hasPendingSave, flushPendingSaves } from './lib/pendingSaves'
+import { isModalOpen } from './lib/modal'
 
 const electron = require('electron')
 
@@ -115,16 +117,26 @@ function updateApp() {
   }
 }
 
-function downloadUpdate() {
+// infoはlib/app-updater.jsから届く{ version, canInstall }。canInstallなら
+// アプリの中で置き換えて開き直し、そうでなければインストーラかページを開く
+function downloadUpdate(info) {
+  const canInstall = !!(info && info.canInstall)
+  const version = info && info.version ? info.version : ''
   const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
     type: 'warning',
-    message: i18n.__('Update BoostRecord'),
-    detail: i18n.__('New BoostRecord is ready to be downloaded.'),
+    message: version
+      ? i18n.__('BoostRecord %s is available', version)
+      : i18n.__('Update BoostRecord'),
+    detail: canInstall
+      ? i18n.__(
+          'BoostRecord will download the update, then quit and reopen. You can also update later from the button at the bottom right.'
+        )
+      : i18n.__('New BoostRecord is ready to be downloaded.'),
     // 「今回は見送る」と「今後いっさい通知しない」を分ける。以前は選択肢が
     // 2 つしかなく、後者しか無かったため、一度スキップしたユーザーは二度と
     // 更新通知を受け取れなかった
     buttons: [
-      i18n.__('Download now'),
+      canInstall ? i18n.__('Update now') : i18n.__('Download now'),
       i18n.__('Not Now'),
       i18n.__('Stop notifying me')
     ],
@@ -137,7 +149,7 @@ function downloadUpdate() {
   if (index === 0) {
     ipcRenderer.send('update-download-confirm')
   } else if (index === 1) {
-    // updateFound がリセットされるので、次回の起動時にまた通知される
+    // ダイアログはバージョンごとに1回だけ。以降は右下の「更新する」とDockのバッジで知らせる
     ipcRenderer.send('update-cancel')
   } else if (index === 2) {
     ipcRenderer.send('update-cancel')
@@ -195,8 +207,31 @@ ReactDOM.render(
       updateApp()
     })
 
-    ipcRenderer.on('update-found', function() {
-      downloadUpdate()
+    ipcRenderer.on('update-found', function(_, info) {
+      downloadUpdate(info)
+    })
+
+    // 新しいバージョンの有無と、更新の進み具合。右下の表示に使う
+    ipcRenderer.on('update-available', function(_, info) {
+      store.dispatch({
+        type: info && info.version ? 'UPDATE_AVAILABLE' : 'UPDATE_CLEARED',
+        version: info && info.version,
+        busy: !!(info && info.busy),
+        error: (info && info.error) || null
+      })
+    })
+
+    // アプリ内更新で開き直してよいかの問い合わせ。flushなら保留中の保存を先に書き込む
+    ipcRenderer.on('update-restart-query', function(_, query) {
+      const flush =
+        query && query.flush ? flushPendingSaves() : Promise.resolve()
+      flush.then(() => {
+        ipcRenderer.send('update-restart-reply', {
+          id: query && query.id,
+          dirty: hasPendingSave(),
+          modalOpen: isModalOpen()
+        })
+      })
     })
 
     ipcRenderer.on('update-not-found', function(_, msg) {

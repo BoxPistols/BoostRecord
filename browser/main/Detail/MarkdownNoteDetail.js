@@ -45,6 +45,7 @@ import { stepIndex } from 'browser/lib/findInText'
 import * as editorFind from 'browser/lib/editorFind'
 import * as previewFind from 'browser/lib/findInPreview'
 import i18n from 'browser/lib/i18n'
+import { registerPendingSave } from 'browser/main/lib/pendingSaves'
 
 // Preview-only は「今の見え方」であってノート単位の属性ではないので、
 // コンポーネント state だけに置いてはいけない。Detail/index.js はノート種別で
@@ -461,6 +462,15 @@ class MarkdownNoteDetail extends React.Component {
   }
 
   componentDidMount() {
+    // アプリ内更新が開き直す前に、保存が済んでいない編集が無いかを確かめる
+    this.unregisterPendingSave = registerPendingSave({
+      isDirty: () =>
+        this.saveQueue != null || !!this.savePending || !!this.saveFailed,
+      flush: () =>
+        this.saveQueue != null
+          ? this.saveNow()
+          : this.savePromise || Promise.resolve()
+    })
     ee.on('editor:orientation', this.handleSwitchStackDirection)
     ee.on('topbar:togglelockbutton', this.toggleLockButton)
     ee.on('topbar:toggledirectionbutton', this.handleSwitchDirection)
@@ -970,6 +980,7 @@ class MarkdownNoteDetail extends React.Component {
     ee.off('detail:toggletoc', this.toggleTocHandler)
     ipcRenderer.removeListener('detail:find', this.findOpenHandler)
     if (this.saveQueue != null) this.saveNow()
+    if (this.unregisterPendingSave) this.unregisterPendingSave()
   }
 
   handleUpdateTag() {
@@ -1013,9 +1024,13 @@ class MarkdownNoteDetail extends React.Component {
     clearTimeout(this.saveQueue)
     this.saveQueue = null
 
-    dataApi
+    // 書き込みの最中と失敗した後は、保存が済んでいないとみなす（pendingSaves）。
+    // 失敗を握りつぶしたままだと、アプリ内更新が書きかけを捨てて開き直してしまう
+    this.savePending = true
+    this.savePromise = dataApi
       .updateNote(note.storage, note.key, this.state.note)
       .then(note => {
+        this.saveFailed = false
         dispatch({
           type: 'UPDATE_NOTE',
           note: note
@@ -1023,8 +1038,13 @@ class MarkdownNoteDetail extends React.Component {
         AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
       })
       .catch(err => {
+        this.saveFailed = true
         console.error('Cannot save note: ' + err)
       })
+      .then(() => {
+        this.savePending = false
+      })
+    return this.savePromise
   }
 
   handleFolderChange(e) {

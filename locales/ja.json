@@ -839,5 +839,16 @@
   "On device (Windows, no Japanese)": "端末内（Windows・日本語なし）",
   "Replace with": "置換後の文字列",
   "Replace match": "置換",
-  "Toggle replace": "置換を開閉"
+  "Toggle replace": "置換を開閉",
+  "BoostRecord %s is available": "BoostRecord %sが出ています",
+  "BoostRecord will download the update, then quit and reopen. You can also update later from the button at the bottom right.": "更新を取ってきてから、BoostRecordを終了して開き直します。あとで右下の「更新する」から更新することもできます。",
+  "Update now": "更新する",
+  "Update to %s": "%sに更新する",
+  "Preparing the update…": "更新を準備しています…",
+  "(will retry later)": "（あとでもう一度試します）",
+  "Check for updates automatically": "更新を自動で確認する",
+  "When an update is found": "更新があったとき",
+  "Ask before updating": "確認してから更新する",
+  "Update automatically": "自動で更新する",
+  "Automatic updates wait until you have been away for 5 minutes and every edit is saved, then reopen BoostRecord.": "自動で更新するときは、5分以上操作が無く、編集がすべて保存されているのを待ってから開き直します。"
 }

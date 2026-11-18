@@ -36,6 +36,7 @@ import { stepIndex } from 'browser/lib/findInText'
 import * as editorFind from 'browser/lib/editorFind'
 import * as previewFind from 'browser/lib/findInPreview'
 import { replace } from 'connected-react-router'
+import { registerPendingSave } from 'browser/main/lib/pendingSaves'
 import {
   subscribe as subscribeMetaKey,
   getJumpNumber,
@@ -108,6 +109,15 @@ class SnippetNoteDetail extends React.Component {
   }
 
   componentDidMount() {
+    // アプリ内更新が開き直す前に、保存が済んでいない編集が無いかを確かめる
+    this.unregisterPendingSave = registerPendingSave({
+      isDirty: () =>
+        this.saveQueue != null || !!this.savePending || !!this.saveFailed,
+      flush: () =>
+        this.saveQueue != null
+          ? this.saveNow()
+          : this.savePromise || Promise.resolve()
+    })
     // ホットキーの受け口は Markdown 側だけにあり、スニペットノートを開いて
     // いる間は情報パネル・リンクのショートカットが効かなかった
     this.toggleInfoHandler = () => this.handleInfoButtonClick()
@@ -235,6 +245,7 @@ class SnippetNoteDetail extends React.Component {
 
   componentWillUnmount() {
     if (this.saveQueue != null) this.saveNow()
+    if (this.unregisterPendingSave) this.unregisterPendingSave()
     ee.off('code:generate-toc', this.generateToc)
     ee.off('detail:toggleinfo', this.toggleInfoHandler)
     ee.off('detail:focusnotelink', this.focusNoteLinkHandler)
@@ -512,6 +523,7 @@ class SnippetNoteDetail extends React.Component {
 
     // handleFolderChange がディスクへの書き込み完了を待てるよう、
     // 進行中の保存を Promise として持つ
+    this.savePending = true
     this.savePromise = dataApi
       .updateNote(note.storage, note.key, this.state.note)
       .then(note => {
@@ -521,6 +533,18 @@ class SnippetNoteDetail extends React.Component {
         })
         AwsMobileAnalyticsConfig.recordDynamicCustomEvent('EDIT_NOTE')
       })
+    // 書き込みの最中と失敗した後は、保存が済んでいないとみなす（pendingSaves）。
+    // 戻り値のPromiseはそのまま返し、呼び出し側の失敗の扱いを変えない
+    this.savePromise.then(
+      () => {
+        this.savePending = false
+        this.saveFailed = false
+      },
+      () => {
+        this.savePending = false
+        this.saveFailed = true
+      }
+    )
     return this.savePromise
   }
 

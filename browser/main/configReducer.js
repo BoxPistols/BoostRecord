@@ -41,15 +41,24 @@ export function createConfigReducer(defaultConfig) {
 }
 
 export const defaultStatus = {
-  updateReady: false
+  updateReady: false,
+  // アプリ内更新（lib/app-updater.js）が知らせる新しいバージョンと、その進み具合
+  updateVersion: null,
+  updateBusy: false,
+  updateError: null
 }
 
 export function status(state = defaultStatus, action) {
   switch (action.type) {
     case 'UPDATE_AVAILABLE':
       return Object.assign({}, defaultStatus, {
-        updateReady: true
+        updateReady: true,
+        updateVersion: action.version || null,
+        updateBusy: !!action.busy,
+        updateError: action.error || null
       })
+    case 'UPDATE_CLEARED':
+      return Object.assign({}, defaultStatus)
   }
   return state
 }

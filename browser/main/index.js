@@ -17,7 +17,6 @@ import DevTools from './DevTools'
 require('./lib/ipcClient')
 require('../lib/customMeta')
 import i18n from 'browser/lib/i18n'
-import ConfigManager from './lib/ConfigManager'
 import { saveLastRoute, readLastRoute } from './lib/lastRoute'
 
 const electron = require('electron')
@@ -102,46 +101,38 @@ function notify(...args) {
   return new window.Notification(...args)
 }
 
-function updateApp() {
+// 新しいバージョンを取得して確かめ終えた時に1回だけ出す。承諾されたら置き換えて開き直す
+function confirmUpdate(info) {
   const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
-    type: 'warning',
-    message: i18n.__('Update BoostRecord'),
-    detail: i18n.__('New BoostRecord is ready to be installed.'),
-    buttons: [i18n.__('Restart & Install'), i18n.__('Not Now')]
+    type: 'info',
+    message: i18n.__('Update BoostRecord to %s', info.version),
+    detail: i18n.__(
+      'BoostRecord will restart to finish updating (currently %s).',
+      info.current
+    ),
+    buttons: [i18n.__('Update and Restart'), i18n.__('Not Now')],
+    defaultId: 0,
+    // Escは「後で」に倒す
+    cancelId: 1
   })
-
   if (index === 0) {
     ipcRenderer.send('update-app-confirm')
   }
 }
 
+// その場で置き換えられない時（Windows・Linux、DMGから開いているなど）の知らせ
 function downloadUpdate() {
   const index = dialog.showMessageBoxSync(remote.getCurrentWindow(), {
-    type: 'warning',
+    type: 'info',
     message: i18n.__('Update BoostRecord'),
     detail: i18n.__('New BoostRecord is ready to be downloaded.'),
-    // 「今回は見送る」と「今後いっさい通知しない」を分ける。以前は選択肢が
-    // 2 つしかなく、後者しか無かったため、一度スキップしたユーザーは二度と
-    // 更新通知を受け取れなかった
-    buttons: [
-      i18n.__('Download now'),
-      i18n.__('Not Now'),
-      i18n.__('Stop notifying me')
-    ],
+    buttons: [i18n.__('Download now'), i18n.__('Not Now')],
     defaultId: 0,
-    // Esc は「今回は見送る」に倒す。cancelId を指定しないと 0 が返り、
-    // 閉じたつもりでダウンロードが始まる
+    // Escは「後で」に倒す。cancelIdを指定しないと0が返り、閉じたつもりでダウンロードが始まる
     cancelId: 1
   })
-
   if (index === 0) {
     ipcRenderer.send('update-download-confirm')
-  } else if (index === 1) {
-    // updateFound がリセットされるので、次回の起動時にまた通知される
-    ipcRenderer.send('update-cancel')
-  } else if (index === 2) {
-    ipcRenderer.send('update-cancel')
-    ConfigManager.set({ autoUpdateEnabled: false })
   }
 }
 
@@ -185,14 +176,11 @@ ReactDOM.render(
     const loadingCover = document.getElementById('loadingCover')
     loadingCover.parentNode.removeChild(loadingCover)
 
-    ipcRenderer.on('update-ready', function() {
+    ipcRenderer.on('update-ready', function(_, info) {
       store.dispatch({
         type: 'UPDATE_AVAILABLE'
       })
-      notify('Update ready!', {
-        body: 'New BoostRecord is ready to be installed.'
-      })
-      updateApp()
+      confirmUpdate(info || {})
     })
 
     ipcRenderer.on('update-found', function() {
@@ -202,6 +190,24 @@ ReactDOM.render(
     ipcRenderer.on('update-not-found', function(_, msg) {
       notify('Update not found!', {
         body: msg
+      })
+    })
+
+    // 確認の失敗を「最新」と同じ知らせにしない
+    ipcRenderer.on('update-check-failed', function() {
+      notify(i18n.__('Could not check for updates'), {
+        body: i18n.__('Check your network connection and try again.')
+      })
+    })
+
+    // main側はi18nを持たないので、キーと差し込む値を受け取ってここで訳す
+    ipcRenderer.on('update-error', function(_, err) {
+      const key = (err && err.key) || '%s'
+      const args = (err && err.args) || []
+      dialog.showMessageBoxSync(remote.getCurrentWindow(), {
+        type: 'warning',
+        message: i18n.__('Could not update BoostRecord'),
+        detail: i18n.__(key, ...args)
       })
     })
 

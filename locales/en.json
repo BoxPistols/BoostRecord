@@ -664,5 +664,20 @@
   "On device (Windows, no Japanese)": "On device (Windows, no Japanese)",
   "Replace with": "Replace with",
   "Replace match": "Replace",
-  "Toggle replace": "Show or hide replace"
+  "Toggle replace": "Show or hide replace",
+  "Could not check for updates": "Could not check for updates",
+  "Check your network connection and try again.": "Check your network connection and try again.",
+  "Could not update BoostRecord": "Could not update BoostRecord",
+  "Could not read the app’s bundle ID.": "Could not read the app’s bundle ID.",
+  "Could not download the update (HTTP %s).": "Could not download the update (HTTP %s).",
+  "Could not extract the downloaded zip.": "Could not extract the downloaded zip.",
+  "The downloaded zip does not contain BoostRecord.": "The downloaded zip does not contain BoostRecord.",
+  "The downloaded app is not version %s.": "The downloaded app is not version %s.",
+  "The downloaded app failed the signature check.": "The downloaded app failed the signature check.",
+  "No permission to write to %s.": "No permission to write to %s.",
+  "Could not copy the new app into %s.": "Could not copy the new app into %s.",
+  "Could not replace %s (%s).": "Could not replace %s (%s).",
+  "Update BoostRecord to %s": "Update BoostRecord to %s",
+  "BoostRecord will restart to finish updating (currently %s).": "BoostRecord will restart to finish updating (currently %s).",
+  "Update and Restart": "Update and Restart"
 }

@@ -839,5 +839,20 @@
   "On device (Windows, no Japanese)": "端末内（Windows・日本語なし）",
   "Replace with": "置換後の文字列",
   "Replace match": "置換",
-  "Toggle replace": "置換を開閉"
+  "Toggle replace": "置換を開閉",
+  "Could not check for updates": "更新を確認できませんでした",
+  "Check your network connection and try again.": "ネットワークの接続を確かめてから、もう一度お試しください。",
+  "Could not update BoostRecord": "BoostRecordを更新できませんでした",
+  "Could not read the app’s bundle ID.": "このアプリのバンドルIDを読めませんでした。",
+  "Could not download the update (HTTP %s).": "更新をダウンロードできませんでした（HTTP %s）。",
+  "Could not extract the downloaded zip.": "ダウンロードしたzipを展開できませんでした。",
+  "The downloaded zip does not contain BoostRecord.": "ダウンロードしたzipの中身がBoostRecordではありません。",
+  "The downloaded app is not version %s.": "ダウンロードしたアプリのバージョンが%sではありません。",
+  "The downloaded app failed the signature check.": "ダウンロードしたアプリの署名を確かめられませんでした。",
+  "No permission to write to %s.": "%sに書き込む権限がありません。",
+  "Could not copy the new app into %s.": "新しいアプリを%sに置けませんでした。",
+  "Could not replace %s (%s).": "%sを置き換えられませんでした（%s）。",
+  "Update BoostRecord to %s": "BoostRecordを%sに更新",
+  "BoostRecord will restart to finish updating (currently %s).": "再起動すると更新が終わります（いまは%s）。",
+  "Update and Restart": "更新して再起動"
 }

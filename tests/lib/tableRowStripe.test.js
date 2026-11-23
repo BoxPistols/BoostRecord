@@ -43,11 +43,12 @@ describe('テーブル行の帯', () => {
   })
 
   it('生成タスクが復活していない', () => {
-    // grunt bfm がこのファイルを書き戻すと、テーマ列挙の方式に逆戻りする
-    const grunt = fs.readFileSync(
-      path.resolve(__dirname, '..', '..', 'gruntfile.js'),
-      'utf8'
-    )
+    // grunt bfm がこのファイルを書き戻すと、テーマ列挙の方式に逆戻りする。
+    // gruntfile.js自体は廃止したので、無ければ生成タスクも無い
+    const gruntfilePath = path.resolve(__dirname, '..', '..', 'gruntfile.js')
+    const grunt = fs.existsSync(gruntfilePath)
+      ? fs.readFileSync(gruntfilePath, 'utf8')
+      : ''
     expect(grunt).not.toMatch(/registerTask\(\s*'bfm'/)
   })
 })

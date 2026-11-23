@@ -70,6 +70,6 @@ To just make an executable without an installer, run:
 npm run dist:dir
 ```
 
-You will find the unpacked application in the `release` directory. Note, the auto updater won't work because the app isn't signed.
+You will find the unpacked application in the `release` directory.
 
 If you find it necessary, you can use codesign or authenticode with this executable.

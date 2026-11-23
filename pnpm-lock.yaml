@@ -4,6 +4,10 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  dompurify@<2.4.2: ^2.5.9
+  underscore@<1.12.1: ^1.13.8
+
 patchedDependencies:
   JSV@4.0.2:
     hash: 55a7c0609358ede074e15c96a97efbda395e2a50faeb25d50932ed66c47a369a
@@ -2545,8 +2549,8 @@ packages:
     resolution: {integrity: sha512-GrwoxYN+uWlzO8uhUXRl0P+kHE4GtVPfYzVLcUxPL7KNdHKj66vvlhiweIHqYYXWlw+T8iLMp42Lm67ghw4WMQ==}
     engines: {node: '>= 4'}
 
-  dompurify@2.3.5:
-    resolution: {integrity: sha512-kD+f8qEaa42+mjdOpKeztu9Mfx5bv9gVLO6K9jRx4uGvh6Wv06Srn4jr1wPNY2OOUGGSKHNFN+A8MA3v0E0QAQ==}
+  dompurify@2.5.9:
+    resolution: {integrity: sha512-i6mvVmWN4xo9LrhCOZrDgSs9noW6nOahbrmzjRbPF36YPyj5Ue5lgok0MHDWkG7xzpWFO2OYttXdzM7rJxHvNA==}
 
   domutils@2.8.0:
     resolution: {integrity: sha512-w96Cjofp72M5IIhpjgobBimYEfoPjx1Vx0BSX9P30WBdZW2WIKU0T1Bd0kz2eNZ9ikjKgHbEyKx8BB6H1L3h3A==}
@@ -6509,9 +6513,6 @@ packages:
   underscore@1.13.8:
     resolution: {integrity: sha512-DXtD3ZtEQzc7M8m4cXotyHR+FAS18C64asBYY5vqZexfYryNNnDc02W4hKg3rdQuqOYas1jkseX0+nZXjTXnvQ==}
 
-  underscore@1.4.4:
-    resolution: {integrity: sha512-ZqGrAgaqqZM7LGRzNjLnw5elevWb5M8LEoDMadxIW3OWbcv72wMMgKdwOKpd5Fqxe8choLD8HN3iSj3TUh/giQ==}
-
   undici-types@5.26.5:
     resolution: {integrity: sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==}
 
@@ -7184,7 +7185,7 @@ snapshots:
   '@rokt33r/js-sequence-diagrams@2.0.6-2':
     dependencies:
       raphael: 2.1.4
-      underscore: 1.4.4
+      underscore: 1.13.8
 
   '@rokt33r/markdown-it-math@4.0.2': {}
 
@@ -9611,7 +9612,7 @@ snapshots:
     dependencies:
       domelementtype: 2.3.0
 
-  dompurify@2.3.5: {}
+  dompurify@2.5.9: {}
 
   domutils@2.8.0:
     dependencies:
@@ -12283,7 +12284,7 @@ snapshots:
       d3: 7.9.0
       dagre: 0.8.5
       dagre-d3: 0.6.4
-      dompurify: 2.3.5
+      dompurify: 2.5.9
       graphlib: 2.1.8
       khroma: 1.4.1
       moment-mini: 2.29.4
@@ -14442,8 +14443,6 @@ snapshots:
       underscore: 1.13.8
 
   underscore@1.13.8: {}
-
-  underscore@1.4.4: {}
 
   undici-types@5.26.5: {}
 

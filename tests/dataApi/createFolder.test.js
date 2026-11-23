@@ -32,7 +32,7 @@ it('Create a folder', done => {
     name: 'created',
     color: '#ff5555'
   }
-  return Promise.resolve()
+  Promise.resolve()
     .then(() => {
       return createFolder(storageKey, input)
     })
@@ -44,6 +44,7 @@ it('Create a folder', done => {
       expect(_.find(jsonData.folders, input)).not.toBeNull()
       done()
     })
+    .catch(done)
 })
 
 afterAll(() => {

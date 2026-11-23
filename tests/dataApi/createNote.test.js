@@ -58,7 +58,7 @@ it('Create a note', done => {
   }
   input2.title = input2.content.split('\n').shift()
 
-  return Promise.resolve()
+  Promise.resolve()
     .then(() => {
       return Promise.all([
         createNote(storageKey, input1),
@@ -108,6 +108,7 @@ it('Create a note', done => {
 
       done()
     })
+    .catch(done)
 })
 
 // 空配列の snippets はディスクに書かせない(cloneNote 経由で壊れた
@@ -132,7 +133,7 @@ it('Create a snippet note with an empty snippets array falls back to the default
       expect(data.snippets.length).toBe(1)
       done()
     })
-    .catch(done.fail)
+    .catch(done)
 })
 
 afterAll(function after() {

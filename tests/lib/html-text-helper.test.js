@@ -44,7 +44,7 @@ test('htmlTextHelper#decodeEntities() should return decoded text (string)', () =
 })
 
 // Integration test
-test(() => {
+test('htmlTextHelper#encodeEntities and decodeEntities round-trip', () => {
   const testCases = [
     "var test = 'test'",
     "<a href='https://boostnote.io'>Boostnote",

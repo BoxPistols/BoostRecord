@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`SideNavFilter renders the All / Starred / Bookmark / Trash buttons 1`] = `
 <div

@@ -238,18 +238,15 @@
     "uuid": "^3.2.1"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.13",
+    "@babel/preset-env": "^7.29.14",
+    "@babel/preset-react": "^7.29.7",
+    "@babel/register": "^7.29.13",
     "@vitejs/plugin-react": "^6.0.3",
-    "ava": "^0.25.0",
-    "babel-core": "^6.26.3",
-    "babel-jest": "^22.4.3",
-    "babel-plugin-add-module-exports": "^0.2.1",
-    "babel-plugin-react-transform": "^2.0.0",
-    "babel-plugin-webpack-alias": "^2.1.1",
-    "babel-preset-env": "^1.6.1",
-    "babel-preset-es2015": "^6.3.13",
-    "babel-preset-react": "^6.24.1",
-    "babel-preset-react-hmre": "^1.0.1",
-    "babel-register": "^6.11.6",
+    "ava": "^8.4.0",
+    "babel-jest": "^30.5.2",
+    "babel-plugin-add-module-exports": "^1.0.4",
+    "babel-plugin-webpack-alias-7": "^0.1.1",
     "browser-env": "^3.2.5",
     "color": "^3.0.0",
     "concurrently": "^3.6.1",
@@ -271,7 +268,8 @@
     "faker": "^3.1.0",
     "husky": "^1.1.0",
     "identity-obj-proxy": "^3.0.0",
-    "jest": "^22.4.3",
+    "jest": "^30.5.2",
+    "jest-environment-jsdom": "^30.5.2",
     "jest-localstorage-mock": "^2.2.0",
     "jsdom": "^9.4.2",
     "merge-stream": "^1.0.0",
@@ -294,14 +292,29 @@
       "tests/**/*-test.js"
     ],
     "require": [
-      "babel-register",
+      "@babel/register",
+      "./tests/helpers/ava-interop.js",
       "./tests/helpers/setup-browser-env.js",
       "./tests/helpers/setup-electron-mock.js"
     ],
-    "babel": "inherit"
+    "nodeArguments": [
+      "--no-experimental-detect-module"
+    ],
+    "timeout": "2m"
   },
   "jest": {
-    "testURL": "http://localhost/",
+    "testEnvironment": "jsdom",
+    "snapshotFormat": {
+      "escapeString": true,
+      "printBasicPrototype": true
+    },
+    "testMatch": [
+      "**/__tests__/**/*.js?(x)",
+      "**/?(*.)(spec|test).js?(x)"
+    ],
+    "testEnvironmentOptions": {
+      "url": "http://localhost/"
+    },
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/__mocks__/fileMock.js",
       "\\.(css|less|styl)$": "identity-obj-proxy",

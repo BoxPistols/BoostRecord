@@ -19,7 +19,7 @@ beforeAll(() => {
 })
 
 it('`copyFile` should handle encoded URI on src path', done => {
-  return copyFile(encodeURI(srcPath), dstPath)
+  copyFile(encodeURI(srcPath), dstPath)
     .then(() => {
       expect(true).toBe(true)
       done()

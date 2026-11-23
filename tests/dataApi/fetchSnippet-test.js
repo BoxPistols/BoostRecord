@@ -42,7 +42,7 @@ test.serial('Fetching from a missing file rejects cleanly', t => {
   // Before the fix, the error branch lacked a return, so it fell through to
   // JSON.parse(undefined) and threw inside the fs callback after rejecting.
   const missingFile = path.join(snippetFilePath, 'does-not-exist.json')
-  return t.throws(fetchSnippet(null, missingFile))
+  return t.throwsAsync(fetchSnippet(null, missingFile))
 })
 
 test.after.always(() => {

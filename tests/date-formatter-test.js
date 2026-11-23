@@ -4,6 +4,8 @@
 const test = require('ava')
 const { formatDate } = require('browser/lib/date-formatter')
 
-test(t => {
-  t.throws(() => formatDate('invalid argument'), 'Invalid argument.')
+test('formatDate throws on an invalid argument', t => {
+  t.throws(() => formatDate('invalid argument'), {
+    message: 'Invalid argument.'
+  })
 })

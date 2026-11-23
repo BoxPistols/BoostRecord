@@ -108,6 +108,7 @@ it('Create a note', done => {
 
       done()
     })
+    .catch(done)
 })
 
 // 空配列の snippets はディスクに書かせない(cloneNote 経由で壊れた

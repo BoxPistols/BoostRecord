@@ -61,47 +61,15 @@ npm run dev
 
 ## Deploy
 
-We use Grunt to automate deployment.
-You can build the program by using `grunt`. However, we don't recommend this because the default task includes codesign and authenticode.
+We use electron-builder to package the application.
+`npm run dist` builds the installers for the current platform (`npm run dist:mac` / `npm run dist:win` for a specific one).
 
-So, we've prepared a separate script which just makes an executable file.
+To just make an executable without an installer, run:
 
 ```
-grunt pre-build
+npm run dist:dir
 ```
 
-You will find the executable in the `dist` directory. Note, the auto updater won't work because the app isn't signed.
+You will find the unpacked application in the `release` directory. Note, the auto updater won't work because the app isn't signed.
 
 If you find it necessary, you can use codesign or authenticode with this executable.
-
-## Make own distribution packages (deb, rpm)
-
-Distribution packages are created by exec `grunt build` on Linux platform (e.g. Ubuntu, Fedora).
-
-> Note: You can create both `.deb` and `.rpm` in a single environment.
-
-After installing the supported version of `node` and `npm`, install build dependency packages.
-
-```
-$ npm install --save-dev grunt-electron-installer-debian grunt-electron-installer-redhat
-```
-
-**Ubuntu/Debian:**
-
-```
-$ sudo apt-get install -y rpm fakeroot
-```
-
-**Fedora:**
-
-```
-$ sudo dnf install -y dpkg dpkg-dev rpm-build fakeroot
-```
-
-Then execute `grunt build`.
-
-```
-$ grunt build
-```
-
-> You will find `.deb` and `.rpm` in the `dist` directory.

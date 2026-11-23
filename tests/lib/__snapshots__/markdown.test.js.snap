@@ -1,4 +1,4 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`Markdown.render() keeps PlantUML Ditaa source and shows the notice 1`] = `
 "<pre class=\\"retired-diagram\\"><code>@startditaa

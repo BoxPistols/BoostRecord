@@ -148,6 +148,8 @@ export default function App() {
   // Chrome・Edge では、ブラウザの中と PC のフォルダを切り替えられる（デスクトップ版の中では出さない）
   const canSwitchStorage = !window.boostnote && canSwitchBrowserStorage()
   const [storageMode, setStorageModeState] = useState<StorageMode>(storageModeAtStart)
+  // 保存先の中身を差し替えた回数（切り替え・フォルダの選び直し・zip の取り込み）。読んだ添付を捨てるしるし
+  const [repoVersion, setRepoVersion] = useState(0)
   // 切り替えた結果を設定の「ストレージ」に出す（何が起きたかを伝える）
   const [switchNotice, setSwitchNotice] = useState<string | null>(null)
 
@@ -209,6 +211,7 @@ export default function App() {
       return
     }
     repository = next
+    setRepoVersion(v => v + 1)
     setStorages(loaded.storages)
     setNotes(loaded.notes)
     setSelection({ kind: 'smart', value: 'all' })
@@ -295,6 +298,7 @@ export default function App() {
       setPickError(null)
       const res = await repository.pickStorage()
       if (!res) return
+      setRepoVersion(v => v + 1)
       setStorages(res.storages)
       setNotes(res.notes)
       setSelection({ kind: 'smart', value: 'all' })
@@ -682,6 +686,7 @@ export default function App() {
     try {
       setSaveError(null)
       const res = await repository.importArchive(file)
+      setRepoVersion(v => v + 1)
       setStorages(res.storages)
       setNotes(res.notes)
       setSelection({ kind: 'smart', value: 'all' })
@@ -727,8 +732,8 @@ export default function App() {
     }
   }
 
-  // 開いているノートのストレージの添付を読む。保存先の切り替え・フォルダの選び直しで作り直す
-  // （プレビューが読んだものを捨てる）。repository は作り直しても再描画されないので、変わるときに一緒に変わる値で見る
+  // 開いているノートのストレージの添付を読む。保存先の中身を差し替えたら作り直す（プレビューが読んだものを捨てる）。
+  // repository は作り直しても再描画されないので repoVersion で見る。フォルダの作成・改名では作り直さない
   const activeStorage = active?.storage
   const readAttachment = useMemo(
     () => {
@@ -737,8 +742,8 @@ export default function App() {
         ? (path: string[]) => repo.readAttachment!(activeStorage, path)
         : undefined
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- storageMode と storages は repository を差し替えたしるし
-    [storageMode, storages, activeStorage]
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- repoVersion は repository を差し替えたしるし
+    [repoVersion, activeStorage]
   )
 
   const activeFolders = active

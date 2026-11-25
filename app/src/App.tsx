@@ -296,8 +296,10 @@ export default function App() {
     if (!repository.pickStorage) return
     try {
       setPickError(null)
-      const res = await repository.pickStorage()
-      if (!res) return
+      const repo = repository
+      const res = await repo.pickStorage!()
+      // 選んでいる間に保存先を切り替えていたら、古い保存先の結果は捨てる
+      if (!res || repo !== repository) return
       setRepoVersion(v => v + 1)
       setStorages(res.storages)
       setNotes(res.notes)

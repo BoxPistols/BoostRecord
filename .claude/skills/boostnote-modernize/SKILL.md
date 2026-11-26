@@ -97,7 +97,7 @@ Runs: ESM/CJS → lint → AVA → Jest → Vite build → bundle size assert.
   (ava + jest); always `npm run lint` then `npm run fix` before commit. Diagnose
   renderer issues with `ELECTRON_ENABLE_LOGGING=1 npm run dev`.
 - **Modern code** (`poc/`, future `app/`) uses Node 22:
-  `~/.volta/bin/volta run --node 22.22.3 …`. Keep it isolated from the legacy
+  `~/.volta/bin/volta run --node 22.23.5 …`. Keep it isolated from the legacy
   build — `poc/` is in `.eslintignore`; new modern workspaces likewise.
 - **Old/broken packages:** the legacy app loads several libs as global
   `<script>` tags / webpack externals in `lib/main.{development,production}.html`.

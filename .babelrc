@@ -9,7 +9,7 @@
       "presets": ["env" ,"react", "es2015"],
       "plugins": [
         "add-module-exports",
-        [ "babel-plugin-webpack-alias", { "config": "<rootDir>/webpack.config.js" } ]
+        [ "babel-plugin-webpack-alias", { "config": "./babel-alias.config.js" } ]
       ]
     }
   }
